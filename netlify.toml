@@ -1,6 +1,8 @@
 # netlify.toml
 
 [build]
+  # Build command cho react-quest-app
+  command = "turbo run build --filter @repo/react-quest-app"
   # Thư mục chứa ứng dụng của bạn sau khi build. Đối với Vite, thường là 'dist'.
   # Vì đây là monorepo, đường dẫn sẽ là apps/react-quest-app/dist
   publish = "apps/react-quest-app/dist"
