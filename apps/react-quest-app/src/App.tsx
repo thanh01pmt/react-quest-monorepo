@@ -1,6 +1,7 @@
 // apps/react-quest-app/src/App.tsx
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { Routes, Route, useParams, useNavigate, Navigate } from 'react-router-dom';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   QuestPlayer,
@@ -13,16 +14,24 @@ import {
   type GameState,
   type QuestPlayerSettings,
 } from '@repo/quest-player';
-import { QuestSidebar, type QuestInfo } from './components/QuestSidebar';
+import { QuestSidebar } from './components/QuestSidebar/index';
 import './App.css';
+
+// Bọc QuestPlayer trong React.memo để ngăn re-render không cần thiết
+const MemoizedQuestPlayer = React.memo(QuestPlayer);
+
+// Mở rộng kiểu Quest để bao gồm thuộc tính 'topic' và 'groupId'
+type AppQuest = Quest & { 
+  topic?: string;
+  groupId: string; 
+};
 
 type AppSettings = QuestPlayerSettings & { language: string };
 
 function solutionHasOptimalBlocks(solution: SolutionConfig): solution is SolutionConfig & { optimalBlocks: number } {
     return solution.optimalBlocks !== undefined;
 }
-
-const questModules: Record<string, { default: Quest }> = import.meta.glob('../quests/*.json', { eager: true });
+const questModules: Record<string, { default: Quest }> = import.meta.glob('../quests/**/*.json', { eager: true });
 
 const getStoredSettings = (): AppSettings => {
   try {
@@ -53,8 +62,7 @@ const getStoredSettings = (): AppSettings => {
   };
 };
 
-
-function App() {
+function AppContent() {
   const { t, i18n } = useTranslation();
 
   const [settings, setSettings] = useState<AppSettings>(getStoredSettings);
@@ -74,21 +82,22 @@ function App() {
   }, [settings.language, i18n]);
   
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const effectiveColorScheme = settings.colorSchemeMode === 'auto'
-      ? (mediaQuery.matches ? 'dark' : 'light')
-      : settings.colorSchemeMode;
-    
-    document.body.classList.remove('theme-light', 'theme-dark');
-    document.body.classList.add(`theme-${effectiveColorScheme}`);
+    const applyTheme = (isDarkMode: boolean) => {
+      const newColorScheme = isDarkMode ? 'dark' : 'light';
+      document.body.classList.remove('theme-light', 'theme-dark');
+      document.body.classList.add(`theme-${newColorScheme}`);
+    };
 
     const handleChange = (e: MediaQueryListEvent) => {
-        if (settings.colorSchemeMode === 'auto') {
-            const newColorScheme = e.matches ? 'dark' : 'light';
-            document.body.classList.remove('theme-light', 'theme-dark');
-            document.body.classList.add(`theme-${newColorScheme}`);
-        }
+      if (settings.colorSchemeMode === 'auto') {
+        applyTheme(e.matches);
+      }
     };
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const effectiveIsDark = settings.colorSchemeMode === 'auto' ? mediaQuery.matches : settings.colorSchemeMode === 'dark';
+    applyTheme(effectiveIsDark);
+
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [settings.colorSchemeMode]);
@@ -101,24 +110,38 @@ function App() {
     setSettings((prev: AppSettings) => ({ ...prev, language: lang }));
   };
 
-  const sortedQuests = useMemo<QuestInfo[]>(() => {
-    const quests: QuestInfo[] = Object.values(questModules).map(module => ({
-      id: module.default.id,
-      level: module.default.level,
-      gameType: module.default.gameType,
-      titleKey: module.default.titleKey,
-      questTitleKey: module.default.questTitleKey,
-    }));
-    quests.sort((a, b) => {
-      if (a.gameType < b.gameType) return -1;
-      if (a.gameType > b.gameType) return 1;
-      return a.level - b.level;
+  // Lấy groupId và questId từ URL
+  const { groupId, questId: questIdFromUrl } = useParams<{ groupId: string; questId: string }>();
+  const navigate = useNavigate();
+
+  // Xử lý toàn bộ quest một lần, thêm groupId và sắp xếp
+  const allQuests = useMemo<AppQuest[]>(() => {
+    const quests: AppQuest[] = Object.entries(questModules).map(([path, module]) => {
+      const pathSegments = path.split('/');
+      // Giả sử cấu trúc là ../quests/GROUP_NAME/file.json, groupName sẽ là phần tử thứ 3
+      const groupId = pathSegments.length > 2 ? pathSegments[2] : 'ungrouped';
+      return { ...module.default, groupId } as AppQuest;
+    });
+
+    quests.sort((a, b) => { // Sắp xếp toàn bộ danh sách
+      // Sắp xếp theo topic trước, sau đó đến level
+      const topicA = a.topic || 'z'; // Đẩy các quest không có topic xuống cuối
+      const topicB = b.topic || 'z';
+      if (topicA < topicB) return -1;
+      if (topicA > topicB) return 1;
+      return (a.level || 0) - (b.level || 0);
     });
     return quests;
   }, []);
 
-  const [currentQuestId, setCurrentQuestId] = useState<string | null>(sortedQuests[0]?.id || null);
-  const [questData, setQuestData] = useState<Quest | null>(null);
+  // Lọc các quest thuộc group hiện tại để hiển thị
+  const questsInCurrentGroup = useMemo(() => {
+    if (!groupId) return [];
+    return allQuests.filter(q => q.groupId === groupId);
+  }, [allQuests, groupId]);
+
+  const [currentQuestId, setCurrentQuestId] = useState<string | null>(null);
+  const [questData, setQuestData] = useState<AppQuest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [dialogState, setDialogState] = useState<{
@@ -130,21 +153,42 @@ function App() {
     code?: string;
   }>({ isOpen: false, title: '', message: '' });
 
+  // Effect để đồng bộ URL và state
+  useEffect(() => {
+    if (!groupId || questsInCurrentGroup.length === 0) return;
+
+    const targetQuestId = questIdFromUrl || questsInCurrentGroup[0]?.id;
+
+    if (targetQuestId) {
+      // Nếu URL không có questId, hãy cập nhật nó để trỏ đến quest đầu tiên
+      if (!questIdFromUrl) {
+        navigate(`/quest/${groupId}/${targetQuestId}`, { replace: true });
+      }
+      if (targetQuestId !== currentQuestId) {
+        setCurrentQuestId(targetQuestId);
+      }
+    }
+  }, [groupId, questIdFromUrl, questsInCurrentGroup, navigate, currentQuestId]);
+
   useEffect(() => {
     if (currentQuestId) {
       setIsLoading(true);
       setQuestData(null);
       
       setTimeout(() => {
-        const targetModule = Object.values(questModules).find(module => module.default.id === currentQuestId);
-        if (targetModule) {
-          const validationResult = questSchema.safeParse(targetModule.default);
+        const targetQuest = allQuests.find(quest => quest.id === currentQuestId);
+        if (targetQuest) {
+          const validationResult = questSchema.safeParse(targetQuest);
           if (validationResult.success) {
-            const newQuestData = validationResult.data as Quest;
+            const newQuestData = { ...validationResult.data, groupId: targetQuest.groupId } as AppQuest;
             
             if (newQuestData.translations) {
-              Object.keys(newQuestData.translations).forEach((langCode) => {
-                i18n.addResourceBundle(langCode, 'translation', newQuestData.translations![langCode], true, true);
+              const translations = newQuestData.translations; // Tạo biến mới để TypeScript hiểu kiểu
+              Object.keys(translations).forEach((langCode) => {
+                const langTranslations = translations[langCode];
+                if (langTranslations) { // Defensive: chỉ thêm nếu gói dịch thuật tồn tại
+                  i18n.addResourceBundle(langCode, 'translation', langTranslations, true, true);
+                }
               });
               i18n.changeLanguage(i18n.language);
             }
@@ -157,12 +201,13 @@ function App() {
         setIsLoading(false);
       }, 50);
     }
-  }, [currentQuestId, i18n]);
+  }, [currentQuestId, i18n, allQuests]);
 
   const handleQuestSelect = useCallback((id: string) => {
-    if (id === currentQuestId) return;
-    setCurrentQuestId(id);
-  }, [currentQuestId]);
+    if (id === questIdFromUrl) return;
+    // Sử dụng navigate để thay đổi URL, effect ở trên sẽ tự động cập nhật state
+    navigate(`/quest/${groupId}/${id}`);
+  }, [questIdFromUrl, navigate, groupId]);
   
   const handleToggleSidebar = useCallback(() => {
     setIsSidebarCollapsed(prev => !prev);
@@ -173,11 +218,23 @@ function App() {
 
   const handleQuestComplete = useCallback((result: QuestCompletionResult) => {
     if (result.isSuccess && result.finalState.solution) {
-      const unitLabel = result.unitLabel === 'block' ? 'blockCount' : 'lineCount';
+      const unitLabel = result.unitLabel === 'block' ? 'blockCount' : 'lineCount';      
+      let message = '';
+
+      if (result.stars === 3) {
+        message = t('Games.dialogExcellentSolution');
+      } else if (result.stars === 2) {
+        message = t('Games.dialogGoodJob', { [unitLabel]: result.unitCount });
+      } else if (result.stars === 1) {
+        message = t('Games.dialogPartialSuccess'); // Chuỗi dịch mới
+      } else {
+        message = t('Games.dialogGoodJob', { [unitLabel]: result.unitCount });
+      }
+
       setDialogState({
         isOpen: true,
         title: t('Games.dialogCongratulations'),
-        message: t('Games.dialogGoodJob', { [unitLabel]: result.unitCount }),
+        message: message,
         stars: result.stars,
         optimalBlocks: solutionHasOptimalBlocks(result.finalState.solution) ? result.finalState.solution.optimalBlocks : undefined,
         code: result.userCode,
@@ -192,21 +249,21 @@ function App() {
           message: `${t('Games.dialogReason')}: ${translatedReason}`
       });
     }
-  }, [t]);
+  }, [t]); // Thêm các phụ thuộc nếu cần
 
   const renderMainContent = () => {
     if (isLoading || !questData) {
       return <div className="emptyState"><h2>{t('UI.Loading')}</h2></div>;
     }
     return (
-      <QuestPlayer 
+      <MemoizedQuestPlayer 
         key={questData.id}
         isStandalone={false}
         questData={questData}
         onQuestComplete={handleQuestComplete}
         initialSettings={settings}
         onSettingsChange={handleSettingsChange}
-        // THÊM MỚI PROP `language`
+        // Prop `language` được truyền vào
         language={settings.language}
       />
     );
@@ -228,11 +285,12 @@ function App() {
               ))}
             </div>
             <p className="completion-message">{dialogState.message}</p>
-            {dialogState.stars < 3 && dialogState.optimalBlocks && (
+            {dialogState.stars === 2 && dialogState.optimalBlocks && (
               <p className="optimal-solution-info">{t('Games.dialogOptimalSolution', { optimalBlocks: dialogState.optimalBlocks })}</p>
             )}
-            {dialogState.stars === 3 && <p className="excellent-solution">{t('Games.dialogExcellentSolution')}</p>}
-            {dialogState.code && (
+            {dialogState.stars === 1 && <p className="optimal-solution-info">{t('Games.dialogImproveTo3Stars')}</p>} 
+
+            {dialogState.code && ( // Luôn hiển thị code nếu có
               <details className="code-details">
                 <summary>{t('Games.dialogShowCode')}</summary>
                 <pre><code>{dialogState.code}</code></pre>
@@ -245,7 +303,7 @@ function App() {
       </Dialog>
       
       <QuestSidebar 
-        allQuests={sortedQuests}
+        allQuests={questsInCurrentGroup}
         currentQuestId={currentQuestId}
         onQuestSelect={handleQuestSelect}
         isCollapsed={isSidebarCollapsed}
@@ -261,6 +319,31 @@ function App() {
         {renderMainContent()}
       </main>
     </div>
+  );
+}
+
+function App() {
+  // Tính toán nhóm đầu tiên để chuyển hướng mặc định
+  const firstGroupId = useMemo(() => {
+    const firstPath = Object.keys(questModules)[0];
+    if (!firstPath) return null;
+    const pathSegments = firstPath.split('/');
+    return pathSegments.length > 2 ? pathSegments[2] : 'ungrouped';
+  }, []);
+
+  if (!firstGroupId) {
+    return <div>No quests found. Please add quests to the 'quests' directory.</div>;
+  }
+
+  return (
+    <Routes>
+      {/* Route cho một quest cụ thể: /quest/group1/QUEST_ID */}
+      <Route path="/quest/:groupId/:questId" element={<AppContent />} />
+      {/* Route cho một nhóm: /quest/group1, sẽ tự động chuyển đến quest đầu tiên */}
+      <Route path="/quest/:groupId" element={<AppContent />} />
+      {/* Route mặc định, chuyển hướng đến nhóm đầu tiên tìm thấy: /quest/group1 */}
+      <Route path="*" element={<Navigate to={`/quest/${firstGroupId}`} replace />} />
+    </Routes>
   );
 }
 

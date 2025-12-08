@@ -4,11 +4,33 @@ import Interpreter from 'js-interpreter';
 import type { IGameEngine, GameConfig, GameState, MazeConfig, SolutionConfig, StepResult, PlayerConfig, Block, Portal, Direction } from '../../types';
 import type { MazeGameState, PlayerState, WorldGridCell } from './types';
 
+import { GameAssets } from './config/gameAssets';
+
 export interface IMazeEngine extends IGameEngine {
   triggerInteraction(): MazeGameState | null;
   completeTeleport(): void;
   getCurrentState(): MazeGameState;
 }
+
+// [FIX] Define walkable and non-walkable blocks explicitly to ensure consistency.
+// Automatic generation from GameAssets can lead to name mismatches (e.g., 'wallStone' vs 'wall.stone01').
+
+// These are blocks that the character can walk and jump on.
+const WALKABLE_MODELS = [
+  'ground.checker', 'ground.earth', 'ground.earthChecker', 'ground.mud', 'ground.normal', 'ground.snow',
+  'stone.stone01', 'stone.stone02', 'stone.stone03', 'stone.stone04', 'stone.stone05', 'stone.stone06', 'stone.stone07',
+  'wall.brick01', 'wall.brick02', 'wall.brick03', 'wall.brick04', 'wall.brick05', 'wall.brick06', 'ice.ice01'
+];
+
+// These are blocks that act as solid obstacles but cannot be walked or jumped on.
+const NON_WALKABLE_MODELS = [
+  'wall.stone01', // Explicitly define the wall stone
+  'water',        // Corresponds to water.glb
+  'lava',         // Corresponds to lava.glb
+];
+
+// All solid blocks are a combination of the two lists above.
+const SOLID_BLOCK_MODELS = [...WALKABLE_MODELS, ...NON_WALKABLE_MODELS];
 
 export class MazeEngine implements IMazeEngine {
   public readonly gameType = 'maze';
@@ -239,34 +261,36 @@ export class MazeEngine implements IMazeEngine {
     return { x, z };
   }
   
-  private _isSolidAt(x: number, y: number, z: number): boolean {
+  private _getBlockModelAt(x: number, y: number, z: number): string | null {
     const cell = this.currentState.worldGrid[`${x},${y},${z}`];
-    return cell ? cell.isSolid : false;
+    if (!cell || cell.type !== 'block') return null;
+    // Tìm block tương ứng trong danh sách blocks để lấy modelKey
+    const blockData = this.initialGameState.blocks.find(b => 
+      b.position.x === x && b.position.y === y && b.position.z === z
+    );
+    return blockData?.modelKey || null;
   }
 
   private _isGroundAt(x: number, y: number, z: number): boolean {
-    const cell = this.currentState.worldGrid[`${x},${y},${z}`];
-    return !!cell;
+    const model = this._getBlockModelAt(x, y, z);
+    if (!model) return false;
+    // A block is considered "ground" if it is explicitly defined as walkable.
+    return WALKABLE_MODELS.includes(model);
   }
 
   private _isWalkable(x: number, y: number, z: number): boolean {
-    return !this._isSolidAt(x, y, z) && this._isGroundAt(x, y - 1, z);
+    // A position is walkable if there's no block at that level, and a walkable ground block one level below.
+    const modelAtDest = this._getBlockModelAt(x, y, z);
+    return modelAtDest === null && this._isGroundAt(x, y - 1, z);
   }
 
   private moveForward(): void {
     const player = this.getActivePlayer();
     const { x: nextX, z: nextZ } = this.getNextPosition(player.x, player.z, player.direction);
 
-    if (this._isSolidAt(nextX, player.y, nextZ)) {
-      player.pose = 'Bump';
-      return;
-    }
-
     let targetY: number | null = null;
     if (this._isWalkable(nextX, player.y, nextZ)) {
       targetY = player.y;
-    } else if (this._isWalkable(nextX, player.y - 1, nextZ)) {
-      targetY = player.y - 1;
     }
 
     if (targetY === null) {
@@ -283,16 +307,37 @@ export class MazeEngine implements IMazeEngine {
     player.z = nextZ;
   }
 
+  private _isJumpable(modelKey: string | null): boolean {    
+    if (!modelKey) return false;
+    // A block can be jumped on if it is explicitly defined as walkable.
+    return WALKABLE_MODELS.includes(modelKey);
+  }
+
   private jump(): void {
     const player = this.getActivePlayer();
     const { x: nextX, z: nextZ } = this.getNextPosition(player.x, player.z, player.direction);
 
-    let targetY = player.y;
-    if (this._isWalkable(nextX, player.y, nextZ)) {
-      // Flat jump forward
-    } else if (this._isWalkable(nextX, player.y + 1, nextZ)) {
+    let targetY: number | null = null;
+
+    // Ưu tiên 1: Nhảy LÊN một khối
+    const obstacleModel = this._getBlockModelAt(nextX, player.y, nextZ);
+    const modelAtLandingSpot = this._getBlockModelAt(nextX, player.y + 1, nextZ);
+    if (this._isJumpable(obstacleModel) && modelAtLandingSpot === null) {
+      // Có thể nhảy lên
       targetY = player.y + 1;
-    } else {
+    }
+    // Ưu tiên 2: Nhảy BẰNG (qua một khoảng trống)
+    else if (this._isWalkable(nextX, player.y, nextZ)) {
+      // Có thể nhảy bằng (giữ nguyên độ cao)
+      targetY = player.y;
+    }
+    // Ưu tiên 3: Nhảy XUỐNG một bậc
+    else if (this._isWalkable(nextX, player.y - 1, nextZ)) {
+      targetY = player.y - 1;
+    }
+
+    if (targetY === null) {
+      // Không thể nhảy, va vào tường
       player.pose = 'Bump';
       return;
     }
@@ -321,11 +366,15 @@ export class MazeEngine implements IMazeEngine {
     const effectiveDirection = this.constrainDirection(player.direction + relativeDirection);
     const { x: nextX, z: nextZ } = this.getNextPosition(player.x, player.z, effectiveDirection);
 
-    return (
-      this._isWalkable(nextX, player.y + 1, nextZ) ||
-      this._isWalkable(nextX, player.y, nextZ) ||
-      this._isWalkable(nextX, player.y - 1, nextZ)
-    );
+    // Kiểm tra có thể đi thẳng (trên cùng mặt phẳng hoặc đi xuống)
+    if (this._isWalkable(nextX, player.y, nextZ) || this._isWalkable(nextX, player.y - 1, nextZ)) {
+      return true;
+    }
+
+    // Kiểm tra có thể nhảy qua 'wall.brick01' để đi lên
+    const obstacleModel = this._getBlockModelAt(nextX, player.y, nextZ);
+    const canJumpUp = this._isJumpable(obstacleModel) && this._isWalkable(nextX, player.y + 1, nextZ);
+    return canJumpUp;
   }
 
   private notDone(): boolean {
