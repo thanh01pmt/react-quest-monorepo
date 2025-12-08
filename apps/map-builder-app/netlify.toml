@@ -1,17 +1,11 @@
 # netlify.toml cho map-builder-app
-# Cấu hình Netlify UI:
-# - Base directory: (để trống)
+# Cấu hình được set trong Netlify UI để tránh conflict:
+# - Base directory: / (hoặc để trống)
 # - Package directory: apps/map-builder-app
 # - Build command: cd ../.. && pnpm turbo run build --filter @repo/map-builder-app
-# - Publish directory: dist
-
-[build]
-  # Build command chạy từ root của monorepo
-  # Khi package directory được set, Netlify sẽ cd vào đó trước khi chạy command
-  # Tìm root bằng cách tìm thư mục chứa pnpm-workspace.yaml
-  command = "while [ ! -f pnpm-workspace.yaml ] && [ \"$PWD\" != \"/\" ]; do cd ..; done && pnpm turbo run build --filter @repo/map-builder-app"
-  # Publish directory relative to package directory (apps/map-builder-app/dist)
-  publish = "dist"
+# - Publish directory: apps/map-builder-app/dist
+# 
+# Không set build command và publish directory ở đây để Netlify dùng từ UI settings
 
 [[redirects]]
   from = "/*"
