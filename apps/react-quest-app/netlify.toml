@@ -2,7 +2,7 @@
 # Cấu hình được set trong Netlify UI để tránh conflict:
 # - Base directory: / (hoặc để trống)
 # - Package directory: apps/react-quest-app
-# - Build command: cd ../.. && pnpm turbo run build --filter @repo/react-quest-app
+# - Build command: while [ ! -f pnpm-workspace.yaml ] && [ "$PWD" != "/" ]; do cd ..; done && pnpm turbo run build --filter @repo/react-quest-app
 # - Publish directory: apps/react-quest-app/dist
 # 
 # Không set build command và publish directory ở đây để Netlify dùng từ UI settings

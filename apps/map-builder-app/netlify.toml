@@ -2,7 +2,7 @@
 # Cấu hình được set trong Netlify UI để tránh conflict:
 # - Base directory: / (hoặc để trống)
 # - Package directory: apps/map-builder-app
-# - Build command: cd ../.. && pnpm turbo run build --filter @repo/map-builder-app
+# - Build command: while [ ! -f pnpm-workspace.yaml ] && [ "$PWD" != "/" ]; do cd ..; done && pnpm turbo run build --filter @repo/map-builder-app
 # - Publish directory: apps/map-builder-app/dist
 # 
 # Không set build command và publish directory ở đây để Netlify dùng từ UI settings
