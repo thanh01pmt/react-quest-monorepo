@@ -11,6 +11,7 @@ export type PrimitiveShape = 'torus' | 'cone' | 'sphere';
 export interface BuildableAsset {
     key: string;
     name: string;
+    thumbnail: string;
     path?: string; // Đường dẫn không còn là bắt buộc
     primitiveShape?: PrimitiveShape; // Hình dạng cơ bản để render
     type: 'block' | 'collectible' | 'interactible' | 'special';
@@ -20,6 +21,7 @@ export interface BuildableAsset {
 export interface PlacedObject {
     id: string; 
     position: [number, number, number];
+    rotation: [number, number, number];
     asset: BuildableAsset;
     properties: Record<string, any>;
 }
@@ -37,4 +39,12 @@ export interface BoxDimensions {
 export interface SelectionBounds {
     min: [number, number, number];
     max: [number, number, number];
+}
+
+/**
+ * Định nghĩa cấu trúc cho một theme của map.
+ */
+export interface MapTheme {
+  ground: string;
+  obstacle: string;
 }

@@ -78,6 +78,7 @@ export function init(t: TFunction) {
         { "type": "input_statement", "name": "DO" }
       ],
       "style": "events_category",
+      "topRow": true, // Thêm dòng này để hiển thị khối dưới dạng "hat"
       "tooltip": "This block is the starting point for your program.",
     },
     {
@@ -134,6 +135,7 @@ export function init(t: TFunction) {
         { "type": "input_statement", "name": "DO" }
       ],
       "previousStatement": null,
+      "nextStatement": null,
       "style": "loops_category",
       "tooltip": t('Maze.whileTooltip'),
     },
@@ -192,7 +194,7 @@ export function init(t: TFunction) {
         { "type": "field_dropdown", "name": "TYPE", "options": ITEM_TYPES }
       ],
       "output": "Number",
-      "style": "actions_category",
+      "style": "math_blocks",
       "tooltip": "Returns the number of collected items of the specified type.",
     },
   ]);
