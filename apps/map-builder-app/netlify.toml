@@ -4,7 +4,8 @@
 
 [build]
   # Build command cho map-builder-app (chạy từ root của monorepo)
-  command = "cd ../.. && turbo run build --filter @repo/map-builder-app"
+  # Netlify sẽ tự động install dependencies từ root trước khi chạy command này
+  command = "cd ../.. && pnpm turbo run build --filter @repo/map-builder-app"
   # Thư mục chứa ứng dụng của bạn sau khi build. Đối với Vite, thường là 'dist'.
   publish = "dist"
 
