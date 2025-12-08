@@ -1,12 +1,14 @@
 # netlify.toml cho map-builder-app
-# Set base directory trong Netlify UI là "apps/map-builder-app"
-# Lưu ý: Command cần chạy từ root của monorepo
+# Cấu hình Netlify UI:
+# - Base directory: (để trống)
+# - Package directory: apps/map-builder-app
+# - Build command: cd ../.. && pnpm turbo run build --filter @repo/map-builder-app
+# - Publish directory: dist
 
 [build]
-  # Build command cho map-builder-app (chạy từ root của monorepo)
-  # Netlify sẽ tự động install dependencies từ root trước khi chạy command này
+  # Build command chạy từ root của monorepo (cd về root từ package directory)
   command = "cd ../.. && pnpm turbo run build --filter @repo/map-builder-app"
-  # Thư mục chứa ứng dụng của bạn sau khi build. Đối với Vite, thường là 'dist'.
+  # Publish directory relative to package directory (apps/map-builder-app/dist)
   publish = "dist"
 
 [[redirects]]

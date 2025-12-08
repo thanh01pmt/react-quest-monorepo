@@ -1,12 +1,14 @@
 # netlify.toml cho react-quest-app
-# Set base directory trong Netlify UI là "apps/react-quest-app"
-# Lưu ý: Command cần chạy từ root của monorepo
+# Cấu hình Netlify UI:
+# - Base directory: (để trống)
+# - Package directory: apps/react-quest-app
+# - Build command: cd ../.. && pnpm turbo run build --filter @repo/react-quest-app
+# - Publish directory: dist
 
 [build]
-  # Build command cho react-quest-app (chạy từ root của monorepo)
-  # Netlify sẽ tự động install dependencies từ root trước khi chạy command này
+  # Build command chạy từ root của monorepo (cd về root từ package directory)
   command = "cd ../.. && pnpm turbo run build --filter @repo/react-quest-app"
-  # Thư mục chứa ứng dụng của bạn sau khi build. Đối với Vite, thường là 'dist'.
+  # Publish directory relative to package directory (apps/react-quest-app/dist)
   publish = "dist"
 
 [[redirects]]
