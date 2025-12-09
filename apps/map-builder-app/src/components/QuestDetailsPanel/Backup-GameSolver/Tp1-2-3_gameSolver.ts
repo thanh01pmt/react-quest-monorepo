@@ -398,19 +398,8 @@ const optimizeWithWhileLoops = (
   availableBlocks: Set<string>,
   world: GameWorld // Cần world để kiểm tra điều kiện
 ): Action[] => {
-  // SỬA LỖI: Kiểm tra cả 'maze_repeat_until' (dùng trong engine) và 'controls_whileUntil' (dùng trong toolbox)
-  // THÊM MỚI: Kiểm tra cả khối `maze_forever`
-  const hasWhileBlock = availableBlocks.has('maze_repeat_until') || availableBlocks.has('controls_whileUntil') || availableBlocks.has('maze_forever');
-  if (!hasWhileBlock) {
+  if (!availableBlocks.has('maze_repeat_until')) {
     return actions;
-  }
-
-  // --- SỬA LỖI LOGIC ---
-  // Chỉ áp dụng tối ưu hóa `while` cho các trường hợp cực kỳ đơn giản:
-  // toàn bộ đường đi chỉ bao gồm các hành động 'moveForward'.
-  const containsOtherActions = actions.some(action => action.type !== 'maze_moveForward');
-  if (containsOtherActions) {
-    return actions; // Nếu có hành động khác, không tối ưu hóa bằng while, để các chiến lược khác xử lý.
   }
 
   let optimizedActions: Action[] = [];
@@ -437,20 +426,12 @@ const optimizeWithWhileLoops = (
     // Đây là một logic đơn giản, có thể mở rộng để xử lý các điều kiện khác (e.g., until wall)
     if (sequenceLength > 2) {
        // Giả định rằng chuỗi moveForward này dẫn đến đích.
-       // ƯU TIÊN: Nếu có khối `maze_forever`, hãy sử dụng nó vì nó tối ưu hơn (tiết kiệm 1 khối).
-       if (availableBlocks.has('maze_forever')) {
-         optimizedActions.push({
-           type: 'maze_forever',
-           actions: [{ type: 'maze_moveForward' }]
-         });
-       } else {
-         // Fallback: Nếu không, sử dụng khối `controls_whileUntil` như cũ.
-         optimizedActions.push({
-           type: 'maze_repeat_until',
-           condition: 'at_finish',
-           actions: [{ type: 'maze_moveForward' }]
-         });
-       }
+       // Một logic phức tạp hơn có thể cần mô phỏng đường đi để xác nhận.
+       const whileBlock: Action = {
+         type: 'maze_repeat_until',
+         actions: [{ type: 'maze_moveForward' }]
+       };
+       optimizedActions.push(whileBlock);
        i = sequenceEnd; // Bỏ qua tất cả các hành động đã được thay thế
     } else {
       optimizedActions.push(action);
@@ -458,56 +439,6 @@ const optimizeWithWhileLoops = (
     }
   }
   return optimizedActions;
-};
-
-/**
- * HÀM MỚI: Tối ưu hóa bằng vòng lặp có điều kiện và các hành động bên trong.
- * Đây là chiến lược dành cho các bản đồ đường thẳng có itemGoals xen kẽ.
- * Ví dụ: move, move, collect, move, move -> while(true) { move; if(item) collect; }
- */
-const optimizeWithConditionalWhile = (
-  actions: Action[],
-  availableBlocks: Set<string>,
-  solutionConfig: Solution
-): { main: Action[]; procedures?: Record<string, Action[]> } | null => {
-  const hasWhile = availableBlocks.has('maze_forever') || availableBlocks.has('controls_whileUntil');
-  const hasIf = availableBlocks.has('controls_if');
-
-  if (!hasWhile || !hasIf) {
-    return null; // Không đủ khối lệnh để áp dụng chiến lược này.
-  }
-
-  // Kiểm tra xem đường đi có phù hợp không: chỉ chứa moveForward và các hành động itemGoal.
-  const allowedActionTypes = new Set(['maze_moveForward', 'maze_collect', 'maze_toggle_switch']);
-  const containsOnlyAllowedActions = actions.every(action => allowedActionTypes.has(action.type));
-  const containsMove = actions.some(action => action.type === 'maze_moveForward');
-
-  if (!containsOnlyAllowedActions || !containsMove) {
-    return null; // Không phải là mẫu đường thẳng có ngắt quãng.
-  }
-
-  // Tạo các khối `if` cho các hành động phụ có thể xảy ra.
-  const conditionalActions: Action[] = [];
-  const itemGoals = solutionConfig.itemGoals || {};
-
-  for (const goalType in itemGoals) {
-    if (goalType === 'switch' && actions.some(a => a.type === 'maze_toggle_switch')) {
-      conditionalActions.push({
-        type: 'controls_if',
-        condition: { type: 'maze_is_switch_state', state: 'off' },
-        if_actions: [{ type: 'maze_toggle_switch' }]
-      });
-    } else if (goalType !== 'switch' && actions.some(a => a.type === 'maze_collect')) {
-      conditionalActions.push({
-        type: 'controls_if',
-        condition: { type: 'maze_is_item_present', item_type: goalType },
-        if_actions: [{ type: 'maze_collect' }]
-      });
-    }
-  }
-
-  const loopBlock: Action = { type: 'maze_forever', actions: [{ type: 'maze_moveForward' }, ...conditionalActions] };
-  return { main: [loopBlock], procedures: {} };
 };
 
 /**
@@ -562,173 +493,6 @@ const optimizeWithFunctions = (
   return { main: currentActions, procedures };
 };
 
-/**
- * HÀM MỚI: Tối ưu hóa bằng cách sử dụng biến và vòng lặp for.
- * Hàm này tìm kiếm các mẫu cấp số cộng, ví dụ: đi 2, rẽ, đi 3, rẽ, đi 4, rẽ...
- * và chuyển đổi chúng thành một vòng lặp for với một biến đếm.
- */
-const optimizeWithVariablesAndLoops = (
-  actions: Action[],
-  availableBlocks: Set<string>
-): { main: Action[]; procedures?: Record<string, any> } | null => {
-  // 1. Kiểm tra xem các khối cần thiết có sẵn không
-  const hasVarBlocks = availableBlocks.has('variables_set') && availableBlocks.has('math_change');
-  const hasLoopVarBlock = availableBlocks.has('maze_repeat_variable'); // Khối lặp với biến
-  const hasForLoop = availableBlocks.has('maze_repeat'); // Vòng lặp for cơ bản
-
-  if (!hasVarBlocks || !hasLoopVarBlock || !hasForLoop) {
-    return null; // Không thể áp dụng chiến lược này
-  }
-
-  // 2. Nén chuỗi hành động: ['f', 'f', 'r'] -> [{type: 'f', count: 2}, {type: 'r', count: 1}]
-  // SỬA LỖI GỐC: Lưu trữ toàn bộ đối tượng action thay vì chỉ `type` để không làm mất `direction`.
-  const groupedActions: { action: Action; count: number }[] = [];
-  if (actions.length === 0) return null;
-
-  let currentActionKey = JSON.stringify(actions[0]);
-  let currentCount = 0;
-  for (const action of actions) {
-    const actionKey = JSON.stringify(action);
-    if (actionKey === currentActionKey) {
-      currentCount++;
-    } else {
-      groupedActions.push({ action: JSON.parse(currentActionKey), count: currentCount });
-      currentActionKey = actionKey;
-      currentCount = 1;
-    }
-  }
-  groupedActions.push({ action: JSON.parse(currentActionKey), count: currentCount });
-
-  // 3. Tìm kiếm mẫu cấp số cộng
-  // Chúng ta tìm một "đoạn mã" (chunk) lặp lại, trong đó một hành động có số lần lặp tăng dần.
-  for (let chunkSize = 1; chunkSize <= Math.floor(groupedActions.length / 2); chunkSize++) {
-    for (let i = 0; i <= groupedActions.length - chunkSize * 2; i++) {
-      const chunk1 = groupedActions.slice(i, i + chunkSize);
-      const chunk2 = groupedActions.slice(i + chunkSize, i + chunkSize * 2);
-
-      // So sánh cấu trúc của 2 đoạn (không tính số lượng)
-      // SỬA LỖI: Chỉ so sánh `action.type` và `action.direction` để bỏ qua các khác biệt về số lần lặp.
-      // Điều này cho phép nhận diện các mẫu phức tạp hơn.
-      const structure1 = chunk1.map(a => JSON.stringify(a.action));
-      const structure2 = chunk2.map(a => JSON.stringify(a.action));
-      if (JSON.stringify(structure1) !== JSON.stringify(structure2)) continue;
-
-      // Tìm vị trí của hành động có số lần lặp thay đổi
-      // SỬA LỖI & NÂNG CẤP: Tìm tất cả các chỉ số có sự thay đổi, không chỉ một.
-      const diffIndices: number[] = [];
-      for (let k = 0; k < chunkSize; k++) {
-        if (chunk1[k].count !== chunk2[k].count) {
-          diffIndices.push(k);
-        }
-      }
-
-      // Nếu tìm thấy ít nhất một hành động có số lần lặp thay đổi
-      if (diffIndices.length > 0) {
-        // Tính toán công sai cho tất cả các chuỗi thay đổi
-        const differences = diffIndices.map(k => ({
-          initialValue: chunk1[k].count,
-          commonDifference: chunk2[k].count - chunk1[k].count
-        }));
-
-        // Xác định xem quy luật này kéo dài bao lâu
-        let repeats = 2;
-        while (i + (repeats + 1) * chunkSize <= groupedActions.length) {
-          const nextChunk = groupedActions.slice(i + repeats * chunkSize, i + (repeats + 1) * chunkSize);
-
-          // SỬA LỖI: Kiểm tra xem tất cả các hành động thay đổi có tuân theo quy luật không.
-          let patternHolds = true;
-          for (let k = 0; k < chunkSize; k++) {
-            if (chunk1[k].count !== chunk2[k].count) { // Nếu đây là một hành động thay đổi
-              if (nextChunk[k].count !== chunk1[k].count + repeats * (chunk2[k].count - chunk1[k].count)) {
-                patternHolds = false;
-                break;
-              }
-            }
-          }
-          if (JSON.stringify(nextChunk.map(a => JSON.stringify(a.action))) === JSON.stringify(structure1) && patternHolds) {
-            repeats++;
-          } else {
-            break;
-          }
-        }
-
-        // Nếu quy luật đủ dài để tối ưu hóa
-        // SỬA LỖI: Tính toán lại tổng số hành động gốc và tổng số khối gốc
-        // để có thể so sánh chi phí một cách chính xác.
-        let totalOriginalActions = 0;
-        let totalOriginalGroupedBlocks = 0;
-        for (let r = 0; r < repeats; r++) {
-          const currentChunk = groupedActions.slice(i + r * chunkSize, i + (r + 1) * chunkSize);
-          totalOriginalGroupedBlocks += currentChunk.length;
-          for (const group of currentChunk) {
-            totalOriginalActions += group.count;
-          }
-        }
-        const newBlocksCost = (diffIndices.length * 2) + 1 + chunkSize; // set, change cho mỗi biến + 1 vòng lặp for + body
-        if (repeats > 1 && totalOriginalGroupedBlocks > newBlocksCost) {
-          console.log(`Solver: Phát hiện quy luật đa biến số! Lặp ${repeats} lần.`);
-
-          // SỬA LỖI: Khai báo mảng `finalSolution` trước khi sử dụng.
-          const finalSolution: Action[] = [];
-
-          const varName = 'i';
-
-          // SỬA LỖI: Tính toán lại tổng số hành động gốc trong mẫu đã phát hiện
-          // để có thể cắt mảng `actions` một cách chính xác.
-
-          // Tạo phần thân của vòng lặp for
-          const loopBody: Action[] = [];
-          diffIndices.forEach((k, index) => {
-            const varName = `i_${index}`;
-            finalSolution.push({
-              type: 'variables_set',
-              variable: varName,
-              value: { type: 'math_number', value: differences[index].initialValue }
-            });
-          });
-
-          chunk1.forEach((group, k) => {
-            const diffIndex = diffIndices.indexOf(k);
-            if (diffIndex !== -1) { // Hành động này dùng biến
-              const varName = `i_${diffIndex}`;
-              loopBody.push({ type: 'maze_repeat', times: { type: 'variables_get', variable: varName }, actions: [group.action] });
-            } else { // Hành động này không đổi
-              for (let c = 0; c < group.count; c++) loopBody.push(group.action);
-            }
-          });
-
-          // Thêm các khối thay đổi giá trị cho tất cả các biến vào cuối thân vòng lặp
-          diffIndices.forEach((k, index) => {
-            loopBody.push({
-              type: 'math_change',
-              variable: `i_${index}`,
-              value: { type: 'math_number', value: differences[index].commonDifference }
-            });
-          });
-
-          // SỬA LỖI: Khai báo `beforePattern` và `afterPattern`.
-          // Tính toán chỉ số bắt đầu của mẫu trong mảng `actions` gốc.
-          let startActionIndex = 0;
-          for (let j = 0; j < i; j++) {
-            startActionIndex += groupedActions[j].count;
-          }
-          const beforePattern = actions.slice(0, startActionIndex);
-          const afterPattern = actions.slice(startActionIndex + totalOriginalActions);
-          
-          // Thêm khối lặp chính vào sau các khối gán biến
-          finalSolution.push({
-            type: 'maze_repeat',
-            times: repeats,
-            actions: loopBody
-          });
-          return { main: [...beforePattern, ...finalSolution, ...afterPattern], procedures: {} };
-        }
-      }
-    }
-  }
-  return null; // Không tìm thấy quy luật phù hợp
-};
-
 const createStructuredSolution = (
   initialActions: Action[],
   availableBlocks: Set<string>, // THAY ĐỔI: Chỉ cần truyền vào các khối lệnh có sẵn
@@ -738,48 +502,27 @@ const createStructuredSolution = (
 
   const strategies: { name: string; solution: { main: Action[]; procedures?: Record<string, Action[]> } }[] = [];
 
-  // --- SỬA LỖI: Không nên áp dụng while loop trước cho mọi trường hợp ---
-  // Giữ lại chuỗi hành động ban đầu để các chiến lược khác có thể xử lý.
-  const originalActions = [...initialActions];
+  let currentActions = [...initialActions];
 
-  // BƯỚC 0 (MỚI): Thử chiến lược với biến số trước tiên, vì nó có khả năng tối ưu hóa cao nhất
-  const varSolution = optimizeWithVariablesAndLoops(originalActions, availableBlocks);
-  if (varSolution) {
-    // SỬA LỖI: Sau khi áp dụng tối ưu hóa biến, tiếp tục tối ưu hóa các phần còn lại
-    // (ví dụ: các đoạn moveForward lặp lại) bằng vòng lặp đơn giản.
-    const furtherOptimizedMain = optimizeWithLoops(varSolution.main, availableBlocks, solutionConfig).main;
-    varSolution.main = furtherOptimizedMain;
-
-    strategies.push({ name: 'variable_loop', solution: varSolution });
+  // BƯỚC 1: Ưu tiên tối ưu hóa bằng các cấu trúc điều khiển phức tạp trước (While, If, etc.)
+  // Hiện tại, chúng ta thêm logic cho 'while'. Các cấu trúc khác có thể được thêm vào đây.
+  if (availableBlocks.has('maze_repeat_until')) {
+      currentActions = optimizeWithWhileLoops(currentActions, availableBlocks, world);
   }
 
-  // BƯỚC 1: Áp dụng các chiến lược tối ưu hóa khác nhau
-  // Chiến lược 0 (MỚI): Thử tối ưu hóa bằng `while` có điều kiện.
-  const conditionalWhileSolution = optimizeWithConditionalWhile(originalActions, availableBlocks, solutionConfig);
-  if (conditionalWhileSolution) {
-    strategies.push({ name: 'conditional_while', solution: conditionalWhileSolution });
-  }
-
-  // Tối ưu hóa bằng while đơn giản (chỉ đi thẳng)
-  const simpleWhileActions = optimizeWithWhileLoops(originalActions, availableBlocks, world);
-
+  // BƯỚC 2: Áp dụng các chiến lược tối ưu hóa còn lại trên chuỗi hành động đã được xử lý một phần
   // Chiến lược 1: Chỉ tối ưu hóa bằng vòng lặp 'for' (nếu được phép)
-  const loopOnlySolution = optimizeWithLoops(simpleWhileActions, availableBlocks, solutionConfig);
+  const loopOnlySolution = optimizeWithLoops(currentActions, availableBlocks, solutionConfig);
   strategies.push({ name: 'loop_only', solution: loopOnlySolution });
 
   // Chiến lược 2: Chỉ tối ưu hóa bằng hàm (nếu được phép)
-  const funcOnlySolution = optimizeWithFunctions(originalActions, availableBlocks, solutionConfig);
+  const funcOnlySolution = optimizeWithFunctions(currentActions, availableBlocks, solutionConfig);
   strategies.push({ name: 'func_only', solution: funcOnlySolution });
 
   // Chiến lược 3: Tối ưu hóa hàm trước, sau đó tối ưu hóa vòng lặp trên KẾT QUẢ
   const mainAfterFuncs = funcOnlySolution.main;
   const loopsAfterFuncs = optimizeWithLoops(mainAfterFuncs, availableBlocks, solutionConfig);
   strategies.push({ name: 'func_then_loop', solution: { main: loopsAfterFuncs.main, procedures: funcOnlySolution.procedures } });
-
-  // Nếu không có chiến lược nào hoạt động, trả về giải pháp gốc
-  if (strategies.length === 0) {
-    return { main: originalActions, procedures: {} };
-  }
 
   // Tính toán chi phí cho mỗi chiến lược và chọn ra cái tốt nhất
   let bestSolution = strategies[0].solution;
@@ -820,29 +563,10 @@ const countBlocksInStructure = (actions: Action[]): number => {
   let count = 0;
   for (const action of actions) {
     count++; // Mỗi action ở cấp hiện tại được tính là 1 khối.
-
-    // SỬA LỖI: Đệ quy vào TẤT CẢ các loại khối có cấu trúc
-    if (Array.isArray(action.actions)) {
+    // NÂNG CẤP: Đếm cả khối lồng nhau trong 'maze_repeat' và 'maze_for'
+    if ((action.type === 'maze_repeat' || action.type === 'maze_for') && Array.isArray(action.actions)) {
+      // Nếu là khối lặp, đệ quy để đếm các khối bên trong nó.
       count += countBlocksInStructure(action.actions);
-    }
-
-    // Xử lý khối if/else if/else
-    if (action.type === 'controls_if') {
-      // Đếm khối điều kiện
-      if (action.condition) {
-        count++;
-      }
-      if (Array.isArray(action.if_actions)) {
-        count += countBlocksInStructure(action.if_actions);
-      }
-      (action.else_if_actions || []).forEach((elseIf: any) => {
-        count++; // Đếm khối else if
-        if (elseIf.condition) count++; // Đếm khối điều kiện của else if
-        if (Array.isArray(elseIf.actions)) count += countBlocksInStructure(elseIf.actions);
-      });
-      if (Array.isArray(action.else_actions)) {
-        count += countBlocksInStructure(action.else_actions);
-      }
     }
   }
   return count;
@@ -891,25 +615,9 @@ const calculateOptimalLines = (structuredSolution: { main: Action[], procedures?
           declaredVars.add(varName);
         }
         lloc++; // Đếm dòng 'x = ...;'
-      } else if (blockType === 'maze_repeat' || blockType === 'maze_for' || blockType === 'maze_forever' || blockType === 'maze_repeat_until') {
+      } else if (blockType === 'maze_repeat' || blockType === 'maze_for' || blockType === 'maze_repeat_variable' || blockType === 'maze_repeat_expression') {
         lloc++; // Đếm dòng 'for (...) {'
         lloc += _countLinesRecursively(block.actions || block.body, declaredVars);
-      } else if (blockType === 'controls_if') {
-        // THÊM MỚI: Xử lý đếm dòng cho khối if/else
-        lloc++; // Đếm dòng 'if (...) {'
-        if (block.if_actions) {
-            lloc += _countLinesRecursively(block.if_actions, declaredVars);
-        }
-        if (block.else_if_actions) {
-            block.else_if_actions.forEach((elseIfBlock: any) => {
-                lloc++; // Đếm dòng 'else if (...) {'
-                lloc += _countLinesRecursively(elseIfBlock.actions || [], declaredVars);
-            });
-        }
-        if (block.else_actions) {
-            lloc++; // Đếm dòng 'else {'
-            lloc += _countLinesRecursively(block.else_actions || [], declaredVars);
-        }
       } else if (blockType) { // Các khối khác (move, turn, call, collect...)
         lloc++;
       }
@@ -969,14 +677,12 @@ const aStarPathSolver = (gameConfig: GameConfig, solutionConfig: Solution, block
     }
     console.log("Solver: Các khối lệnh có sẵn từ toolbox:", Array.from(availableBlocks));
 
-    // --- THÊM MỚI: Chế độ tạo thuật toán tự hành ---
-    const hasLogicBlocks = availableBlocks.has('controls_if') && availableBlocks.has('maze_is_path');
-    const hasLoopBlock = availableBlocks.has('maze_forever') || availableBlocks.has('controls_whileUntil');
-    const isAlgorithmicMode = hasLogicBlocks && hasLoopBlock;
-
     const world = new GameWorld(gameConfig, solutionConfig);
     const startPos = gameConfig.players[0].start;
+    // Lấy hướng ban đầu từ gameConfig.
+    // Nếu không được cung cấp, mặc định là 2 (hướng +Z/Tới theo quy ước đã sửa).
     const startDir = gameConfig.players[0].start.direction !== undefined ? gameConfig.players[0].start.direction : 2; // Sửa mặc định thành 2 (+Z)
+
     const startState = new GameState(startPos, startDir, world); // world đã có solutionConfig
     const startNode = new PathNode(startState);
 
@@ -1124,36 +830,22 @@ const aStarPathSolver = (gameConfig: GameConfig, solutionConfig: Solution, block
 
             console.log("Solver: Tìm thấy lời giải tối ưu!", path);
 
-            // Đếm số lần rẽ trong đường đi thô để xác định độ phức tạp
-            const turnCount = path.filter(action => action.includes('turn')).length;
-            const isComplexPath = turnCount > 2; // Có thể điều chỉnh ngưỡng này
-
-            let finalStructuredSolution;
-            // --- LOGIC MỚI: GHI ĐÈ LỜI GIẢI CÓ CẤU TRÚC ---
-            // Chỉ kích hoạt chế độ thuật toán nếu đường đi thực sự phức tạp
-            if (isAlgorithmicMode && isComplexPath) {
-                console.log(`Solver: Chế độ thuật toán đang hoạt động (số lần rẽ: ${turnCount}). Ghi đè structuredSolution bằng thuật toán bám tường.`);
-                finalStructuredSolution = createWallFollowerSolution(solutionConfig);
-            } else {
-                // Nếu không phải chế độ thuật toán, tối ưu hóa rawActions như bình thường.
-                finalStructuredSolution = createStructuredSolution(convertRawToStructuredActions(path), availableBlocks, solutionConfig, world);
-            }
+            // THAY ĐỔI: Truyền `world` vào hàm tối ưu hóa để xử lý các khối lệnh phức tạp
+            const newStructuredSolution = createStructuredSolution(convertRawToStructuredActions(path), availableBlocks, solutionConfig, world);
 
             // Tính toán số khối và số dòng tối ưu
-            // Luôn tính toán dựa trên lời giải có cấu trúc cuối cùng (finalStructuredSolution)
-            const finalOptimalBlocks = calculateTotalBlocksInSolution(finalStructuredSolution);
-            const finalOptimalLines = calculateOptimalLines(finalStructuredSolution);
+            const finalOptimalBlocks = calculateTotalBlocksInSolution(newStructuredSolution); // Đếm tổng số khối (bao gồm cả khối lồng nhau)
+            const finalOptimalLines = calculateOptimalLines(newStructuredSolution); // Đếm số dòng code logic (LLOC)
 
             // THÊM MỚI: Tạo một phiên bản "basicSolution" đã được chuẩn hóa từ rawActions.
             // Điều này đảm bảo basicSolution cũng sử dụng định dạng { type: 'maze_turn', direction: '...' }
             const basicSolutionMain = convertRawToStructuredActions(path);
 
-            // Trả về kết quả cuối cùng
             return {
                 optimalBlocks: finalOptimalBlocks,
                 optimalLines: finalOptimalLines,
                 rawActions: path,
-                structuredSolution: finalStructuredSolution,
+                structuredSolution: newStructuredSolution,
                 basicSolution: { main: basicSolutionMain, procedures: {} } // Trả về basicSolution đã chuẩn hóa
             };
         }
@@ -1365,170 +1057,6 @@ function findNeighbors(state: GameState, world: GameWorld): { pos: Position, act
 }
 
 /**
- * HÀM MỚI: Kiểm tra xem có đường đi hợp lệ theo một hướng tương đối (trước, trái, phải) so với hướng hiện tại của người chơi không.
- * @param state Trạng thái hiện tại của người chơi.
- * @param relativeDir Hướng tương đối ('ahead', 'left', 'right').
- * @param world Thế giới game.
- * @returns `true` nếu có đường, ngược lại `false`.
- */
-const hasPathRelative = (state: GameState, relativeDir: 'ahead' | 'left' | 'right', world: GameWorld): boolean => {
-    const currentDir = state.direction;
-    let targetDir: number;
-
-    if (relativeDir === 'ahead') {
-        targetDir = currentDir;
-    } else if (relativeDir === 'left') {
-        targetDir = (currentDir - 1 + 4) % 4;
-    } else { // right
-        targetDir = (currentDir + 1) % 4;
-    }
-
-    const dirVector = directions[targetDir];
-    const nextPos = {
-        x: state.position.x + dirVector.x,
-        y: state.position.y,
-        z: state.position.z + dirVector.z
-    };
-
-    // Kiểm tra xem ô phía trước có trống và có nền đất đi được bên dưới không.
-    const isBlocked = world.worldMap.has(`${nextPos.x},${nextPos.y},${nextPos.z}`);
-    const groundBelow = { ...nextPos, y: nextPos.y - 1 };
-    const hasGround = world.isWalkable(groundBelow);
-
-    return !isBlocked && hasGround;
-};
-
-/**
- * HÀM MỚI: Mô phỏng thuật toán bám tường để tạo ra một chuỗi rawActions.
- * @param world Thế giới game.
- * @param startState Trạng thái bắt đầu.
- * @returns Một mảng các hành động thô.
- */
-const simulateWallFollower = (world: GameWorld, startState: GameState): string[] => {
-    const rawActions: string[] = [];
-    let currentState = startState.clone();
-    const maxSteps = 1000; // Giới hạn để tránh lặp vô tận
-
-    for (let i = 0; i < maxSteps; i++) {
-        // Kiểm tra đã đến đích chưa
-        if (currentState.position.x === world.finishPos.x && currentState.position.z === world.finishPos.z) {
-            break;
-        }
-
-        if (hasPathRelative(currentState, 'right', world)) {
-            // Quay phải
-            currentState.direction = (currentState.direction + 1) % 4;
-            rawActions.push('turnRight');
-            // Đi tới
-            const dirVector = directions[currentState.direction];
-            currentState.position.x += dirVector.x;
-            currentState.position.z += dirVector.z;
-            rawActions.push('moveForward');
-        } else if (hasPathRelative(currentState, 'ahead', world)) {
-            // Đi tới
-            const dirVector = directions[currentState.direction];
-            currentState.position.x += dirVector.x;
-            currentState.position.z += dirVector.z;
-            rawActions.push('moveForward');
-        } else {
-            // Quay trái
-            currentState.direction = (currentState.direction - 1 + 4) % 4;
-            rawActions.push('turnLeft');
-        }
-
-        // Logic xử lý mục tiêu phụ (ví dụ: bật công tắc) có thể được thêm vào đây nếu cần
-        const posKey = `${currentState.position.x},${currentState.position.y},${currentState.position.z}`;
-        if (world.switchesByPos.has(posKey) && currentState.switchStates.get(world.switchesByPos.get(posKey)!.id) !== 'on') {
-            currentState.switchStates.set(world.switchesByPos.get(posKey)!.id, 'on');
-            rawActions.push('toggleSwitch');
-        }
-        // THÊM MỚI: Logic xử lý thu thập vật phẩm
-        const collectible = world.collectiblesByPos.get(posKey);
-        if (collectible && !currentState.collectedItems.has(collectible.id)) {
-            currentState.collectedItems.add(collectible.id);
-            rawActions.push('collect');
-        }
-    }
-    return rawActions;
-};
-
-/**
- * HÀM MỚI: Tạo ra một lời giải có cấu trúc dựa trên thuật toán bám tường (Right-hand wall follower).
- * Đây là một thuật toán tự hành, không phụ thuộc vào một đường đi cố định.
- * @returns Một đối tượng structuredSolution chứa thuật toán.
- */
-const createWallFollowerSolution = (solutionConfig: Solution): { main: Action[]; procedures?: Record<string, Action[]> } => {
-    // Logic của thuật toán:
-    // loop forever {
-    //   if (path to the right) {
-    //     turn right;
-    //     move forward;
-    //   } else if (path ahead) {
-    //     move forward;
-    //   } else {
-    //     turn left;
-    //   }
-    //   // Sau khi di chuyển, kiểm tra các hành động phụ
-    //   if (item present) {
-    //     collect;
-    //   }
-    //   if (switch is off) {
-    //     toggle switch;
-    //   }
-    // }
-
-    const itemGoalActions: Action[] = [];
-    const itemGoals = solutionConfig.itemGoals || {};
-
-    // THÊM MỚI: Tự động tạo các khối 'if' cho từng loại vật phẩm trong itemGoals
-    for (const goalType in itemGoals) {
-        // Bỏ qua 'switch' vì nó được xử lý riêng
-        if (goalType !== 'switch') {
-            itemGoalActions.push({
-                type: 'controls_if',
-                condition: { type: 'maze_is_item_present', item_type: goalType }, // Sử dụng đúng loại vật phẩm từ itemGoals
-                if_actions: [{ type: 'maze_collect' }]
-            });
-        }
-    }
-
-    // Chỉ thêm logic cho công tắc nếu nó có trong itemGoals
-    if (itemGoals.switch) {
-        itemGoalActions.push({
-            type: 'controls_if',
-            condition: { type: 'maze_is_switch_state', state: 'off' }, // Kiểm tra công tắc đang tắt
-            if_actions: [{ type: 'maze_toggle_switch' }]
-        });
-    }
-    const solution: { main: Action[]; procedures?: Record<string, Action[]> } = {
-        main: [
-            {
-                type: 'maze_forever', // Hoặc 'controls_whileUntil' với điều kiện 'maze_at_finish'
-                actions: [
-                    {
-                        // Khối logic di chuyển
-                        type: 'controls_if',
-                        condition: { type: 'maze_is_path', direction: 'path to the right' },
-                        if_actions: [
-                            { type: 'maze_turn', direction: 'turnRight' },
-                            { type: 'maze_moveForward' }
-                        ],
-                        else_if_actions: [{
-                            condition: { type: 'maze_is_path', direction: 'path ahead' },
-                            actions: [{ type: 'maze_moveForward' }]
-                        }],
-                        else_actions: [{ type: 'maze_turn', direction: 'turnLeft' }]
-                    },
-                    // Nối các khối logic cho itemGoals đã được tạo tự động
-                    ...itemGoalActions
-                ]
-            }
-        ]
-    };
-    return solution;
-};
-
-/**
  * HÀM MỚI: Tính toán các hành động xoay, hướng mới và chi phí để đi từ trạng thái hiện tại đến vị trí tiếp theo.
  */
 function calculateTurnActions(currentState: GameState, nextPos: Position, lastAction: string | null): { actions: string[], newDirection: number, cost: number } {
@@ -1553,10 +1081,10 @@ function calculateTurnActions(currentState: GameState, nextPos: Position, lastAc
         // diff = 1 (theo chiều kim đồng hồ) phải là turnRight.
         // diff = 3 (ngược chiều kim đồng hồ) phải là turnLeft.
         const diff = (targetDir - currentState.direction + 4) % 4;
-        if (diff === 1) { // Quay phải
+        if (diff === 1) {
             actions.push('turnRight');
             cost += (lastAction === 'turnRight' ? 0.1 - REPETITION_DISCOUNT : 0.1);
-        } else if (diff === 3) { // Quay trái
+        } else if (diff === 3) {
             actions.push('turnLeft');
             cost += (lastAction === 'turnLeft' ? 0.1 - REPETITION_DISCOUNT : 0.1);
         } else if (diff === 2) {

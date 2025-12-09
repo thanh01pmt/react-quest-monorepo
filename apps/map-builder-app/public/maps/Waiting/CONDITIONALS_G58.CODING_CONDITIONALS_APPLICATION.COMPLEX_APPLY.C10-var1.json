@@ -8,13 +8,13 @@
   "descriptionKey": "Challenge.CONDITIONALS_G58.CODING_CONDITIONALS_APPLICATION.COMPLEX_APPLY.C10.Description",
   "translations": {
     "vi": {
-      "Challenge.CONDITIONALS_G58.CODING_CONDITIONALS_APPLICATION.COMPLEX_APPLY.C10.Title": "Vượt qua con đường băng giá",
-      "Challenge.CONDITIONALS_G58.CODING_CONDITIONALS_APPLICATION.COMPLEX_APPLY.C10.Description": "Con đường đến đích đầy những hố cạm bẫy xuất hiện ngẫu nhiên. Bạn bắt buộc phải dùng lệnh if (path ahead) để kiểm tra đường đi trước mỗi bước di chuyển để đảm bảo an toàn.",
+      "Challenge.CONDITIONALS_G58.CODING_CONDITIONALS_APPLICATION.COMPLEX_APPLY.C10.Title": "Vượt qua Bãi mìn",
+      "Challenge.CONDITIONALS_G58.CODING_CONDITIONALS_APPLICATION.COMPLEX_APPLY.C10.Description": "Con đường đến đích đầy những hố cạm bẫy xuất hiện ngẫu nhiên. Bạn bắt buộc phải dùng lệnh `if (path ahead)` để kiểm tra đường đi trước mỗi bước di chuyển để đảm bảo an toàn.",
       "topic-title-coding_conditionals_application": "Lập trình Phòng thủ"
     },
     "en": {
-      "Challenge.CONDITIONALS_G58.CODING_CONDITIONALS_APPLICATION.COMPLEX_APPLY.C10.Title": "Crossing the Icy Path",
-      "Challenge.CONDITIONALS_G58.CODING_CONDITIONALS_APPLICATION.COMPLEX_APPLY.C10.Description": "The path to the goal is filled with treacherous, randomly appearing holes. You must use the if (path ahead) command to check the path before each move to ensure a safe passage.",
+      "Challenge.CONDITIONALS_G58.CODING_CONDITIONALS_APPLICATION.COMPLEX_APPLY.C10.Title": "Navigating the Minefield",
+      "Challenge.CONDITIONALS_G58.CODING_CONDITIONALS_APPLICATION.COMPLEX_APPLY.C10.Description": "The path to the goal is filled with randomly appearing holes. You must use an `if (path ahead)` command to check the path before every move to stay safe.",
       "topic-title-coding_conditionals_application": "Lập trình Phòng thủ"
     }
   },
@@ -23,6 +23,7 @@
     "monaco"
   ],
   "blocklyConfig": {
+    "toolbox_preset": "conditionals_l1_movement_sensing",
     "toolbox": {
       "kind": "categoryToolbox",
       "contents": [
@@ -47,16 +48,20 @@
         },
         {
           "kind": "category",
-          "name": "%{BKY_GAMES_CATACTIONS}",
-          "categorystyle": "actions_category",
+          "name": "%{BKY_GAMES_CATLOGIC}",
+          "categorystyle": "logic_category",
           "contents": [
             {
               "kind": "block",
-              "type": "maze_collect"
+              "type": "controls_if"
             },
             {
               "kind": "block",
-              "type": "maze_toggle_switch"
+              "type": "maze_is_path"
+            },
+            {
+              "kind": "block",
+              "type": "maze_at_finish"
             }
           ]
         },
@@ -67,103 +72,15 @@
           "contents": [
             {
               "kind": "block",
-              "type": "maze_forever"
-            },
-            {
-              "kind": "block",
-              "type": "controls_whileUntil"
-            },
-            {
-              "kind": "block",
               "type": "maze_repeat"
             }
           ]
-        },
-        {
-          "kind": "category",
-          "name": "%{BKY_GAMES_CATLOGIC}",
-          "categorystyle": "logic_category",
-          "contents": [
-            {
-              "kind": "block",
-              "type": "controls_if"
-            },
-            {
-              "kind": "block",
-              "type": "logic_operation"
-            },
-            {
-              "kind": "block",
-              "type": "logic_negate"
-            },
-            {
-              "kind": "block",
-              "type": "logic_compare"
-            },
-            {
-              "kind": "block",
-              "type": "logic_boolean"
-            },
-            {
-              "kind": "block",
-              "type": "maze_is_path"
-            },
-            {
-              "kind": "block",
-              "type": "maze_is_item_present"
-            },
-            {
-              "kind": "block",
-              "type": "maze_is_switch_state"
-            },
-            {
-              "kind": "block",
-              "type": "maze_at_finish"
-            }
-          ]
-        },
-        {
-          "kind": "category",
-          "name": "%{BKY_GAMES_CATMATH}",
-          "categorystyle": "math_category",
-          "contents": [
-            {
-              "kind": "block",
-              "type": "math_number"
-            },
-            {
-              "kind": "block",
-              "type": "math_arithmetic"
-            },
-            {
-              "kind": "block",
-              "type": "maze_item_count"
-            }
-          ]
-        },
-        {
-          "kind": "sep"
-        },
-        {
-          "kind": "category",
-          "name": "%{BKY_GAMES_CATVARIABLES}",
-          "custom": "VARIABLE",
-          "categorystyle": "variable_category"
-        },
-        {
-          "kind": "sep"
-        },
-        {
-          "kind": "category",
-          "name": "%{BKY_GAMES_CATPROCEDURES}",
-          "custom": "PROCEDURE",
-          "categorystyle": "procedure_category"
         }
       ]
     },
-    "maxBlocks": 15,
-    "startBlocks": "",
-    "toolboxPresetKey": "algorithms_full_solver"
+    "maxBlocks": 23,
+    "startBlocks": "<xml><block type=\"maze_start\" deletable=\"false\" movable=\"false\"><statement name=\"DO\"><block type=\"maze_repeat\"><value name=\"TIMES\"><shadow type=\"math_number\"><field name=\"NUM\">2</field></shadow></value><statement name=\"DO\"><block type=\"maze_moveForward\"><next><block type=\"maze_turn\"><field name=\"DIR\">turnLeft</field><next><block type=\"maze_moveForward\"/></next></block></next></block></statement><next><block type=\"maze_repeat\"><value name=\"TIMES\"><shadow type=\"math_number\"><field name=\"NUM\">2</field></shadow></value><statement name=\"DO\"><block type=\"maze_moveForward\"><next><block type=\"maze_turn\"><field name=\"DIR\">turnRight</field><next><block type=\"maze_moveForward\"><next><block type=\"maze_turn\"><field name=\"DIR\">turnLeft</field></block></next></block></next></block></next></block></statement><next><block type=\"maze_moveForward\"><next><block type=\"maze_turn\"><field name=\"DIR\">turnRight</field><next><block type=\"maze_repeat\"><value name=\"TIMES\"><shadow type=\"math_number\"><field name=\"NUM\">2</field></shadow></value><statement name=\"DO\"><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_turn\"><field name=\"DIR\">turnLeft</field></block></next></block></next></block></statement><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"/></next></block></next></block></next></block></next></block></next></block></next></block></statement></block></xml>",
+    "toolboxPresetKey": "conditionals_l1_movement_sensing"
   },
   "gameConfig": {
     "type": "maze",
@@ -212,6 +129,14 @@
       {
         "modelKey": "ice.ice01",
         "position": {
+          "x": 5,
+          "y": 0,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ice.ice01",
+        "position": {
           "x": 6,
           "y": 0,
           "z": 12
@@ -255,6 +180,14 @@
           "x": 3,
           "y": 0,
           "z": 12
+        }
+      },
+      {
+        "modelKey": "ice.ice01",
+        "position": {
+          "x": 4,
+          "y": 0,
+          "z": 9
         }
       },
       {
@@ -396,6 +329,14 @@
       {
         "modelKey": "ice.ice01",
         "position": {
+          "x": 6,
+          "y": 0,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ice.ice01",
+        "position": {
           "x": 5,
           "y": 0,
           "z": 5
@@ -487,198 +428,6 @@
           "x": 3,
           "y": 0,
           "z": 7
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 2,
-          "y": 0,
-          "z": 11
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 1,
-          "y": 0,
-          "z": 9
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 1,
-          "y": 0,
-          "z": 10
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 2,
-          "y": 0,
-          "z": 7
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 2,
-          "y": 0,
-          "z": 8
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 8,
-          "y": 0,
-          "z": 11
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 7,
-          "y": 0,
-          "z": 9
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 8,
-          "y": 0,
-          "z": 7
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 5,
-          "y": 0,
-          "z": 8
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 4,
-          "y": 0,
-          "z": 7
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 5,
-          "y": 0,
-          "z": 6
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 3,
-          "y": 0,
-          "z": 5
-        }
-      },
-      {
-        "modelKey": "lava.lava01",
-        "position": {
-          "x": 3,
-          "y": 0,
-          "z": 9
-        }
-      },
-      {
-        "modelKey": "lava.lava01",
-        "position": {
-          "x": 3,
-          "y": 0,
-          "z": 10
-        }
-      },
-      {
-        "modelKey": "lava.lava01",
-        "position": {
-          "x": 4,
-          "y": 0,
-          "z": 10
-        }
-      },
-      {
-        "modelKey": "lava.lava01",
-        "position": {
-          "x": 5,
-          "y": 0,
-          "z": 11
-        }
-      },
-      {
-        "modelKey": "lava.lava01",
-        "position": {
-          "x": 6,
-          "y": 0,
-          "z": 11
-        }
-      },
-      {
-        "modelKey": "ice.ice01",
-        "position": {
-          "x": 6,
-          "y": 0,
-          "z": 8
-        }
-      },
-      {
-        "modelKey": "ice.ice01",
-        "position": {
-          "x": 6,
-          "y": 0,
-          "z": 6
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 5,
-          "y": 0,
-          "z": 7
-        }
-      },
-      {
-        "modelKey": "water.water01",
-        "position": {
-          "x": 6,
-          "y": 0,
-          "z": 7
-        }
-      },
-      {
-        "modelKey": "lava.lava01",
-        "position": {
-          "x": 4,
-          "y": 0,
-          "z": 9
-        }
-      },
-      {
-        "modelKey": "ice.ice01",
-        "position": {
-          "x": 4,
-          "y": 0,
-          "z": 12
-        }
-      },
-      {
-        "modelKey": "ice.ice01",
-        "position": {
-          "x": 5,
-          "y": 0,
-          "z": 12
         }
       }
     ],
@@ -704,8 +453,8 @@
   "solution": {
     "type": "reach_target",
     "itemGoals": {},
-    "optimalBlocks": 10,
-    "optimalLines": 8,
+    "optimalBlocks": 18,
+    "optimalLines": 17,
     "rawActions": [
       "moveForward",
       "turnLeft",
@@ -713,23 +462,19 @@
       "moveForward",
       "turnLeft",
       "moveForward",
-      "turnRight",
-      "moveForward",
       "moveForward",
       "turnRight",
       "moveForward",
       "turnLeft",
       "moveForward",
-      "moveForward",
-      "moveForward",
-      "turnLeft",
-      "moveForward",
-      "moveForward",
+      "turnRight",
       "moveForward",
       "turnLeft",
       "moveForward",
       "turnRight",
       "moveForward",
+      "moveForward",
+      "turnLeft",
       "moveForward",
       "moveForward",
       "turnLeft",
@@ -739,44 +484,69 @@
     "structuredSolution": {
       "main": [
         {
-          "type": "maze_forever",
+          "type": "maze_repeat",
+          "times": 2,
           "actions": [
             {
-              "type": "controls_if",
-              "condition": {
-                "type": "maze_is_path",
-                "direction": "path to the right"
-              },
-              "if_actions": [
-                {
-                  "type": "maze_turn",
-                  "direction": "turnRight"
-                },
-                {
-                  "type": "maze_moveForward"
-                }
-              ],
-              "else_if_actions": [
-                {
-                  "condition": {
-                    "type": "maze_is_path",
-                    "direction": "path ahead"
-                  },
-                  "actions": [
-                    {
-                      "type": "maze_moveForward"
-                    }
-                  ]
-                }
-              ],
-              "else_actions": [
-                {
-                  "type": "maze_turn",
-                  "direction": "turnLeft"
-                }
-              ]
+              "type": "maze_moveForward"
+            },
+            {
+              "type": "maze_turn",
+              "direction": "turnLeft"
+            },
+            {
+              "type": "maze_moveForward"
             }
           ]
+        },
+        {
+          "type": "maze_repeat",
+          "times": 2,
+          "actions": [
+            {
+              "type": "maze_moveForward"
+            },
+            {
+              "type": "maze_turn",
+              "direction": "turnRight"
+            },
+            {
+              "type": "maze_moveForward"
+            },
+            {
+              "type": "maze_turn",
+              "direction": "turnLeft"
+            }
+          ]
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_repeat",
+          "times": 2,
+          "actions": [
+            {
+              "type": "maze_moveForward"
+            },
+            {
+              "type": "maze_moveForward"
+            },
+            {
+              "type": "maze_turn",
+              "direction": "turnLeft"
+            }
+          ]
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
         }
       ]
     },
@@ -846,10 +616,16 @@
           "type": "maze_moveForward"
         },
         {
+          "type": "maze_moveForward"
+        },
+        {
           "type": "maze_turnRight"
         },
         {
           "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turnLeft"
         },
         {
           "type": "maze_moveForward"
@@ -867,34 +643,16 @@
           "type": "maze_moveForward"
         },
         {
-          "type": "maze_moveForward"
-        },
-        {
-          "type": "maze_moveForward"
-        },
-        {
-          "type": "maze_turnLeft"
-        },
-        {
-          "type": "maze_moveForward"
-        },
-        {
-          "type": "maze_moveForward"
-        },
-        {
-          "type": "maze_moveForward"
-        },
-        {
-          "type": "maze_turnLeft"
-        },
-        {
-          "type": "maze_moveForward"
-        },
-        {
           "type": "maze_turnRight"
         },
         {
           "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turnLeft"
         },
         {
           "type": "maze_moveForward"
