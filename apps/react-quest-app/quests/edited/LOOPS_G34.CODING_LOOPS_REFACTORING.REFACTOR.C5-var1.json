@@ -83,8 +83,8 @@
         }
       ]
     },
-    "maxBlocks": 14,
-    "startBlocks": "<xml><block type=\"maze_start\" deletable=\"false\" movable=\"false\"><statement name=\"DO\"><block type=\"maze_turn\"><field name=\"DIR\">turnLeft</field><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_collect\"><next><block type=\"maze_turn\"><field name=\"DIR\">turnRight</field><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_collect\"><next><block type=\"maze_turn\"><field name=\"DIR\">turnRight</field><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"/></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></statement></block></xml>",
+    "maxBlocks": 16,
+    "startBlocks": "",
     "toolboxPresetKey": "loops_l2_with_actions"
   },
   "gameConfig": {
@@ -158,22 +158,6 @@
       {
         "modelKey": "stone.stone07",
         "position": {
-          "x": 1,
-          "y": 0,
-          "z": 4
-        }
-      },
-      {
-        "modelKey": "stone.stone07",
-        "position": {
-          "x": 1,
-          "y": 0,
-          "z": 5
-        }
-      },
-      {
-        "modelKey": "stone.stone07",
-        "position": {
           "x": 2,
           "y": 0,
           "z": 6
@@ -185,6 +169,22 @@
           "x": 3,
           "y": 0,
           "z": 6
+        }
+      },
+      {
+        "modelKey": "stone.stone07",
+        "position": {
+          "x": 1,
+          "y": 0,
+          "z": 4
+        }
+      },
+      {
+        "modelKey": "stone.stone07",
+        "position": {
+          "x": 1,
+          "y": 0,
+          "z": 5
         }
       }
     ],
@@ -217,6 +217,60 @@
           "y": 1,
           "z": 6
         }
+      },
+      {
+        "id": "c3",
+        "type": "crystal",
+        "position": {
+          "x": 2,
+          "y": 1,
+          "z": 3
+        }
+      },
+      {
+        "id": "c4",
+        "type": "crystal",
+        "position": {
+          "x": 2,
+          "y": 1,
+          "z": 6
+        }
+      },
+      {
+        "id": "c5",
+        "type": "crystal",
+        "position": {
+          "x": 3,
+          "y": 1,
+          "z": 6
+        }
+      },
+      {
+        "id": "c6",
+        "type": "crystal",
+        "position": {
+          "x": 3,
+          "y": 1,
+          "z": 3
+        }
+      },
+      {
+        "id": "c7",
+        "type": "crystal",
+        "position": {
+          "x": 4,
+          "y": 1,
+          "z": 4
+        }
+      },
+      {
+        "id": "c8",
+        "type": "crystal",
+        "position": {
+          "x": 4,
+          "y": 1,
+          "z": 5
+        }
       }
     ],
     "interactibles": [],
@@ -229,24 +283,30 @@
   "solution": {
     "type": "reach_target",
     "itemGoals": {
-      "crystal": 2
+      "crystal": 8
     },
-    "optimalBlocks": 9,
-    "optimalLines": 8,
+    "optimalBlocks": 11,
+    "optimalLines": 10,
     "rawActions": [
       "turnLeft",
       "moveForward",
+      "collect",
       "moveForward",
+      "collect",
       "moveForward",
       "collect",
       "turnRight",
       "moveForward",
+      "collect",
       "moveForward",
+      "collect",
       "moveForward",
       "collect",
       "turnRight",
       "moveForward",
+      "collect",
       "moveForward",
+      "collect",
       "moveForward"
     ],
     "structuredSolution": {
@@ -265,11 +325,11 @@
               "actions": [
                 {
                   "type": "maze_moveForward"
+                },
+                {
+                  "type": "maze_collect"
                 }
               ]
-            },
-            {
-              "type": "maze_collect"
             },
             {
               "type": "maze_turn",
@@ -279,12 +339,18 @@
         },
         {
           "type": "maze_repeat",
-          "times": 3,
+          "times": 2,
           "actions": [
             {
               "type": "maze_moveForward"
+            },
+            {
+              "type": "maze_collect"
             }
           ]
+        },
+        {
+          "type": "maze_moveForward"
         }
       ]
     },
@@ -297,7 +363,13 @@
           "type": "maze_moveForward"
         },
         {
+          "type": "maze_collect"
+        },
+        {
           "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
         },
         {
           "type": "maze_moveForward"
@@ -312,7 +384,13 @@
           "type": "maze_moveForward"
         },
         {
+          "type": "maze_collect"
+        },
+        {
           "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
         },
         {
           "type": "maze_moveForward"
@@ -327,7 +405,13 @@
           "type": "maze_moveForward"
         },
         {
+          "type": "maze_collect"
+        },
+        {
           "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
         },
         {
           "type": "maze_moveForward"
