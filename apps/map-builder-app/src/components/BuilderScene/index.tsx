@@ -16,26 +16,27 @@ export type SceneController = {
 };
 
 interface BuilderSceneProps {
-    builderMode: BuilderMode;
-    selectedAsset: BuildableAsset | null;
-    placedObjects: PlacedObject[];
-    boxDimensions: BoxDimensions;
-    onModeChange: (mode: BuilderMode) => void;
-    onAddObject: (position: [number, number, number], asset: BuildableAsset) => void;
-    onRemoveObject: (id: string) => void;
-    selectionBounds: SelectionBounds | null;
-    selectionStart: [number, number, number] | null; // THÊM MỚI: Định nghĩa prop selectionStart
-    onSetSelectionStart: (pos: [number, number, number] | null) => void;
-    onSetSelectionEnd: Dispatch<SetStateAction<[number, number, number] | null>>;    
-    selectedObjectIds: string[];
-    onSelectObject: (id: string | null, isShiftDown: boolean) => void;
-    onMoveObject: (objectId: string, newPosition: [number, number, number]) => void;
-    onMoveObjectByStep: (objectId: string, direction: 'x' | 'y' | 'z', amount: 1 | -1) => void;
-    onObjectContextMenu: (event: { clientX: number, clientY: number, preventDefault: () => void }, objectId: string) => void;
-    // --- START: SỬA LỖI HIỆU ỨNG ---
-    isMovingObject: boolean;
-    onSetIsMovingObject: (isMoving: boolean) => void;
-    // --- END: SỬA LỖI HIỆU ỨNG ---
+  builderMode: BuilderMode;
+  selectedAsset: BuildableAsset | null;
+  placedObjects: PlacedObject[];
+  boxDimensions: BoxDimensions;
+  onModeChange: (mode: BuilderMode) => void;
+  onAddObject: (position: [number, number, number], asset: BuildableAsset) => void;
+  onRemoveObject: (id: string) => void;
+  selectionBounds: SelectionBounds | null;
+  selectionStart: [number, number, number] | null; // THÊM MỚI: Định nghĩa prop selectionStart
+  onSetSelectionStart: (pos: [number, number, number] | null) => void;
+  onSetSelectionEnd: Dispatch<SetStateAction<[number, number, number] | null>>;
+  selectedObjectIds: string[];
+  onSelectObject: (id: string | null, isShiftDown: boolean) => void;
+  onMoveObject: (objectId: string, newPosition: [number, number, number]) => void;
+  onMoveObjectByStep: (objectId: string, direction: 'x' | 'y' | 'z', amount: 1 | -1) => void;
+  onObjectContextMenu: (event: { clientX: number, clientY: number, preventDefault: () => void }, objectId: string) => void;
+  // --- START: SỬA LỖI HIỆU ỨNG ---
+  isMovingObject: boolean;
+  onSetIsMovingObject: (isMoving: boolean) => void;
+  // --- END: SỬA LỖI HIỆU ỨNG ---
+  solutionPath?: [number, number, number][] | null; // NEW PROP
 }
 
 // --- COMPONENT MỚI ĐỂ RENDER ASSET ---
@@ -45,16 +46,16 @@ const AssetRenderer = ({ asset, properties, material }: { asset: BuildableAsset,
     const { scene } = useGLTF(asset.path);
     const clonedScene = useMemo(() => scene.clone(), [scene]);
     if (material) {
-        clonedScene.traverse((child: any) => {
-            if (child.isMesh) child.material = material;
-        });
+      clonedScene.traverse((child: any) => {
+        if (child.isMesh) child.material = material;
+      });
     }
     return <primitive object={clonedScene} />;
   }
 
   // Render hình khối cơ bản
   const color = properties?.color || '#ffffffff';
-  
+
   switch (asset.primitiveShape) {
     case 'torus':
       return (
@@ -64,7 +65,7 @@ const AssetRenderer = ({ asset, properties, material }: { asset: BuildableAsset,
         </mesh>
       );
     case 'cone':
-       return (
+      return (
         <mesh material={material}>
           <coneGeometry args={[0.6, 1.2, 32]} />
           {!material && <meshStandardMaterial color={"gold"} roughness={0.3} metalness={0.8} />}
@@ -99,15 +100,15 @@ function PlacedAsset({ object, isSelected, isHovered, onContextMenu }: { object:
   ];
 
   return (
-    <group 
-      position={worldPosition} 
+    <group
+      position={worldPosition}
       rotation={object.rotation}
-      scale={TILE_SIZE} 
+      scale={TILE_SIZE}
       userData={{ isPlacedObject: true, id: object.id }}
       onContextMenu={onContextMenu}
     >
       <AssetRenderer asset={object.asset} properties={object.properties} />
-      
+
       {/* --- THAY ĐỔI: Logic hiển thị hiệu ứng chọn và hover --- */}
       {isSelected ? (
         // Khi được chọn, render thêm một AssetRenderer nữa với vật liệu phủ màu vàng.
@@ -124,44 +125,64 @@ function PlacedAsset({ object, isSelected, isHovered, onContextMenu }: { object:
 }
 
 function RollOverMesh({ selectedAsset }: { selectedAsset: BuildableAsset | null }) {
-    if (!selectedAsset) return null;
+  if (!selectedAsset) return null;
 
-    const material = new THREE.MeshBasicMaterial({ color: 0xff0000, opacity: 0.5, transparent: true, depthWrite: false });
+  const material = new THREE.MeshBasicMaterial({ color: 0xff0000, opacity: 0.5, transparent: true, depthWrite: false });
 
-    return (
-        <group scale={TILE_SIZE}>
-            <AssetRenderer asset={selectedAsset} material={material}/>
-        </group>
-    );
+  return (
+    <group scale={TILE_SIZE}>
+      <AssetRenderer asset={selectedAsset} material={material} />
+    </group>
+  );
 }
 
 const PortalConnections = ({ objects }: { objects: PlacedObject[] }) => {
-    const portalPairs = useMemo(() => {
-        const pairs: [PlacedObject, PlacedObject][] = [];
-        const portals = objects.filter(o => o.properties.type === 'portal' && o.properties.targetId);
-        const processed = new Set<string>();
+  const portalPairs = useMemo(() => {
+    const pairs: [PlacedObject, PlacedObject][] = [];
+    const portals = objects.filter(o => o.properties.type === 'portal' && o.properties.targetId);
+    const processed = new Set<string>();
 
-        for (const portal of portals) {
-            if (processed.has(portal.id)) continue;
-            const target = portals.find(p => p.id === portal.properties.targetId);
-            if (target && !processed.has(target.id)) {
-                pairs.push([portal, target]);
-                processed.add(portal.id);
-                processed.add(target.id);
-            }
-        }
-        return pairs;
-    }, [objects]);
+    for (const portal of portals) {
+      if (processed.has(portal.id)) continue;
+      const target = portals.find(p => p.id === portal.properties.targetId);
+      if (target && !processed.has(target.id)) {
+        pairs.push([portal, target]);
+        processed.add(portal.id);
+        processed.add(target.id);
+      }
+    }
+    return pairs;
+  }, [objects]);
 
-    return (
-        <>
-            {portalPairs.map(([p1, p2]) => {
-                const startPos = new THREE.Vector3(...p1.position).multiplyScalar(TILE_SIZE).addScalar(TILE_SIZE / 2);
-                const endPos = new THREE.Vector3(...p2.position).multiplyScalar(TILE_SIZE).addScalar(TILE_SIZE / 2);
-                return <Line key={`${p1.id}-${p2.id}`} points={[startPos, endPos]} color={p1.properties.color || "white"} lineWidth={2} dashed dashSize={0.5} gapSize={0.2} />;
-            })}
-        </>
-    );
+  return (
+    <>
+      {portalPairs.map(([p1, p2]) => {
+        const startPos = new THREE.Vector3(...p1.position).multiplyScalar(TILE_SIZE).addScalar(TILE_SIZE / 2);
+        const endPos = new THREE.Vector3(...p2.position).multiplyScalar(TILE_SIZE).addScalar(TILE_SIZE / 2);
+        return <Line key={`${p1.id}-${p2.id}`} points={[startPos, endPos]} color={p1.properties.color || "white"} lineWidth={2} dashed dashSize={0.5} gapSize={0.2} />;
+      })}
+    </>
+  );
+};
+
+const SolutionOverlay = ({ path }: { path: [number, number, number][] }) => {
+  if (!path || path.length < 2) return null;
+  const points = useMemo(() => path.map(p => new THREE.Vector3(
+    p[0] * TILE_SIZE + TILE_SIZE / 2,
+    p[1] * TILE_SIZE + TILE_SIZE / 2 + 0.1, // Slightly above ground
+    p[2] * TILE_SIZE + TILE_SIZE / 2
+  )), [path]);
+
+  return (
+    <Line
+      points={points}
+      color="#00ff00"
+      lineWidth={3}
+      opacity={0.8}
+      transparent
+      depthTest={false} // Always show on top
+    />
+  );
 };
 
 
@@ -179,43 +200,44 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
   const dragStartRef = useRef<{ objectPos: [number, number, number], mousePos: { x: number, y: number } } | null>(null);
 
   const {
-      builderMode, selectedAsset, placedObjects, boxDimensions, onModeChange, 
-      isMovingObject, onSetIsMovingObject, selectionStart,
-      onAddObject, onRemoveObject, selectionBounds, onSetSelectionStart, onSetSelectionEnd, cameraControlsRef, selectedObjectIds, onSelectObject, onMoveObject, onMoveObjectByStep, onObjectContextMenu 
+    builderMode, selectedAsset, placedObjects, boxDimensions, onModeChange,
+    isMovingObject, onSetIsMovingObject, selectionStart,
+    onAddObject, onRemoveObject, selectionBounds, onSetSelectionStart, onSetSelectionEnd, cameraControlsRef, selectedObjectIds, onSelectObject, onMoveObject, onMoveObjectByStep, onObjectContextMenu,
+    solutionPath // Destructure prop
   } = props;
 
   const plane = useMemo(() => new THREE.Mesh(
     new THREE.PlaneGeometry(1000, 1000).rotateX(-Math.PI / 2),
     new THREE.MeshBasicMaterial({ visible: false, depthWrite: false, name: 'ground_plane' })
   ), []);
-  
+
   useEffect(() => {
     const controls = cameraControlsRef.current;
     if (controls) {
-        controls.enabled = true; 
+      controls.enabled = true;
 
-        const ROTATE_ACTION = 1;
-        const TRUCK_ACTION = 2;
-        const NO_ACTION = 0;
+      const ROTATE_ACTION = 1;
+      const TRUCK_ACTION = 2;
+      const NO_ACTION = 0;
 
-        // --- LOGIC ĐIỀU HƯỚNG THEO NGỮ CẢNH (CẬP NHẬT) ---
-        if (builderMode === 'build-area' || selectedObjectIds.length > 0) {
-          // KHI Ở CHẾ ĐỘ CHỌN VÙNG hoặc KHI CÓ ĐỐI TƯỢNG ĐƯỢC CHỌN:
-          // Dành chuột trái cho tương tác (chọn vùng, di chuyển đối tượng).
-          controls.mouseButtons.left = NO_ACTION;
-          // Dùng chuột phải để điều hướng.
-        } else if (builderMode === 'build-single') {
-          // KHI Ở CHẾ ĐỘ BUILD: Dành chuột trái để đặt khối.
-          controls.mouseButtons.left = NO_ACTION;
-        } else {
-          // CHẾ ĐỘ NAVIGATE MẶC ĐỊNH: Dùng chuột trái để điều hướng.
-          controls.mouseButtons.left = isSpaceDown ? TRUCK_ACTION : ROTATE_ACTION;
-        }
-        // Áp dụng cho tất cả các chế độ: Chuột phải dùng để xoay hoặc pan.
-        controls.mouseButtons.right = isSpaceDown ? TRUCK_ACTION : ROTATE_ACTION;
+      // --- LOGIC ĐIỀU HƯỚNG THEO NGỮ CẢNH (CẬP NHẬT) ---
+      if (builderMode === 'build-area' || selectedObjectIds.length > 0) {
+        // KHI Ở CHẾ ĐỘ CHỌN VÙNG hoặc KHI CÓ ĐỐI TƯỢNG ĐƯỢC CHỌN:
+        // Dành chuột trái cho tương tác (chọn vùng, di chuyển đối tượng).
+        controls.mouseButtons.left = NO_ACTION;
+        // Dùng chuột phải để điều hướng.
+      } else if (builderMode === 'build-single') {
+        // KHI Ở CHẾ ĐỘ BUILD: Dành chuột trái để đặt khối.
+        controls.mouseButtons.left = NO_ACTION;
+      } else {
+        // CHẾ ĐỘ NAVIGATE MẶC ĐỊNH: Dùng chuột trái để điều hướng.
+        controls.mouseButtons.left = isSpaceDown ? TRUCK_ACTION : ROTATE_ACTION;
+      }
+      // Áp dụng cho tất cả các chế độ: Chuột phải dùng để xoay hoặc pan.
+      controls.mouseButtons.right = isSpaceDown ? TRUCK_ACTION : ROTATE_ACTION;
 
-        // Giữ nguyên các nút khác nếu cần
-        controls.mouseButtons.middle = THREE.MOUSE.DOLLY;
+      // Giữ nguyên các nút khác nếu cần
+      controls.mouseButtons.middle = THREE.MOUSE.DOLLY;
     }
   }, [builderMode, cameraControlsRef, isSpaceDown, selectedObjectIds]); // Thêm selectedObjectIds vào dependencies
 
@@ -240,10 +262,10 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     // Nếu con trỏ chuột trúng một đối tượng đã đặt, chúng ta muốn chọn chính đối tượng đó.
     // Vì vậy, chúng ta trừ đi một nửa vector pháp tuyến của mặt bị trúng để lấy vị trí bên trong khối.
     if (intersect.object.name !== 'ground_plane' && intersect.face) {
-        let posVec = new THREE.Vector3().copy(intersect.point).sub(intersect.face.normal.clone().multiplyScalar(0.1));
-        // Hạn chế không cho tọa độ Y nhỏ hơn 0
-        if (posVec.y < 0) posVec.y = 0;
-        return [Math.floor(posVec.x / TILE_SIZE), Math.floor(posVec.y / TILE_SIZE), Math.floor(posVec.z / TILE_SIZE)];
+      let posVec = new THREE.Vector3().copy(intersect.point).sub(intersect.face.normal.clone().multiplyScalar(0.1));
+      // Hạn chế không cho tọa độ Y nhỏ hơn 0
+      if (posVec.y < 0) posVec.y = 0;
+      return [Math.floor(posVec.x / TILE_SIZE), Math.floor(posVec.y / TILE_SIZE), Math.floor(posVec.z / TILE_SIZE)];
     }
 
     // Nếu con trỏ chuột trúng mặt phẳng đất, chúng ta tính toán như bình thường.
@@ -270,7 +292,7 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
         }
       }
     };
-    const handleKeyUp = (event: KeyboardEvent) => { 
+    const handleKeyUp = (event: KeyboardEvent) => {
       if (event.key === 'Shift') setIsShiftDown(false); // <-- THÊM LẠI: Lắng nghe phím Shift
       if (event.code === 'Space') setIsSpaceDown(false); // <-- THAY ĐỔI: Lắng nghe phím Space
       if (event.key === 'Alt') setIsAltDown(false); // Bắt sự kiện nhả Alt
@@ -315,7 +337,7 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
       const firstIntersect = intersects[0];
 
       let hoveredObject: THREE.Object3D | null | undefined = firstIntersect?.object;
-      while(hoveredObject && !hoveredObject.userData.id) {
+      while (hoveredObject && !hoveredObject.userData.id) {
         hoveredObject = hoveredObject.parent;
       }
 
@@ -365,10 +387,10 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
         const deltaY = dragStartRef.current.mousePos.y - event.clientY; // Kéo lên -> deltaY dương
         const PIXELS_PER_UNIT = 30; // Độ nhạy: cần kéo 30px để di chuyển 1 ô
         const unitsToMove = Math.round(deltaY / PIXELS_PER_UNIT);
-        
+
         const newY = dragStartRef.current.objectPos[1] + unitsToMove;
-        const finalPos: [number, number, number] = [dragStartRef.current.objectPos[0], newY, dragStartRef.current.objectPos[2]];        
-        
+        const finalPos: [number, number, number] = [dragStartRef.current.objectPos[0], newY, dragStartRef.current.objectPos[2]];
+
         onMoveObject(selectedObjectIds[0], finalPos);
       } else {
         // --- LOGIC SNAP TRÊN MẶT PHẲNG (XZ) ---
@@ -389,7 +411,7 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
 
   const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
-    
+
     // Không cần kiểm tra phím đặc biệt ở đây nữa vì chuột trái đã được tách riêng
 
     if (event.button !== 0) return;
@@ -403,26 +425,28 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     // --- START: LOGIC CLICK ĐÃ ĐƯỢC TÁI CẤU TRÚC ---
     // 1. Luôn xác định đối tượng được click.
     let clickedObjectForSelection: THREE.Object3D | null | undefined = intersect?.object;
-    while(clickedObjectForSelection && !clickedObjectForSelection.userData.id) {
-        clickedObjectForSelection = clickedObjectForSelection.parent;
+    while (clickedObjectForSelection && !clickedObjectForSelection.userData.id) {
+      clickedObjectForSelection = clickedObjectForSelection.parent;
     }
     const clickedId = clickedObjectForSelection?.userData.id || null;
 
-    // 2. Gọi hàm xử lý lựa chọn ở App.tsx.
-    // App.tsx sẽ quyết định là chọn mới hay bắt đầu di chuyển.
-    onSelectObject(clickedId, isShiftDown);
+    // 2. Chỉ chọn đối tượng nếu KHÔNG phải chế độ build-single (hoặc nếu click vào chính đối tượng đã chọn để di chuyển?)
+    // Trong chế độ build, click là để đặt khối, không phải chọn.
+    if (builderMode !== 'build-single') {
+      onSelectObject(clickedId, isShiftDown);
 
-    // 3. Nếu App.tsx quyết định bắt đầu di chuyển, chúng ta lưu lại vị trí ban đầu.
-    const objectToMove = clickedId ? placedObjects.find(o => o.id === clickedId) : null;
-    if (objectToMove) {
-      dragStartRef.current = { objectPos: objectToMove.position, mousePos: { x: event.clientX, y: event.clientY } };
+      // 3. Nếu App.tsx quyết định bắt đầu di chuyển, chúng ta lưu lại vị trí ban đầu.
+      const objectToMove = clickedId ? placedObjects.find(o => o.id === clickedId) : null;
+      if (objectToMove) {
+        dragStartRef.current = { objectPos: objectToMove.position, mousePos: { x: event.clientX, y: event.clientY } };
+      }
     }
     // --- END: LOGIC CLICK ĐÃ ĐƯỢC TÁI CẤU TRÚC ---
-    
+
     if (!intersect) return;
     const gridPosition = getGridPositionFromIntersection(intersect);
     if (!gridPosition) return;
-    
+
     if (builderMode === 'build-single') {
       if (selectedAsset) {
         const [x, y, z] = gridPosition;
@@ -452,8 +476,8 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     }
   };
 
-  const handlePointerUp = (event: ThreeEvent<PointerEvent>) => { 
-    if (isDragging) setIsDragging(false); 
+  const handlePointerUp = (event: ThreeEvent<PointerEvent>) => {
+    if (isDragging) setIsDragging(false);
     if (isMovingObject) {
       onSetIsMovingObject(false); // Cập nhật state ở App.tsx
       dragStartRef.current = null; // Xóa trạng thái khi nhả chuột
@@ -463,16 +487,16 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     // --- THAY ĐỔI: Logic xóa đối tượng bằng Shift + Click chuột phải ---
     // Đổi từ isSpaceDown sang isShiftDown để tránh xung đột với điều hướng
     if (event.button === 2 && isShiftDown && builderMode === 'build-single') {
-        raycaster.setFromCamera(event.pointer, camera);
-        const objectsToIntersect = scene.children.filter(c => c.userData.isPlacedObject);
-        const intersects = raycaster.intersectObjects(objectsToIntersect, true);
-        const intersect = intersects.find(i => i.object.name !== 'RollOverMesh');
+      raycaster.setFromCamera(event.pointer, camera);
+      const objectsToIntersect = scene.children.filter(c => c.userData.isPlacedObject);
+      const intersects = raycaster.intersectObjects(objectsToIntersect, true);
+      const intersect = intersects.find(i => i.object.name !== 'RollOverMesh');
 
-        if (intersect) {
-            let objectToRemove = intersect.object;
-            while (objectToRemove.parent && !objectToRemove.userData.id) objectToRemove = objectToRemove.parent;
-            if (objectToRemove.userData.isPlacedObject) onRemoveObject(objectToRemove.userData.id);
-        }
+      if (intersect) {
+        let objectToRemove = intersect.object;
+        while (objectToRemove.parent && !objectToRemove.userData.id) objectToRemove = objectToRemove.parent;
+        if (objectToRemove.userData.isPlacedObject) onRemoveObject(objectToRemove.userData.id);
+      }
     }
   };
 
@@ -485,9 +509,9 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
         <RollOverMesh selectedAsset={selectedAsset} />
       </group>
       <group ref={placedObjectsGroupRef}>
-        {placedObjects.map(obj => <Suspense key={obj.id} fallback={null}><PlacedAsset 
-          object={obj} 
-          isSelected={selectedObjectIds.includes(obj.id)} 
+        {placedObjects.map(obj => <Suspense key={obj.id} fallback={null}><PlacedAsset
+          object={obj}
+          isSelected={selectedObjectIds.includes(obj.id)}
           isHovered={obj.id === hoveredObjectId}
           onContextMenu={(e) => {
             e.stopPropagation();
@@ -495,6 +519,7 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
           }} /></Suspense>)}
       </group>
       <PortalConnections objects={placedObjects} />
+      {solutionPath && <SolutionOverlay path={solutionPath} />}
       <primitive object={plane} onPointerMove={handlePointerMove} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerOut={() => setPointer(new THREE.Vector2(99, 99))} />
       <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
         <GizmoViewport axisColors={['#ff2060', '#20ff60', '#2060ff']} labelColor="white" />

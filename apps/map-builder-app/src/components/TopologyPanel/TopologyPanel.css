@@ -1,0 +1,68 @@
+
+.topology-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-right: 1px solid #ddd;
+  height: 100%;
+  overflow-y: auto;
+  width: 300px;
+}
+
+.topology-panel h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.topology-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.topology-section label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.topology-select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.param-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.param-group label {
+  font-size: 0.85rem;
+  font-weight: normal;
+}
+
+.param-group input, .param-group select {
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.generate-btn {
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.generate-btn:hover {
+  background-color: #0056b3;
+}

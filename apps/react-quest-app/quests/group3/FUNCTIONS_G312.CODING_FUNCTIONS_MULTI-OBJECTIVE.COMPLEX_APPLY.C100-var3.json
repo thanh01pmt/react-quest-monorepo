@@ -1,0 +1,543 @@
+{
+  "id": "FUNCTIONS_G312.CODING_FUNCTIONS_MULTI-OBJECTIVE.COMPLEX_APPLY.C100-var3",
+  "gameType": "maze",
+  "topic": "CODING_FUNCTIONS_MULTI-OBJECTIVE",
+  "grade": "G312",
+  "challenge_type": "COMPLEX_APPLY",
+  "difficulty_code": "HARD",
+  "gen_map_type": "t_shape",
+  "gen_logic_type": "function_logic",
+  "core_skill_codes": [
+    "CMD_MOVE_FORWARD",
+    "CMD_TURN",
+    "FUNC_DEFINE_SIMPLE",
+    "INTERACT_COLLECT",
+    "INTERACT_TOGGLE",
+    "SEQ_PLANNING_COMPLEX",
+    "SPATIAL_ORIENTATION"
+  ],
+  "validation": {
+    "isPedagogyValid": true,
+    "pedagogyTier": {
+      "tier1_basic": true,
+      "tier2_logic": true,
+      "tier3_pattern": true
+    },
+    "pedagogyErrors": [],
+    "isItemGoalsMet": true,
+    "itemGoalsErrors": [],
+    "isSolvable": true,
+    "solverErrors": []
+  },
+  "isValidMap": true,
+  "subject_codes": [
+    "FUNCTIONS"
+  ],
+  "category_codes": [
+    "FUNCTIONS_G312"
+  ],
+  "topic_codes": [
+    "CODING_FUNCTIONS_MULTI-OBJECTIVE"
+  ],
+  "bloom_level_codes": [
+    "ANALYZE",
+    "EVALUATE",
+    "CREATE"
+  ],
+  "exam_type_code": [
+    "CHALLENGE"
+  ],
+  "course_codes": [
+    "CODING"
+  ],
+  "context_codes": [
+    "FUNCTION_USAGE",
+    "PATTERN_RECOGNITION",
+    "OBJECT_INTERACTION",
+    "MULTI-OBJECTIVE",
+    "OPTIMIZATION"
+  ],
+  "knowledge_dimension_codes": [
+    "PROCEDURAL",
+    "CONCEPTUAL",
+    "METACOGNITIVE"
+  ],
+  "learning_objective_codes": [],
+  "difficulty_perceived_score": 6,
+  "difficulty_perceived_label": "Medium",
+  "difficulty_intrinsic": "Medium",
+  "level": 100,
+  "titleKey": "Challenge.FUNCTIONS_G312.CODING_FUNCTIONS_MULTI-OBJECTIVE.COMPLEX_APPLY.C100.Title",
+  "questTitleKey": "Challenge.FUNCTIONS_G312.CODING_FUNCTIONS_MULTI-OBJECTIVE.COMPLEX_APPLY.C100.Description",
+  "descriptionKey": "Challenge.FUNCTIONS_G312.CODING_FUNCTIONS_MULTI-OBJECTIVE.COMPLEX_APPLY.C100.Description",
+  "translations": {
+    "vi": {
+      "Challenge.FUNCTIONS_G312.CODING_FUNCTIONS_MULTI-OBJECTIVE.COMPLEX_APPLY.C100.Title": "[var3] Ngã Rẽ Đa Nhiệm",
+      "Challenge.FUNCTIONS_G312.CODING_FUNCTIONS_MULTI-OBJECTIVE.COMPLEX_APPLY.C100.Description": "Mỗi ngã rẽ đều có một nhiệm vụ kép. Hãy tạo một hàm để xử lý công việc ở mỗi nhánh một cách hiệu quả nhất.",
+      "CODING_FUNCTIONS_MULTI-OBJECTIVE": "Giải quyết Vấn đề Đa mục tiêu bằng Hàm"
+    }
+  },
+  "supportedEditors": [
+    "blockly",
+    "monaco"
+  ],
+  "blocklyConfig": {
+    "toolbox": {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATEVENTS}",
+          "categorystyle": "events_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_start"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATMOVEMENT}",
+          "categorystyle": "movement_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_moveForward"
+            },
+            {
+              "kind": "block",
+              "type": "maze_turn"
+            },
+            {
+              "kind": "block",
+              "type": "maze_jump"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATACTIONS}",
+          "categorystyle": "actions_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_collect"
+            },
+            {
+              "kind": "block",
+              "type": "maze_toggle_switch"
+            }
+          ]
+        },
+        {
+          "kind": "sep"
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATPROCEDURES}",
+          "custom": "PROCEDURE",
+          "categorystyle": "procedure_category"
+        }
+      ]
+    },
+    "maxBlocks": 28,
+    "startBlocks": "<xml><block type=\"maze_start\" deletable=\"false\" movable=\"false\"><statement name=\"DO\"></statement></block></xml>",
+    "toolboxPresetKey": "functions_l4_comprehensive"
+  },
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 18,
+          "y": 0,
+          "z": 22
+        }
+      },
+      {
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 22,
+          "y": 0,
+          "z": 22
+        }
+      },
+      {
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 20
+        }
+      },
+      {
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 20,
+          "y": 0,
+          "z": 22
+        }
+      },
+      {
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 22
+        }
+      },
+      {
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 22
+        }
+      },
+      {
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 16,
+          "y": 0,
+          "z": 22
+        }
+      },
+      {
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 21
+        }
+      },
+      {
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": 22
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 19,
+          "y": 1,
+          "z": 20,
+          "direction": 1
+        }
+      }
+    ],
+    "collectibles": [
+      {
+        "id": "c1",
+        "type": "crystal",
+        "position": {
+          "x": 19,
+          "y": 1,
+          "z": 21
+        },
+        "pattern_id": "branch_0_1"
+      },
+      {
+        "id": "c3",
+        "type": "crystal",
+        "position": {
+          "x": 18,
+          "y": 1,
+          "z": 22
+        },
+        "pattern_id": "branch_1_1"
+      },
+      {
+        "id": "c4",
+        "type": "crystal",
+        "position": {
+          "x": 17,
+          "y": 1,
+          "z": 22
+        },
+        "pattern_id": "branch_1_2"
+      },
+      {
+        "id": "c6",
+        "type": "crystal",
+        "position": {
+          "x": 20,
+          "y": 1,
+          "z": 22
+        },
+        "pattern_id": "branch_2_1"
+      },
+      {
+        "id": "c7",
+        "type": "crystal",
+        "position": {
+          "x": 21,
+          "y": 1,
+          "z": 22
+        },
+        "pattern_id": "branch_2_2"
+      }
+    ],
+    "interactibles": [
+      {
+        "id": "s2",
+        "type": "switch",
+        "position": {
+          "x": 19,
+          "y": 1,
+          "z": 22
+        },
+        "initialState": "off",
+        "pattern_id": "decoy_branch_0"
+      },
+      {
+        "id": "s5",
+        "type": "switch",
+        "position": {
+          "x": 16,
+          "y": 1,
+          "z": 22
+        },
+        "initialState": "off",
+        "pattern_id": "decoy_branch_1"
+      }
+    ],
+    "finish": {
+      "x": 22,
+      "y": 1,
+      "z": 22
+    },
+    "blocklyConfig": {
+      "toolbox": {
+        "contents": [
+          {
+            "kind": "block",
+            "type": "maze_moveForward"
+          },
+          {
+            "kind": "block",
+            "type": "maze_turn"
+          },
+          {
+            "kind": "block",
+            "type": "maze_collect"
+          },
+          {
+            "kind": "block",
+            "type": "maze_toggle_switch"
+          },
+          {
+            "kind": "block",
+            "type": "maze_repeat"
+          },
+          {
+            "kind": "category",
+            "custom": "PROCEDURE",
+            "contents": []
+          }
+        ]
+      }
+    }
+  },
+  "solution": {
+    "type": "reach_target",
+    "itemGoals": {
+      "switch": 2,
+      "crystal": 5
+    },
+    "optimalBlocks": 23,
+    "optimalLines": 22,
+    "rawActions": [
+      "turnRight",
+      "moveForward",
+      "collect",
+      "moveForward",
+      "toggleSwitch",
+      "turnRight",
+      "moveForward",
+      "collect",
+      "moveForward",
+      "collect",
+      "moveForward",
+      "toggleSwitch",
+      "turnLeft",
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "collect",
+      "moveForward",
+      "collect",
+      "moveForward"
+    ],
+    "rawActionsCount": 22,
+    "structuredSolution": {
+      "main": [
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "CALL",
+          "name": "PROCEDURE_1"
+        },
+        {
+          "type": "maze_toggleSwitch"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "CALL",
+          "name": "PROCEDURE_2"
+        },
+        {
+          "type": "maze_toggleSwitch"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "CALL",
+          "name": "PROCEDURE_3"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "CALL",
+          "name": "PROCEDURE_2"
+        }
+      ],
+      "procedures": {
+        "PROCEDURE_1": [
+          {
+            "type": "maze_moveForward"
+          },
+          {
+            "type": "maze_collect"
+          },
+          {
+            "type": "maze_moveForward"
+          }
+        ],
+        "PROCEDURE_2": [
+          {
+            "type": "CALL",
+            "name": "PROCEDURE_1"
+          },
+          {
+            "type": "maze_collect"
+          },
+          {
+            "type": "maze_moveForward"
+          }
+        ],
+        "PROCEDURE_3": [
+          {
+            "type": "maze_moveForward"
+          },
+          {
+            "type": "maze_moveForward"
+          }
+        ]
+      }
+    },
+    "structuredSolution_fixbug_version": {
+      "main": [
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "CALL",
+          "name": "PROCEDURE_1"
+        },
+        {
+          "type": "maze_toggleSwitch"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "CALL",
+          "name": "PROCEDURE_2"
+        },
+        {
+          "type": "maze_toggleSwitch"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "CALL",
+          "name": "PROCEDURE_3"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "CALL",
+          "name": "PROCEDURE_2"
+        }
+      ],
+      "procedures": {
+        "PROCEDURE_1": [
+          {
+            "type": "maze_moveForward"
+          },
+          {
+            "type": "maze_collect"
+          },
+          {
+            "type": "maze_moveForward"
+          }
+        ],
+        "PROCEDURE_2": [
+          {
+            "type": "CALL",
+            "name": "PROCEDURE_1"
+          },
+          {
+            "type": "maze_collect"
+          },
+          {
+            "type": "maze_moveForward"
+          }
+        ],
+        "PROCEDURE_3": [
+          {
+            "type": "maze_moveForward"
+          },
+          {
+            "type": "maze_moveForward"
+          }
+        ]
+      }
+    }
+  },
+  "sounds": {
+    "win": "/assets/maze/win.mp3",
+    "fail": "/assets/maze/fail_pegman.mp3"
+  }
+}

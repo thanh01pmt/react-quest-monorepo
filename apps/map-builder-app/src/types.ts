@@ -6,7 +6,7 @@ export interface FillOptions {
   spacing: number;
 }
 
-export type PrimitiveShape = 'torus' | 'cone' | 'sphere';
+export type PrimitiveShape = 'torus' | 'cone' | 'sphere' | 'box';
 
 export interface BuildableAsset {
     key: string;

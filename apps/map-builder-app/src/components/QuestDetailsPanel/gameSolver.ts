@@ -43,6 +43,7 @@ interface Solution {
   rawActions: (string | Action)[]; // SỬA LỖI: Cho phép cả chuỗi và đối tượng Action
   structuredSolution: { main: Action[], procedures?: Record<string, any> };
   basicSolution?: { main: Action[]; procedures?: Record<string, any> }; // SỬA LỖI: Cho phép basicSolution có procedures
+  pathCoordinates?: Position[]; // THÊM MỚI: Tọa độ đường đi để Visualize
   // Giữ lại các trường khác có thể tồn tại
   [key: string]: any;
 }
@@ -1149,12 +1150,24 @@ const aStarPathSolver = (gameConfig: GameConfig, solutionConfig: Solution, block
             const basicSolutionMain = convertRawToStructuredActions(path);
 
             // Trả về kết quả cuối cùng
+            // Trả về kết quả cuối cùng
+            
+            // --- LOGIC MỚI: TRÍCH XUẤT TỌA ĐỘ ĐƯỜNG ĐI ---
+            const pathCoordinates: Position[] = [];
+            let currentNodeForPath: PathNode | null = finalPathNode;
+            while (currentNodeForPath) {
+                pathCoordinates.push(currentNodeForPath.state.position);
+                currentNodeForPath = currentNodeForPath.parent;
+            }
+            pathCoordinates.reverse();
+
             return {
                 optimalBlocks: finalOptimalBlocks,
                 optimalLines: finalOptimalLines,
                 rawActions: path,
                 structuredSolution: finalStructuredSolution,
-                basicSolution: { main: basicSolutionMain, procedures: {} } // Trả về basicSolution đã chuẩn hóa
+                basicSolution: { main: basicSolutionMain, procedures: {} }, // Trả về basicSolution đã chuẩn hóa
+                pathCoordinates: pathCoordinates // Trả về tọa độ
             };
         }
 

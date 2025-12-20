@@ -12,6 +12,10 @@ import { JsonOutputPanel } from './components/JsonOutputPanel';
 import { buildableAssetGroups } from './config/gameAssets';
 import { WelcomeModal } from './components/WelcomeModal'; // THÊM MỚI: Import WelcomeModal
 import { type BuildableAsset, type PlacedObject, type BuilderMode, type BoxDimensions, type FillOptions, type SelectionBounds, type MapTheme } from './types';
+import { type Coord } from './map-generator/types';
+import { PlacementService, PedagogyStrategy } from './map-generator/PlacementService'; // IMPORT SERVICE
+import { TopologyPanel } from './components/TopologyPanel'; // THÊM MỚI: Import TopologyPanel
+import { MapInspector } from './components/MapInspector'; // THÊM MỚI: Import MapInspector
 import _ from 'lodash'; // THÊM MỚI: Import lodash để so sánh object
 import './App.css';
 
@@ -21,6 +25,9 @@ function App() {
   const [selectedAsset, setSelectedAsset] = useState<BuildableAsset | null>(defaultAsset);
   // --- START: THAY ĐỔI ĐỂ QUẢN LÝ LỊCH SỬ UNDO/REDO ---
   const [isPaletteVisible, setIsPaletteVisible] = useState(true); // State để quản lý hiển thị palette
+  const [activeSidePanel, setActiveSidePanel] = useState<'assets' | 'topology'>('assets'); // THÊM MỚI: State chọn panel
+  const [activeLayer, setActiveLayer] = useState<'all' | 'ground' | 'items'>('all'); // NEW: Layer State
+  const [smartSnapEnabled, setSmartSnapEnabled] = useState<boolean>(true); // NEW: Smart Snap State
   const [history, setHistory] = useState<PlacedObject[][]>([[]]); // Mảng lưu các trạng thái của placedObjects
   const [historyIndex, setHistoryIndex] = useState(0); // Con trỏ tới trạng thái hiện tại trong lịch sử
   const placedObjects = useMemo(() => history[historyIndex] || [], [history, historyIndex]);
@@ -29,14 +36,14 @@ function App() {
   const [builderMode, setBuilderMode] = useState<BuilderMode>('build-single');
   const [sidebarWidth, setSidebarWidth] = useState(320); // State cho chiều rộng của sidebar
   const [boxDimensions, setBoxDimensions] = useState<BoxDimensions>({ width: 14, height: 14, depth: 14 });
-  
+
   const [selectionStart, setSelectionStart] = useState<[number, number, number] | null>(null);
   const [selectionEnd, setSelectionEnd] = useState<[number, number, number] | null>(null);
-  
+
   const [fillOptions, setFillOptions] = useState<FillOptions>({ type: 'volume', pattern: 'solid', spacing: 1 });
-  
+
   const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
-  
+
   // State mới để lưu trữ siêu dữ liệu của quest
   const [questMetadata, setQuestMetadata] = useState<Record<string, any> | null>(null);
   // SỬA LỖI: State cho theme hiện tại, được khởi tạo với theme mặc định.
@@ -193,8 +200,8 @@ function App() {
   const selectionBounds: SelectionBounds | null = useMemo(() => {
     if (!selectionStart || !selectionEnd) return null;
     return {
-      min: [ Math.min(selectionStart[0], selectionEnd[0]), Math.min(selectionStart[1], selectionEnd[1]), Math.min(selectionStart[2], selectionEnd[2]), ],
-      max: [ Math.max(selectionStart[0], selectionEnd[0]), Math.max(selectionStart[1], selectionEnd[1]), Math.max(selectionStart[2], selectionEnd[2]), ],
+      min: [Math.min(selectionStart[0], selectionEnd[0]), Math.min(selectionStart[1], selectionEnd[1]), Math.min(selectionStart[2], selectionEnd[2]),],
+      max: [Math.max(selectionStart[0], selectionEnd[0]), Math.max(selectionStart[1], selectionEnd[1]), Math.max(selectionStart[2], selectionEnd[2]),],
     };
   }, [selectionStart, selectionEnd]);
 
@@ -315,25 +322,25 @@ function App() {
         // TÍNH NĂNG MỚI: Di chuyển tất cả đối tượng đã chọn mà không bị giới hạn
         // Kích hoạt khi nhấn Ctrl + Shift + Mũi tên
         if ((event.ctrlKey || event.metaKey) && event.shiftKey) {
-          if (event.key === 'ArrowUp')    { handleMoveAllObjectsWithoutBounds('z', -1); moved = true; }
-          else if (event.key === 'ArrowDown')  { handleMoveAllObjectsWithoutBounds('z', 1); moved = true; }
-          else if (event.key === 'ArrowLeft')  { handleMoveAllObjectsWithoutBounds('x', -1); moved = true; }
+          if (event.key === 'ArrowUp') { handleMoveAllObjectsWithoutBounds('z', -1); moved = true; }
+          else if (event.key === 'ArrowDown') { handleMoveAllObjectsWithoutBounds('z', 1); moved = true; }
+          else if (event.key === 'ArrowLeft') { handleMoveAllObjectsWithoutBounds('x', -1); moved = true; }
           else if (event.key === 'ArrowRight') { handleMoveAllObjectsWithoutBounds('x', 1); moved = true; }
         }
         // Logic di chuyển cũ (có giới hạn)
         else if (event.shiftKey) {
           // Khi giữ Shift, chỉ xử lý di chuyển lên/xuống (trục Y)
-          if (event.key === 'ArrowUp')      { handleMoveObject(selectedObjectIds, 'y', 1); moved = true; }
+          if (event.key === 'ArrowUp') { handleMoveObject(selectedObjectIds, 'y', 1); moved = true; }
           else if (event.key === 'ArrowDown') { handleMoveObject(selectedObjectIds, 'y', -1); moved = true; }
-        } 
+        }
         else {
           // Khi không giữ Shift, xử lý di chuyển trên mặt phẳng XZ
-          if (event.key === 'ArrowUp')    { handleMoveObject(selectedObjectIds, 'z', -1); moved = true; }
-          else if (event.key === 'ArrowDown')  { handleMoveObject(selectedObjectIds, 'z', 1); moved = true; }
-          else if (event.key === 'ArrowLeft')  { handleMoveObject(selectedObjectIds, 'x', -1); moved = true; }
+          if (event.key === 'ArrowUp') { handleMoveObject(selectedObjectIds, 'z', -1); moved = true; }
+          else if (event.key === 'ArrowDown') { handleMoveObject(selectedObjectIds, 'z', 1); moved = true; }
+          else if (event.key === 'ArrowLeft') { handleMoveObject(selectedObjectIds, 'x', -1); moved = true; }
           else if (event.key === 'ArrowRight') { handleMoveObject(selectedObjectIds, 'x', 1); moved = true; }
         }
-        
+
         if (moved) {
           event.preventDefault(); // Ngăn các hành vi mặc định của trình duyệt
         }
@@ -358,7 +365,7 @@ function App() {
           event.preventDefault();
           handleSelectionAction('delete');
         }
-      } 
+      }
       // --- Nếu không có vùng chọn, xử lý phím tắt cho đối tượng đơn lẻ ---
       else if (selectedObjectIds.length > 0) {
         if (event.key.toLowerCase() === 'c') {
@@ -414,7 +421,7 @@ function App() {
     });
     return map;
   }, []);
-  
+
   // --- START: LOGIC MỚI CHO VIỆC ÁP DỤNG THEME ---
   const handleThemeChange = (newTheme: MapTheme) => {
     const oldTheme = mapTheme; // Lấy theme hiện tại từ state
@@ -481,7 +488,7 @@ function App() {
     const blocks = placedObjects.filter(o => o.asset.type === 'block').map(o => ({ modelKey: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
     const collectibles = placedObjects.filter(o => o.asset.type === 'collectible').map((o, i) => ({ id: `c${i + 1}`, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
     const interactibles = placedObjects.filter(o => o.asset.type === 'interactible').map(o => ({ id: o.id, ...o.properties, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
-    
+
     const finishObject = placedObjects.find(o => o.asset.key === 'finish');
     const finish = finishObject ? { x: finishObject.position[0], y: finishObject.position[1], z: finishObject.position[2] } : null;
 
@@ -497,7 +504,7 @@ function App() {
       const cleanMetadata = _.omit(questMetadata, ['__OVERWRITE__']);
       return JSON.stringify({ ...cleanMetadata, gameConfig }, null, 2);
     }
-    
+
     // Nếu không, chỉ trả về gameConfig
     return JSON.stringify({ gameConfig }, null, 2);
   }, [placedObjects, questMetadata]);
@@ -563,6 +570,14 @@ function App() {
   // --- START: SỬA LỖI HIỆU ỨNG ---
   // Hàm xử lý lựa chọn đối tượng mới, được gọi từ BuilderScene
   const handleSelectObject = (id: string | null, isShiftDown: boolean) => {
+    // --- NEW: LAYER CHECK LOGIC ---
+    if (activeLayer !== 'all' && id) {
+      const obj = placedObjects.find(o => o.id === id);
+      if (activeLayer === 'ground' && obj && !obj.asset.key.includes('ground')) return; // Cannot select items in ground layer
+      if (activeLayer === 'items' && obj && obj.asset.key.includes('ground')) return; // Cannot select ground in items layer
+    }
+    // ----------------------------
+
     if (isShiftDown) {
       // Logic chọn nhiều đối tượng
       setSelectedObjectIds(prevIds => {
@@ -601,6 +616,27 @@ function App() {
   const handleAddObject = (gridPosition: [number, number, number], asset: BuildableAsset) => {
     const coordId = gridPosition.join(',');
     if (placedObjects.some(obj => obj.position.join(',') === coordId)) return;
+
+    // --- NEW LOGIC: SMART SNAP CHECK ---
+    console.log(`Adding Object: ${coordId}, Type: ${asset.type}`);
+    // Ensure we have pathInfo before checking. 
+    // Relaxed Check: Only enforce if pathInfo exists AND it's a collectible/interactible.
+    // Also explicitly exclude 'block' type from smart snap (walls/ground).
+    if (smartSnapEnabled && questMetadata?.pathInfo && asset.type !== 'block' && asset.key !== 'player_start' && asset.key !== 'finish' && !asset.key.includes('ground') && !asset.key.includes('wall')) {
+      const pathCoords = questMetadata.pathInfo.path_coords || [];
+      const [x, y, z] = gridPosition;
+
+      // Additional safety for type 'special' which might slip through ?
+      if (asset.type === 'collectible' || asset.type === 'interactible') {
+        const isOnPath = pathCoords.some((c: Coord) => c[0] === x && c[1] === y && c[2] === z);
+        if (!isOnPath) {
+          console.warn("Smart Snap: Invalid placement. Item must be on path.");
+          // Visual Feedback could be added here (e.g. toast)
+          return; // Strict Snap
+        }
+      }
+    }
+    // -------------------------------
 
     // --- START: LOGIC MỚI ĐỂ ÁP DỤNG THEME KHI BUILD ---
     let finalAsset = asset;
@@ -675,13 +711,13 @@ function App() {
 
   const handleRemoveObject = (id: string) => {
     setPlacedObjectsWithHistory(prev => {
-        const objectToRemove = prev.find(o => o.id === id);
-        const newObjects = prev.filter(obj => obj.id !== id);
-        if (objectToRemove?.properties.type === 'portal' && objectToRemove.properties.targetId) {
-            const partner = newObjects.find(o => o.id === objectToRemove.properties.targetId);
-            if (partner) partner.properties.targetId = null;
-        }
-        return newObjects;
+      const objectToRemove = prev.find(o => o.id === id);
+      const newObjects = prev.filter(obj => obj.id !== id);
+      if (objectToRemove?.properties.type === 'portal' && objectToRemove.properties.targetId) {
+        const partner = newObjects.find(o => o.id === objectToRemove.properties.targetId);
+        if (partner) partner.properties.targetId = null;
+      }
+      return newObjects;
     });
     // SỬA LỖI: Cập nhật logic để xóa ID khỏi mảng lựa chọn
     setSelectedObjectIds(prevIds => prevIds.filter(prevId => prevId !== id));
@@ -698,76 +734,76 @@ function App() {
 
   const handleMoveObjectToPosition = (objectId: string, newPosition: [number, number, number]) => {
     setPlacedObjectsWithHistory(prev => {
-        const objectToMove = prev.find(o => o.id === objectId);
-        if (!objectToMove) return prev;
+      const objectToMove = prev.find(o => o.id === objectId);
+      if (!objectToMove) return prev;
 
-        // --- VALIDATION ---
-        const [nx, ny, nz] = newPosition;
-        // 1. Kiểm tra có nằm ngoài vùng xây dựng không
-        if (nx < 0 || nx >= boxDimensions.width || ny < 0 || ny >= boxDimensions.height || nz < 0 || nz >= boxDimensions.depth) {
-            return prev; // Vị trí mới nằm ngoài giới hạn
-        }
-        // 2. Kiểm tra có va chạm với đối tượng khác không
-        const newPosString = newPosition.join(',');
-        if (prev.some(o => o.id !== objectId && o.position.join(',') === newPosString)) {
-            return prev; // Đã có đối tượng khác ở vị trí mới
-        }
+      // --- VALIDATION ---
+      const [nx, ny, nz] = newPosition;
+      // 1. Kiểm tra có nằm ngoài vùng xây dựng không
+      if (nx < 0 || nx >= boxDimensions.width || ny < 0 || ny >= boxDimensions.height || nz < 0 || nz >= boxDimensions.depth) {
+        return prev; // Vị trí mới nằm ngoài giới hạn
+      }
+      // 2. Kiểm tra có va chạm với đối tượng khác không
+      const newPosString = newPosition.join(',');
+      if (prev.some(o => o.id !== objectId && o.position.join(',') === newPosString)) {
+        return prev; // Đã có đối tượng khác ở vị trí mới
+      }
 
-        // Chỉ cập nhật nếu vị trí thực sự thay đổi
-        if (objectToMove.position.join(',') === newPosString) return prev;
+      // Chỉ cập nhật nếu vị trí thực sự thay đổi
+      if (objectToMove.position.join(',') === newPosString) return prev;
 
-        return prev.map(o => o.id === objectId ? { ...o, position: newPosition } : o);
+      return prev.map(o => o.id === objectId ? { ...o, position: newPosition } : o);
     });
   };
 
   // NÂNG CẤP: Di chuyển một hoặc nhiều đối tượng theo bước
   const handleMoveObject = (objectIds: string[], direction: 'x' | 'y' | 'z', amount: 1 | -1) => {
     setPlacedObjectsWithHistory(prev => {
-        const objectsToMove = prev.filter(o => objectIds.includes(o.id));
-        if (objectsToMove.length === 0) return prev;
+      const objectsToMove = prev.filter(o => objectIds.includes(o.id));
+      if (objectsToMove.length === 0) return prev;
 
-        const axisIndex = { x: 0, y: 1, z: 2 }[direction];
-        const objectIdsSet = new Set(objectIds);
-        
-        // --- THAY ĐỔI: Loại bỏ kiểm tra giới hạn bản đồ khi di chuyển bằng phím tắt ---
-        // Logic mới sẽ chỉ kiểm tra va chạm với các đối tượng khác không nằm trong vùng chọn.
-        // Điều này cho phép di chuyển tự do các đối tượng ra ngoài ranh giới.
-        const canMove = objectsToMove.every(obj => {
-            const newPos: [number, number, number] = [...obj.position];
-            newPos[axisIndex] += amount;
-            return !prev.some(other => !objectIdsSet.has(other.id) && other.position.join(',') === newPos.join(','));
-        });
+      const axisIndex = { x: 0, y: 1, z: 2 }[direction];
+      const objectIdsSet = new Set(objectIds);
 
-        if (!canMove) return prev; // Nếu có va chạm với đối tượng khác, hủy di chuyển.
+      // --- THAY ĐỔI: Loại bỏ kiểm tra giới hạn bản đồ khi di chuyển bằng phím tắt ---
+      // Logic mới sẽ chỉ kiểm tra va chạm với các đối tượng khác không nằm trong vùng chọn.
+      // Điều này cho phép di chuyển tự do các đối tượng ra ngoài ranh giới.
+      const canMove = objectsToMove.every(obj => {
+        const newPos: [number, number, number] = [...obj.position];
+        newPos[axisIndex] += amount;
+        return !prev.some(other => !objectIdsSet.has(other.id) && other.position.join(',') === newPos.join(','));
+      });
 
-        return prev.map(obj => {
-            if (objectIdsSet.has(obj.id)) {
-                const newPosition: [number, number, number] = [...obj.position];
-                newPosition[axisIndex] += amount;
-                return { ...obj, position: newPosition };
-            }
-            return obj;
-        });
+      if (!canMove) return prev; // Nếu có va chạm với đối tượng khác, hủy di chuyển.
+
+      return prev.map(obj => {
+        if (objectIdsSet.has(obj.id)) {
+          const newPosition: [number, number, number] = [...obj.position];
+          newPosition[axisIndex] += amount;
+          return { ...obj, position: newPosition };
+        }
+        return obj;
+      });
     });
   };
 
   // --- TÍNH NĂNG MỚI: Di chuyển tất cả đối tượng đã chọn mà không kiểm tra giới hạn ---
   const handleMoveAllObjectsWithoutBounds = (direction: 'x' | 'y' | 'z', amount: 1 | -1) => {
     setPlacedObjectsWithHistory(prev => {
-        const objectIdsSet = new Set(selectedObjectIds);
-        if (objectIdsSet.size === 0) return prev;
+      const objectIdsSet = new Set(selectedObjectIds);
+      if (objectIdsSet.size === 0) return prev;
 
-        const axisIndex = { x: 0, y: 1, z: 2 }[direction];
+      const axisIndex = { x: 0, y: 1, z: 2 }[direction];
 
-        // Thực hiện di chuyển mà không có bất kỳ validation nào
-        return prev.map(obj => {
-            if (objectIdsSet.has(obj.id)) {
-                const newPosition: [number, number, number] = [...obj.position];
-                newPosition[axisIndex] += amount;
-                return { ...obj, position: newPosition };
-            }
-            return obj;
-        });
+      // Thực hiện di chuyển mà không có bất kỳ validation nào
+      return prev.map(obj => {
+        if (objectIdsSet.has(obj.id)) {
+          const newPosition: [number, number, number] = [...obj.position];
+          newPosition[axisIndex] += amount;
+          return { ...obj, position: newPosition };
+        }
+        return obj;
+      });
     });
   };
 
@@ -830,7 +866,7 @@ function App() {
     const { min, max } = selectionBounds;
     const [minX, minY, minZ] = min;
     const [maxX, maxY, maxZ] = max;
-    
+
     // --- Cải tiến cho hành động 'delete' ---
     const affectedObjects: PlacedObject[] = [];
     let newPlacedObjects = [...placedObjects];
@@ -838,7 +874,7 @@ function App() {
     for (let x = minX; x <= maxX; x++) {
       for (let y = minY; y <= maxY; y++) {
         for (let z = minZ; z <= maxZ; z++) {
-          
+
           // Bỏ qua nếu không khớp với các tùy chọn fill/pattern
           if (fillOptions.type === 'shell') {
             const isShell = x === minX || x === maxX || y === minY || y === maxY || z === minZ || z === maxZ;
@@ -851,7 +887,7 @@ function App() {
           }
 
           // Tìm đối tượng hiện có tại vị trí
-          const existingObjectIndex = newPlacedObjects.findIndex(obj => 
+          const existingObjectIndex = newPlacedObjects.findIndex(obj =>
             obj && obj.position[0] === x && obj.position[1] === y && obj.position[2] === z
           );
 
@@ -869,11 +905,11 @@ function App() {
               break;
             case 'replace':
               if (existingObjectIndex !== -1 && selectedAsset) {
-                newPlacedObjects[existingObjectIndex] = { 
-                    ...newPlacedObjects[existingObjectIndex], 
-                    rotation: newPlacedObjects[existingObjectIndex].rotation || [0, 0, 0], // Giữ rotation cũ
-                    asset: selectedAsset,
-                    properties: selectedAsset.defaultProperties ? { ...selectedAsset.defaultProperties } : {}
+                newPlacedObjects[existingObjectIndex] = {
+                  ...newPlacedObjects[existingObjectIndex],
+                  rotation: newPlacedObjects[existingObjectIndex].rotation || [0, 0, 0], // Giữ rotation cũ
+                  asset: selectedAsset,
+                  properties: selectedAsset.defaultProperties ? { ...selectedAsset.defaultProperties } : {}
                 };
               }
               break;
@@ -911,7 +947,7 @@ function App() {
     } else if (action === 'replace') {
       setPlacedObjectsWithHistory(newPlacedObjects);
     }
-    
+
     setSelectionStart(null);
     setSelectionEnd(null);
   };
@@ -931,7 +967,7 @@ function App() {
           // Đây là file quest đầy đủ
           configToLoad = json.gameConfig;
           // SỬA LỖI: Giữ lại toàn bộ json làm metadata để gameConfig không bị mất
-          setQuestMetadata(json); 
+          setQuestMetadata(json);
         } else if (json.blocks || json.players) {
           // Đây có vẻ là file chỉ có gameConfig, nhưng không có key cha
           // Để nhất quán, chúng ta sẽ coi nó là file gameConfig-only
@@ -939,31 +975,31 @@ function App() {
           setQuestMetadata({ gameConfig: json }); // Bọc nó trong một object metadata chuẩn
           setCurrentMapFileName(file.name); // Cập nhật tên file
         } else {
-            throw new Error("Invalid format: JSON does not contain a recognizable 'gameConfig' object.");
+          throw new Error("Invalid format: JSON does not contain a recognizable 'gameConfig' object.");
         }
 
         const { blocks = [], collectibles = [], interactibles = [], finish, players = [] } = configToLoad;
         const newPlacedObjects: PlacedObject[] = [];
 
         for (const block of blocks) {
-          const asset = assetMap.get(block.modelKey); 
+          const asset = assetMap.get(block.modelKey);
           if (asset && block.position) newPlacedObjects.push({ id: uuidv4(), asset, position: [block.position.x, block.position.y, block.position.z], rotation: [0, 0, 0], properties: {} });
         }
-        
+
         for (const item of collectibles) {
           const asset = assetMap.get(item.type);
-          if(asset && item.position) newPlacedObjects.push({ id: uuidv4(), asset, position: [item.position.x, item.position.y, item.position.z], rotation: [0, 0, 0], properties: {} });
+          if (asset && item.position) newPlacedObjects.push({ id: uuidv4(), asset, position: [item.position.x, item.position.y, item.position.z], rotation: [0, 0, 0], properties: {} });
         }
 
         for (const item of interactibles) {
           const assetKey = item.type === 'portal' ? `${item.type}_${item.color}` : item.type;
           const asset = assetMap.get(assetKey);
-          if(asset && item.position) {
-              const { position, ...properties } = item; // rotation không có trong file JSON cũ
-              newPlacedObjects.push({ id: item.id, asset, position: [position.x, position.y, position.z], rotation: [0, 0, 0], properties });
+          if (asset && item.position) {
+            const { position, ...properties } = item; // rotation không có trong file JSON cũ
+            newPlacedObjects.push({ id: item.id, asset, position: [position.x, position.y, position.z], rotation: [0, 0, 0], properties });
           }
         }
-        
+
         if (finish) {
           const asset = assetMap.get('finish');
           if (asset) newPlacedObjects.push({ id: uuidv4(), asset, position: [finish.x, finish.y, finish.z], rotation: [0, 0, 0], properties: {} });
@@ -973,14 +1009,15 @@ function App() {
           const asset = assetMap.get('player_start');
           const startPos = players[0].start;
           // SỬA LỖI: Đọc và lưu lại thuộc tính `direction` của người chơi khi import map.
-          if (asset) newPlacedObjects.push({ 
-            id: uuidv4(), 
-            asset, 
+          if (asset) newPlacedObjects.push({
+            id: uuidv4(),
+            asset,
             rotation: [0, 0, 0],
-            position: [startPos.x, startPos.y, startPos.z], 
-            properties: { direction: parseFloat(startPos.direction) || 0 } });
+            position: [startPos.x, startPos.y, startPos.z],
+            properties: { direction: parseFloat(startPos.direction) || 0 }
+          });
         }
-        
+
         setPlacedObjectsWithHistory(newObjects => newPlacedObjects); // Bắt đầu lịch sử mới khi import
         detectAndSetTheme(newPlacedObjects); // SỬA LỖI: Cập nhật theme sau khi import
         alert('Map imported successfully!');
@@ -1005,7 +1042,7 @@ function App() {
 
       let configToLoad;
       if (json.gameConfig && typeof json.gameConfig === 'object') {
-        configToLoad = json.gameConfig; 
+        configToLoad = json.gameConfig;
         setCurrentMapFileName(correctedUrl.split('/').pop() || 'untitled-quest.json'); // Cập nhật tên file từ URL đã sửa
         setQuestMetadata(json); // SỬA LỖI: Giữ lại toàn bộ json
         // THÊM MỚI: Đồng bộ hóa toolbox preset sau khi set metadata
@@ -1033,21 +1070,22 @@ function App() {
       for (const item of interactibles) {
         const assetKey = item.type === 'portal' ? `${item.type}_${item.color}` : item.type;
         const asset = assetMap.get(assetKey);
-        if(asset && item.position) { const { position, ...properties } = item; newPlacedObjects.push({ id: item.id, asset, position: [position.x, position.y, position.z], rotation: [0, 0, 0], properties }); }
+        if (asset && item.position) { const { position, ...properties } = item; newPlacedObjects.push({ id: item.id, asset, position: [position.x, position.y, position.z], rotation: [0, 0, 0], properties }); }
       }
       if (finish) { const asset = assetMap.get('finish'); if (asset) newPlacedObjects.push({ id: uuidv4(), asset, position: [finish.x, finish.y, finish.z], rotation: [0, 0, 0], properties: {} }); }
       if (players[0]?.start) {
         const asset = assetMap.get('player_start');
         const startPos = players[0].start;
         // SỬA LỖI: Đọc và lưu lại thuộc tính `direction` của người chơi khi load map từ URL.
-        if (asset) newPlacedObjects.push({ 
-          id: uuidv4(), 
-          asset, 
+        if (asset) newPlacedObjects.push({
+          id: uuidv4(),
+          asset,
           rotation: [0, 0, 0],
-          position: [startPos.x, startPos.y, startPos.z], 
-          properties: { direction: parseFloat(startPos.direction) || 0 } });
+          position: [startPos.x, startPos.y, startPos.z],
+          properties: { direction: parseFloat(startPos.direction) || 0 }
+        });
       }
-      
+
       setPlacedObjectsWithHistory(() => newPlacedObjects); // Bắt đầu lịch sử mới khi load map
       detectAndSetTheme(newPlacedObjects); // SỬA LỖI: Cập nhật theme sau khi load từ URL
       alert(`Map '${correctedUrl.split('/').pop()}' loaded successfully!`);
@@ -1225,21 +1263,22 @@ function App() {
       for (const item of interactibles) {
         const assetKey = item.type === 'portal' ? `${item.type}_${item.color}` : item.type;
         const asset = assetMap.get(assetKey);
-        if(asset && item.position) { const { position, ...properties } = item; newPlacedObjects.push({ id: item.id, asset, position: [position.x, position.y, position.z], rotation: [0, 0, 0], properties }); }
+        if (asset && item.position) { const { position, ...properties } = item; newPlacedObjects.push({ id: item.id, asset, position: [position.x, position.y, position.z], rotation: [0, 0, 0], properties }); }
       }
       if (finish) { const asset = assetMap.get('finish'); if (asset) newPlacedObjects.push({ id: uuidv4(), asset, position: [finish.x, finish.y, finish.z], rotation: [0, 0, 0], properties: {} }); }
       if (players[0]?.start) {
         const asset = assetMap.get('player_start');
         const startPos = players[0].start;
         // SỬA LỖI: Đọc và lưu lại thuộc tính `direction` của người chơi khi render từ JSON đã chỉnh sửa.
-        if (asset) newPlacedObjects.push({ 
-          id: uuidv4(), 
-          asset, 
+        if (asset) newPlacedObjects.push({
+          id: uuidv4(),
+          asset,
           rotation: [0, 0, 0],
-          position: [startPos.x, startPos.y, startPos.z], 
-          properties: { direction: parseFloat(startPos.direction) || 0 } });
+          position: [startPos.x, startPos.y, startPos.z],
+          properties: { direction: parseFloat(startPos.direction) || 0 }
+        });
       }
-      
+
       setPlacedObjectsWithHistory(() => newPlacedObjects);
       detectAndSetTheme(newPlacedObjects); // SỬA LỖI: Cập nhật theme sau khi render từ JSON
       if (!silent) alert('Map rendered successfully from JSON!');
@@ -1281,7 +1320,7 @@ function App() {
       const finishObject = placedObjects.find(o => o.asset.key === 'finish');
       const startObject = placedObjects.find(o => o.asset.key === 'player_start');
       const players = startObject ? [{ id: "player1", start: { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2], direction: parseFloat(startObject.properties?.direction) || 0 } }] : [];
-      
+
       if (!finishObject) {
         alert("Lỗi: Không tìm thấy đối tượng 'Finish' trên bản đồ. Vui lòng đặt một điểm kết thúc để có thể tự động giải.");
         return;
@@ -1310,7 +1349,7 @@ function App() {
       if (switchCount > 0) {
         newItemGoals.switch = switchCount;
       }
-      
+
       // Cập nhật solution config với itemGoals mới nhất.
       currentSC.itemGoals = newItemGoals;
       // --- END: CẬP NHẬT ITEMGOALS TỰ ĐỘNG ---
@@ -1353,12 +1392,32 @@ function App() {
             basicSolution: basicSolution // Lưu lời giải cơ bản vào metadata
           },
         }));
-        alert("Đã tìm thấy lời giải và cập nhật thành công!");
+        // --- NEW: VALIDATION REPORT ---
+        let report = "Validation Successful!\n- Map is solvable.";
+
+        const strategy = questMetadata?.pathInfo?.strategy;
+        if (strategy === 'loop_logic') {
+          const hasLoop = JSON.stringify(solution.structuredSolution).includes('maze_repeat') || JSON.stringify(solution.structuredSolution).includes('maze_forever');
+          if (!hasLoop) {
+            report += "\n- WARNING: 'Loop Logic' strategy selected, but optimal solution does not use loops.";
+          } else {
+            report += "\n- Pedagogy Check: Loop usage confirmed.";
+          }
+        } else if (strategy === 'function_logic') {
+          const hasFunction = JSON.stringify(solution.structuredSolution).includes('procedures');
+          if (!hasFunction) {
+            report += "\n- WARNING: 'Function Logic' strategy selected, but optimal solution does not use functions.";
+          } else {
+            report += "\n- Pedagogy Check: Function usage confirmed.";
+          }
+        }
+        alert(report);
+        // ------------------------------
       } else {
-        alert("Không tìm thấy đường đi đến điểm kết thúc.");
+        alert("Validation Failed: Map is unsolvable. No path found to target.");
       }
     } catch (error) {
-      alert(`Error while solving maze: ${error instanceof Error ? error.message : String(error)}`);
+      alert(`Validation Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -1385,35 +1444,211 @@ function App() {
       setSelectionEnd(null);
     }
   }, []); // Không có dependencies vì chỉ reset state
- return (
+  const handleGenerateMap = (newObjects: PlacedObject[], metadataUpdate?: Record<string, any>) => {
+    // Confirm if not empty
+    if (placedObjects.length > 0 && !window.confirm("Generating a new map will replace current objects. Continue?")) {
+      return;
+    }
+
+    // FIX: Reset history to start fresh with ONLY the new generated objects
+    // Previously, we pushed to history then set index to 0, which caused the scene to show empty state
+    setHistory([newObjects]);
+    setHistoryIndex(0);
+
+    // Update metadata if provided
+    if (metadataUpdate) {
+      setQuestMetadata(prev => ({
+        ...prev,
+        ...metadataUpdate
+      }));
+    } else {
+      // If not provided, maybe clear path info?
+      // setQuestMetadata(prev => ({ ...prev, pathInfo: undefined, solution: undefined }));
+    }
+
+    console.log(`[handleGenerateMap] Set ${newObjects.length} objects to scene`);
+  }
+
+
+  // --- SUGGEST PLACEMENT LOGIC ---
+  const placementService = useMemo(() => new PlacementService(), []);
+
+  const handleSuggestPlacement = () => {
+    if (!selectionBounds) {
+      alert("Please select an area on the map first (Shift + Drag).");
+      return;
+    }
+
+    if (!questMetadata?.pathInfo?.path_coords) {
+      alert("No path information available. Please generate a map from Topology first.");
+      return;
+    }
+
+    const pathCoords: Coord[] = questMetadata.pathInfo.path_coords;
+    const { min, max } = selectionBounds;
+
+    // Filter path coords within selection
+    const selectedPath = pathCoords.filter(p =>
+      p[0] >= min[0] && p[0] <= max[0] &&
+      // p[1] is Y (elevation), usually 0 for path, but let's be inclusive or exact?
+      // Let's assume selection covers Y.
+      p[2] >= min[2] && p[2] <= max[2]
+    );
+
+    if (selectedPath.length === 0) {
+      alert("No path segments found in the selected area.");
+      return;
+    }
+
+    // Get Strategy/Difficulty
+    const strategy = questMetadata.pathInfo.strategy || PedagogyStrategy.NONE;
+    const difficulty = questMetadata.pathInfo.difficulty || 'simple';
+
+    // Generate Suggestions
+    const suggestedObjects = placementService.suggestPlacement(selectedPath, {
+      strategy,
+      difficulty,
+      assetMap
+    });
+
+    if (suggestedObjects.length === 0) {
+      alert("No suitable placement found for this area/strategy.");
+      return;
+    }
+
+    // Add to map
+    setPlacedObjectsWithHistory(prev => {
+      // Filter out items that might overlap exactly (PlacementService checks its own, but we merge with existing)
+      // PlacementService.suggestPlacement checks collision against its own 'objects' list during generation.
+      // But here we need to check against TOTAL map.
+      // Actually, PlacementService.isOccupied only checks the 'objects' accumulator.
+      // It doesn't know about 'prev' (existing map objects).
+
+      // So we should filter suggestions that collide with 'prev'.
+      const validSuggestions = suggestedObjects.filter(newObj => {
+        return !prev.some(existing =>
+          existing.position[0] === newObj.position[0] &&
+          existing.position[1] === newObj.position[1] &&
+          existing.position[2] === newObj.position[2] &&
+          (existing.asset.type === 'collectible' || existing.asset.type === 'interactible' || existing.asset.type === 'block')
+        );
+      });
+
+      return [...prev, ...validSuggestions];
+    });
+
+    alert(`Added ${suggestedObjects.length} items to the selected segment.`);
+  };
+
+  const solutionPath = useMemo(() => {
+    // Priority 1: Solver Path
+    if (questMetadata?.solution?.pathCoordinates) {
+      return questMetadata.solution.pathCoordinates.map((p: any) => [p.x, p.y, p.z] as [number, number, number]);
+    }
+    // Priority 2: Topology Path
+    if (questMetadata?.pathInfo?.path_coords) {
+      return questMetadata.pathInfo.path_coords as [number, number, number][];
+    }
+    return null;
+  }, [questMetadata]);
+
+  return (
     <div className="app-container">
       {isPaletteVisible && (
-        <AssetPalette
-          selectedAssetKey={selectedAsset?.key || null}
-          onSelectAsset={handleSelectAsset}
-          currentMode={builderMode}
-          onModeChange={handleModeChange}
-          boxDimensions={boxDimensions}
-          onDimensionsChange={handleDimensionsChange}
-          fillOptions={fillOptions}
-          onFillOptionsChange={setFillOptions}
-          onSelectionAction={handleSelectionAction}
-          selectionBounds={selectionBounds}
-          onSelectionBoundsChange={handleSelectionBoundsChange}
-          // SỬA LỖI: Truyền hàm tiện ích mới vào AssetPalette
-          getCorrectedAssetUrl={getCorrectedAssetUrl}
-          onLoadMapFromUrl={handleLoadMapFromUrl} // Truyền hàm mới vào
-          onShowTutorial={() => setIsWelcomeModalVisible(true)} // THÊM MỚI: Prop để mở lại modal
-          onCreateNewMap={handleCreateNewMap} // THÊM MỚI: Prop để tạo map mới
-          onImportMap={handleImportMap}
-        />
-      )}
+        <div className="left-sidebar-container" style={{ width: '300px', display: 'flex', flexDirection: 'column', background: '#f5f5f5', borderRight: '1px solid #ddd' }}>
+          <div className="sidebar-tabs" style={{ display: 'flex', borderBottom: '1px solid #ddd' }}>
+            <button
+              style={{ flex: 1, padding: '10px', background: activeSidePanel === 'assets' ? '#fff' : '#eee', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'assets' ? 'bold' : 'normal' }}
+              onClick={() => setActiveSidePanel('assets')}
+            >
+              Assets
+            </button>
+            <button
+              style={{ flex: 1, padding: '10px', background: activeSidePanel === 'topology' ? '#fff' : '#eee', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'topology' ? 'bold' : 'normal' }}
+              onClick={() => setActiveSidePanel('topology')}
+            >
+              Topology
+            </button>
+          </div>
+
+
+
+          <div style={{ padding: '10px', background: '#e0e0e0', borderBottom: '1px solid #ccc' }}>
+            <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Layer:</label>
+            <select value={activeLayer} onChange={(e) => setActiveLayer(e.target.value as any)}>
+              <option value="all">All</option>
+              <option value="ground">Ground</option>
+              <option value="items">Items</option>
+            </select>
+            <label style={{ marginLeft: '10px' }}>
+              <input type="checkbox" checked={smartSnapEnabled} onChange={e => setSmartSnapEnabled(e.target.checked)} /> Smart Snap
+            </label>
+          </div>
+
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {activeSidePanel === 'assets' ? (
+              <AssetPalette
+                selectedAssetKey={selectedAsset?.key || null}
+                onSelectAsset={handleSelectAsset}
+                currentMode={builderMode}
+                onModeChange={handleModeChange}
+                boxDimensions={boxDimensions}
+                onDimensionsChange={handleDimensionsChange}
+                fillOptions={fillOptions}
+                onFillOptionsChange={setFillOptions}
+                onSelectionAction={handleSelectionAction}
+                selectionBounds={selectionBounds}
+                onSelectionBoundsChange={handleSelectionBoundsChange}
+                // SỬA LỖI: Truyền hàm tiện ích mới vào AssetPalette
+                getCorrectedAssetUrl={getCorrectedAssetUrl}
+                onLoadMapFromUrl={handleLoadMapFromUrl} // Truyền hàm mới vào
+                onShowTutorial={() => setIsWelcomeModalVisible(true)} // THÊM MỚI: Prop để mở lại modal
+                onCreateNewMap={handleCreateNewMap} // THÊM MỚI: Prop để tạo map mới
+                onImportMap={handleImportMap}
+              />
+            ) : (
+              <TopologyPanel
+                onGenerate={handleGenerateMap}
+                assetMap={assetMap}
+              />
+            )}
+          </div>
+        </div>
+      )
+      }
       <div className="builder-scene-wrapper">
         <button onClick={togglePalette} className={`toggle-palette-btn ${!isPaletteVisible ? 'closed' : ''}`}>
           {isPaletteVisible ? '‹' : '›'}
         </button>
+        <MapInspector
+          placedObjects={placedObjects}
+          pathInfo={questMetadata?.pathInfo}
+          solutionPath={solutionPath}
+        />
+        {/* BUTTON SUGGEST PLACEMENT */}
+        {selectionStart && selectionEnd && (
+          <button
+            onClick={handleSuggestPlacement}
+            style={{
+              position: 'absolute',
+              bottom: '20px',
+              left: '200px', // Next to Inspector
+              zIndex: 1000,
+              padding: '10px 20px',
+              background: '#2196f3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.3)'
+            }}
+          >
+            Suggest Placement
+          </button>
+        )}
         <ViewControls onViewChange={handleViewChange} />
-        <BuilderScene 
+        <BuilderScene
           ref={sceneRef}
           builderMode={builderMode}
           selectedAsset={selectedAsset}
@@ -1433,15 +1668,16 @@ function App() {
           isMovingObject={isMovingObject} // THÊM MỚI: Truyền trạng thái di chuyển xuống
           onSetIsMovingObject={setIsMovingObject} // THÊM MỚI: Cho phép Scene cập nhật trạng thái này
           onObjectContextMenu={handleObjectContextMenu}
+          solutionPath={solutionPath} // NEW PROP
         />
       </div>
       {/* --- START: THÊM THANH RESIZER VÀ ÁP DỤNG WIDTH ĐỘNG --- */}
-      <div 
-        className="resizer" 
+      <div
+        className="resizer"
         onMouseDown={handleResizeMouseDown}
       />
       <div ref={sidebarRef} className="right-sidebar" style={{ width: `${sidebarWidth}px` }}>
-        <PropertiesPanel 
+        <PropertiesPanel
           selectedObjects={placedObjects.filter(obj => selectedObjectIds.includes(obj.id))}
           onUpdateObject={handleUpdateObject}
           onDeleteSelection={() => handleRemoveMultipleObjects(selectedObjectIds)}
@@ -1455,69 +1691,73 @@ function App() {
           onClearSelection={() => { setSelectedObjectIds([]); setSelectionStart(null); setSelectionEnd(null); }}
         />
         {/* --- COMPONENT MỚI ĐƯỢC THÊM VÀO --- */}
-        <QuestDetailsPanel 
+        <QuestDetailsPanel
           metadata={questMetadata}
           onMetadataChange={handleMetadataChange}
           onSolveMaze={handleSolveMaze} // SỬA ĐỔI: Truyền hàm giải không cần tham số
         />
-        <JsonOutputPanel 
+        <JsonOutputPanel
           questId={questMetadata?.id || 'untitled-quest'}
           editedJson={editedJson}
           onJsonChange={setEditedJson}
           onRender={handleRenderEditedJson}
-          //onSave={handleSaveMap} // Bỏ ghi chú dòng này để kích hoạt lại nút Save
+        //onSave={handleSaveMap} // Bỏ ghi chú dòng này để kích hoạt lại nút Save
         />
       </div>
       {/* --- END: THÊM THANH RESIZER VÀ ÁP DỤNG WIDTH ĐỘNG --- */}
-      {contextMenu.visible && (
-        <div 
-          className="context-menu"
-          style={{ top: contextMenu.y, left: contextMenu.x }}
-          onClick={(e) => e.stopPropagation()} // Ngăn không cho menu tự đóng khi click vào chính nó
-        >
-          <ul>
-            <li onClick={() => handleContextMenuAction('duplicate')}>Duplicate</li>
-            <li onClick={() => handleContextMenuAction('copy_asset')}>Copy</li>
-            <li 
-              className="has-submenu"
-              onMouseEnter={() => setAssetSubMenuVisible(true)}
-              onMouseLeave={() => setAssetSubMenuVisible(false)}
-            >
-              Change Asset &raquo;
-              {assetSubMenuVisible && (
-                <div className="context-menu sub-menu">
-                  <ul>
-                    {buildableAssetGroups.map(group => (
-                      <div key={group.name}>
-                        <li className="separator-header">{group.name}</li>
-                        {group.items.map(asset => (
-                          <li key={asset.key} onClick={() => handleSelectAsset(asset)} title={asset.name}>
-                            <img 
-                              src={asset.thumbnail} 
-                              alt={asset.name} 
-                              className="context-menu-thumbnail"
-                              // THÊM MỚI: Nếu ảnh không tải được, hiển thị ảnh fallback
-                              onError={(e) => { e.currentTarget.src = '/assets/ui/unknown.png'; }}
-                            />
-                            <span>{asset.name}</span>
-                          </li>
-                        ))}
-                      </div>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </li>
-            <li className="separator"></li>
-            <li onClick={() => handleContextMenuAction('delete')} className="delete">Delete</li>
-          </ul>
-        </div>
-      )}
+      {
+        contextMenu.visible && (
+          <div
+            className="context-menu"
+            style={{ top: contextMenu.y, left: contextMenu.x }}
+            onClick={(e) => e.stopPropagation()} // Ngăn không cho menu tự đóng khi click vào chính nó
+          >
+            <ul>
+              <li onClick={() => handleContextMenuAction('duplicate')}>Duplicate</li>
+              <li onClick={() => handleContextMenuAction('copy_asset')}>Copy</li>
+              <li
+                className="has-submenu"
+                onMouseEnter={() => setAssetSubMenuVisible(true)}
+                onMouseLeave={() => setAssetSubMenuVisible(false)}
+              >
+                Change Asset &raquo;
+                {assetSubMenuVisible && (
+                  <div className="context-menu sub-menu">
+                    <ul>
+                      {buildableAssetGroups.map(group => (
+                        <div key={group.name}>
+                          <li className="separator-header">{group.name}</li>
+                          {group.items.map(asset => (
+                            <li key={asset.key} onClick={() => handleSelectAsset(asset)} title={asset.name}>
+                              <img
+                                src={asset.thumbnail}
+                                alt={asset.name}
+                                className="context-menu-thumbnail"
+                                // THÊM MỚI: Nếu ảnh không tải được, hiển thị ảnh fallback
+                                onError={(e) => { e.currentTarget.src = '/assets/ui/unknown.png'; }}
+                              />
+                              <span>{asset.name}</span>
+                            </li>
+                          ))}
+                        </div>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </li>
+              <li className="separator"></li>
+              <li onClick={() => handleContextMenuAction('delete')} className="delete">Delete</li>
+            </ul>
+          </div>
+        )
+      }
       {/* --- THÊM MỚI: Render modal hướng dẫn --- */}
-      {isWelcomeModalVisible && (
-        <WelcomeModal onClose={handleCloseWelcomeModal} />
-      )}
-    </div>
+      {
+        isWelcomeModalVisible && (
+          <WelcomeModal onClose={handleCloseWelcomeModal} />
+        )
+      }
+    </div >
   );
 }
 
