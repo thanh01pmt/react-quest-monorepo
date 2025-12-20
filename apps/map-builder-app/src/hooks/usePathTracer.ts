@@ -3,6 +3,11 @@
  * 
  * Traces a path from player_start to finish in Manual mode.
  * Uses BFS to find the shortest path through connected blocks.
+ * 
+ * Coordinate convention:
+ * - Blocks are placed at position (x, y, z)
+ * - Player/Items stand ON TOP of blocks, so they are at (x, y+1, z)
+ * - Path is traced at the "walkable" level (y+1 of blocks)
  */
 
 import { useMemo } from 'react';
@@ -31,6 +36,7 @@ function coordToKey(coord: Coord): string {
 
 function getNeighbors(coord: Coord): Coord[] {
   const [x, y, z] = coord;
+  // Only horizontal movement (same Y level)
   return [
     [x + 1, y, z],
     [x - 1, y, z],
@@ -68,26 +74,25 @@ export function usePathTracer(placedObjects: PlacedObject[]): TracedPath {
       };
     }
 
-    // Build walkable grid from block objects
+    // Build walkable positions from block objects
+    // Blocks are at (x, y, z), walkable surface is at (x, y+1, z)
     const blockObjects = placedObjects.filter(obj => obj.asset.type === 'block');
     const walkableSet = new Set<string>();
     
     blockObjects.forEach(obj => {
-      // Consider the top of the block as walkable
-      const walkableCoord: Coord = [
-        obj.position[0],
-        obj.position[1] + 1, // On top of block
-        obj.position[2]
-      ];
+      const [x, y, z] = obj.position;
+      // The walkable position is ON TOP of the block
+      const walkableCoord: Coord = [x, y + 1, z];
       walkableSet.add(coordToKey(walkableCoord));
-      
-      // Also consider the block position itself if items are placed at block level
-      walkableSet.add(coordToKey(obj.position as Coord));
     });
 
-    // Start and finish positions
+    // Start and finish positions (they should already be at walkable level, i.e., Y+1 of blocks)
     const startCoord: Coord = startObj.position as Coord;
     const finishCoord: Coord = finishObj.position as Coord;
+
+    // Also add start/finish positions as walkable (in case they weren't on a block)
+    walkableSet.add(coordToKey(startCoord));
+    walkableSet.add(coordToKey(finishCoord));
 
     // BFS to find path
     const visited = new Set<string>();
@@ -104,29 +109,22 @@ export function usePathTracer(placedObjects: PlacedObject[]): TracedPath {
       if (visited.has(key)) continue;
       visited.add(key);
       
-      // Check if reached finish
+      // Check if reached finish (exact match including Y)
       if (
         current.coord[0] === finishCoord[0] &&
-        current.coord[2] === finishCoord[2] // Same x,z position (ignore y for walkability check)
+        current.coord[1] === finishCoord[1] &&
+        current.coord[2] === finishCoord[2]
       ) {
         foundPath = current.path;
         break;
       }
       
-      // Explore neighbors
+      // Explore neighbors (same Y level)
       for (const neighbor of getNeighbors(current.coord)) {
         const neighborKey = coordToKey(neighbor);
         
-        // Check if this position is walkable (on a block)
-        const atBlockLevel: Coord = [neighbor[0], neighbor[1], neighbor[2]];
-        const onBlockLevel: Coord = [neighbor[0], neighbor[1] - 1, neighbor[2]];
-        
-        if (
-          !visited.has(neighborKey) &&
-          (walkableSet.has(coordToKey(atBlockLevel)) || 
-           walkableSet.has(coordToKey(onBlockLevel)) ||
-           (neighbor[0] === finishCoord[0] && neighbor[2] === finishCoord[2]))
-        ) {
+        // Check if this position is walkable
+        if (!visited.has(neighborKey) && walkableSet.has(neighborKey)) {
           queue.push({
             coord: neighbor,
             path: [...current.path, neighbor]
@@ -137,13 +135,15 @@ export function usePathTracer(placedObjects: PlacedObject[]): TracedPath {
 
     const isReachable = foundPath.length > 0;
 
-    // Determine accessible items (items on or adjacent to path)
+    // Create a set of path positions for quick lookup
+    const pathSet = new Set(foundPath.map(c => coordToKey(c)));
+
+    // Determine accessible items
+    // Items are also placed at Y+1 (on top of blocks), same as player
     const items = placedObjects.filter(
       obj => obj.asset.type === 'collectible' || obj.asset.type === 'interactible'
     );
 
-    const pathSet = new Set(foundPath.map(c => coordToKey(c)));
-    
     const accessibleItems: PlacedObject[] = [];
     const inaccessibleItems: PlacedObject[] = [];
 
@@ -151,7 +151,9 @@ export function usePathTracer(placedObjects: PlacedObject[]): TracedPath {
       const itemCoord: Coord = item.position as Coord;
       const itemKey = coordToKey(itemCoord);
       
-      // Item is accessible if it's on the path or adjacent to path
+      // Item is accessible if:
+      // 1. It's exactly on the path, OR
+      // 2. It's horizontally adjacent to a path position (same Y)
       const isOnPath = pathSet.has(itemKey);
       const isAdjacent = getNeighbors(itemCoord).some(n => pathSet.has(coordToKey(n)));
       
