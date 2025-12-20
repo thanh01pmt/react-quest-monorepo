@@ -14,7 +14,7 @@
 
 .validation-badge-container.top-right {
   top: 20px;
-  right: 20px;
+  right: 80px; /* Moved left to avoid overlapping with ViewControls */
 }
 
 .validation-badge-container.bottom-left {
