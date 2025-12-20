@@ -1,133 +1,260 @@
-/* --- NÚT HƯỚNG DẪN --- */
-.guide-button-container {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #444;
-}
-
-.guide-button {
-  width: 100%;
-  padding: 10px;
-  background-color: #ff9800;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  transition: background-color 0.2s ease-in-out;
-}
-
-.guide-button:hover {
-  background-color: #f57c00;
-}
-
-.map-actions {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #444;
-  display: flex;
-  flex-direction: column;
-  gap: 10px; /* Thêm khoảng cách giữa các nút */
-}
-
-.map-actions h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 0.9em;
-  text-transform: uppercase;
-  color: #999;
-  font-weight: 600;
-}
-
-.map-actions button {
-  width: 100%;
-  padding: 10px;
-  background-color: #3c3c41;
-  color: #f0f0f0;
-  border: 1px solid #555;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  font-size: 14px;
-}
-
-.map-actions button:hover {
-  background-color: #4a4a50;
-}
-
-/* Xóa bỏ style cho nút hướng dẫn cũ */
-.map-actions .tutorial-btn {
-  display: none;
-}
-
-/* --- CẬP NHẬT CHO TÍNH NĂNG LOAD MAP --- */
-.palette-section {
-  margin-top: 20px; /* Tăng khoảng cách với nút Import JSON ở trên */
-}
-
-.palette-section .prop-group {
-  display: flex;
-  flex-direction: column; /* Xếp chồng label và select theo chiều dọc */
-  margin-bottom: 10px;
-}
-
-.palette-section .prop-group select {
-  width: 100%; /* Đảm bảo select chiếm toàn bộ chiều rộng */
-  margin-top: 4px; /* Thêm một chút khoảng cách với label */
-  padding: 8px;
-  background-color: #1e1e1e;
-  color: #f0f0f0;
-  border: 1px solid #555;
-}
+/**
+ * AssetPalette Styles - Refactored for Dark Theme
+ * Unified with BuilderControlPanel styling
+ */
 
 .asset-palette {
-  width: 280px;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   background-color: #2a2a2e;
-  padding: 15px;
-  box-sizing: border-box;
+  color: #e0e0e0;
+  height: 100%;
   overflow-y: auto;
-  border-right: 1px solid #444;
-  flex-shrink: 0;
 }
 
-.asset-palette h2 {
-  margin-top: 0;
-  font-size: 1.5em;
-  border-bottom: 1px solid #444;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
+/* Palette Sections */
+.palette-section {
+  padding: 12px;
+  border-bottom: 1px solid #3c3c41;
+}
+
+.section-title {
+  margin: 0 0 10px 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Mode Switcher */
+.mode-switcher {
+  display: flex;
+  gap: 6px;
+  background: #1e1e22;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.mode-switcher .mode-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+}
+
+.mode-switcher .mode-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #bbb;
+}
+
+.mode-switcher .mode-btn.active {
+  background: linear-gradient(135deg, #3c3c41 0%, #444448 100%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mode-switcher .mode-icon {
+  font-size: 1.1rem;
+}
+
+/* Selection Section */
+.selection-section {
+  background: rgba(0, 123, 255, 0.05);
+  border: 1px solid rgba(0, 123, 255, 0.2);
+  border-radius: 8px;
+  margin: 8px;
+  padding: 12px;
+}
+
+.selection-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.corner-inputs h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.75rem;
+  color: #999;
+  text-align: center;
+}
+
+.selection-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.selection-actions .action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  background: #3c3c41;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.selection-actions .action-btn:hover {
+  background: #4a4a50;
+}
+
+.selection-actions .fill-btn:hover {
+  background: #2563eb;
+  border-color: #1d4ed8;
+}
+
+.selection-actions .replace-btn:hover {
+  background: #f59e0b;
+  border-color: #d97706;
+}
+
+.selection-actions .delete-btn:hover {
+  background: #ef4444;
+  border-color: #dc2626;
+}
+
+/* Fill Options */
+.fill-options h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.75rem;
+  color: #999;
+  padding-top: 8px;
+  border-top: 1px solid #3c3c41;
+}
+
+.fill-options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.fill-options-row label {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.fill-options-row select,
+.fill-options-row input {
+  background: #3c3c41;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  width: 90px;
+}
+
+/* Build Area Inputs */
+.build-area-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dimension-input {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dimension-input label {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.dimension-input input[type="number"] {
+  width: 70px;
+  background: #3c3c41;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  padding: 6px 8px;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.dimension-input input[type="number"]:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* Asset Groups */
+.assets-section {
+  flex: 1;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .asset-group {
-  margin-bottom: 25px;
+  margin-bottom: 8px;
 }
 
-.asset-group h3 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-size: 0.9em;
-  text-transform: uppercase;
-  color: #999;
-  font-weight: 600;
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  background: #333;
+  border: none;
+  border-radius: 6px;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.group-header:hover {
+  background: #3c3c41;
+  color: #fff;
+}
+
+.group-name {
+  text-transform: capitalize;
+}
+
+.group-toggle {
+  font-size: 0.7rem;
+  color: #888;
 }
 
 .asset-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+  gap: 6px;
+  padding: 8px 4px;
 }
 
 .asset-item {
-  padding: 10px 5px;
-  font-size: 13px;
-  background-color: #3c3c41;
-  color: #f0f0f0;
+  padding: 8px 4px;
+  font-size: 0.7rem;
+  background: #3c3c41;
+  color: #e0e0e0;
   border: 1px solid #555;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition: all 0.2s;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -135,129 +262,80 @@
 }
 
 .asset-item:hover {
-  background-color: #4a4a50;
+  background: #4a4a50;
   border-color: #777;
 }
 
 .asset-item.active {
-  background-color: #007bff;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   border-color: #0056b3;
   color: white;
-  font-weight: bold;
-}
-
-.bounding-box-controls {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #444;
-}
-
-.bounding-box-controls h3 {
-   margin-top: 0;
-  margin-bottom: 12px;
-  font-size: 0.9em;
-  text-transform: uppercase;
-  color: #999;
   font-weight: 600;
 }
 
-.dimension-input {
+/* Quick Actions */
+.quick-actions-section {
+  background: #252528;
+}
+
+.quick-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.dimension-input label {
-  color: #ccc;
-}
-
-.dimension-input input[type=number] {
-  width: 70px;
-  background-color: #1e1e1e;
-  color: #f0f0f0;
-  border: 1px solid #555;
-  border-radius: 4px;
-  padding: 5px 8px;
-  text-align: right;
-}
-
-.selection-controls {
-  margin-bottom: 20px;
-  padding: 15px;
-  border: 1px solid #555;
-  border-radius: 4px;
-  background-color: #333;
-  border-bottom: 1px solid #444;
-}
-
-.selection-controls h3, .selection-controls h4 {
-  margin-top: 0;
+  gap: 6px;
   margin-bottom: 10px;
+}
+
+.quick-btn {
+  flex: 1;
+  padding: 8px 10px;
+  background: #3c3c41;
+  border: 1px solid #555;
+  border-radius: 6px;
   color: #ccc;
-}
-
-.selection-controls h4 {
-  font-size: 0.9em;
-  border-top: 1px solid #444;
-  padding-top: 10px;
-  margin-top: 15px;
-}
-
-.selection-inputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.selection-inputs h4 {
-  font-size: 0.8em;
-  margin-bottom: 8px;
-  border-top: none;
-  padding-top: 0;
-  margin-top: 0;
-  text-align: center;
-}
-
-.action-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 15px;
-}
-
-.action-buttons button {
-  padding: 8px;
-  background-color: #4a4a50;
-  color: #f0f0f0;
-  border: 1px solid #666;
-  border-radius: 4px;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
-.action-buttons button:hover {
-  background-color: #5a5a60;
+.quick-btn:hover {
+  background: #4a4a50;
+  color: #fff;
 }
 
-.fill-options-group {
+.load-from-project {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.fill-options-group label {
-  color: #ccc;
+.load-from-project label {
+  font-size: 0.75rem;
+  color: #888;
 }
 
-.fill-options-group select,
-.fill-options-group input {
-  background-color: #1e1e1e;
-  color: #f0f0f0;
+.load-from-project select {
+  width: 100%;
+  padding: 8px;
+  background: #3c3c41;
   border: 1px solid #555;
   border-radius: 4px;
-  padding: 5px;
-  width: 100px;
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+/* Scrollbar */
+.asset-palette::-webkit-scrollbar {
+  width: 8px;
+}
+
+.asset-palette::-webkit-scrollbar-track {
+  background: #2a2a2e;
+}
+
+.asset-palette::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.asset-palette::-webkit-scrollbar-thumb:hover {
+  background: #666;
 }

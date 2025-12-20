@@ -4,22 +4,56 @@ import { AssetPalette } from './components/AssetPalette';
 import { BuilderScene, type SceneController } from './components/BuilderScene';
 import { ViewControls } from './components/ViewControls';
 import { PropertiesPanel } from './components/PropertiesPanel';
-import { QuestDetailsPanel } from './components/QuestDetailsPanel'; // THÊM MỚI
-import { Themes } from './components/PropertiesPanel/theme'; // THÊM MỚI: Import theme
-import { toolboxPresets } from './config/toolboxPresets'; // THÊM MỚI: Import toolbox presets
-import { solveMaze } from './components/QuestDetailsPanel/gameSolver'; // THÊM MỚI: Import solver
+import { QuestDetailsPanel } from './components/QuestDetailsPanel';
+import { Themes } from './components/PropertiesPanel/theme';
+import { toolboxPresets } from './config/toolboxPresets';
+import { solveMaze } from './components/QuestDetailsPanel/gameSolver';
 import { JsonOutputPanel } from './components/JsonOutputPanel';
 import { buildableAssetGroups } from './config/gameAssets';
-import { WelcomeModal } from './components/WelcomeModal'; // THÊM MỚI: Import WelcomeModal
+import { WelcomeModal } from './components/WelcomeModal';
 import { type BuildableAsset, type PlacedObject, type BuilderMode, type BoxDimensions, type FillOptions, type SelectionBounds, type MapTheme } from './types';
-import { type Coord } from './map-generator/types';
-import { PlacementService, PedagogyStrategy } from './map-generator/PlacementService'; // IMPORT SERVICE
-import { TopologyPanel } from './components/TopologyPanel'; // THÊM MỚI: Import TopologyPanel
-import { MapInspector } from './components/MapInspector'; // THÊM MỚI: Import MapInspector
-import _ from 'lodash'; // THÊM MỚI: Import lodash để so sánh object
+import { type Coord, type IPathInfo } from './map-generator/types';
+import { PlacementService, PedagogyStrategy } from './map-generator/PlacementService';
+import { TopologyPanel } from './components/TopologyPanel';
+import { MapInspector } from './components/MapInspector';
+import { ValidationBadge } from './components/ValidationBadge';
+import { BuilderModeProvider } from './store/builderModeContext';
+import { useMapValidation } from './hooks/useMapValidation';
+import { HelpButton } from './components/HelpButton';
+import _ from 'lodash';
 import './App.css';
 
 const defaultAsset = buildableAssetGroups[0]?.items[0];
+
+// Wrapper component for ValidationBadge that uses the useMapValidation hook
+interface ValidationBadgeWrapperProps {
+  placedObjects: PlacedObject[];
+  pathInfo: IPathInfo | null;
+  mode: 'manual' | 'auto';
+  strategy: PedagogyStrategy;
+}
+
+function ValidationBadgeWrapper({ placedObjects, pathInfo, mode, strategy }: ValidationBadgeWrapperProps) {
+  const { validationReport, status, statusMessage, validateNow, isValidating } = useMapValidation({
+    placedObjects,
+    pathInfo,
+    mode,
+    strategy,
+    debounceMs: 500,
+    autoValidate: true,
+  });
+
+  return (
+    <ValidationBadge
+      status={status}
+      message={statusMessage}
+      report={validationReport}
+      isValidating={isValidating}
+      onValidate={validateNow}
+      position="top-right"
+    />
+  );
+}
 
 function App() {
   const [selectedAsset, setSelectedAsset] = useState<BuildableAsset | null>(defaultAsset);
@@ -49,6 +83,7 @@ function App() {
   // SỬA LỖI: State cho theme hiện tại, được khởi tạo với theme mặc định.
   const [mapTheme, setMapTheme] = useState<MapTheme>(Themes.COMPREHENSIVE_THEMES[0]);
   const [isWelcomeModalVisible, setIsWelcomeModalVisible] = useState(false); // THÊM MỚI: State cho modal hướng dẫn
+  const [lastUsedStrategy, setLastUsedStrategy] = useState<PedagogyStrategy>(PedagogyStrategy.NONE); // Track strategy for validation
 
   const [currentMapFileName, setCurrentMapFileName] = useState<string>('untitled-quest.json');
 
@@ -1461,6 +1496,10 @@ function App() {
         ...prev,
         ...metadataUpdate
       }));
+      // Track strategy for validation
+      if (metadataUpdate.strategy) {
+        setLastUsedStrategy(metadataUpdate.strategy as PedagogyStrategy);
+      }
     } else {
       // If not provided, maybe clear path info?
       // setQuestMetadata(prev => ({ ...prev, pathInfo: undefined, solution: undefined }));
@@ -1555,16 +1594,16 @@ function App() {
   return (
     <div className="app-container">
       {isPaletteVisible && (
-        <div className="left-sidebar-container" style={{ width: '300px', display: 'flex', flexDirection: 'column', background: '#f5f5f5', borderRight: '1px solid #ddd' }}>
-          <div className="sidebar-tabs" style={{ display: 'flex', borderBottom: '1px solid #ddd' }}>
+        <div className="left-sidebar-container" style={{ width: '300px', display: 'flex', flexDirection: 'column', background: '#2a2a2e', borderRight: '1px solid #3c3c41' }}>
+          <div className="sidebar-tabs" style={{ display: 'flex', borderBottom: '1px solid #3c3c41' }}>
             <button
-              style={{ flex: 1, padding: '10px', background: activeSidePanel === 'assets' ? '#fff' : '#eee', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'assets' ? 'bold' : 'normal' }}
+              style={{ flex: 1, padding: '10px', background: activeSidePanel === 'assets' ? '#3c3c41' : '#2a2a2e', color: activeSidePanel === 'assets' ? '#fff' : '#888', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'assets' ? 'bold' : 'normal', transition: 'all 0.2s' }}
               onClick={() => setActiveSidePanel('assets')}
             >
               Assets
             </button>
             <button
-              style={{ flex: 1, padding: '10px', background: activeSidePanel === 'topology' ? '#fff' : '#eee', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'topology' ? 'bold' : 'normal' }}
+              style={{ flex: 1, padding: '10px', background: activeSidePanel === 'topology' ? '#3c3c41' : '#2a2a2e', color: activeSidePanel === 'topology' ? '#fff' : '#888', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'topology' ? 'bold' : 'normal', transition: 'all 0.2s' }}
               onClick={() => setActiveSidePanel('topology')}
             >
               Topology
@@ -1573,15 +1612,15 @@ function App() {
 
 
 
-          <div style={{ padding: '10px', background: '#e0e0e0', borderBottom: '1px solid #ccc' }}>
-            <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Layer:</label>
-            <select value={activeLayer} onChange={(e) => setActiveLayer(e.target.value as any)}>
+          <div style={{ padding: '10px', background: '#333', borderBottom: '1px solid #3c3c41' }}>
+            <label style={{ marginRight: '10px', fontWeight: 'bold', color: '#fff' }}>Layer:</label>
+            <select value={activeLayer} onChange={(e) => setActiveLayer(e.target.value as any)} style={{ background: '#3c3c41', color: '#fff', border: '1px solid #555', borderRadius: '4px', padding: '4px 8px' }}>
               <option value="all">All</option>
               <option value="ground">Ground</option>
               <option value="items">Items</option>
             </select>
-            <label style={{ marginLeft: '10px' }}>
-              <input type="checkbox" checked={smartSnapEnabled} onChange={e => setSmartSnapEnabled(e.target.checked)} /> Smart Snap
+            <label style={{ marginLeft: '10px', color: '#ccc' }}>
+              <input type="checkbox" checked={smartSnapEnabled} onChange={e => setSmartSnapEnabled(e.target.checked)} style={{ accentColor: '#007bff' }} /> Smart Snap
             </label>
           </div>
 
@@ -1624,6 +1663,15 @@ function App() {
           placedObjects={placedObjects}
           pathInfo={questMetadata?.pathInfo}
           solutionPath={solutionPath}
+          strategy={lastUsedStrategy}
+          mode={activeSidePanel === 'topology' ? 'auto' : 'manual'}
+        />
+        {/* Validation Badge - Top Right Corner */}
+        <ValidationBadgeWrapper
+          placedObjects={placedObjects}
+          pathInfo={questMetadata?.pathInfo as IPathInfo | null}
+          mode={activeSidePanel === 'topology' ? 'auto' : 'manual'}
+          strategy={lastUsedStrategy}
         />
         {/* BUTTON SUGGEST PLACEMENT */}
         {selectionStart && selectionEnd && (
@@ -1757,8 +1805,19 @@ function App() {
           <WelcomeModal onClose={handleCloseWelcomeModal} />
         )
       }
+      {/* Help Button for Keyboard Shortcuts */}
+      <HelpButton />
     </div >
   );
 }
 
-export default App;
+// Wrap App with BuilderModeProvider for unified mode state management
+function AppWithProvider() {
+  return (
+    <BuilderModeProvider>
+      <App />
+    </BuilderModeProvider>
+  );
+}
+
+export default AppWithProvider;

@@ -2,19 +2,28 @@ import { PlacedObject, BuildableAsset } from '../types';
 import { BaseTopology } from './topologies/BaseTopology';
 import { IPathInfo, Coord } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import { 
+    PedagogyStrategy, 
+    DensityMode, 
+    AcademicParams, 
+    ItemGoals,
+    StrategyConfig 
+} from './strategies/types';
+import { getStrategyRegistry } from './strategies/StrategyRegistry';
 
-export enum PedagogyStrategy {
-    NONE = 'none',
-    LOOP_LOGIC = 'loop_logic',
-    FUNCTION_LOGIC = 'function_logic'
-}
+// Re-export for backward compatibility
+export { PedagogyStrategy } from './strategies/types';
 
 export interface PlacementConfig {
     topology: BaseTopology;
     params: Record<string, any>;
     strategy: PedagogyStrategy;
-    difficulty: 'intro' | 'simple' | 'complex'; // NEW
+    difficulty: 'intro' | 'simple' | 'complex';
     assetMap: Map<string, BuildableAsset>;
+    // New fields
+    densityMode?: DensityMode;
+    academicParams?: AcademicParams;
+    itemGoals?: ItemGoals;
 }
 
 export class PlacementService {
@@ -75,14 +84,19 @@ export class PlacementService {
                     name: `Placeholder (${assetKey})`,
                     type: type === 'wall' ? 'block' : (type === 'ground' ? 'block' : 'collectible'),
                     primitiveShape: 'box', 
-                    defaultProperties: { color: type === 'wall' ? '#888888' : '#22aa22' },
+                    defaultProperties: { color: type === 'wall' ? '#888888' : (type === 'item' ? '#ff00ff' : '#22aa22') },
                     thumbnail: '/assets/ui/unknown.png'
                  } as BuildableAsset;
              }
              if (asset) {
+                // FIX: Items should be placed ON TOP of ground (y+1), not inside it
+                const adjustedPos: Coord = type === 'item' 
+                    ? [pos[0], pos[1] + 1, pos[2]]  // Raise items by 1 level
+                    : pos;
+                    
                 objects.push({
                     id: uuidv4(),
-                    position: pos,
+                    position: adjustedPos,
                     rotation: [0, 0, 0],
                     asset: asset,
                     properties: { ...asset.defaultProperties }
@@ -111,7 +125,10 @@ export class PlacementService {
             pathInfo.path_coords.forEach((c: Coord) => addObj(c, groundKey));
         }
         
-        // B. Generate Wall Border around the placement area
+        
+        // B. Wall Border Generation - DISABLED
+        // Uncomment below if you want walls around the map perimeter
+        /*
         // Calculate bounding box of placement/path coords
         const allCoords = pathInfo.placement_coords && pathInfo.placement_coords.length > 0 
             ? pathInfo.placement_coords 
@@ -156,18 +173,40 @@ export class PlacementService {
                 }
             }
         }
+        */
         
         // C. Render Obstacles from pathInfo
         pathInfo.obstacles.forEach((obs: any) => {
              addObj(obs.pos, wallKey, 'wall'); // Use dynamic wall key
         });
 
-        // 2. Apply Pedagogy Strategy
-        if (strategy === PedagogyStrategy.LOOP_LOGIC) {
-            this.applyLoopLogic(objects, pathInfo, assetMap, config);
-        } else if (strategy === PedagogyStrategy.FUNCTION_LOGIC) {
-            this.applyFunctionLogic(objects, pathInfo, assetMap, config);
+        // 2. Apply Pedagogy Strategy using StrategyRegistry
+        const registry = getStrategyRegistry();
+        
+        // Check if strategy is supported by new registry
+        if (registry.has(strategy)) {
+            console.log(`[PlacementService] Using StrategyRegistry for ${strategy}`);
+            const result = registry.applyStrategy(
+                strategy,
+                pathInfo,
+                assetMap,
+                difficulty,
+                objects,
+                config.academicParams
+            );
+            // Merge result objects (items placed by strategy)
+            result.objects.forEach(obj => {
+                // Only add if not already in objects (avoid duplicates)
+                if (!objects.some(o => o.id === obj.id)) {
+                    objects.push(obj);
+                }
+            });
+            console.log(`[PlacementService] Strategy placed ${result.metadata.items_placed} items`);
+        } else if (strategy === PedagogyStrategy.NONE) {
+            // Legacy random placement
+            this.applyRandomPlacement(objects, pathInfo, assetMap);
         } else {
+            console.warn(`[PlacementService] Unknown strategy ${strategy}, using random placement`);
             this.applyRandomPlacement(objects, pathInfo, assetMap);
         }
 
@@ -187,8 +226,12 @@ export class PlacementService {
         console.log("Applying Loop Logic...");
         
         let segments: Coord[][] = pathInfo.metadata?.segments;
+        console.log(`[applyLoopLogic] Metadata segments: ${segments ? segments.length : 'none'}`);
+        
         if (!segments) {
             segments = this.computeSegments(pathInfo.path_coords);
+            console.log(`[applyLoopLogic] Computed ${segments.length} segments from ${pathInfo.path_coords.length} path coords`);
+            segments.forEach((seg, i) => console.log(`  Segment ${i}: length = ${seg.length}`));
         }
         
         this.applyLoopLogicInternal(objects, segments, assetMap, config.difficulty);
@@ -263,15 +306,19 @@ export class PlacementService {
     }
 
     private isOccupied(objects: PlacedObject[], pos: Coord): boolean {
-        return objects.some(o => o.position[0] === pos[0] && o.position[1] === pos[1] && o.position[2] === pos[2] && (o.asset.type === 'collectible' || o.asset.type === 'interactible' || o.asset.type === 'block'));
+        // Check at y+1 since items are placed above ground
+        const itemY = pos[1] + 1;
+        return objects.some(o => o.position[0] === pos[0] && o.position[1] === itemY && o.position[2] === pos[2] && (o.asset.type === 'collectible' || o.asset.type === 'interactible'));
     }
 
     private addObject(objects: PlacedObject[], pos: Coord, assetKey: string, assetMap: Map<string, BuildableAsset>) {
         const asset = assetMap.get(assetKey) || assetMap.get('crystal'); // Fallback
         if(asset) {
+                // FIX: Items should be placed ON TOP of ground (y+1), not inside it
+                const adjustedPos: Coord = [pos[0], pos[1] + 1, pos[2]];
                 objects.push({
                     id: uuidv4(),
-                    position: pos,
+                    position: adjustedPos,
                     rotation: [0,0,0],
                     asset: asset,
                     properties: { ...asset.defaultProperties }
@@ -307,23 +354,34 @@ export class PlacementService {
     }
 
     private applyLoopLogicInternal(objects: PlacedObject[], segments: Coord[][], assetMap: Map<string, BuildableAsset>, difficulty: string) {
-        segments.forEach(segment => {
-            const minLen = difficulty === 'intro' ? 2 : 3;
-            if (segment.length >= minLen) {
-                 const prob = difficulty === 'complex' ? 0.8 : 0.4;
-                 for (let i = 0; i < segment.length; i++) {
-                     if (Math.random() < prob) {
-                         const pos = segment[i];
-                         if (!this.isOccupied(objects, pos)) {
-                             this.addObject(objects, pos, 'gem', assetMap); 
-                         }
-                     }
-                 }
+        console.log(`[applyLoopLogicInternal] Processing ${segments.length} segments, difficulty: ${difficulty}`);
+        let itemsAdded = 0;
+        
+        // For Loop Logic: Place items at REGULAR intervals to encourage loop usage
+        // - intro: item every 1 step (very simple loop)
+        // - simple: item every 1-2 steps  
+        // - complex: item every 2-3 steps
+        const interval = difficulty === 'intro' ? 1 : (difficulty === 'simple' ? 1 : 2);
+        
+        segments.forEach((segment, segIdx) => {
+            // For loop logic, we want segments with at least 2 items to make loops worthwhile
+            if (segment.length >= 2) {
+                // Place items at regular intervals along the segment
+                for (let i = 0; i < segment.length; i += interval) {
+                    const pos = segment[i];
+                    if (!this.isOccupied(objects, pos)) {
+                        this.addObject(objects, pos, 'gem', assetMap); 
+                        itemsAdded++;
+                    }
+                }
             }
         });
+        
+        console.log(`[applyLoopLogicInternal] Added ${itemsAdded} items at interval ${interval}`);
     }
 
     private applyFunctionLogicInternal(objects: PlacedObject[], segments: Coord[][], assetMap: Map<string, BuildableAsset>, difficulty: string) {
+        console.log(`[applyFunctionLogicInternal] Processing ${segments.length} segments, difficulty: ${difficulty}`);
         // Group segments by length
         const segmentsByLen: Record<number, Coord[][]> = {};
         segments.forEach((seg: Coord[]) => {
@@ -332,44 +390,55 @@ export class PlacementService {
             segmentsByLen[len].push(seg);
         });
 
-        // For lengths with multiple segments, apply same pattern
+        let itemsAdded = 0;
+        // For lengths with multiple segments OR single segments >= 2, apply pattern
         Object.keys(segmentsByLen).forEach(lenStr => {
             const len = parseInt(lenStr);
             const segs = segmentsByLen[len];
-            const complexity = difficulty === 'complex' ? 0.7 : 0.3;
+            const complexity = difficulty === 'complex' ? 0.7 : 0.5; // Increased from 0.3
 
-            if (segs.length > 1 && len >= 3) {
+            // Relaxed condition: apply to segments >= 2 length (was >= 3 and multiple)
+            if (len >= 2) {
                  // Create pattern
                  const patternPoints: number[] = [];
                  for(let i=0; i<len; i++) {
                     if (Math.random() < complexity) patternPoints.push(i);
                  }
+                 // Ensure at least 1 point
+                 if (patternPoints.length === 0 && len > 0) patternPoints.push(0);
 
                  segs.forEach(seg => {
                      patternPoints.forEach(idx => {
-                         this.addObject(objects, seg[idx], 'crystal', assetMap);
+                         if (idx < seg.length) {
+                             this.addObject(objects, seg[idx], 'crystal', assetMap);
+                             itemsAdded++;
+                         }
                      });
                  });
             }
         });
+        console.log(`[applyFunctionLogicInternal] Added ${itemsAdded} items`);
     }
 
     private applyRandomPlacement(objects: PlacedObject[], pathInfo: IPathInfo, assetMap: Map<string, BuildableAsset>) {
-        // ... (as before)
         const path = pathInfo.path_coords;
+        // Place items on path with random probability
         for(let i=1; i<path.length-1; i++) {
-            if (Math.random() < 0.2) { 
-                 const asset = assetMap.get('crystal');
+            if (Math.random() < 0.3) { // 30% chance per tile
+                 const asset = assetMap.get('crystal') || assetMap.get('gem');
                  if(asset) {
+                     // FIX: Items should be placed ON TOP of ground (y+1)
+                     const pos = path[i];
                      objects.push({
                          id: uuidv4(),
-                         position: path[i],
+                         position: [pos[0], pos[1] + 1, pos[2]],
                          rotation: [0,0,0],
                          asset: asset,
-                         properties: {}
+                         properties: { ...asset.defaultProperties }
                      });
                  }
             }
         }
+        console.log(`[applyRandomPlacement] Added items on ${objects.filter(o => o.asset.key === 'crystal' || o.asset.key === 'gem').length} tiles`);
     }
 }

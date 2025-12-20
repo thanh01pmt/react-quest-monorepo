@@ -1,3 +1,19 @@
+/**
+ * AssetPalette Component - Refactored for Manual Mode
+ * 
+ * Streamlined version focused on:
+ * - Asset selection (grouped blocks/items)
+ * - Placement mode switching
+ * - Selection tools (area selection, fill, replace, delete)
+ * - Build area dimensions
+ * 
+ * Removed (moved to other components):
+ * - Import/Export buttons → ActionBar
+ * - Layer selector → CommonControls
+ * - Smart Snap → CommonControls
+ * - Theme selector → CommonControls
+ */
+
 import { useRef, useState, useEffect } from 'react';
 import { buildableAssetGroups } from '../../config/gameAssets';
 import { type BuildableAsset, type BuilderMode, type BoxDimensions, type FillOptions, type SelectionBounds } from '../../types';
@@ -16,10 +32,10 @@ interface AssetPaletteProps {
   selectionBounds: SelectionBounds | null;
   onSelectionBoundsChange: (bounds: SelectionBounds) => void;
   onImportMap: (file: File) => void;
-  onLoadMapFromUrl: (url: string) => void; // Thêm prop bị thiếu
-  onShowTutorial: () => void; // THÊM MỚI: Prop để mở lại modal hướng dẫn
-  onCreateNewMap: () => void; // THÊM MỚI: Prop để tạo map mới
-  getCorrectedAssetUrl: (url: string) => string; // THÊM MỚI: Prop để sửa lỗi đường dẫn
+  onLoadMapFromUrl: (url: string) => void;
+  onShowTutorial: () => void;
+  onCreateNewMap: () => void;
+  getCorrectedAssetUrl: (url: string) => string;
 }
 
 const DimensionInputRow = ({ label, value, onChange }: { label: string, value: number, onChange: (val: number) => void }) => (
@@ -42,23 +58,20 @@ export function AssetPalette({
   selectionBounds,
   onSelectionBoundsChange,
   onImportMap,
-  onLoadMapFromUrl, // Nhận prop mới
-  onShowTutorial, // Nhận prop mới
-  onCreateNewMap, // Nhận prop mới
-  getCorrectedAssetUrl // Nhận prop mới
+  onLoadMapFromUrl,
+  onShowTutorial,
+  onCreateNewMap,
+  getCorrectedAssetUrl
 }: AssetPaletteProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [mapList, setMapList] = useState<Record<string, unknown> | null>(null);
   const [templateList, setTemplateList] = useState<Record<string, unknown> | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['Blocks']));
 
-  // Sử dụng import.meta.glob của Vite để lấy danh sách các file map trong thư mục public/maps
+  // Load map and template lists
   useEffect(() => {
-    // Lấy danh sách các file JSON trong thư mục public/maps
-    // `eager: false` (mặc định) sẽ tạo ra các dynamic import, giúp không tải tất cả các file ngay từ đầu.
     const mapFiles = import.meta.glob('/public/maps/*.json', { eager: true });
     setMapList(mapFiles);
-
-    // Lấy danh sách các file JSON trong thư mục public/templates
     const templateFiles = import.meta.glob('/public/templates/*.json', { eager: true });
     setTemplateList(templateFiles);
   }, []);
@@ -66,9 +79,7 @@ export function AssetPalette({
   const handleMapSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const mapPath = e.target.value;
     if (mapPath) {
-      // mapPath ở đây chính là URL công khai đến file JSON
       onLoadMapFromUrl(mapPath);
-      // Reset dropdown để có thể chọn lại cùng một map
       e.target.value = "";
     }
   };
@@ -82,7 +93,6 @@ export function AssetPalette({
     if (file) {
       onImportMap(file);
     }
-    // Reset a file input value to allow re-uploading the same file
     event.target.value = '';
   };
 
@@ -90,99 +100,70 @@ export function AssetPalette({
     if (!selectionBounds) return;
     const newBounds = JSON.parse(JSON.stringify(selectionBounds)) as SelectionBounds;
     newBounds[bound][axisIndex] = value;
-
-    // Ensure min is not greater than max
     if (newBounds.min[axisIndex] > newBounds.max[axisIndex]) {
       if (bound === 'min') newBounds.max[axisIndex] = value;
       else newBounds.min[axisIndex] = value;
     }
-
     onSelectionBoundsChange(newBounds);
+  };
+
+  const toggleGroup = (groupName: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupName)) {
+        next.delete(groupName);
+      } else {
+        next.add(groupName);
+      }
+      return next;
+    });
   };
 
   return (
     <aside className="asset-palette">
-      <h2>Asset Palette</h2>
-
-      {/* --- NÚT HƯỚNG DẪN ĐƯỢC DI CHUYỂN LÊN ĐÂY --- */}
-      <div className="guide-button-container">
-        <button onClick={onShowTutorial} className="guide-button">
-          Manual
-        </button>
-      </div>
-
-      <div className="map-actions">
-        <h3>Map Actions</h3>
-        <button onClick={onCreateNewMap}>Create New Map</button>
-        <button onClick={handleImportClick}>Import JSON</button>
-        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" style={{ display: 'none' }} />
-
-        {/* --- TÍNH NĂNG MỚI: LOAD MAP TỪ DANH SÁCH --- */}
-        <div className="palette-section">
-          <h3>Load Map from Project</h3>
-          <div className="prop-group">
-            <select onChange={handleMapSelect} defaultValue="">
-              <option value="" disabled>-- Choose a map --</option>
-              {mapList && Object.keys(mapList).map(path => {
-                // Lấy tên file từ đường dẫn, ví dụ: /public/maps/my-map.json -> my-map.json
-                const fileName = path.split('/').pop();
-                return (
-                  <option key={path} value={path}>{fileName}</option>
-                );
-              })}
-            </select>
-          </div>
-        </div>
-
-        {/* --- TÍNH NĂNG MỚI: TẢI TEMPLATE MAP --- */}
-        <div className="palette-section">
-          <h3>Download Template</h3>
-          <div className="prop-group">
-            <select
-              onChange={(e) => {
-                const path = e.target.value;
-                if (path) {
-                  const fileName = path.split('/').pop();
-                  const a = document.createElement('a');
-                  a.href = getCorrectedAssetUrl(path); // SỬA LỖI: Sử dụng hàm tiện ích để lấy URL đúng
-                  a.download = fileName || 'template.json';
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  e.target.value = ""; // Reset dropdown
-                }
-              }}
-              defaultValue=""
-            >
-              <option value="" disabled>-- Download Template --</option>
-              {templateList && Object.keys(templateList).map(path => {
-                const fileName = path.split('/').pop();
-                return (
-                  <option key={path} value={path}>{fileName}</option>
-                );
-              })}
-            </select>
-          </div>
+      {/* Placement Mode Switcher */}
+      <div className="palette-section">
+        <h3 className="section-title">🛠️ Placement Mode</h3>
+        <div className="mode-switcher">
+          <button
+            className={`mode-btn ${currentMode === 'navigate' ? 'active' : ''}`}
+            onClick={() => onModeChange('navigate')}
+            title="Navigate & Select (V)"
+          >
+            <span className="mode-icon">👆</span>
+            <span>Navigate</span>
+          </button>
+          <button
+            className={`mode-btn ${currentMode === 'build-single' ? 'active' : ''}`}
+            onClick={() => onModeChange('build-single')}
+            title="Build Single Object (B)"
+          >
+            <span className="mode-icon">🧱</span>
+            <span>Build</span>
+          </button>
+          <button
+            className={`mode-btn ${currentMode === 'build-area' ? 'active' : ''}`}
+            onClick={() => onModeChange('build-area')}
+            title="Select Area (S)"
+          >
+            <span className="mode-icon">☐</span>
+            <span>Select</span>
+          </button>
         </div>
       </div>
 
-      <div className="mode-switcher">
-        <button className={currentMode === 'navigate' ? 'active' : ''} onClick={() => onModeChange('navigate')}>Navigate (V)</button>
-        <button className={currentMode === 'build-single' ? 'active' : ''} onClick={() => onModeChange('build-single')}>Build (B)</button>
-        <button className={currentMode === 'build-area' ? 'active' : ''} onClick={() => onModeChange('build-area')}>Select Area (S)</button>
-      </div>
-
+      {/* Selection Controls */}
       {selectionBounds && (
-        <div className="selection-controls">
-          <h3>Selection Volume</h3>
+        <div className="palette-section selection-section">
+          <h3 className="section-title">📐 Selection Volume</h3>
           <div className="selection-inputs">
-            <div>
+            <div className="corner-inputs">
               <h4>Min Corner</h4>
               <DimensionInputRow label="X" value={selectionBounds.min[0]} onChange={val => handleBoundChange('min', 0, val)} />
               <DimensionInputRow label="Y" value={selectionBounds.min[1]} onChange={val => handleBoundChange('min', 1, val)} />
               <DimensionInputRow label="Z" value={selectionBounds.min[2]} onChange={val => handleBoundChange('min', 2, val)} />
             </div>
-            <div>
+            <div className="corner-inputs">
               <h4>Max Corner</h4>
               <DimensionInputRow label="X" value={selectionBounds.max[0]} onChange={val => handleBoundChange('max', 0, val)} />
               <DimensionInputRow label="Y" value={selectionBounds.max[1]} onChange={val => handleBoundChange('max', 1, val)} />
@@ -190,59 +171,121 @@ export function AssetPalette({
             </div>
           </div>
 
-          <div className="action-buttons">
-            <button onClick={() => onSelectionAction('fill')}>Fill</button>
-            <button onClick={() => onSelectionAction('replace')}>Replace</button>
-            <button onClick={() => onSelectionAction('delete')}>Delete</button>
+          <div className="selection-actions">
+            <button className="action-btn fill-btn" onClick={() => onSelectionAction('fill')}>
+              <span>🔲</span> Fill
+            </button>
+            <button className="action-btn replace-btn" onClick={() => onSelectionAction('replace')}>
+              <span>🔄</span> Replace
+            </button>
+            <button className="action-btn delete-btn" onClick={() => onSelectionAction('delete')}>
+              <span>🗑️</span> Delete
+            </button>
           </div>
-          <h4>Fill Options</h4>
-          <div className="fill-options-group">
-            <label>Type:</label>
-            <select value={fillOptions.type} onChange={e => onFillOptionsChange({ ...fillOptions, type: e.target.value as FillOptions['type'] })}>
-              <option value="volume">Volume</option>
-              <option value="shell">Shell</option>
-            </select>
-          </div>
-          <div className="fill-options-group">
-            <label>Pattern:</label>
-            <select value={fillOptions.pattern} onChange={e => onFillOptionsChange({ ...fillOptions, pattern: e.target.value as FillOptions['pattern'] })}>
-              <option value="solid">Solid</option>
-              <option value="checkerboard">Checkerboard</option>
-            </select>
-          </div>
-          {fillOptions.pattern === 'checkerboard' && (
-            <div className="fill-options-group">
-              <label>Spacing</label>
-              <input
-                type="number"
-                min="0"
-                value={fillOptions.spacing}
-                onChange={e => onFillOptionsChange({ ...fillOptions, spacing: Math.max(0, parseInt(e.target.value, 10)) })}
-              />
+
+          <div className="fill-options">
+            <h4>Fill Options</h4>
+            <div className="fill-options-row">
+              <label>Type:</label>
+              <select value={fillOptions.type} onChange={e => onFillOptionsChange({ ...fillOptions, type: e.target.value as FillOptions['type'] })}>
+                <option value="volume">Volume</option>
+                <option value="shell">Shell</option>
+              </select>
             </div>
-          )}
+            <div className="fill-options-row">
+              <label>Pattern:</label>
+              <select value={fillOptions.pattern} onChange={e => onFillOptionsChange({ ...fillOptions, pattern: e.target.value as FillOptions['pattern'] })}>
+                <option value="solid">Solid</option>
+                <option value="checkerboard">Checkerboard</option>
+              </select>
+            </div>
+            {fillOptions.pattern === 'checkerboard' && (
+              <div className="fill-options-row">
+                <label>Spacing:</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={fillOptions.spacing}
+                  onChange={e => onFillOptionsChange({ ...fillOptions, spacing: Math.max(0, parseInt(e.target.value, 10)) })}
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      <div className="bounding-box-controls">
-        <h3>Build Area</h3>
-        <DimensionInputRow label="Width" value={boxDimensions.width} onChange={val => onDimensionsChange('width', val)} />
-        <DimensionInputRow label="Height" value={boxDimensions.height} onChange={val => onDimensionsChange('height', val)} />
-        <DimensionInputRow label="Depth" value={boxDimensions.depth} onChange={val => onDimensionsChange('depth', val)} />
+      {/* Build Area Dimensions */}
+      <div className="palette-section">
+        <h3 className="section-title">📏 Build Area</h3>
+        <div className="build-area-inputs">
+          <DimensionInputRow label="Width" value={boxDimensions.width} onChange={val => onDimensionsChange('width', val)} />
+          <DimensionInputRow label="Height" value={boxDimensions.height} onChange={val => onDimensionsChange('height', val)} />
+          <DimensionInputRow label="Depth" value={boxDimensions.depth} onChange={val => onDimensionsChange('depth', val)} />
+        </div>
       </div>
 
-      {buildableAssetGroups.map(group => (
-        <div key={group.name} className="asset-group">
-          <h3>{group.name}</h3>
-          <div className="asset-grid">
-            {group.items.map(item => (
-              <button key={item.key} className={`asset-item ${selectedAssetKey === item.key ? 'active' : ''}`} onClick={() => onSelectAsset(item)} title={item.name}>
-                {item.name}
-              </button>
-            ))}
+      {/* Asset Groups */}
+      <div className="palette-section assets-section">
+        <h3 className="section-title">🎨 Assets</h3>
+        {buildableAssetGroups.map(group => (
+          <div key={group.name} className="asset-group">
+            <button
+              className="group-header"
+              onClick={() => toggleGroup(group.name)}
+            >
+              <span className="group-name">{group.name}</span>
+              <span className="group-toggle">{expandedGroups.has(group.name) ? '▼' : '▶'}</span>
+            </button>
+            {expandedGroups.has(group.name) && (
+              <div className="asset-grid">
+                {group.items.map(item => (
+                  <button
+                    key={item.key}
+                    className={`asset-item ${selectedAssetKey === item.key ? 'active' : ''}`}
+                    onClick={() => onSelectAsset(item)}
+                    title={item.name}
+                  >
+                    {item.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+        ))}
+      </div>
+
+      {/* Quick Actions (collapsed by default) */}
+      <div className="palette-section quick-actions-section">
+        <h3 className="section-title">⚡ Quick Actions</h3>
+        <div className="quick-actions">
+          <button onClick={onShowTutorial} className="quick-btn">
+            📖 Manual
+          </button>
+          <button onClick={handleImportClick} className="quick-btn">
+            📥 Import
+          </button>
         </div>
-      ))}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept=".json"
+          style={{ display: 'none' }}
+        />
+
+        {/* Load from project */}
+        {mapList && Object.keys(mapList).length > 0 && (
+          <div className="load-from-project">
+            <label>Load from Project:</label>
+            <select onChange={handleMapSelect} defaultValue="">
+              <option value="" disabled>-- Choose a map --</option>
+              {Object.keys(mapList).map(path => (
+                <option key={path} value={path}>{path.split('/').pop()}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
     </aside>
   );
 }

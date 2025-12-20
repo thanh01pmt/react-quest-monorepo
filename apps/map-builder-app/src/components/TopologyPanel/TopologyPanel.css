@@ -1,68 +1,316 @@
+/**
+ * TopologyPanel Styles - Refactored for Dark Theme
+ * With collapsible sections and post-generate options
+ */
 
 .topology-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-  background: #f5f5f5;
-  border-right: 1px solid #ddd;
+  gap: 0;
+  background: #2a2a2e;
+  color: #e0e0e0;
   height: 100%;
   overflow-y: auto;
-  width: 300px;
 }
 
-.topology-panel h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  color: #333;
+/* Post-Generate Section */
+.post-generate-section {
+  padding: 12px;
+  background: rgba(34, 197, 94, 0.1);
+  border-bottom: 1px solid rgba(34, 197, 94, 0.3);
 }
 
-.topology-section {
+.post-generate-header {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
+  margin-bottom: 10px;
 }
 
-.topology-section label {
-  font-weight: 600;
+.status-indicator {
   font-size: 0.9rem;
 }
 
-.topology-select {
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+.status-text {
+  font-size: 0.75rem;
+  color: #22c55e;
 }
 
+.post-generate-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lock-ground-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+.lock-ground-toggle input {
+  accent-color: #f59e0b;
+}
+
+.regen-items-btn {
+  padding: 6px 12px;
+  background: #3c3c41;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.regen-items-btn:hover {
+  background: #4a4a50;
+  border-color: #666;
+}
+
+/* Collapsible Sections */
+.collapsible-section {
+  border-bottom: 1px solid #3c3c41;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px;
+  background: #333;
+  border: none;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.section-header:hover {
+  background: #3c3c41;
+}
+
+.toggle-icon {
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.section-content {
+  padding: 12px;
+  background: #2a2a2e;
+}
+
+/* Topology Select */
+.topology-select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #3c3c41;
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.topology-select:hover {
+  border-color: #666;
+}
+
+.topology-select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.topology-select optgroup {
+  background: #2a2a2e;
+  color: #888;
+  font-weight: 600;
+}
+
+.topology-select option {
+  background: #3c3c41;
+  color: #fff;
+}
+
+/* Parameters Container */
+.params-container {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #3c3c41;
+}
+
+.params-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+/* Parameter Groups */
 .param-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .param-group label {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.param-group input[type="number"],
+.param-group input[type="text"],
+.param-group select {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #3c3c41;
+  color: #fff;
   font-size: 0.85rem;
-  font-weight: normal;
 }
 
-.param-group input, .param-group select {
-  padding: 6px;
+.param-group input:focus,
+.param-group select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #007bff;
+}
+
+.no-params {
+  color: #666;
+  font-size: 0.8rem;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Strategy Row */
+.strategy-row {
+  display: flex;
+  gap: 8px;
+}
+
+.strategy-select {
+  flex: 1;
+}
+
+.difficulty-select {
+  flex: 0 0 90px;
+}
+
+/* Item Goals */
+.item-goals {
+  margin-top: 12px;
+}
+
+.item-goals-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.item-goals-row {
+  display: flex;
+  gap: 8px;
+}
+
+.item-goal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item-goal label {
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.item-goal input {
+  padding: 6px 8px;
   border-radius: 4px;
-  border: 1px solid #ddd;
+  border: 1px solid #555;
+  background: #3c3c41;
+  color: #fff;
+  font-size: 0.8rem;
+  text-align: center;
 }
 
+.item-goal input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* Generate Button */
 .generate-btn {
-  padding: 10px;
-  background-color: #007bff;
+  margin: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.2s;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.generate-btn:hover {
-  background-color: #0056b3;
+.generate-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0056b3 0%, #004494 100%);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.generate-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.generate-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  background: linear-gradient(135deg, #555 0%, #444 100%);
+}
+
+/* Scrollbar */
+.topology-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.topology-panel::-webkit-scrollbar-track {
+  background: #2a2a2e;
+}
+
+.topology-panel::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.topology-panel::-webkit-scrollbar-thumb:hover {
+  background: #666;
 }

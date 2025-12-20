@@ -1,0 +1,72 @@
+/**
+ * BuilderControlPanel Styles - Dark Theme
+ */
+
+.builder-control-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #2a2a2e;
+  border-right: 1px solid #3c3c41;
+  width: 300px;
+}
+
+/* Panel Header */
+.panel-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 12px;
+  background: linear-gradient(135deg, #1e1e22 0%, #2a2a2e 100%);
+  border-bottom: 1px solid #3c3c41;
+}
+
+.panel-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.title-icon {
+  font-size: 1.2rem;
+}
+
+/* Mode Content */
+.mode-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scrollbar styling */
+.mode-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mode-content::-webkit-scrollbar-track {
+  background: #2a2a2e;
+}
+
+.mode-content::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.mode-content::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* Ensure child panels take full width */
+.mode-content > * {
+  width: 100%;
+}
+
+/* Remove redundant borders from child panels */
+.mode-content .asset-palette,
+.mode-content .topology-panel {
+  border: none;
+  border-right: none;
+}

@@ -1,0 +1,44 @@
+/**
+ * RightPanelLayout Styles
+ */
+
+.right-panel-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #2a2a2e;
+  width: 300px;
+  border-left: 1px solid #3c3c41;
+  overflow-y: auto;
+}
+
+.section-content-wrapper {
+  padding: 0;
+}
+
+/* Remove default padding from child panels */
+.right-panel-layout .properties-panel,
+.right-panel-layout .quest-details-panel,
+.right-panel-layout .json-output-panel {
+  border: none;
+  background: transparent;
+  width: 100%;
+}
+
+/* Scrollbar */
+.right-panel-layout::-webkit-scrollbar {
+  width: 8px;
+}
+
+.right-panel-layout::-webkit-scrollbar-track {
+  background: #2a2a2e;
+}
+
+.right-panel-layout::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.right-panel-layout::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}

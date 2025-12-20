@@ -4,84 +4,224 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .welcome-modal-content {
-  background: #2c2c2c;
+  background: linear-gradient(180deg, #2a2a3a 0%, #1e1e2e 100%);
   color: #f0f0f0;
   padding: 24px;
-  border-radius: 8px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   width: 90%;
-  max-width: 700px;
-  max-height: 90vh;
+  max-width: 720px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  animation: scaleIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .welcome-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 16px;
   margin-bottom: 16px;
 }
 
 .welcome-modal-header h2 {
   margin: 0;
-  font-size: 1.5rem;
-  color: #4caf50;
+  font-size: 1.4rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .welcome-modal-close-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  font-size: 2rem;
-  color: #aaa;
+  font-size: 1.5rem;
+  color: #888;
   cursor: pointer;
-  padding: 0;
+  padding: 4px 10px;
+  border-radius: 8px;
   line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.welcome-modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
 }
 
 .welcome-modal-body {
   overflow-y: auto;
   flex-grow: 1;
   line-height: 1.6;
+  padding-right: 8px;
 }
 
 .welcome-modal-body h3 {
-  color: #4caf50;
+  color: #a5b4fc;
   margin-top: 20px;
-  border-bottom: 1px solid #444;
-  padding-bottom: 8px;
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .welcome-modal-body h4 {
-  color: #a5d6a7;
-  margin-top: 16px;
+  color: #c4b5fd;
+  margin-top: 12px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.welcome-modal-body p {
+  color: #b0b0c0;
+  margin-bottom: 12px;
 }
 
 .welcome-modal-body ul, .welcome-modal-body ol {
   padding-left: 20px;
+  color: #b0b0c0;
 }
 
 .welcome-modal-body li {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
+.welcome-modal-body code {
+  background: rgba(99, 102, 241, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: #a5b4fc;
+}
+
+.welcome-modal-body kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #d0d0d8;
+}
+
+/* Highlight Box for New Features */
+.wm-highlight-box {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.wm-highlight-box h3 {
+  margin-top: 0 !important;
+  color: #a5b4fc;
+}
+
+.wm-highlight-box ul {
+  margin-bottom: 0;
+}
+
+/* Mode Cards */
+.wm-mode-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.wm-mode-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.wm-mode-card:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.wm-mode-card h4 {
+  margin: 0 0 8px 0;
+  color: #f0f0f5;
+  font-size: 1rem;
+}
+
+.wm-mode-card p {
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+  color: #888;
+  font-style: italic;
+}
+
+.wm-mode-card ol {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.9rem;
+}
+
+.wm-mode-card li {
+  margin-bottom: 4px;
+}
+
+/* Shortcuts Grid */
+.wm-shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.wm-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.wm-shortcut kbd {
+  min-width: auto;
+  height: auto;
+  padding: 3px 6px;
+}
+
+.wm-shortcut span {
+  color: #a0a0b0;
+}
+
+/* Footer */
 .welcome-modal-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid #444;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 16px;
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .welcome-modal-footer label {
@@ -89,19 +229,62 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.welcome-modal-footer input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6366f1;
 }
 
 .welcome-modal-ok-btn {
-  background-color: #4caf50;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 10px 24px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .welcome-modal-ok-btn:hover {
-  background-color: #45a049;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
 }
 
+.welcome-modal-ok-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .wm-mode-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .wm-shortcuts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
