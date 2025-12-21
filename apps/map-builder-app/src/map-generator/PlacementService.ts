@@ -10,13 +10,13 @@ import {
     StrategyConfig 
 } from './strategies/types';
 import { getStrategyRegistry } from './strategies/StrategyRegistry';
-// New handlers
 import { 
     getSemanticPositionHandler, 
     getPedagogicalStrategyHandler,
     getStrategySelector,
     getSolutionFirstPlacer
 } from './handlers';
+import { PlannedSolution } from './handlers/SolutionFirstPlacer';
 
 // Re-export for backward compatibility
 export { PedagogyStrategy } from './strategies/types';
@@ -40,7 +40,11 @@ export class PlacementService {
     /**
      * Main entry point to generate a map with specific pedagogical considerations.
      */
-    public async generateMap(config: PlacementConfig): Promise<{ objects: PlacedObject[], pathInfo: IPathInfo }> {
+    public async generateMap(config: PlacementConfig): Promise<{ 
+        objects: PlacedObject[], 
+        pathInfo: IPathInfo,
+        plannedSolution?: PlannedSolution 
+    }> {
         const { topology, params, strategy, difficulty, assetMap } = config;
 
         // DYNAMIC ASSET LOOKUP
@@ -190,8 +194,12 @@ export class PlacementService {
         });
 
         // 2. Apply Pedagogy Strategy
-        // PRIORITY 1: Use SolutionFirstPlacer if enabled or if academicParams present
-        const useSolutionFirst = config.useSolutionFirst || !!config.academicParams;
+        // Track plannedSolution for return
+        let plannedSolution: PlannedSolution | undefined;
+        
+        // PRIORITY 1: Use SolutionFirstPlacer by default (Solution-First architecture)
+        // This generates a planned solution FIRST, then places elements according to that plan.
+        const useSolutionFirst = config.useSolutionFirst !== false; // Default to TRUE
         
         if (useSolutionFirst) {
             console.log(`[PlacementService] Using SolutionFirstPlacer (priority: solution-first)`);
@@ -234,6 +242,9 @@ export class PlacementService {
             );
             
             if (placementResult.success) {
+                // Save plannedSolution
+                plannedSolution = placementResult.plannedSolution;
+                
                 // Add ground blocks (only if not already placed)
                 if (placementResult.groundBlocks) {
                     placementResult.groundBlocks.forEach((obj: PlacedObject) => {
@@ -311,7 +322,7 @@ export class PlacementService {
             sample: objects.slice(0, 3).map(o => ({ pos: o.position, asset: o.asset.key }))
         });
 
-        return { objects, pathInfo };
+        return { objects, pathInfo, plannedSolution };
     }
 
     private applyLoopLogic(objects: PlacedObject[], pathInfo: IPathInfo, assetMap: Map<string, BuildableAsset>, config: PlacementConfig) {

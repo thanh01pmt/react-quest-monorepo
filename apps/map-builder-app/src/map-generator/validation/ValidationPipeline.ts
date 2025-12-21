@@ -113,25 +113,52 @@ export function validateTier1(data: MapDataForValidation): TierValidationResult 
             : 'Path too short or missing'
     });
     
-    // Check 4: Path connectivity (consecutive coords are adjacent)
+    // Check 4: Path connectivity via BFS reachability
+    // NOTE: path_coords is for PLACEMENT purposes, not a walkable sequence!
+    // We check if target is reachable from start via BFS on the grid of path tiles.
     let isConnected = true;
-    if (hasValidPath) {
-        for (let i = 1; i < data.pathInfo.path_coords.length; i++) {
-            const prev = data.pathInfo.path_coords[i - 1];
-            const curr = data.pathInfo.path_coords[i];
-            const dx = Math.abs(curr[0] - prev[0]);
-            const dz = Math.abs(curr[2] - prev[2]);
-            // Adjacent if moving by 1 in X or Z (not both)
-            if (!((dx === 1 && dz === 0) || (dx === 0 && dz === 1) || (dx === 0 && dz === 0 && curr[1] !== prev[1]))) {
-                isConnected = false;
-                break;
+    if (hasValidPath && hasStart && hasFinish) {
+        // Build walkable set from path_coords
+        const walkableSet = new Set(
+            data.pathInfo.path_coords.map(c => `${c[0]},${c[1]},${c[2]}`)
+        );
+        
+        // Add placement_coords if available (they're also walkable)
+        if (data.pathInfo.placement_coords) {
+            for (const c of data.pathInfo.placement_coords) {
+                walkableSet.add(`${c[0]},${c[1]},${c[2]}`);
             }
         }
+        
+        // BFS to check if target is reachable from start
+        const start = data.pathInfo.start_pos;
+        const target = data.pathInfo.target_pos;
+        const startKey = `${start[0]},${start[1]},${start[2]}`;
+        const targetKey = `${target[0]},${target[1]},${target[2]}`;
+        
+        const queue: string[] = [startKey];
+        const visited = new Set([startKey]);
+        
+        while (queue.length > 0 && !visited.has(targetKey)) {
+            const current = queue.shift()!;
+            const [cx, cy, cz] = current.split(',').map(Number);
+            
+            // Check 6 neighbors (orthogonal only)
+            for (const [dx, dy, dz] of [[1,0,0], [-1,0,0], [0,0,1], [0,0,-1], [0,1,0], [0,-1,0]]) {
+                const nKey = `${cx+dx},${cy+dy},${cz+dz}`;
+                if (walkableSet.has(nKey) && !visited.has(nKey)) {
+                    visited.add(nKey);
+                    queue.push(nKey);
+                }
+            }
+        }
+        
+        isConnected = visited.has(targetKey);
     }
     checks.push({
         name: 'Path Connectivity',
         passed: isConnected,
-        message: isConnected ? 'All path segments connected' : 'Path has gaps'
+        message: isConnected ? 'All path segments connected' : 'Target not reachable from start'
     });
     
     // Check 5: Items count

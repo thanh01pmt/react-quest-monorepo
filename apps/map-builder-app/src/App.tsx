@@ -20,6 +20,7 @@ import { ValidationBadge } from './components/ValidationBadge';
 import { BuilderModeProvider } from './store/builderModeContext';
 import { useMapValidation } from './hooks/useMapValidation';
 import { HelpButton } from './components/HelpButton';
+import { SolutionDebugPanel } from './components/SolutionDebugPanel';
 import _ from 'lodash';
 import './App.css';
 
@@ -1666,13 +1667,8 @@ function App() {
           strategy={lastUsedStrategy}
           mode={activeSidePanel === 'topology' ? 'auto' : 'manual'}
         />
-        {/* Validation Badge - Top Right Corner */}
-        <ValidationBadgeWrapper
-          placedObjects={placedObjects}
-          pathInfo={questMetadata?.pathInfo as IPathInfo | null}
-          mode={activeSidePanel === 'topology' ? 'auto' : 'manual'}
-          strategy={lastUsedStrategy}
-        />
+        {/* Solution Debug Panel - shows planned solution */}
+        <SolutionDebugPanel plannedSolution={questMetadata?.plannedSolution} />
         {/* BUTTON SUGGEST PLACEMENT */}
         {selectionStart && selectionEnd && (
           <button

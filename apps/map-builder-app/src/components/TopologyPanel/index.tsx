@@ -731,7 +731,7 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
         setIsGenerating(true);
 
         try {
-            const { objects, pathInfo } = await placementService.generateMap({
+            const { objects, pathInfo, plannedSolution } = await placementService.generateMap({
                 topology,
                 params,
                 strategy,
@@ -765,7 +765,8 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                     topology: selectedTopology,
                     params: params,
                     strategy: strategy
-                }
+                },
+                plannedSolution  // Include plannedSolution in metadata
             };
 
             onGenerate(objects, metadataUpdate);

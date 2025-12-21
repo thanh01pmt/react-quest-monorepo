@@ -1,7 +1,12 @@
 /**
- * Arrow Shape Topology (FIXED)
+ * Arrow Shape Topology (PORTED FROM PYTHON)
  * Creates an arrow-shaped path with triangular head
- * Ported from Python: arrow_shape.py
+ * 
+ * ARCHITECTURE:
+ * - placement_coords: Full arrow shape (all tiles for ground rendering)
+ * - path_coords: Unique walkable tiles in "Row Scan" order for placer
+ * - segments: [shaft_segment, head_segment] for segment-based placement
+ * - semantic_positions: Key points (tail, junction, tip, wings) for strategy
  */
 
 import { BaseTopology } from './BaseTopology';
@@ -45,21 +50,25 @@ export class ArrowShapeTopology extends BaseTopology {
     
     const placementCoords: Set<string> = new Set();
     const pathCoords: Coord[] = [];
+    const straightPathCoords: Coord[] = [startPos];
     
     const addToPlacement = (coord: Coord) => {
       placementCoords.add(`${coord[0]},${coord[1]},${coord[2]}`);
     };
     
+    addToPlacement(startPos);
+    pathCoords.push(startPos);
+    
     // 1. Create shaft (vertical line going +Z)
-    const shaft: Coord[] = [];
+    const shaft: Coord[] = [startPos];
     let currentPos: Coord = [...startPos];
     
     for (let i = 0; i < shaftLen; i++) {
+      currentPos = [currentPos[0], currentPos[1], currentPos[2] + 1];
       shaft.push([...currentPos]);
+      pathCoords.push([...currentPos]);
       addToPlacement(currentPos);
-      if (i < shaftLen - 1) {
-        currentPos = [currentPos[0], currentPos[1], currentPos[2] + 1];
-      }
+      straightPathCoords.push([...currentPos]);
     }
     
     // Junction point (top of shaft)
@@ -71,7 +80,7 @@ export class ArrowShapeTopology extends BaseTopology {
     
     for (let row = 1; row <= headSize; row++) {
       const currentZ = junctionPos[2] + row;
-      const rowWidth = headSize - row; // Width decreases as we go up
+      const rowWidth = headSize - row; // Half-width from center
       const rowCoords: Coord[] = [];
       
       for (let dx = -rowWidth; dx <= rowWidth; dx++) {
@@ -82,94 +91,62 @@ export class ArrowShapeTopology extends BaseTopology {
       
       headRows.push(rowCoords);
     }
-    
-    // 3. Build connected path through the arrow
-    // APPROACH: Use Z-shape diagonal pattern - step-by-step movement
-    // Each step moves exactly 1 cell in X OR Z (never both)
+    // 3. Build path_coords: Unique positions in LAYER-BY-LAYER scan order
+    // NOTE: This is for PLACEMENT purposes, not a walkable path sequence!
+    // The solver uses BFS on placement_coords grid to find actual walkable path.
     //
-    // For arrow head traversal:
-    // From junction, zig-zag through head rows like Z-shape diagonal
-    // Row 1: wider, Row 2: narrower, ... until tip
+    // APPROACH: Layer-by-layer scan (like Python's dict.fromkeys result)
+    // For each row of head:
+    //   Add all tiles from left to right (sorted by X)
+    // This gives unique positions in a logical order for placer.
     
-    // Add shaft to path
-    pathCoords.push(...shaft);
+    const centerX = junctionPos[0];
     
-    // The junction is the last point of shaft
-    // Now we need to traverse the triangular head
-    // 
-    // Strategy: Traverse each row, then step +Z to next row at the OVERLAP point
-    // Like Z-shape: for each "diagonal" transition, alternate +Z and ±X steps
-    
-    // Start from junction, step into first head row
-    let currentX = junctionPos[0];
-    let currentZ = junctionPos[2];
-    
-    for (let rowIdx = 0; rowIdx < headRows.length; rowIdx++) {
-      const rowZ = junctionPos[2] + 1 + rowIdx;
-      const rowWidth = headSize - (rowIdx + 1); // Half-width from center
+    for (let rIdx = 0; rIdx < headRows.length; rIdx++) {
+      const row = headRows[rIdx];
+      // Sort row by X (left to right)
+      const sortedRow = [...row].sort((a, b) => a[0] - b[0]);
       
-      // Step forward into this row (Z+1)
-      if (rowIdx === 0) {
-        // First step from junction into head
-        currentZ = rowZ;
-        pathCoords.push([currentX, y, currentZ]);
-      }
-      
-      // Determine direction for this row (zig-zag like Z-shape)
-      // Even rows: go to positive X edge
-      // Odd rows: go to negative X edge
-      if (rowIdx % 2 === 0) {
-        // Move right (+X) to edge
-        const targetX = junctionPos[0] + rowWidth;
-        while (currentX < targetX) {
-          currentX++;
-          pathCoords.push([currentX, y, currentZ]);
-        }
-      } else {
-        // Move left (-X) to edge
-        const targetX = junctionPos[0] - rowWidth;
-        while (currentX > targetX) {
-          currentX--;
-          pathCoords.push([currentX, y, currentZ]);
-        }
-      }
-      
-      // Now connect to next row (or finish at tip)
-      if (rowIdx < headRows.length - 1) {
-        // Calculate next row's width
-        const nextRowWidth = headSize - (rowIdx + 2);
-        
-        // We need to step-by-step like Z-shape diagonal:
-        // Alternate between +Z and ±X until we're at a position within next row
-        // Next row's X range: [junctionPos[0] - nextRowWidth, junctionPos[0] + nextRowWidth]
-        
-        // First, step into next Z level
-        currentZ++;
-        pathCoords.push([currentX, y, currentZ]);
-        
-        // Now, if current X is outside next row's range, step towards center
-        if (rowIdx % 2 === 0) {
-          // We're at positive edge, next row is narrower
-          // Need to step left until within next row range
-          const nextRowMaxX = junctionPos[0] + nextRowWidth;
-          while (currentX > nextRowMaxX) {
-            currentX--;
-            pathCoords.push([currentX, y, currentZ]);
-          }
-        } else {
-          // We're at negative edge, need to step right
-          const nextRowMinX = junctionPos[0] - nextRowWidth;
-          while (currentX < nextRowMinX) {
-            currentX++;
-            pathCoords.push([currentX, y, currentZ]);
-          }
-        }
+      // Add all tiles in this row (no duplicates since each row has unique tiles)
+      for (const coord of sortedRow) {
+        pathCoords.push(coord);
       }
     }
     
-    // Final step to tip if not already there
+    // Target position is the tip of the arrow
     const targetPos: Coord = [junctionPos[0], y, junctionPos[2] + headSize];
-    const uniquePathCoords = this.removeDuplicates(pathCoords);
+    
+    // Ensure target is last in path
+    if (!pathCoords.some(c => c[0] === targetPos[0] && c[1] === targetPos[1] && c[2] === targetPos[2])) {
+      pathCoords.push(targetPos);
+    }
+    
+    // Build wing paths for branches metadata (for item placement strategies)
+    const wingLeftCoords: Coord[] = [];
+    const wingRightCoords: Coord[] = [];
+    
+    // Wings are on the base row of the head (widest row)
+    const baseRowZ = junctionPos[2] + 1;
+    const maxWidth = headSize - 1; // Half-width of base row
+    
+    // Build connected wing paths from center outward
+    for (let i = 1; i <= maxWidth; i++) {
+      wingLeftCoords.push([centerX - i, y, baseRowZ]);
+      wingRightCoords.push([centerX + i, y, baseRowZ]);
+    }
+    
+    // Remove duplicates while preserving order (for placement lookup)
+    // Note: path_coords WITH duplicates is kept for actual traversal order
+    // uniquePathCoords is for ground/item placement reference
+    const seen = new Set<string>();
+    const uniquePathCoords: Coord[] = [];
+    for (const coord of pathCoords) {
+      const key = `${coord[0]},${coord[1]},${coord[2]}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniquePathCoords.push(coord);
+      }
+    }
     
     // Convert placement set back to coords
     const allPlacementCoords: Coord[] = [];
@@ -178,24 +155,20 @@ export class ArrowShapeTopology extends BaseTopology {
       allPlacementCoords.push([x, yy, z]);
     });
     
-    // Calculate wing tips for semantic positions
-    const baseRowZ = junctionPos[2] + 1;
-    const maxWidth = headSize - 1;
+    // Calculate wing tips for semantic positions (reuse baseRowZ, maxWidth from above)
     const leftWingTip: Coord = [junctionPos[0] - maxWidth, y, baseRowZ];
     const rightWingTip: Coord = [junctionPos[0] + maxWidth, y, baseRowZ];
     
-    // Calculate wing paths
-    const wingLeftPath: Coord[] = [];
-    const wingRightPath: Coord[] = [];
-    for (let i = 1; i <= maxWidth; i++) {
-      wingLeftPath.push([junctionPos[0] - i, y, baseRowZ]);
-      wingRightPath.push([junctionPos[0] + i, y, baseRowZ]);
-    }
+    // Wing paths already built above as wingLeftCoords, wingRightCoords
+    
+    // Segments: shaft + head (simplified for segment-based placement)
+    const shaftSegment = straightPathCoords.slice(0, shaftLen + 1);
+    const headSegment = straightPathCoords.slice(shaftLen);
 
     return {
       start_pos: startPos,
       target_pos: targetPos,
-      path_coords: uniquePathCoords,
+      path_coords: uniquePathCoords,  // Unique tiles in visit order (no duplicates)
       placement_coords: allPlacementCoords,
       obstacles: [],
       metadata: {
@@ -203,8 +176,7 @@ export class ArrowShapeTopology extends BaseTopology {
         shaft: shaft,
         head_rows: headRows,
         junction: junctionPos,
-        tip: targetPos,
-        segments: [shaft, ...headRows],
+        segments: [shaftSegment, headSegment],
         branches: [shaft, headRows.flat()],
         corners: [junctionPos],
         landmarks: {
@@ -213,8 +185,8 @@ export class ArrowShapeTopology extends BaseTopology {
           tip: targetPos,
           wing_left: leftWingTip,
           wing_right: rightWingTip,
-          wing_left_path: wingLeftPath,
-          wing_right_path: wingRightPath
+          wing_left_path: wingLeftCoords,
+          wing_right_path: wingRightCoords
         },
         semantic_positions: {
           tail: startPos,
@@ -230,38 +202,40 @@ export class ArrowShapeTopology extends BaseTopology {
               start: 'tail',
               end: 'tip',
               path_type: 'shaft_then_head',
-              difficulty: 'EASY'
+              strategies: ['strategic_zones', 'segment_based'],
+              difficulty: 'EASY',
+              teaching_goal: 'Simple arrow traversal through shaft to tip'
             },
             {
               name: 'wing_to_wing_medium',
               start: 'wing_left',
               end: 'wing_right',
               path_type: 'parallel_wings',
-              difficulty: 'MEDIUM'
+              strategies: ['strategic_zones', 'v_shape_convergence'],
+              difficulty: 'MEDIUM',
+              teaching_goal: 'Cross arrow head through junction'
+            },
+            {
+              name: 'tail_all_zones_hard',
+              start: 'tail',
+              end: 'wing_right',
+              path_type: 'full_traversal',
+              strategies: ['strategic_zones', 'parallel_wings'],
+              difficulty: 'HARD',
+              teaching_goal: 'Visit all zones: shaft, wings, tip'
             }
           ]
         },
         segment_analysis: {
-          num_segments: 1 + headRows.length,
-          lengths: [shaft.length, ...headRows.map(r => r.length)],
-          types: ['linear', ...headRows.map(() => 'horizontal')]
+          num_segments: 2,
+          lengths: [shaftSegment.length, headSegment.length],
+          types: ['linear', 'triangular'],
+          min_length: Math.min(shaftSegment.length, headSegment.length),
+          max_length: Math.max(shaftSegment.length, headSegment.length),
+          avg_length: (shaftSegment.length + headSegment.length) / 2,
+          suggested_patterns: ['interval_fill', 'corner_checkpoints', 'parallel_climb']
         }
       },
     };
-  }
-  
-  private removeDuplicates(coords: Coord[]): Coord[] {
-    const seen = new Set<string>();
-    const result: Coord[] = [];
-    
-    for (const coord of coords) {
-      const key = `${coord[0]},${coord[1]},${coord[2]}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        result.push(coord);
-      }
-    }
-    
-    return result;
   }
 }
