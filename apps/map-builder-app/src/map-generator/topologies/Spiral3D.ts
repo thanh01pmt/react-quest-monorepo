@@ -65,6 +65,47 @@ export class Spiral3DTopology extends BaseTopology {
 
     const targetPos = pathCoords[pathCoords.length - 1];
 
+    // Semantic positions
+    const midPoint = pathCoords[Math.floor(pathCoords.length / 2)] || startPos;
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        mid_spiral: midPoint,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'spiral_climb_easy',
+                start: 'start',
+                end: 'end',
+                path_type: '3d_spiral',
+                strategies: ['nested_loops', 'spiral_pattern'],
+                difficulty: 'EASY',
+                teaching_goal: 'Ascending spiral with repeated turn pattern'
+            },
+            {
+                name: 'half_spiral_medium',
+                start: 'start',
+                end: 'mid_spiral',
+                path_type: 'partial_spiral',
+                strategies: ['counting_loops'],
+                difficulty: 'MEDIUM',
+                teaching_goal: 'First half of spiral climb'
+            }
+        ]
+    };
+
+    // Segment analysis (each turn is a segment)
+    const stepsPerTurn = stepsPerSide * 4 + heightPerTurn * 2;
+    const segment_analysis = {
+        num_segments: numTurns,
+        lengths: Array(numTurns).fill(stepsPerTurn),
+        types: Array(numTurns).fill('spiral_turn'),
+        min_length: stepsPerTurn,
+        max_length: stepsPerTurn,
+        avg_length: stepsPerTurn
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -76,6 +117,9 @@ export class Spiral3DTopology extends BaseTopology {
         num_turns: numTurns,
         height_per_turn: heightPerTurn,
         total_height: targetPos[1],
+        segments: [pathCoords],
+        segment_analysis,
+        semantic_positions
       },
     };
   }

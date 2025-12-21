@@ -120,10 +120,50 @@ export class ComplexMazeTopology extends BaseTopology {
       }
     }
 
+    // Semantic positions
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        dead_ends: deadEnds,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'full_maze_easy',
+                start: 'start',
+                end: 'end',
+                path_type: 'maze_traversal',
+                strategies: ['maze_solving', 'branching_logic'],
+                difficulty: 'EASY',
+                teaching_goal: 'Navigate through maze'
+            },
+            {
+                name: 'with_exploration_hard',
+                start: 'start',
+                end: 'end',
+                path_type: 'maze_exploration',
+                strategies: ['conditional_branching', 'backtracking'],
+                difficulty: 'HARD',
+                teaching_goal: 'Explore dead ends before goal'
+            }
+        ]
+    };
+
+    // Path as single segment for analysis
+    const mainPath = pathCoords.length > 0 ? pathCoords : walkableCoords;
+    const segment_analysis = {
+        num_segments: 1,
+        lengths: [mainPath.length],
+        types: ['maze_path'],
+        min_length: mainPath.length,
+        max_length: mainPath.length,
+        avg_length: mainPath.length
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
-      path_coords: pathCoords.length > 0 ? pathCoords : walkableCoords,
+      path_coords: mainPath,
       placement_coords: walkableCoords,
       obstacles: [],
       metadata: {
@@ -131,6 +171,9 @@ export class ComplexMazeTopology extends BaseTopology {
         dead_ends: deadEnds,
         width: width,
         depth: depth,
+        segments: [mainPath],
+        segment_analysis,
+        semantic_positions
       },
     };
   }

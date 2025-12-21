@@ -84,6 +84,50 @@ export class PlusShapeIslandsTopology extends BaseTopology {
     pathCoords.push(...branches[0].slice().reverse()); // East to center
     pathCoords.push(...branches[1].slice(1)); // Center to West
 
+    // Semantic positions
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        center: centerPos,
+        island_east: islandCenters[0],
+        island_west: islandCenters[1],
+        island_north: islandCenters[2],
+        island_south: islandCenters[3],
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'island_to_island_easy',
+                start: 'island_east',
+                end: 'island_west',
+                path_type: 'hub_traversal',
+                strategies: ['radial_iteration', 'function_reuse'],
+                difficulty: 'EASY',
+                teaching_goal: 'Navigate through center hub'
+            },
+            {
+                name: 'visit_all_medium',
+                start: 'start',
+                end: 'end',
+                path_type: 'full_exploration',
+                strategies: ['radial_iteration', 'branch_exploration'],
+                difficulty: 'MEDIUM',
+                teaching_goal: 'Visit all islands using symmetric pattern'
+            }
+        ]
+    };
+
+    // Segment analysis based on branches
+    const lengths = branches.map(b => b.length);
+    const segment_analysis = {
+        num_segments: branches.length,
+        lengths,
+        types: ['branch_east', 'branch_west', 'branch_north', 'branch_south'],
+        min_length: Math.min(...lengths),
+        max_length: Math.max(...lengths),
+        avg_length: lengths.reduce((a,b) => a+b, 0) / lengths.length
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -95,6 +139,9 @@ export class PlusShapeIslandsTopology extends BaseTopology {
         branches: branches,
         hub: [centerPos],
         island_centers: islandCenters,
+        segments: branches,
+        segment_analysis,
+        semantic_positions
       },
     };
   }

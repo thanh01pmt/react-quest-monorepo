@@ -76,4 +76,71 @@ export abstract class BaseTopology {
 
     return this.getFarthestEndpoints(allEndpoints);
   }
+
+  /**
+   * Builds segment analysis metadata from segments array.
+   * @param segments Array of segment coordinates
+   * @param segmentTypes Optional array of segment type strings
+   */
+  protected buildSegmentAnalysis(
+    segments: [number, number, number][][],
+    segmentTypes?: string[]
+  ): Record<string, any> {
+    if (!segments || segments.length === 0) {
+      return {
+        num_segments: 0,
+        lengths: [],
+        types: [],
+        min_length: 0,
+        max_length: 0,
+        avg_length: 0
+      };
+    }
+
+    const lengths = segments.map(s => s.length);
+    const types = segmentTypes || segments.map(() => 'segment');
+    
+    return {
+      num_segments: segments.length,
+      lengths: lengths,
+      types: types,
+      min_length: Math.min(...lengths),
+      max_length: Math.max(...lengths),
+      avg_length: lengths.reduce((a, b) => a + b, 0) / lengths.length
+    };
+  }
+
+  /**
+   * Builds default semantic positions from start/end.
+   */
+  protected buildDefaultSemanticPositions(
+    startPos: [number, number, number],
+    targetPos: [number, number, number],
+    additionalPositions?: Record<string, [number, number, number]>
+  ): Record<string, any> {
+    const basePositions: Record<string, any> = {
+      start: startPos,
+      end: targetPos,
+      optimal_start: 'start',
+      optimal_end: 'end',
+      valid_pairs: [
+        {
+          name: 'full_path_easy',
+          start: 'start',
+          end: 'end',
+          path_type: 'full_traversal',
+          strategies: ['segment_based'],
+          difficulty: 'EASY',
+          teaching_goal: 'Complete path traversal'
+        }
+      ]
+    };
+
+    // Merge additional positions
+    if (additionalPositions) {
+      Object.assign(basePositions, additionalPositions);
+    }
+
+    return basePositions;
+  }
 }

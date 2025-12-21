@@ -122,6 +122,46 @@ export class SwiftPlaygroundMazeTopology extends BaseTopology {
     const uniquePlacement = this.deduplicateCoords(placementCoords);
     const uniquePath = this.deduplicateCoords(pathCoords);
 
+    // Semantic positions
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        waypoints: waypoints,
+        mid_waypoint: waypoints[Math.floor(waypoints.length / 2)] || startPos,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'platform_hopping_easy',
+                start: 'start',
+                end: 'end',
+                path_type: 'platform_traversal',
+                strategies: ['level_progression', 'height_navigation'],
+                difficulty: 'EASY',
+                teaching_goal: 'Navigate between platforms using stairs'
+            },
+            {
+                name: 'multi_level_medium',
+                start: 'start',
+                end: 'end',
+                path_type: '3d_navigation',
+                strategies: ['3d_movement', 'platform_logic'],
+                difficulty: 'MEDIUM',
+                teaching_goal: 'Complex 3D navigation with height changes'
+            }
+        ]
+    };
+
+    // Segment analysis based on path between platforms
+    const segment_analysis = {
+        num_segments: waypoints.length,
+        lengths: [uniquePath.length],
+        types: ['platform_path'],
+        min_length: uniquePath.length,
+        max_length: uniquePath.length,
+        avg_length: uniquePath.length
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -133,6 +173,9 @@ export class SwiftPlaygroundMazeTopology extends BaseTopology {
         waypoints: waypoints,
         num_platforms: waypoints.length,
         platform_size: platformSize,
+        segments: [uniquePath],
+        segment_analysis,
+        semantic_positions
       },
     };
   }

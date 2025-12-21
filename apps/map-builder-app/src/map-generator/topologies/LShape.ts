@@ -120,13 +120,25 @@ export class LShapeTopology extends BaseTopology {
         valid_pairs: validPairs
     };
 
+    // Segment analysis
+    const segmentLengths = segments.map((s: Coord[]) => s.length);
+    const segment_analysis = {
+        num_segments: segments.length,
+        lengths: segmentLengths,
+        types: ['horizontal', 'vertical'],
+        min_length: Math.min(...segmentLengths),
+        max_length: Math.max(...segmentLengths),
+        avg_length: segmentLengths.reduce((a,b) => a+b, 0) / segmentLengths.length
+    };
+
     const metadata = {
         topology_type: "l_shape",
         segments: segments,
         corners: [cornerPos],
         leg1_length: leg1Len,
         leg2_length: leg2Len,
-        semantic_positions: semanticPositions
+        semantic_positions: semanticPositions,
+        segment_analysis: segment_analysis
     };
 
     return {

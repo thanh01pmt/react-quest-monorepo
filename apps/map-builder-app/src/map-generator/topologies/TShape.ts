@@ -1,7 +1,8 @@
 /**
- * TShape Topology
+ * TShape Topology (FIXED)
  * Creates a T-shaped path with branching options
  * Ideal for conditional branching and function lessons
+ * Ported from Python: t_shape.py
  */
 
 import { BaseTopology } from './BaseTopology';
@@ -35,12 +36,14 @@ export class TShapeTopology extends BaseTopology {
         const barSideLength = Math.floor(barLength / 2);
         const y = 0;
         
-        // Position T in center of grid
-        const startX = Math.floor(gridSize[0] / 2);
-        const startZ = 2;
+        // Position T safely in grid
+        const startX = Math.max(barSideLength + 1, Math.min(
+            gridSize[0] - barSideLength - 2,
+            Math.floor(gridSize[0] / 2)
+        ));
+        const startZ = Math.max(2, Math.floor((gridSize[2] - stemLength) / 2));
         
         const startPos: Coord = [startX, y, startZ];
-        const pathCoords: Coord[] = [startPos];
         const placementCoords: Set<string> = new Set();
         placementCoords.add(startPos.join(','));
         
@@ -50,12 +53,13 @@ export class TShapeTopology extends BaseTopology {
         
         for (let i = 0; i < stemLength; i++) {
             currentPos = [currentPos[0], currentPos[1], currentPos[2] + 1];
-            pathCoords.push(currentPos);
             stemCoords.push(currentPos);
             placementCoords.add(currentPos.join(','));
         }
         
         const junction: Coord = [...currentPos];
+        const center = junction;
+        const bottomEnd = startPos;
         
         // Build right branch
         const rightBranch: Coord[] = [junction];
@@ -79,8 +83,13 @@ export class TShapeTopology extends BaseTopology {
         
         const targetPos = rightEnd; // Default target
         
-        // Add branches to path (right side as main path)
+        // Build main path (stem + right branch)
+        const pathCoords: Coord[] = [...stemCoords];
         rightBranch.slice(1).forEach(c => pathCoords.push(c));
+        
+        // Segments
+        const segments = [stemCoords, rightBranch, leftBranch];
+        const segmentLengths = segments.map(s => s.length);
         
         return {
             start_pos: startPos,
@@ -96,17 +105,55 @@ export class TShapeTopology extends BaseTopology {
                 stem: stemCoords,
                 left_branch: leftBranch,
                 right_branch: rightBranch,
-                segments: [stemCoords, rightBranch, leftBranch],
+                segments: segments,
                 corners: [junction],
                 branches: [
+                    { name: 'stem', coords: stemCoords, endpoint: bottomEnd },
                     { name: 'left', coords: leftBranch, endpoint: leftEnd },
                     { name: 'right', coords: rightBranch, endpoint: rightEnd }
                 ],
+                semantic_positions: {
+                    bottom_end: bottomEnd,
+                    center: center,
+                    left_end: leftEnd,
+                    right_end: rightEnd,
+                    optimal_start: 'bottom_end',
+                    optimal_end: 'right_end',
+                    valid_pairs: [
+                        {
+                            name: 'stem_to_right_easy',
+                            start: 'bottom_end',
+                            end: 'right_end',
+                            path_type: 'single_decision',
+                            difficulty: 'EASY',
+                            teaching_goal: 'Simple path with one direction choice'
+                        },
+                        {
+                            name: 'stem_to_left_medium',
+                            start: 'bottom_end',
+                            end: 'left_end',
+                            path_type: 'alternate_decision',
+                            difficulty: 'MEDIUM',
+                            teaching_goal: 'Alternate path with decoy on wrong branch'
+                        },
+                        {
+                            name: 'left_to_right_hard',
+                            start: 'left_end',
+                            end: 'right_end',
+                            path_type: 'cross_junction',
+                            difficulty: 'HARD',
+                            teaching_goal: 'Cross through center with items on both branches'
+                        }
+                    ]
+                },
                 segment_analysis: {
+                    num_segments: 3,
                     count: 3,
-                    lengths: [stemCoords.length, rightBranch.length, leftBranch.length],
-                    min_length: Math.min(stemCoords.length, barSideLength + 1),
-                    max_length: Math.max(stemCoords.length, barSideLength + 1)
+                    lengths: segmentLengths,
+                    types: ['stem', 'branch_right', 'branch_left'],
+                    min_length: Math.min(...segmentLengths),
+                    max_length: Math.max(...segmentLengths),
+                    avg_length: segmentLengths.reduce((a, b) => a + b, 0) / segmentLengths.length
                 }
             }
         };

@@ -84,9 +84,46 @@ export class UShapeTopology extends BaseTopology {
                 base: baseCoords,
                 corners: [corner1, corner2],
                 segments: [leftArm, baseCoords, rightArm],
+                branches: [leftArm, rightArm],
+                semantic_positions: {
+                    left_top: startPos,
+                    left_bottom: corner1,
+                    right_bottom: corner2,
+                    right_top: targetPos,
+                    optimal_start: 'left_top',
+                    optimal_end: 'right_top',
+                    valid_pairs: [
+                        {
+                            name: 'left_to_right_easy',
+                            start: 'left_top',
+                            end: 'right_top',
+                            path_type: 'full_u',
+                            difficulty: 'EASY',
+                            teaching_goal: 'Full U traversal with identical arm patterns'
+                        },
+                        {
+                            name: 'base_only_medium',
+                            start: 'left_bottom',
+                            end: 'right_bottom',
+                            path_type: 'base_traverse',
+                            difficulty: 'MEDIUM',
+                            teaching_goal: 'Focus on base segment'
+                        },
+                        {
+                            name: 'function_reuse_hard',
+                            start: 'left_top',
+                            end: 'right_top',
+                            path_type: 'symmetric_arms',
+                            difficulty: 'HARD',
+                            teaching_goal: 'Recognize symmetric arm patterns for PROCEDURE'
+                        }
+                    ]
+                },
                 segment_analysis: {
+                    num_segments: 3,
                     count: 3,
                     lengths: [leftArm.length, baseCoords.length, rightArm.length],
+                    types: ['vertical', 'horizontal', 'vertical'],
                     min_length: Math.min(leftArm.length, baseCoords.length),
                     max_length: Math.max(leftArm.length, rightArm.length)
                 }

@@ -60,6 +60,44 @@ export class StraightLineTopology extends BaseTopology {
         
         const targetPos = pathCoords[pathCoords.length - 1];
         
+        // Semantic positions for linear_repeat strategy
+        const semantic_positions = {
+            start: startPos,
+            end: targetPos,
+            mid_point: pathCoords[Math.floor(pathCoords.length / 2)],
+            optimal_start: 'start',
+            optimal_end: 'end',
+            valid_pairs: [
+                {
+                    name: 'full_line_easy',
+                    start: 'start',
+                    end: 'end',
+                    path_type: 'full_traversal',
+                    strategies: ['linear_repeat', 'segment_based'],
+                    difficulty: 'EASY',
+                    teaching_goal: 'Simple straight line with repeat pattern'
+                },
+                {
+                    name: 'mid_to_end_medium',
+                    start: 'mid_point',
+                    end: 'end',
+                    path_type: 'half_segment',
+                    strategies: ['segment_based'],
+                    difficulty: 'MEDIUM',
+                    teaching_goal: 'Half traversal with counting'
+                },
+                {
+                    name: 'reversed_hard',
+                    start: 'end',
+                    end: 'start',
+                    path_type: 'reversed_traversal',
+                    strategies: ['linear_repeat'],
+                    difficulty: 'HARD',
+                    teaching_goal: 'Reverse direction with pattern discovery'
+                }
+            ]
+        };
+        
         return {
             start_pos: startPos,
             target_pos: targetPos,
@@ -76,8 +114,11 @@ export class StraightLineTopology extends BaseTopology {
                     count: 1,
                     lengths: [pathCoords.length],
                     min_length: pathCoords.length,
-                    max_length: pathCoords.length
-                }
+                    max_length: pathCoords.length,
+                    avg_length: pathCoords.length,
+                    types: ['linear']
+                },
+                semantic_positions
             }
         };
     }

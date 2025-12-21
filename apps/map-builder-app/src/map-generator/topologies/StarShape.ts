@@ -126,13 +126,58 @@ export class StarShapeTopology extends BaseTopology {
     semanticPositions.optimal_start = 'center';
     semanticPositions.optimal_end = 'arm_0_end';
     
+    // Add valid_pairs for difficulty-based selection
+    semanticPositions.valid_pairs = [
+        {
+            name: 'center_outward_easy',
+            start: 'center',
+            end: 'arm_0_end',
+            path_type: 'single_arm',
+            strategies: ['radial_iteration', 'function_reuse'],
+            difficulty: 'EASY',
+            teaching_goal: 'Traverse one arm with simple pattern'
+        },
+        {
+            name: 'arm_to_arm_medium',
+            start: 'arm_0_end',
+            end: 'arm_2_end',
+            path_type: 'cross_center',
+            strategies: ['radial_iteration', 'function_reuse'],
+            difficulty: 'MEDIUM',
+            teaching_goal: 'Cross through center, experience arm symmetry'
+        },
+        {
+            name: 'full_star_hard',
+            start: 'start_point',
+            end: 'end_point',
+            path_type: 'full_traversal',
+            strategies: ['radial_iteration', 'segment_pattern_reuse'],
+            difficulty: 'HARD',
+            teaching_goal: 'Complete star traversal with all arms'
+        }
+    ];
+    
+    // Segment analysis
+    const segmentLengths = straightSegments.map(s => s.length);
+    const segment_analysis = {
+        num_segments: straightSegments.length,
+        lengths: segmentLengths,
+        types: segmentLengths.map(() => 'star_segment'),
+        min_length: segmentLengths.length > 0 ? Math.min(...segmentLengths) : 0,
+        max_length: segmentLengths.length > 0 ? Math.max(...segmentLengths) : 0,
+        avg_length: segmentLengths.length > 0 ? segmentLengths.reduce((a,b) => a+b, 0) / segmentLengths.length : 0,
+        min_valid_range: segmentLengths.length > 0 ? Math.max(0, Math.min(...segmentLengths) - 2) : 0,
+        total_valid_slots: segmentLengths.reduce((sum, l) => sum + Math.max(0, l - 2), 0)
+    };
+    
     const metadata = {
         topology_type: 'star_shape',
         segments: straightSegments,
         branches: branches,
         corners: corners,
         star_size: size,
-        semantic_positions: semanticPositions
+        semantic_positions: semanticPositions,
+        segment_analysis: segment_analysis
     };
 
     return {

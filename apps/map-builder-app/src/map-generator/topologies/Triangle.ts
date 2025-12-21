@@ -57,6 +57,56 @@ export class TriangleTopology extends BaseTopology {
 
     const targetPos = pathCoords[pathCoords.length - 1];
 
+    // Calculate corners based on triangle vertices
+    const corner1 = pathCoords[sideLength]; // End of side 1
+    const corner2 = pathCoords[sideLength + sideLength * 2 - 1] || pathCoords[Math.floor(pathCoords.length * 0.7)];
+
+    // Semantic positions
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        corner1,
+        corner2,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'full_triangle_easy',
+                start: 'start',
+                end: 'end',
+                path_type: 'full_traversal',
+                strategies: ['segment_pattern_reuse', 'turning_patterns'],
+                difficulty: 'EASY',
+                teaching_goal: 'Navigate triangle perimeter'
+            },
+            {
+                name: 'corners_medium',
+                start: 'corner1',
+                end: 'corner2',
+                path_type: 'partial_traversal',
+                strategies: ['corner_logic'],
+                difficulty: 'MEDIUM',
+                teaching_goal: 'Navigate between corners'
+            }
+        ]
+    };
+
+    // Segment analysis (3 sides)
+    const seg1 = pathCoords.slice(0, sideLength + 1);
+    const seg2 = pathCoords.slice(sideLength, sideLength * 3);
+    const seg3 = pathCoords.slice(sideLength * 3 - 1);
+    const segments = [seg1, seg2, seg3].filter(s => s.length > 0);
+    const lengths = segments.map(s => s.length);
+
+    const segment_analysis = {
+        num_segments: segments.length,
+        lengths,
+        types: ['horizontal', 'diagonal', 'vertical'],
+        min_length: Math.min(...lengths),
+        max_length: Math.max(...lengths),
+        avg_length: lengths.reduce((a,b) => a+b, 0) / lengths.length
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -66,6 +116,10 @@ export class TriangleTopology extends BaseTopology {
       metadata: {
         topology_type: 'triangle',
         side_length: sideLength,
+        segments,
+        corners: [corner1, corner2],
+        segment_analysis,
+        semantic_positions
       },
     };
   }

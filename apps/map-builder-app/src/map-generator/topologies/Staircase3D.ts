@@ -58,6 +58,47 @@ export class Staircase3DTopology extends BaseTopology {
 
     const targetPos = pathCoords[pathCoords.length - 1];
 
+    // Semantic positions
+    const midPoint = pathCoords[Math.floor(pathCoords.length / 2)] || startPos;
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        mid_flight: midPoint,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'full_staircase_3d_easy',
+                start: 'start',
+                end: 'end',
+                path_type: '3d_zigzag_climb',
+                strategies: ['nested_loops', 'zigzag_pattern'],
+                difficulty: 'EASY',
+                teaching_goal: 'Zigzag staircase with flight repetition'
+            },
+            {
+                name: 'single_flight_medium',
+                start: 'start',
+                end: 'mid_flight',
+                path_type: 'partial_climb',
+                strategies: ['repeating_step_pattern'],
+                difficulty: 'MEDIUM',
+                teaching_goal: 'Single flight of steps'
+            }
+        ]
+    };
+
+    // Segment analysis (each flight is a segment)
+    const stepsPerFlightTotal = stepsPerFlight + Math.floor(stepsPerFlight / 2) + 1;
+    const segment_analysis = {
+        num_segments: numFlights,
+        lengths: Array(numFlights).fill(stepsPerFlightTotal),
+        types: Array(numFlights).fill('flight'),
+        min_length: stepsPerFlightTotal,
+        max_length: stepsPerFlightTotal,
+        avg_length: stepsPerFlightTotal
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -69,6 +110,9 @@ export class Staircase3DTopology extends BaseTopology {
         num_flights: numFlights,
         steps_per_flight: stepsPerFlight,
         total_height: targetPos[1],
+        segments: [pathCoords],
+        segment_analysis,
+        semantic_positions
       },
     };
   }

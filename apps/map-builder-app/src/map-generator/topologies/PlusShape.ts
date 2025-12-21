@@ -224,14 +224,24 @@ export class PlusShapeTopology extends BaseTopology {
         }
     }
 
+    // Segment analysis
+    const segmentLengths = segments.map(s => s.length);
+    const segment_analysis = {
+        num_segments: segments.length,
+        lengths: segmentLengths,
+        min_length: segmentLengths.length > 0 ? Math.min(...segmentLengths) : 0,
+        max_length: segmentLengths.length > 0 ? Math.max(...segmentLengths) : 0,
+        avg_length: segmentLengths.length > 0 ? segmentLengths.reduce((a,b) => a+b, 0) / segmentLengths.length : 0
+    };
+
     const metadata = {
         topology_type: "plus_shape",
         semantic_positions: semanticPositions,
         center: center,
         branches: [branchRight, branchLeft, branchDown, branchUp],
-        // segments, corners analysis
         segments: segments,
-        corners: corners
+        corners: corners,
+        segment_analysis: segment_analysis
     };
 
     return {

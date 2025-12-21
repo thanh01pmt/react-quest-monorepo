@@ -85,6 +85,48 @@ export class InterspersedPathTopology extends BaseTopology {
       }
     });
 
+    // Semantic positions
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        branch_0: branchCoordsList[0] ? branchCoordsList[0][branchCoordsList[0].length - 1] : startPos,
+        branch_1: branchCoordsList[1] ? branchCoordsList[1][branchCoordsList[1].length - 1] : targetPos,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'main_path_only_easy',
+                start: 'start',
+                end: 'end',
+                path_type: 'main_path',
+                strategies: ['linear_traversal'],
+                difficulty: 'EASY',
+                teaching_goal: 'Follow main path ignoring branches'
+            },
+            {
+                name: 'with_branches_medium',
+                start: 'start',
+                end: 'end',
+                path_type: 'full_exploration',
+                strategies: ['function_reuse', 'branch_exploration'],
+                difficulty: 'MEDIUM',
+                teaching_goal: 'Visit all branches with PROCEDURE reuse'
+            }
+        ]
+    };
+
+    // Segment analysis: main path + branches
+    const allSegments = [mainPathCoords, ...branchCoordsList];
+    const lengths = allSegments.map(s => s.length);
+    const segment_analysis = {
+        num_segments: allSegments.length,
+        lengths,
+        types: ['main_path', ...branchCoordsList.map(() => 'branch')],
+        min_length: Math.min(...lengths),
+        max_length: Math.max(...lengths),
+        avg_length: lengths.reduce((a,b) => a+b, 0) / lengths.length
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -95,6 +137,9 @@ export class InterspersedPathTopology extends BaseTopology {
         topology_type: 'interspersed_path',
         main_path: mainPathCoords,
         branches: branchCoordsList,
+        segments: allSegments,
+        segment_analysis,
+        semantic_positions
       },
     };
   }

@@ -83,6 +83,46 @@ export class SteppedIslandClustersTopology extends BaseTopology {
 
     const targetPos = lastExitPoint;
 
+    // Semantic positions
+    const midPoint = pathCoords[Math.floor(pathCoords.length / 2)] || startPos;
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        mid_cluster: midPoint,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'cluster_climb_easy',
+                start: 'start',
+                end: 'end',
+                path_type: 'vertical_progression',
+                strategies: ['height_navigation', 'cluster_traversal'],
+                difficulty: 'EASY',
+                teaching_goal: 'Navigate between island clusters'
+            },
+            {
+                name: 'stair_pattern_medium',
+                start: 'start',
+                end: 'mid_cluster',
+                path_type: 'partial_climb',
+                strategies: ['nested_loops', 'stepping_pattern'],
+                difficulty: 'MEDIUM',
+                teaching_goal: 'Repeated stair climbing pattern'
+            }
+        ]
+    };
+
+    // Segment analysis
+    const segment_analysis = {
+        num_segments: numClusters,
+        lengths: [pathCoords.length],
+        types: ['cluster_path'],
+        min_length: pathCoords.length,
+        max_length: pathCoords.length,
+        avg_length: pathCoords.length
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -94,6 +134,9 @@ export class SteppedIslandClustersTopology extends BaseTopology {
         num_clusters: numClusters,
         islands_per_cluster: islandsPerCluster,
         height_step: heightStep,
+        segments: [pathCoords],
+        segment_analysis,
+        semantic_positions
       },
     };
   }

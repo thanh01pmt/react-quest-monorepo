@@ -78,12 +78,24 @@ export class GridTopology extends BaseTopology {
         valid_pairs: validPairs
     };
 
+    // Segment analysis based on rows
+    const segment_analysis = {
+        num_segments: rows.length,
+        lengths: rows.map(r => r.length),
+        types: rows.map(() => 'grid_row'),
+        min_length: width,
+        max_length: width,
+        avg_length: width
+    };
+
     const metadata = {
         topology_type: "grid",
         rows: rows,
         columns: columns,
         width: width,
         depth: depth,
+        segments: rows,
+        segment_analysis,
         semantic_positions: semanticPositions
     };
 

@@ -1,6 +1,7 @@
 /**
- * V Shape Topology
+ * V Shape Topology (FIXED)
  * Creates a V-shaped path - ideal for sequential or simple function lessons
+ * Ported from Python: v_shape.py
  */
 
 import { BaseTopology } from './BaseTopology';
@@ -23,9 +24,15 @@ export class VShapeTopology extends BaseTopology {
 
   generatePathInfo(gridSize: [number, number, number], params: Record<string, any>): IPathInfo {
     const armLength = params.arm_length || 3;
-    const startX = params.start_x || 2;
-    const startZ = params.start_z || 2;
     const y = 0;
+
+    // Calculate required size
+    const requiredWidth = armLength * 2;
+    const requiredDepth = armLength * 2;
+
+    // Safe start position
+    const startX = params.start_x || Math.max(1, Math.floor((gridSize[0] - requiredWidth) / 2));
+    const startZ = params.start_z || Math.max(1, Math.floor((gridSize[2] - requiredDepth) / 2));
 
     const startPos: Coord = [startX, y, startZ];
     const pathCoords: Coord[] = [startPos];
@@ -51,17 +58,66 @@ export class VShapeTopology extends BaseTopology {
     const apexIdx = armLength * 2;
     const apex = pathCoords[apexIdx];
 
+    // Create segments
+    const segment1 = pathCoords.slice(0, apexIdx + 1); // Left arm including apex
+    const segment2 = pathCoords.slice(apexIdx); // Right arm including apex
+    const segments = [segment1, segment2];
+    const lengths = [segment1.length, segment2.length];
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
       path_coords: pathCoords,
-      placement_coords: pathCoords.slice(1, -1),
+      placement_coords: [...pathCoords], // All coords need ground
       obstacles: [],
       metadata: {
         topology_type: 'v_shape',
-        segments: [pathCoords.slice(0, apexIdx + 1), pathCoords.slice(apexIdx)],
-        corner: apex,
+        segments: segments,
+        corners: [apex],
         arm_length: armLength,
+        branches: segments,
+        semantic_positions: {
+          left_end: startPos,
+          apex: apex,
+          right_end: targetPos,
+          optimal_start: 'left_end',
+          optimal_end: 'right_end',
+          valid_pairs: [
+            {
+              name: 'left_to_right_easy',
+              start: 'left_end',
+              end: 'right_end',
+              path_type: 'full_v',
+              difficulty: 'EASY',
+              teaching_goal: 'Simple V traversal with clear apex'
+            },
+            {
+              name: 'apex_to_end_medium',
+              start: 'apex',
+              end: 'right_end',
+              path_type: 'single_arm',
+              difficulty: 'MEDIUM',
+              teaching_goal: 'Single arm with variable spacing'
+            },
+            {
+              name: 'fibonacci_spacing_hard',
+              start: 'left_end',
+              end: 'right_end',
+              path_type: 'hidden_pattern',
+              difficulty: 'HARD',
+              teaching_goal: 'Discover Fibonacci-like spacing pattern'
+            }
+          ]
+        },
+        segment_analysis: {
+          num_segments: 2,
+          count: 2,
+          lengths: lengths,
+          min_length: Math.min(...lengths),
+          max_length: Math.max(...lengths),
+          types: ['diagonal', 'diagonal'],
+          total_valid_slots: lengths.reduce((sum, l) => sum + Math.max(0, l - 2), 0)
+        }
       },
     };
   }

@@ -96,6 +96,48 @@ export class HubWithSteppedIslandsTopology extends BaseTopology {
     const lastSpoke = spokes[spokes.length - 1];
     const targetPos = lastSpoke?.[lastSpoke.length - 1] || hubCoords[hubCoords.length - 1];
 
+    // Semantic positions
+    const centerPos: Coord = [centerX, y, centerZ];
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        center: centerPos,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'hub_to_spoke_easy',
+                start: 'center',
+                end: 'end',
+                path_type: 'radial_outward',
+                strategies: ['radial_iteration', 'height_navigation'],
+                difficulty: 'EASY',
+                teaching_goal: 'Navigate from hub to spoke with steps'
+            },
+            {
+                name: 'full_exploration_medium',
+                start: 'start',
+                end: 'end',
+                path_type: 'full_traversal',
+                strategies: ['function_reuse', 'radial_iteration'],
+                difficulty: 'MEDIUM',
+                teaching_goal: 'Explore all stepped islands'
+            }
+        ]
+    };
+
+    // Segment analysis based on hub + spokes
+    const allSegments = [hubCoords, ...spokes];
+    const lengths = allSegments.map(s => s.length);
+    const segment_analysis = {
+        num_segments: allSegments.length,
+        lengths,
+        types: ['hub', ...spokes.map(() => 'spoke')],
+        min_length: lengths.length > 0 ? Math.min(...lengths) : 0,
+        max_length: lengths.length > 0 ? Math.max(...lengths) : 0,
+        avg_length: lengths.length > 0 ? lengths.reduce((a,b) => a+b, 0) / lengths.length : 0
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -107,6 +149,9 @@ export class HubWithSteppedIslandsTopology extends BaseTopology {
         hub: hubCoords,
         spokes: spokes,
         num_spokes: spokes.length,
+        segments: allSegments,
+        segment_analysis,
+        semantic_positions
       },
     };
   }

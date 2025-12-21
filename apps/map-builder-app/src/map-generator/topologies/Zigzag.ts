@@ -73,6 +73,45 @@ export class ZigzagTopology extends BaseTopology {
         
         const lengths = segments.map(s => s.length);
         
+        // Semantic positions for segment_pattern_reuse strategy
+        const semantic_positions = {
+            start: startPos,
+            end: targetPos,
+            first_corner: corners.length > 0 ? corners[0] : startPos,
+            last_corner: corners.length > 0 ? corners[corners.length - 1] : targetPos,
+            optimal_start: 'start',
+            optimal_end: 'end',
+            valid_pairs: [
+                {
+                    name: 'full_zigzag_easy',
+                    start: 'start',
+                    end: 'end',
+                    path_type: 'full_traversal',
+                    strategies: ['segment_pattern_reuse', 'alternating_patterns'],
+                    difficulty: 'EASY',
+                    teaching_goal: 'Follow zigzag with repeated segment pattern'
+                },
+                {
+                    name: 'corner_sequence_medium',
+                    start: 'first_corner',
+                    end: 'last_corner',
+                    path_type: 'inner_segments',
+                    strategies: ['segment_pattern_reuse'],
+                    difficulty: 'MEDIUM',
+                    teaching_goal: 'Navigate between corners with pattern recognition'
+                },
+                {
+                    name: 'reversed_hard',
+                    start: 'end',
+                    end: 'start',
+                    path_type: 'reversed_traversal',
+                    strategies: ['segment_pattern_reuse'],
+                    difficulty: 'HARD',
+                    teaching_goal: 'Reverse zigzag with hidden regularity'
+                }
+            ]
+        };
+        
         return {
             start_pos: startPos,
             target_pos: targetPos,
@@ -89,8 +128,11 @@ export class ZigzagTopology extends BaseTopology {
                     count: segments.length,
                     lengths,
                     min_length: Math.min(...lengths),
-                    max_length: Math.max(...lengths)
-                }
+                    max_length: Math.max(...lengths),
+                    avg_length: lengths.reduce((a,b) => a+b, 0) / lengths.length,
+                    types: lengths.map((_, i) => i % 2 === 0 ? 'forward_z' : 'forward_x')
+                },
+                semantic_positions
             }
         };
     }

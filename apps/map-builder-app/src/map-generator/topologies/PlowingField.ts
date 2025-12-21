@@ -54,6 +54,58 @@ export class PlowingFieldTopology extends BaseTopology {
 
     const targetPos = pathCoords[pathCoords.length - 1];
 
+    // Build segments (each row is a segment)
+    const segments: Coord[][] = [];
+    let idx = 0;
+    for (let row = 0; row < rows; row++) {
+        const rowStart = idx;
+        const rowEnd = rowStart + rowLength + (row < rows - 1 ? 2 : 1);
+        segments.push(pathCoords.slice(rowStart, Math.min(rowEnd, pathCoords.length)));
+        idx = rowEnd - 1;
+    }
+    const lengths = segments.map(s => s.length).filter(l => l > 0);
+
+    // Semantic positions
+    const midRow = Math.floor(rows / 2);
+    const midPoint = pathCoords[midRow * (rowLength + 1)] || pathCoords[Math.floor(pathCoords.length / 2)];
+
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        mid_row: midPoint,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'full_field_easy',
+                start: 'start',
+                end: 'end',
+                path_type: 'full_traversal',
+                strategies: ['nested_loops', 'plowing_pattern'],
+                difficulty: 'EASY',
+                teaching_goal: 'Nested loop pattern - outer for rows, inner for columns'
+            },
+            {
+                name: 'half_field_medium',
+                start: 'start',
+                end: 'mid_row',
+                path_type: 'partial_traversal',
+                strategies: ['counting_loops'],
+                difficulty: 'MEDIUM',
+                teaching_goal: 'Partial field with row counting'
+            }
+        ]
+    };
+
+    const segment_analysis = {
+        num_segments: segments.length,
+        lengths,
+        types: segments.map((_, i) => i % 2 === 0 ? 'row_forward' : 'row_backward'),
+        min_length: lengths.length > 0 ? Math.min(...lengths) : 0,
+        max_length: lengths.length > 0 ? Math.max(...lengths) : 0,
+        avg_length: lengths.length > 0 ? lengths.reduce((a,b) => a+b, 0) / lengths.length : 0
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -65,6 +117,9 @@ export class PlowingFieldTopology extends BaseTopology {
         rows: rows,
         row_length: rowLength,
         pattern: 'boustrophedon',
+        segments,
+        segment_analysis,
+        semantic_positions
       },
     };
   }

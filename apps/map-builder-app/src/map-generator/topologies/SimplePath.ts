@@ -51,6 +51,36 @@ export class SimplePathTopology extends BaseTopology {
 
     const targetPos = pathCoords[pathCoords.length - 1];
 
+    // Semantic positions
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        mid_point: pathCoords[Math.floor(pathCoords.length / 2)],
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'full_path_easy',
+                start: 'start',
+                end: 'end',
+                path_type: 'full_traversal',
+                strategies: ['linear_repeat', 'segment_based'],
+                difficulty: 'EASY',
+                teaching_goal: 'Simple straight path traversal'
+            }
+        ]
+    };
+
+    // Segment analysis (single segment)
+    const segment_analysis = {
+        num_segments: 1,
+        lengths: [pathCoords.length],
+        types: ['linear'],
+        min_length: pathCoords.length,
+        max_length: pathCoords.length,
+        avg_length: pathCoords.length
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -61,6 +91,9 @@ export class SimplePathTopology extends BaseTopology {
         topology_type: 'simple_path',
         direction: direction,
         path_length: pathLength,
+        segments: [pathCoords],
+        segment_analysis,
+        semantic_positions
       },
     };
   }

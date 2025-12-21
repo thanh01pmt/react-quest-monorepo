@@ -110,6 +110,48 @@ export class SymmetricalIslandsTopology extends BaseTopology {
     const lastIsland = islands[islands.length - 1];
     const targetPos = lastIsland?.[lastIsland.length - 1] || [startX + 5, y, startZ + 5];
 
+    // Semantic positions
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        first_island: islands[0] ? islands[0][Math.floor(islands[0].length / 2)] : startPos,
+        last_island: lastIsland ? lastIsland[Math.floor(lastIsland.length / 2)] : targetPos,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'island_hopping_easy',
+                start: 'start',
+                end: 'end',
+                path_type: 'island_traversal',
+                strategies: ['function_reuse', 'symmetric_pattern'],
+                difficulty: 'EASY',
+                teaching_goal: 'Navigate symmetric islands with repeated pattern'
+            },
+            {
+                name: 'bridge_crossing_medium',
+                start: 'first_island',
+                end: 'last_island',
+                path_type: 'bridge_navigation',
+                strategies: ['segment_pattern_reuse'],
+                difficulty: 'MEDIUM',
+                teaching_goal: 'Cross bridges between islands'
+            }
+        ]
+    };
+
+    // Segment analysis: islands + bridges
+    const allSegments = [...islands, ...bridges];
+    const lengths = allSegments.map(s => s.length);
+    const segment_analysis = {
+        num_segments: allSegments.length,
+        lengths,
+        types: [...islands.map(() => 'island'), ...bridges.map(() => 'bridge')],
+        min_length: lengths.length > 0 ? Math.min(...lengths) : 0,
+        max_length: lengths.length > 0 ? Math.max(...lengths) : 0,
+        avg_length: lengths.length > 0 ? lengths.reduce((a,b) => a+b, 0) / lengths.length : 0
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -121,6 +163,9 @@ export class SymmetricalIslandsTopology extends BaseTopology {
         islands: islands,
         bridges: bridges,
         num_islands: islands.length,
+        segments: allSegments,
+        segment_analysis,
+        semantic_positions
       },
     };
   }

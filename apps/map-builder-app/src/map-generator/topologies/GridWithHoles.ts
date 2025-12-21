@@ -94,6 +94,44 @@ export class GridWithHolesTopology extends BaseTopology {
 
     const placementCoords: Coord[] = Array.from(walkableSet).map(parseKey);
 
+    // Semantic positions
+    const semantic_positions = {
+        start: startPos,
+        end: targetPos,
+        optimal_start: 'start',
+        optimal_end: 'end',
+        valid_pairs: [
+            {
+                name: 'avoid_holes_easy',
+                start: 'start',
+                end: 'end',
+                path_type: 'obstacle_avoidance',
+                strategies: ['conditional_branching', 'path_planning'],
+                difficulty: 'EASY',
+                teaching_goal: 'Navigate around holes to reach goal'
+            },
+            {
+                name: 'complex_route_hard',
+                start: 'start',
+                end: 'end',
+                path_type: 'complex_navigation',
+                strategies: ['backtracking', 'maze_solving'],
+                difficulty: 'HARD',
+                teaching_goal: 'Find optimal path through holes'
+            }
+        ]
+    };
+
+    // Segment analysis based on path
+    const segment_analysis = {
+        num_segments: 1,
+        lengths: [pathCoords.length],
+        types: ['grid_path'],
+        min_length: pathCoords.length,
+        max_length: pathCoords.length,
+        avg_length: pathCoords.length
+    };
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
@@ -105,6 +143,9 @@ export class GridWithHolesTopology extends BaseTopology {
         holes: Array.from(holes).map(parseKey),
         width: width,
         depth: depth,
+        segments: [pathCoords],
+        segment_analysis,
+        semantic_positions
       },
     };
   }

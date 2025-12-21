@@ -10,6 +10,13 @@ import {
     StrategyConfig 
 } from './strategies/types';
 import { getStrategyRegistry } from './strategies/StrategyRegistry';
+// New handlers
+import { 
+    getSemanticPositionHandler, 
+    getPedagogicalStrategyHandler,
+    getStrategySelector,
+    getSolutionFirstPlacer
+} from './handlers';
 
 // Re-export for backward compatibility
 export { PedagogyStrategy } from './strategies/types';
@@ -24,6 +31,8 @@ export interface PlacementConfig {
     densityMode?: DensityMode;
     academicParams?: AcademicParams;
     itemGoals?: ItemGoals;
+    // Enable Solution-First placement approach
+    useSolutionFirst?: boolean;
 }
 
 export class PlacementService {
@@ -180,34 +189,79 @@ export class PlacementService {
              addObj(obs.pos, wallKey, 'wall'); // Use dynamic wall key
         });
 
-        // 2. Apply Pedagogy Strategy using StrategyRegistry
-        const registry = getStrategyRegistry();
+        // 2. Apply Pedagogy Strategy
+        // PRIORITY 1: Use SolutionFirstPlacer if enabled or if academicParams present
+        const useSolutionFirst = config.useSolutionFirst || !!config.academicParams;
         
-        // Check if strategy is supported by new registry
-        if (registry.has(strategy)) {
-            console.log(`[PlacementService] Using StrategyRegistry for ${strategy}`);
-            const result = registry.applyStrategy(
-                strategy,
+        if (useSolutionFirst) {
+            console.log(`[PlacementService] Using SolutionFirstPlacer (priority: solution-first)`);
+            const solutionPlacer = getSolutionFirstPlacer();
+            
+            // Build params for placer
+            const placerParams = {
+                ...params,
+                ...config.academicParams,
+                difficulty_code: difficulty.toUpperCase(),
+                density_mode: config.densityMode
+            };
+            
+            const placementResult = solutionPlacer.placeItems(
                 pathInfo,
+                placerParams,
                 assetMap,
-                difficulty,
-                objects,
-                config.academicParams
+                gridSize
             );
-            // Merge result objects (items placed by strategy)
-            result.objects.forEach(obj => {
-                // Only add if not already in objects (avoid duplicates)
-                if (!objects.some(o => o.id === obj.id)) {
-                    objects.push(obj);
-                }
-            });
-            console.log(`[PlacementService] Strategy placed ${result.metadata.items_placed} items`);
-        } else if (strategy === PedagogyStrategy.NONE) {
-            // Legacy random placement
-            this.applyRandomPlacement(objects, pathInfo, assetMap);
-        } else {
-            console.warn(`[PlacementService] Unknown strategy ${strategy}, using random placement`);
-            this.applyRandomPlacement(objects, pathInfo, assetMap);
+            
+            // Add collectibles to objects
+            if (placementResult.collectibles) {
+                placementResult.collectibles.forEach(obj => {
+                    if (!objects.some(o => o.id === obj.id)) {
+                        objects.push(obj);
+                    }
+                });
+            }
+            
+            // Add interactibles to objects
+            if (placementResult.interactibles) {
+                placementResult.interactibles.forEach(obj => {
+                    if (!objects.some(o => o.id === obj.id)) {
+                        objects.push(obj);
+                    }
+                });
+            }
+            
+            console.log(`[PlacementService] SolutionFirstPlacer placed ${placementResult.items?.length || 0} items`);
+        }
+        // PRIORITY 2: Use StrategyRegistry if available
+        else {
+            const registry = getStrategyRegistry();
+            
+            // Check if strategy is supported by new registry
+            if (registry.has(strategy)) {
+                console.log(`[PlacementService] Using StrategyRegistry for ${strategy}`);
+                const result = registry.applyStrategy(
+                    strategy,
+                    pathInfo,
+                    assetMap,
+                    difficulty,
+                    objects,
+                    config.academicParams
+                );
+                // Merge result objects (items placed by strategy)
+                result.objects.forEach(obj => {
+                    // Only add if not already in objects (avoid duplicates)
+                    if (!objects.some(o => o.id === obj.id)) {
+                        objects.push(obj);
+                    }
+                });
+                console.log(`[PlacementService] Strategy placed ${result.metadata.items_placed} items`);
+            } else if (strategy === PedagogyStrategy.NONE) {
+                // Legacy random placement
+                this.applyRandomPlacement(objects, pathInfo, assetMap);
+            } else {
+                console.warn(`[PlacementService] Unknown strategy ${strategy}, using random placement`);
+                this.applyRandomPlacement(objects, pathInfo, assetMap);
+            }
         }
 
         // 3. Add Start/Finish
