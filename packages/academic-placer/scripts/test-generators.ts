@@ -9,17 +9,17 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Import MapAnalyzer
-import { MapAnalyzer, type PlacementContext } from './MapAnalyzer';
+import { MapAnalyzer, type PlacementContext } from '../src/MapAnalyzer';
 
 // Import main generator
 import { 
   AcademicPlacementGenerator, 
   testAcademicGenerator,
   type AcademicPlacement 
-} from './AcademicPlacementGenerator';
+} from '../src/AcademicPlacementGenerator';
 
 // Import individual generators for detailed testing
-import { generateSequentialPlacements } from './generators/SequentialGenerators';
+import { generateSequentialPlacements } from '../src/generators/SequentialGenerators';
 import { 
   generateRepeatNPlacements,
   generateRepeatUntilPlacements,
@@ -28,7 +28,7 @@ import {
   generateInfiniteLoopPlacements,
   generateNestedLoopPlacements,
   generateAllLoopPlacements
-} from './generators/LoopGenerators';
+} from '../src/generators/LoopGenerators';
 import { 
   generateIfSimplePlacements,
   generateIfElsePlacements,
@@ -36,7 +36,7 @@ import {
   generateSwitchCasePlacements,
   generateNestedIfPlacements,
   generateAllConditionalPlacements
-} from './generators/ConditionalGenerators';
+} from '../src/generators/ConditionalGenerators';
 import { 
   generateProcedureSimplePlacements,
   generateProcedureWithParamPlacements,
@@ -44,7 +44,7 @@ import {
   generateFunctionComposePlacements,
   generateRecursionPlacements,
   generateAllFunctionPlacements
-} from './generators/FunctionGenerators';
+} from '../src/generators/FunctionGenerators';
 import { 
   generateCounterPlacements,
   generateStateTogglePlacements,
@@ -52,7 +52,7 @@ import {
   generateCollectionPlacements,
   generateFlagPlacements,
   generateAllVariablePlacements
-} from './generators/VariableGenerators';
+} from '../src/generators/VariableGenerators';
 import { 
   generateRepeatNCounterPlacements,
   generateWhileCounterPlacements,
@@ -68,9 +68,9 @@ import {
   generateLoopIfFunctionPlacements,
   generateFunctionLoopIfPlacements,
   generateAllCombinationPlacements
-} from './generators/CombinationGenerators';
+} from '../src/generators/CombinationGenerators';
 
-import { GENERATOR_COVERAGE } from './generators/index';
+import { GENERATOR_COVERAGE } from '../src/generators/index';
 
 // ============================================================================
 // TEST UTILITIES
@@ -372,7 +372,7 @@ const args = process.argv.slice(2);
 const configFile = args[0] || 'test_game_config.json';
 const configPath = path.isAbsolute(configFile) 
   ? configFile 
-  : path.join(__dirname, configFile);
+  : path.join(path.dirname(__dirname), configFile);
 
 if (!fs.existsSync(configPath)) {
   console.error(`❌ Config file not found: ${configPath}`);

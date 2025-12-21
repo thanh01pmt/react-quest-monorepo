@@ -1,20 +1,25 @@
 /**
- * Test script for MapAnalyzer
+ * Analyze script - Run MapAnalyzer and AcademicPlacementGenerator
  * 
  * Usage:
- *   npx ts-node test-analyzer.ts
- *   # or
- *   npx tsx test-analyzer.ts
+ *   npx tsx scripts/analyze.ts [configFile]
+ *   npx tsx scripts/analyze.ts examples/linear-map.json
  */
 
-import { MapAnalyzer, testMapAnalyzer } from './MapAnalyzer';
-import { AcademicPlacementGenerator, testAcademicGenerator } from './AcademicPlacementGenerator';
+import { MapAnalyzer, testMapAnalyzer } from '../src/MapAnalyzer';
+import { AcademicPlacementGenerator, testAcademicGenerator } from '../src/AcademicPlacementGenerator';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Base directory
+const baseDir = path.join(__dirname, '..');
+
 // Load config file from argument or default
-const configFileName = process.argv[2] || 'mapconfig.json';
-const configPath = path.join(__dirname, configFileName);
+const configFileName = process.argv[2] || 'examples/linear-map.json';
+const configPath = path.isAbsolute(configFileName) 
+  ? configFileName 
+  : path.join(baseDir, configFileName);
+  
 console.log(`Loading config from: ${configPath}`);
 const rawConfig = fs.readFileSync(configPath, 'utf-8');
 
@@ -39,7 +44,7 @@ const analyzer = new MapAnalyzer(config, { minLength: 2 });
 const details = analyzer.analyzeWithDetails();
 
 // Output to JSON file
-const outputPath = path.join(__dirname, 'analysis-output.json');
+const outputPath = path.join(baseDir, 'output/analysis-output.json');
 fs.writeFileSync(outputPath, JSON.stringify(details, null, 2));
 console.log(`\n✅ Detailed results saved to: ${outputPath}`);
 
@@ -126,7 +131,7 @@ const academicOutput = {
   allPlacements: academicGenerator.generateAll()
 };
 
-const academicOutputPath = path.join(__dirname, 'academic-output.json');
+const academicOutputPath = path.join(baseDir, 'output/academic-output.json');
 fs.writeFileSync(academicOutputPath, JSON.stringify(academicOutput, null, 2));
 console.log(`\n✅ Academic placements saved to: ${academicOutputPath}`);
 

@@ -1,0 +1,114 @@
+{
+  "config": "test_game_config.json",
+  "topology": "cross",
+  "metrics": {
+    "segments": 1,
+    "center": {
+      "x": 10,
+      "y": 0,
+      "z": 10
+    }
+  },
+  "allCoords": [
+    {
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 10
+      },
+      "priority": 10,
+      "category": "critical",
+      "reasons": [
+        "Cross center (junction)"
+      ]
+    },
+    {
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 6
+      },
+      "priority": 8,
+      "category": "important",
+      "reasons": [
+        "Segment endpoint (start)",
+        "Cross arm endpoint",
+        "Player start position"
+      ]
+    },
+    {
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 14
+      },
+      "priority": 7,
+      "category": "important",
+      "reasons": [
+        "Segment endpoint (end)"
+      ]
+    },
+    {
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 8
+      },
+      "priority": 4,
+      "category": "optional",
+      "reasons": [
+        "Interval point (every 2 steps)"
+      ]
+    },
+    {
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 12
+      },
+      "priority": 4,
+      "category": "optional",
+      "reasons": [
+        "Interval point (every 2 steps)"
+      ]
+    }
+  ],
+  "topCoords": [
+    {
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 10
+      },
+      "priority": 10,
+      "reasons": [
+        "Cross center (junction)"
+      ]
+    },
+    {
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 6
+      },
+      "priority": 8,
+      "reasons": [
+        "Segment endpoint (start)",
+        "Cross arm endpoint",
+        "Player start position"
+      ]
+    },
+    {
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 14
+      },
+      "priority": 7,
+      "reasons": [
+        "Segment endpoint (end)"
+      ]
+    }
+  ],
+  "recommendation": "Đặt switch tại tâm, crystal đối xứng ở 4 hướng"
+}

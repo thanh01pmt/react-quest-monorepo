@@ -14,12 +14,12 @@ import * as path from 'path';
 import * as readline from 'readline';
 
 // Import MapAnalyzer and Generator
-import { MapAnalyzer, type PlacementContext } from './MapAnalyzer';
+import { MapAnalyzer, type PlacementContext } from '../src/MapAnalyzer';
 import { 
   AcademicPlacementGenerator,
   type AcademicPlacement,
   type ItemPlacement
-} from './AcademicPlacementGenerator';
+} from '../src/AcademicPlacementGenerator';
 
 // ============================================================================
 // TYPES

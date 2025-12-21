@@ -1,0 +1,125 @@
+{
+  "config": "test_game_config.json",
+  "metrics": {
+    "totalBlocks": 15,
+    "boundingBox": {
+      "width": 1,
+      "height": 1,
+      "depth": 9
+    },
+    "area": 9,
+    "estimatedSize": "tiny",
+    "segmentCount": 1,
+    "areaCount": 1,
+    "junctionCount": 0,
+    "longestPathLength": 8,
+    "center": {
+      "x": 10,
+      "y": 0,
+      "z": 10
+    },
+    "detectedTopology": "linear"
+  },
+  "constraints": {
+    "maxItems": 6,
+    "minItems": 2,
+    "targetItemRatio": 0.7,
+    "preferredConcepts": [
+      "sequential",
+      "repeat_n",
+      "while_condition"
+    ],
+    "avoidConcepts": [
+      "nested_loop",
+      "if_elif_else"
+    ],
+    "maxCodeBlocks": 30,
+    "targetCodeBlocks": 20,
+    "distribution": "spread",
+    "minInterval": 1,
+    "maxInterval": 4,
+    "preferredInterval": 2
+  },
+  "topPlacements": [
+    {
+      "id": "sequential_multiple",
+      "name": "Thu thập nhiều crystal",
+      "difficulty": 2,
+      "primaryConcept": "sequential",
+      "items": 4,
+      "valid": true
+    },
+    {
+      "id": "repeat_n_interval_2",
+      "name": "Repeat - crystal cách 2 bước",
+      "difficulty": 2,
+      "primaryConcept": "repeat_n",
+      "items": 5,
+      "valid": true
+    },
+    {
+      "id": "sequential_basic",
+      "name": "Đường thẳng cơ bản",
+      "difficulty": 1,
+      "primaryConcept": "sequential",
+      "items": 1,
+      "valid": false
+    },
+    {
+      "id": "repeat_n_every_step",
+      "name": "Repeat - thu thập mỗi bước",
+      "difficulty": 3,
+      "primaryConcept": "repeat_n",
+      "items": 8,
+      "valid": true
+    },
+    {
+      "id": "repeat_n_interval_3",
+      "name": "Repeat - crystal cách 3 bước",
+      "difficulty": 3,
+      "primaryConcept": "repeat_n",
+      "items": 3,
+      "valid": true
+    },
+    {
+      "id": "while_path_ahead",
+      "name": "While - còn đường phía trước",
+      "difficulty": 5,
+      "primaryConcept": "while_condition",
+      "items": 8,
+      "valid": true
+    },
+    {
+      "id": "while_not_goal",
+      "name": "While - chưa đến đích",
+      "difficulty": 5,
+      "primaryConcept": "while_condition",
+      "items": 5,
+      "valid": true
+    },
+    {
+      "id": "if_simple_crystal",
+      "name": "If - kiểm tra crystal",
+      "difficulty": 3,
+      "primaryConcept": "if_simple",
+      "items": 3,
+      "valid": true
+    },
+    {
+      "id": "if_simple_path",
+      "name": "If - kiểm tra đường đi",
+      "difficulty": 3,
+      "primaryConcept": "if_simple",
+      "items": 8,
+      "valid": true
+    },
+    {
+      "id": "counter_steps",
+      "name": "Counter - đếm bước đi",
+      "difficulty": 3,
+      "primaryConcept": "counter",
+      "items": 8,
+      "valid": true
+    }
+  ]
+}

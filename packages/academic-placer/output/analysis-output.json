@@ -2009,6 +2009,108 @@
         }
       }
     ],
+    "prioritizedCoords": [
+      {
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 6
+        },
+        "priority": 7,
+        "category": "important",
+        "reasons": [
+          "Segment endpoint (start)"
+        ],
+        "segmentId": "seg_0"
+      },
+      {
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 14
+        },
+        "priority": 7,
+        "category": "important",
+        "reasons": [
+          "Segment endpoint (end)"
+        ],
+        "segmentId": "seg_0"
+      },
+      {
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "priority": 4,
+        "category": "optional",
+        "reasons": [
+          "Interval point (every 2 steps)"
+        ],
+        "segmentId": "seg_0"
+      },
+      {
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 10
+        },
+        "priority": 4,
+        "category": "optional",
+        "reasons": [
+          "Interval point (every 2 steps)"
+        ],
+        "segmentId": "seg_0"
+      },
+      {
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 12
+        },
+        "priority": 4,
+        "category": "optional",
+        "reasons": [
+          "Interval point (every 2 steps)"
+        ],
+        "segmentId": "seg_0"
+      }
+    ],
+    "metrics": {
+      "totalBlocks": 15,
+      "boundingBox": {
+        "width": 1,
+        "height": 1,
+        "depth": 9
+      },
+      "area": 9,
+      "estimatedSize": "tiny",
+      "segmentCount": 1,
+      "areaCount": 1,
+      "junctionCount": 0,
+      "longestPathLength": 8,
+      "center": {
+        "x": 10,
+        "y": 0,
+        "z": 10
+      },
+      "detectedTopology": "linear"
+    },
+    "constraints": {
+      "maxItems": 6,
+      "minItems": 2,
+      "targetItemRatio": 0.7,
+      "preferredConcepts": [
+        "sequential",
+        "repeat_n"
+      ],
+      "avoidConcepts": [
+        "nested_loop"
+      ],
+      "maxCodeBlocks": 30,
+      "distribution": "spread",
+      "preferredInterval": 2
+    },
     "suggestedPlacements": [
       {
         "positions": [
