@@ -67,7 +67,7 @@ export class ConditionalBranchingStrategy extends BaseStrategy {
         }
 
         const crystalAsset = this.getAsset(context.assetMap, 'crystal');
-        const gemAsset = this.getAsset(context.assetMap, 'gem');
+        const gemAsset = this.getAsset(context.assetMap, 'crystal');
 
         // Place MORE items on goal branch (crystals)
         branches.forEach((branch, idx) => {
@@ -84,7 +84,7 @@ export class ConditionalBranchingStrategy extends BaseStrategy {
                 });
                 validationNotes.push(`Goal branch (${idx}): Dense crystal placement`);
             } else {
-                // Decoy branches: sparse gem placement (or none)
+                // Decoy branches: sparse crystal placement (or none)
                 const decoyDensity = context.difficulty === 'complex' ? 0.2 : 0.1;
                 branch.forEach((pos, i) => {
                     if (i > 0 && Math.random() < decoyDensity && !this.isOccupied(objects, pos)) {
@@ -118,7 +118,7 @@ export class ConditionalBranchingStrategy extends BaseStrategy {
         validationNotes: string[]
     ): StrategyResult {
         let itemsPlaced = 0;
-        const gemAsset = this.getAsset(context.assetMap, 'gem');
+        const gemAsset = this.getAsset(context.assetMap, 'crystal');
         
         if (gemAsset) {
             const path = pathInfo.path_coords;

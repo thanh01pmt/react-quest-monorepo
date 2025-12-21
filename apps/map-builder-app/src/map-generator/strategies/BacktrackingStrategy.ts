@@ -66,7 +66,7 @@ export class BacktrackingStrategy extends BaseStrategy {
             deadEndBranches.push(...branches.filter(b => b !== goalBranch));
         }
 
-        const gemAsset = this.getAsset(context.assetMap, 'gem');
+        const gemAsset = this.getAsset(context.assetMap, 'crystal');
         const crystalAsset = this.getAsset(context.assetMap, 'crystal');
         if (!gemAsset && !crystalAsset) {
             validationNotes.push('Error: Could not find collectible assets');
@@ -114,7 +114,7 @@ export class BacktrackingStrategy extends BaseStrategy {
         validationNotes: string[]
     ): StrategyResult {
         let itemsPlaced = 0;
-        const gemAsset = this.getAsset(context.assetMap, 'gem');
+        const gemAsset = this.getAsset(context.assetMap, 'crystal');
         
         if (gemAsset) {
             const path = pathInfo.path_coords;

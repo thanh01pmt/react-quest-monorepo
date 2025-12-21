@@ -84,30 +84,91 @@ export class ArrowShapeTopology extends BaseTopology {
     }
     
     // 3. Build connected path through the arrow
-    // Path: Start -> along shaft -> through head in zig-zag pattern
+    // APPROACH: Use Z-shape diagonal pattern - step-by-step movement
+    // Each step moves exactly 1 cell in X OR Z (never both)
+    //
+    // For arrow head traversal:
+    // From junction, zig-zag through head rows like Z-shape diagonal
+    // Row 1: wider, Row 2: narrower, ... until tip
     
     // Add shaft to path
     pathCoords.push(...shaft);
     
-    // Add head rows in zig-zag pattern for continuous connectivity
+    // The junction is the last point of shaft
+    // Now we need to traverse the triangular head
+    // 
+    // Strategy: Traverse each row, then step +Z to next row at the OVERLAP point
+    // Like Z-shape: for each "diagonal" transition, alternate +Z and ±X steps
+    
+    // Start from junction, step into first head row
+    let currentX = junctionPos[0];
+    let currentZ = junctionPos[2];
+    
     for (let rowIdx = 0; rowIdx < headRows.length; rowIdx++) {
-      const row = headRows[rowIdx];
-      const sortedRow = [...row].sort((a, b) => a[0] - b[0]);
+      const rowZ = junctionPos[2] + 1 + rowIdx;
+      const rowWidth = headSize - (rowIdx + 1); // Half-width from center
       
-      // For zig-zag: alternate direction each row
+      // Step forward into this row (Z+1)
+      if (rowIdx === 0) {
+        // First step from junction into head
+        currentZ = rowZ;
+        pathCoords.push([currentX, y, currentZ]);
+      }
+      
+      // Determine direction for this row (zig-zag like Z-shape)
+      // Even rows: go to positive X edge
+      // Odd rows: go to negative X edge
       if (rowIdx % 2 === 0) {
-        // Left to right
-        pathCoords.push(...sortedRow);
+        // Move right (+X) to edge
+        const targetX = junctionPos[0] + rowWidth;
+        while (currentX < targetX) {
+          currentX++;
+          pathCoords.push([currentX, y, currentZ]);
+        }
       } else {
-        // Right to left
-        pathCoords.push(...sortedRow.reverse());
+        // Move left (-X) to edge
+        const targetX = junctionPos[0] - rowWidth;
+        while (currentX > targetX) {
+          currentX--;
+          pathCoords.push([currentX, y, currentZ]);
+        }
+      }
+      
+      // Now connect to next row (or finish at tip)
+      if (rowIdx < headRows.length - 1) {
+        // Calculate next row's width
+        const nextRowWidth = headSize - (rowIdx + 2);
+        
+        // We need to step-by-step like Z-shape diagonal:
+        // Alternate between +Z and ±X until we're at a position within next row
+        // Next row's X range: [junctionPos[0] - nextRowWidth, junctionPos[0] + nextRowWidth]
+        
+        // First, step into next Z level
+        currentZ++;
+        pathCoords.push([currentX, y, currentZ]);
+        
+        // Now, if current X is outside next row's range, step towards center
+        if (rowIdx % 2 === 0) {
+          // We're at positive edge, next row is narrower
+          // Need to step left until within next row range
+          const nextRowMaxX = junctionPos[0] + nextRowWidth;
+          while (currentX > nextRowMaxX) {
+            currentX--;
+            pathCoords.push([currentX, y, currentZ]);
+          }
+        } else {
+          // We're at negative edge, need to step right
+          const nextRowMinX = junctionPos[0] - nextRowWidth;
+          while (currentX < nextRowMinX) {
+            currentX++;
+            pathCoords.push([currentX, y, currentZ]);
+          }
+        }
       }
     }
     
-    // Target position is the tip of the arrow
+    // Final step to tip if not already there
     const targetPos: Coord = [junctionPos[0], y, junctionPos[2] + headSize];
-    
-    // Remove duplicates while preserving order
     const uniquePathCoords = this.removeDuplicates(pathCoords);
     
     // Convert placement set back to coords

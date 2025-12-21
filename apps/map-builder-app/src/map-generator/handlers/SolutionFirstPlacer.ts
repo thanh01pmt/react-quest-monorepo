@@ -1,435 +1,656 @@
 /**
- * Solution-First Placer
+ * Solution-First Placer (Refactored)
  * 
- * Main placer class that uses topology metadata (segments, corners, segment_analysis)
- * to place items according to predefined patterns for predictable PROCEDURE generation.
+ * ARCHITECTURE:
+ * ============
+ * 1. PLANNING PHASE (Create solution first)
+ *    - Analyze topology structure + academic requirements
+ *    - Determine optimal academic start point
+ *    - Generate algorithm with patterns (loops, functions)
+ *    - Decompose into basic actions (moveForward, turnLeft, collect, etc.)
+ *    - Output: Optimal Path + Actions sequence + Item positions
  * 
- * Key Insight: Topology metadata is the GROUND TRUTH - it contains the exact segments
- * that were generated, not guessed from blocks.
+ * 2. PLACEMENT PHASE (Build map according to solution)
+ *    - Place ground blocks along planned path
+ *    - Place items (crystal, switch) at planned positions
+ *    - Items are "just enough" - exact count per requirements
  * 
- * Ported from Python: solution_first_placer.py
+ * The solution is "optimal" because we create the solution FIRST,
+ * then create the map to match it.
+ * 
+ * This is different from:
+ * - Solver: Post-solve verification after map is created
+ * - Synthesizer: Optimize raw actions into structured blocks
  */
 
 import { IPathInfo, Coord } from '../types';
 import { PlacedObject, BuildableAsset } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
-import { 
-    getPedagogicalStrategyHandler, 
-    LayoutResult,
-    PedagogicalItemPlacement
-} from './index';
-import { getSemanticPositionHandler } from './SemanticPositionHandler';
-import { PatternLibrary, getPatternLibrary } from './PatternLibrary';
-import { PlacementCalculator, getPlacementCalculator } from './PlacementCalculator';
-import { SymmetricPlacer, getSymmetricPlacer } from './SymmetricPlacer';
-import { FallbackHandler, getFallbackHandler } from './FallbackHandler';
+import { getSynthesizerRegistry, SynthesisResult } from '../synthesizers';
 
-// Configuration flags
-const SKIP_SOLVER = false;
-const GENERATE_EXPECTED_SOLUTION = true;
+// Academic configuration
+export interface AcademicConfig {
+    logic_type: 'function_logic' | 'loop_logic' | 'sequencing' | 'conditional';
+    difficulty_code: 'EASY' | 'MEDIUM' | 'HARD';
+    item_goals: {
+        crystal?: number;
+        switch?: number;
+        gem?: number;
+    };
+    force_function?: boolean;
+    force_loop?: boolean;
+}
+
+// Planned solution output
+export interface PlannedSolution {
+    // The path (sequence of coordinates player walks)
+    path: Coord[];
+    // Raw actions sequence
+    rawActions: string[];
+    // Structured solution (with loops/procedures)
+    structuredSolution: SynthesisResult;
+    // Item placements
+    itemPlacements: ItemPlacement[];
+    // Metadata
+    metadata: {
+        logic_type: string;
+        optimal_blocks: number;
+        path_length: number;
+        planning_strategy: string;
+    };
+}
+
+export interface ItemPlacement {
+    type: 'crystal' | 'switch' | 'gem' | 'goal';
+    position: Coord;
+    action: 'collect' | 'toggle' | 'reach';
+    step_index: number;  // Which step in the path
+}
 
 export interface PlacementResult {
-    items: PedagogicalItemPlacement[];
+    // Ground blocks to place
+    groundBlocks: PlacedObject[];
+    // Collectible items
     collectibles: PlacedObject[];
+    // Interactible items
     interactibles: PlacedObject[];
-    metadata?: Record<string, any>;
-    expected_solution?: Record<string, any>;
+    // The planned solution
+    plannedSolution: PlannedSolution;
+    // Whether planning succeeded
+    success: boolean;
+    errors: string[];
 }
 
 /**
- * Pattern match result
+ * Direction utilities
  */
-interface PatternMatch {
-    segmentIdx: number;
-    pattern: {
-        id: string;
-        length: number;
-        item_types: string[];
-    };
+const DIRECTIONS = {
+    NORTH: { dx: 0, dz: -1, name: 'north' },  // -Z
+    EAST: { dx: 1, dz: 0, name: 'east' },     // +X
+    SOUTH: { dx: 0, dz: 1, name: 'south' },   // +Z
+    WEST: { dx: -1, dz: 0, name: 'west' }     // -X
+};
+
+function getDirection(from: Coord, to: Coord): string {
+    const dx = to[0] - from[0];
+    const dz = to[2] - from[2];
+    if (dz < 0) return 'north';
+    if (dz > 0) return 'south';
+    if (dx > 0) return 'east';
+    if (dx < 0) return 'west';
+    return 'none';
+}
+
+function getTurnAction(fromDir: string, toDir: string): string | null {
+    const dirs = ['north', 'east', 'south', 'west'];
+    const fromIdx = dirs.indexOf(fromDir);
+    const toIdx = dirs.indexOf(toDir);
+    if (fromIdx === -1 || toIdx === -1) return null;
+    
+    const diff = (toIdx - fromIdx + 4) % 4;
+    if (diff === 1) return 'turnRight';
+    if (diff === 3) return 'turnLeft';
+    if (diff === 2) return 'turnRight'; // or turnLeft twice, use right
+    return null;
 }
 
 /**
  * Solution-First Placer
- * Places items using Solution-First approach:
- * 1. Analyze topology segments from metadata
- * 2. Match patterns to segments
- * 3. Calculate item positions
- * 4. Verify placements
  */
 export class SolutionFirstPlacer {
-    private patternLibrary: PatternLibrary;
-    private calculator: PlacementCalculator;
-    private symmetricPlacer: SymmetricPlacer;
-    private fallbackHandler: FallbackHandler;
-
-    constructor() {
-        this.patternLibrary = getPatternLibrary();
-        this.calculator = getPlacementCalculator();
-        this.symmetricPlacer = getSymmetricPlacer();
-        this.fallbackHandler = getFallbackHandler();
-    }
-
+    
     /**
-     * Main entry point for Solution-First placement.
+     * Main entry: Plan solution first, then place map elements
      */
-    placeItems(
-        pathInfo: IPathInfo,
-        params: Record<string, any>,
-        assetMap: Map<string, BuildableAsset>,
-        gridSize?: [number, number, number]
+    generateMap(
+        topology: {
+            type: string;
+            structure: Coord[];  // Available walkable positions
+            semanticPositions?: Record<string, Coord>;
+            segments?: Coord[][];
+        },
+        academicConfig: AcademicConfig,
+        assetMap: Map<string, BuildableAsset>
     ): PlacementResult {
-        const logicType = params.logic_type || 'function_logic';
-        const metadata = pathInfo.metadata || {};
-        let segments = metadata.segments || [];
-
-        // Handle singular 'segment' from linear topologies
-        if (!segments.length && metadata.segment) {
-            console.log("[SolutionFirstPlacer] Converting singular 'segment' to 'segments' list");
-            segments = [metadata.segment];
-            metadata.segments = segments;
-            metadata.segment_analysis = {
-                num_segments: 1,
-                lengths: [metadata.segment.length],
-                types: ['linear'],
-                min_length: metadata.segment.length,
-                max_length: metadata.segment.length,
-                avg_length: metadata.segment.length
+        console.log(`[SolutionFirstPlacer] Planning for ${topology.type}, logic: ${academicConfig.logic_type}`);
+        
+        try {
+            // ================================================================
+            // PHASE 1: PLANNING - Create optimal solution
+            // ================================================================
+            const plannedSolution = this.planSolution(topology, academicConfig);
+            
+            if (!plannedSolution.path.length) {
+                return this.errorResult('Planning failed: empty path');
+            }
+            
+            console.log(`[SolutionFirstPlacer] Planned: ${plannedSolution.path.length} steps, ${plannedSolution.itemPlacements.length} items`);
+            
+            // ================================================================
+            // PHASE 2: PLACEMENT - Build map according to plan
+            // ================================================================
+            const result = this.placeMapElements(plannedSolution, assetMap);
+            
+            return result;
+            
+        } catch (error) {
+            console.error('[SolutionFirstPlacer] Error:', error);
+            return this.errorResult(`Planning error: ${error}`);
+        }
+    }
+    
+    /**
+     * PHASE 1: Plan the optimal solution
+     */
+    private planSolution(
+        topology: { 
+            type: string;
+            structure: Coord[];
+            semanticPositions?: Record<string, Coord>;
+            segments?: Coord[][];
+        },
+        config: AcademicConfig
+    ): PlannedSolution {
+        const { logic_type, difficulty_code, item_goals } = config;
+        
+        // 1. Determine start and end points based on academic requirements
+        const { start, end } = this.determineAcademicPositions(topology, logic_type);
+        
+        // 2. Plan the path through topology structure
+        const path = this.planPath(topology, start, end, logic_type);
+        
+        // 3. Plan item placements along path
+        const itemPlacements = this.planItemPlacements(path, item_goals, logic_type);
+        
+        // 4. Convert path to raw actions
+        const rawActions = this.pathToRawActions(path, itemPlacements, start);
+        
+        // 5. Use Synthesizer to create structured solution
+        const synthesizer = getSynthesizerRegistry();
+        const world = {
+            available_blocks: this.getAvailableBlocks(logic_type),
+            solution_config: { logic_type, force_function: config.force_function }
+        };
+        const structuredSolution = synthesizer.synthesize(rawActions, world);
+        
+        return {
+            path,
+            rawActions,
+            structuredSolution,
+            itemPlacements,
+            metadata: {
+                logic_type,
+                optimal_blocks: this.countBlocks(structuredSolution),
+                path_length: path.length,
+                planning_strategy: this.getPlanningStrategy(logic_type)
+            }
+        };
+    }
+    
+    /**
+     * Determine academic start/end based on logic type and topology
+     */
+    private determineAcademicPositions(
+        topology: { type: string; structure: Coord[]; semanticPositions?: Record<string, Coord>; segments?: Coord[][] },
+        logicType: string
+    ): { start: Coord; end: Coord } {
+        const semantic = topology.semanticPositions || {};
+        
+        // Use semantic positions if available
+        if (semantic.optimal_start && semantic.optimal_end) {
+            const startKey = semantic.optimal_start as unknown as string;
+            const endKey = semantic.optimal_end as unknown as string;
+            if (semantic[startKey] && semantic[endKey]) {
+                return { start: semantic[startKey], end: semantic[endKey] };
+            }
+        }
+        
+        // For function_logic: prefer positions that allow reusable patterns
+        if (logicType === 'function_logic' && topology.segments?.length && topology.segments.length >= 2) {
+            // Start at beginning of first segment, end at end of last segment
+            const firstSeg = topology.segments[0];
+            const lastSeg = topology.segments[topology.segments.length - 1];
+            return {
+                start: firstSeg[0],
+                end: lastSeg[lastSeg.length - 1]
             };
         }
-
-        const segmentAnalysis = metadata.segment_analysis || {};
-        const corners = metadata.corners || [];
-        const topologyType = metadata.topology_type || '';
-
-        // =========================================================
-        // PEDAGOGICAL STRATEGY PLACEMENT (Highest Priority)
-        // =========================================================
-        const pedagogicalHandler = getPedagogicalStrategyHandler();
-        const semanticHandler = getSemanticPositionHandler();
-
-        if (metadata.pedagogical_strategy || topologyType) {
-            const result = pedagogicalHandler.applyStrategy(
-                pathInfo,
-                params,
-                (pInfo, items, logicT) => this.buildLayout(pInfo, items, logicT, assetMap)
-            );
-
-            if (result) {
-                // Apply semantic positions to enhance placement
-                const enhancedItems = semanticHandler.applySemanticPlacements(
-                    pathInfo,
-                    result.items,
-                    params
-                );
-                result.items = enhancedItems;
+        
+        // Default: use first and last positions in structure
+        if (topology.structure.length >= 2) {
+            return {
+                start: topology.structure[0],
+                end: topology.structure[topology.structure.length - 1]
+            };
+        }
+        
+        // Fallback
+        return {
+            start: [0, 0, 0],
+            end: [0, 0, 1]
+        };
+    }
+    
+    /**
+     * Plan path through topology based on logic type
+     */
+    private planPath(
+        topology: { type: string; structure: Coord[]; segments?: Coord[][] },
+        start: Coord,
+        end: Coord,
+        logicType: string
+    ): Coord[] {
+        // For topologies with explicit segments, use them to build path
+        if (topology.segments?.length) {
+            return this.planPathThroughSegments(topology.segments, start, end, logicType);
+        }
+        
+        // Otherwise use the structure directly
+        return this.planPathThroughStructure(topology.structure, start, end);
+    }
+    
+    /**
+     * Plan path through segments - respects segment boundaries for pattern matching
+     */
+    private planPathThroughSegments(
+        segments: Coord[][],
+        start: Coord,
+        end: Coord,
+        logicType: string
+    ): Coord[] {
+        const path: Coord[] = [];
+        const seen = new Set<string>();
+        
+        for (const segment of segments) {
+            for (const coord of segment) {
+                const key = `${coord[0]},${coord[1]},${coord[2]}`;
+                if (!seen.has(key)) {
+                    path.push(coord);
+                    seen.add(key);
+                }
+            }
+        }
+        
+        // For function_logic, try to order path to maximize pattern repetition
+        if (logicType === 'function_logic') {
+            return this.optimizePathForFunctions(path, segments);
+        }
+        
+        return path;
+    }
+    
+    /**
+     * Plan path through flat structure
+     */
+    private planPathThroughStructure(structure: Coord[], start: Coord, end: Coord): Coord[] {
+        // Simple: use structure as-is if starts with start
+        if (this.coordsEqual(structure[0], start)) {
+            return [...structure];
+        }
+        
+        // Otherwise, BFS to find path
+        return this.bfsPath(structure, start, end);
+    }
+    
+    /**
+     * BFS pathfinding
+     */
+    private bfsPath(walkable: Coord[], start: Coord, end: Coord): Coord[] {
+        const walkableSet = new Set(walkable.map(c => `${c[0]},${c[1]},${c[2]}`));
+        const startKey = `${start[0]},${start[1]},${start[2]}`;
+        const endKey = `${end[0]},${end[1]},${end[2]}`;
+        
+        const queue: { pos: Coord; path: Coord[] }[] = [{ pos: start, path: [start] }];
+        const visited = new Set([startKey]);
+        
+        while (queue.length > 0) {
+            const { pos, path } = queue.shift()!;
+            const posKey = `${pos[0]},${pos[1]},${pos[2]}`;
+            
+            if (posKey === endKey) {
+                return path;
+            }
+            
+            // Check neighbors
+            for (const [dx, dy, dz] of [[1,0,0], [-1,0,0], [0,0,1], [0,0,-1], [0,1,0], [0,-1,0]]) {
+                const neighbor: Coord = [pos[0] + dx, pos[1] + dy, pos[2] + dz];
+                const nKey = `${neighbor[0]},${neighbor[1]},${neighbor[2]}`;
                 
-                console.log(`[SolutionFirstPlacer] Using pedagogical strategy for '${topologyType}'`);
-                return result as PlacementResult;
+                if (!visited.has(nKey) && walkableSet.has(nKey)) {
+                    visited.add(nKey);
+                    queue.push({ pos: neighbor, path: [...path, neighbor] });
+                }
             }
         }
-
-        // =========================================================
-        // SYMMETRIC PLACEMENT STRATEGIES (Secondary)
-        // =========================================================
-
-        // Strategy 1: Hub-Spoke (plus_shape, star_shape)
-        if (this.symmetricPlacer.isHubSpoke(metadata)) {
-            const result = this.symmetricPlacer.symmetricHubSpokePlacement(
-                pathInfo,
-                params,
-                (pInfo, items, logicT) => this.buildLayout(pInfo, items, logicT, assetMap)
-            );
-            if (result) {
-                console.log("[SolutionFirstPlacer] Using Hub-Spoke symmetric placement");
-                return result;
+        
+        // Fallback: return start only
+        console.warn('[SolutionFirstPlacer] BFS could not find path');
+        return [start];
+    }
+    
+    /**
+     * Optimize path order for function_logic (maximize reusable patterns)
+     */
+    private optimizePathForFunctions(path: Coord[], segments: Coord[][]): Coord[] {
+        // For function logic, we want segments traversed in order that creates patterns
+        // This is already handled by segment order, so just return path as-is
+        // Future: could reorder to maximize pattern repetition
+        return path;
+    }
+    
+    /**
+     * Plan item placements along path
+     */
+    private planItemPlacements(
+        path: Coord[],
+        itemGoals: { crystal?: number; switch?: number; gem?: number },
+        logicType: string
+    ): ItemPlacement[] {
+        const placements: ItemPlacement[] = [];
+        const crystalCount = itemGoals.crystal || 0;
+        const switchCount = itemGoals.switch || 0;
+        const gemCount = itemGoals.gem || 0;
+        const totalItems = crystalCount + switchCount + gemCount;
+        
+        if (totalItems === 0 || path.length < 3) {
+            return placements;
+        }
+        
+        // Calculate spacing for even distribution
+        const availableSteps = path.length - 2; // Exclude start and end
+        const spacing = Math.floor(availableSteps / totalItems);
+        
+        let currentStep = Math.max(1, spacing);
+        
+        // Place crystals
+        for (let i = 0; i < crystalCount && currentStep < path.length - 1; i++) {
+            placements.push({
+                type: 'crystal',
+                position: [path[currentStep][0], path[currentStep][1] + 1, path[currentStep][2]], // Y+1 above ground
+                action: 'collect',
+                step_index: currentStep
+            });
+            currentStep += spacing || 2;
+        }
+        
+        // Place switches
+        for (let i = 0; i < switchCount && currentStep < path.length - 1; i++) {
+            placements.push({
+                type: 'switch',
+                position: [path[currentStep][0], path[currentStep][1] + 1, path[currentStep][2]],
+                action: 'toggle',
+                step_index: currentStep
+            });
+            currentStep += spacing || 2;
+        }
+        
+        // Place gems
+        for (let i = 0; i < gemCount && currentStep < path.length - 1; i++) {
+            placements.push({
+                type: 'gem',
+                position: [path[currentStep][0], path[currentStep][1] + 1, path[currentStep][2]],
+                action: 'collect',
+                step_index: currentStep
+            });
+            currentStep += spacing || 2;
+        }
+        
+        // Add goal at end
+        placements.push({
+            type: 'goal',
+            position: [path[path.length - 1][0], path[path.length - 1][1] + 1, path[path.length - 1][2]],
+            action: 'reach',
+            step_index: path.length - 1
+        });
+        
+        return placements;
+    }
+    
+    /**
+     * Convert path to raw action sequence
+     */
+    private pathToRawActions(
+        path: Coord[],
+        itemPlacements: ItemPlacement[],
+        start: Coord
+    ): string[] {
+        const actions: string[] = [];
+        let currentDir = 'south'; // Default facing +Z
+        
+        // Create a map of step_index -> action
+        const stepActions = new Map<number, string>();
+        for (const placement of itemPlacements) {
+            if (placement.action === 'collect') {
+                stepActions.set(placement.step_index, 'collect');
+            } else if (placement.action === 'toggle') {
+                stepActions.set(placement.step_index, 'toggleSwitch');
             }
         }
-
-        // Strategy 2: Island Array (symmetrical_islands)
-        if (this.symmetricPlacer.isIslandArray(metadata)) {
-            const result = this.symmetricPlacer.symmetricIslandPlacement(
-                pathInfo,
-                params,
-                (pInfo, items, logicT) => this.buildLayout(pInfo, items, logicT, assetMap)
-            );
-            if (result) {
-                console.log("[SolutionFirstPlacer] Using Island-Replication symmetric placement");
-                return result;
-            }
-        }
-
-        // =========================================================
-        // STANDARD SEGMENT-BASED PLACEMENT
-        // =========================================================
-
-        // Fallback if no segment metadata
-        if (!segments.length && !segmentAnalysis.num_segments) {
-            console.warn("[SolutionFirstPlacer] No segment metadata found. Using fallback.");
-            return this.fallbackHandler.fallbackPlacement(
-                pathInfo,
-                params,
-                (pInfo, items, logicT) => this.buildLayout(pInfo, items, logicT, assetMap)
-            );
-        }
-
-        // If segments not explicit but segment_analysis exists, reconstruct
-        if (!segments.length && segmentAnalysis.lengths) {
-            segments = this.reconstructSegments(pathInfo.path_coords, segmentAnalysis);
-        }
-
-        // Linear Merge for fragmented topologies
-        if (segments.length) {
-            const avgLen = segments.reduce((sum: number, s: Coord[]) => sum + s.length, 0) / segments.length;
-            if (avgLen < 4.0) {
-                console.log(`[SolutionFirstPlacer] Topology fragmented (avg=${avgLen.toFixed(1)}). Merging.`);
-                const mergedCoords: Coord[] = [];
-                for (const seg of segments) {
-                    if (!seg) continue;
-                    if (mergedCoords.length && this.coordsEqual(seg[0], mergedCoords[mergedCoords.length - 1])) {
-                        mergedCoords.push(...seg.slice(1));
-                    } else {
-                        mergedCoords.push(...seg);
+        
+        for (let i = 1; i < path.length; i++) {
+            const prev = path[i - 1];
+            const curr = path[i];
+            
+            // Determine direction of movement
+            const moveDir = getDirection(prev, curr);
+            
+            // Turn if needed
+            if (moveDir !== currentDir && moveDir !== 'none') {
+                const turn = getTurnAction(currentDir, moveDir);
+                if (turn) {
+                    // May need multiple turns
+                    if (turn === 'turnRight' || turn === 'turnLeft') {
+                        actions.push(turn);
+                        currentDir = moveDir;
                     }
                 }
-                segments = [mergedCoords];
+            }
+            
+            // Move forward
+            actions.push('moveForward');
+            
+            // Interact if there's an item at this step
+            const interaction = stepActions.get(i);
+            if (interaction) {
+                actions.push(interaction);
             }
         }
-
-        // Determine Max Density Constraint
-        const numBlocks = pathInfo.path_coords.length;
-        let maxPatternDensity = 1.0;
-        if (numBlocks > 30) {
-            maxPatternDensity = 0.30;
-            console.log(`[SolutionFirstPlacer] Large map (${numBlocks} blocks). Max density: ${(maxPatternDensity*100).toFixed(0)}%`);
-        }
-
-        // Match patterns to segments
-        const patternMatches = this.matchPatternsToSegments(
-            segments,
-            segmentAnalysis,
-            corners,
-            logicType,
-            maxPatternDensity
-        );
-
-        // Calculate placements
-        let placements = this.calculator.calculateForAllSegments(segments, patternMatches);
-
-        // Filter out invalid placements
-        placements = this.calculator.filterInvalidPlacements(
-            placements,
-            pathInfo.start_pos,
-            pathInfo.target_pos,
-            pathInfo.path_coords
-        );
-
-        // Verify placements
-        const { success, errors } = this.calculator.verifyPlacements(
-            placements,
-            pathInfo.path_coords,
-            pathInfo.start_pos,
-            pathInfo.target_pos
-        );
-
-        if (!success) {
-            console.warn(`[SolutionFirstPlacer] Verification failed: ${errors.join(', ')}`);
-            return this.fallbackHandler.fallbackPlacement(
-                pathInfo,
-                params,
-                (pInfo, items, logicT) => this.buildLayout(pInfo, items, logicT, assetMap)
-            );
-        }
-
-        // Convert to item dicts
-        const items = this.calculator.toItemDicts(placements);
-
-        // Build final layout
-        return this.buildLayout(pathInfo, items, logicType, assetMap);
+        
+        return actions;
     }
-
+    
     /**
-     * Match patterns to each segment.
+     * Get available blocks based on logic type
      */
-    private matchPatternsToSegments(
-        segments: Coord[][],
-        segmentAnalysis: Record<string, any>,
-        corners: Coord[],
-        logicType: string,
-        maxDensity: number = 1.0
-    ): PatternMatch[] {
-        const matches: PatternMatch[] = [];
-        const patterns = this.patternLibrary.getPatterns(logicType);
-        const segmentLengths = segmentAnalysis.lengths || [];
-
-        for (let segIdx = 0; segIdx < segments.length; segIdx++) {
-            const segLength = segIdx < segmentLengths.length 
-                ? segmentLengths[segIdx] 
-                : segments[segIdx].length;
-            const hasCornerAfter = segIdx < corners.length;
-
-            // Filter valid patterns
-            let valid = this.patternLibrary.filterBySegmentLength(patterns, segLength);
-            valid = this.patternLibrary.filterByCorner(valid, hasCornerAfter);
-
-            // Filter by density
-            if (maxDensity < 1.0) {
-                valid = valid.filter(p => (p.item_types.length / p.length) <= maxDensity);
+    private getAvailableBlocks(logicType: string): Set<string> {
+        const blocks = new Set(['maze_moveForward', 'maze_turn']);
+        
+        if (logicType === 'loop_logic' || logicType === 'function_logic') {
+            blocks.add('maze_repeat');
+        }
+        
+        if (logicType === 'function_logic') {
+            blocks.add('PROCEDURE');
+        }
+        
+        return blocks;
+    }
+    
+    /**
+     * Count total blocks in structured solution
+     */
+    private countBlocks(solution: SynthesisResult): number {
+        let count = 0;
+        
+        const countInArray = (arr: any[]): number => {
+            let c = 0;
+            for (const item of arr) {
+                c++;
+                if (item.body) c += countInArray(item.body);
+                if (item.actions) c += countInArray(item.actions);
             }
-
-            // Select best
-            const best = this.patternLibrary.selectBestPattern(valid, segLength);
-
-            if (best) {
-                matches.push({
-                    segmentIdx: segIdx,
-                    pattern: best
+            return c;
+        };
+        
+        count += countInArray(solution.main);
+        for (const proc of Object.values(solution.procedures)) {
+            count += countInArray(proc);
+        }
+        
+        return count;
+    }
+    
+    /**
+     * Get planning strategy name
+     */
+    private getPlanningStrategy(logicType: string): string {
+        switch (logicType) {
+            case 'function_logic': return 'function_reuse_pattern';
+            case 'loop_logic': return 'repeat_pattern';
+            default: return 'sequential';
+        }
+    }
+    
+    /**
+     * PHASE 2: Place map elements according to plan
+     */
+    private placeMapElements(
+        solution: PlannedSolution,
+        assetMap: Map<string, BuildableAsset>
+    ): PlacementResult {
+        const groundBlocks: PlacedObject[] = [];
+        const collectibles: PlacedObject[] = [];
+        const interactibles: PlacedObject[] = [];
+        
+        // 1. Place ground blocks along path
+        const groundAsset = this.findAsset('ground', assetMap) || this.findAsset('block', assetMap);
+        if (groundAsset) {
+            for (const coord of solution.path) {
+                groundBlocks.push({
+                    id: uuidv4(),
+                    asset: groundAsset,
+                    position: coord,
+                    rotation: [0, 0, 0],
+                    properties: {}
                 });
             }
         }
-
-        return matches;
-    }
-
-    /**
-     * Reconstruct segment coordinate lists from path_coords and segment_analysis.
-     */
-    private reconstructSegments(
-        pathCoords: Coord[],
-        segmentAnalysis: Record<string, any>
-    ): Coord[][] {
-        const segments: Coord[][] = [];
-        const lengths = segmentAnalysis.lengths || [];
-
-        let currentIdx = 0;
-        for (const segLen of lengths) {
-            const endIdx = currentIdx + segLen;
-            if (endIdx <= pathCoords.length) {
-                segments.push(pathCoords.slice(currentIdx, endIdx));
-            }
-            currentIdx = endIdx;
-        }
-
-        return segments;
-    }
-
-    /**
-     * Build final layout dict from path_info and items.
-     */
-    private buildLayout(
-        pathInfo: IPathInfo,
-        items: PedagogicalItemPlacement[],
-        logicType: string,
-        assetMap: Map<string, BuildableAsset>
-    ): PlacementResult {
-        const collectibles: PlacedObject[] = [];
-        const interactibles: PlacedObject[] = [];
-
-        for (const item of items) {
-            const pos = item.pos || item.position;
-            if (!pos) continue;
-
-            const asset = this.findAsset(item.type, assetMap);
+        
+        // 2. Place items at planned positions
+        for (const placement of solution.itemPlacements) {
+            const asset = this.findAsset(placement.type, assetMap);
             if (!asset) {
-                console.warn(`[SolutionFirstPlacer] Asset not found for type: ${item.type}`);
+                console.warn(`[SolutionFirstPlacer] Asset not found: ${placement.type}`);
                 continue;
             }
-
+            
             const placedObj: PlacedObject = {
                 id: uuidv4(),
                 asset,
-                position: Array.isArray(pos) ? pos : [pos[0], pos[1], pos[2]],
+                position: placement.position,
                 rotation: [0, 0, 0],
-                scale: [1, 1, 1]
+                properties: {}
             };
-
-            // Categorize
+            
             if (asset.type === 'collectible') {
                 collectibles.push(placedObj);
             } else if (asset.type === 'interactible') {
                 interactibles.push(placedObj);
             }
         }
-
-        const result: PlacementResult = {
-            items,
+        
+        return {
+            groundBlocks,
             collectibles,
             interactibles,
-            metadata: {
-                logic_type: logicType,
-                placement_count: items.length,
-                collectible_count: collectibles.length,
-                interactible_count: interactibles.length
-            }
+            plannedSolution: solution,
+            success: true,
+            errors: []
         };
-
-        // Generate expected solution if enabled
-        if (GENERATE_EXPECTED_SOLUTION) {
-            result.expected_solution = this.generateExpectedSolution(pathInfo, items, logicType);
-        }
-
-        return result;
     }
-
+    
     /**
-     * Find asset in asset map by type.
+     * Find asset in asset map
      */
     private findAsset(itemType: string, assetMap: Map<string, BuildableAsset>): BuildableAsset | null {
-        // Try direct lookup
-        if (assetMap.has(itemType)) {
-            return assetMap.get(itemType)!;
-        }
-
-        // Case-insensitive search
-        const lowerType = itemType.toLowerCase();
+        // Direct lookup
+        if (assetMap.has(itemType)) return assetMap.get(itemType)!;
+        
+        // Case-insensitive
+        const lower = itemType.toLowerCase();
         for (const [key, asset] of assetMap) {
-            if (key.toLowerCase() === lowerType) {
-                return asset;
-            }
+            if (key.toLowerCase() === lower) return asset;
         }
-
-        // Search by key pattern
+        
+        // Partial match
         for (const [key, asset] of assetMap) {
-            if (key.toLowerCase().includes(lowerType)) {
-                return asset;
-            }
+            if (key.toLowerCase().includes(lower)) return asset;
         }
-
+        
         return null;
     }
-
+    
     /**
-     * Generate expected solution based on placed items.
-     */
-    private generateExpectedSolution(
-        pathInfo: IPathInfo,
-        items: PedagogicalItemPlacement[],
-        logicType: string
-    ): Record<string, any> {
-        // Simplified expected solution generation
-        // In real implementation, this would use A* solver
-        return {
-            logic_type: logicType,
-            item_count: items.length,
-            path_length: pathInfo.path_coords.length,
-            has_procedures: logicType === 'function_logic',
-            generated_at: new Date().toISOString()
-        };
-    }
-
-    /**
-     * Helper to check coordinate equality.
+     * Check coordinate equality
      */
     private coordsEqual(a: Coord, b: Coord): boolean {
         return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
     }
+    
+    /**
+     * Create error result
+     */
+    private errorResult(message: string): PlacementResult {
+        return {
+            groundBlocks: [],
+            collectibles: [],
+            interactibles: [],
+            plannedSolution: {
+                path: [],
+                rawActions: [],
+                structuredSolution: { main: [], procedures: {} },
+                itemPlacements: [],
+                metadata: {
+                    logic_type: 'error',
+                    optimal_blocks: 0,
+                    path_length: 0,
+                    planning_strategy: 'none'
+                }
+            },
+            success: false,
+            errors: [message]
+        };
+    }
 }
 
-// Singleton instance
-let placerInstance: SolutionFirstPlacer | null = null;
+// Singleton
+let instance: SolutionFirstPlacer | null = null;
 
 export function getSolutionFirstPlacer(): SolutionFirstPlacer {
-    if (!placerInstance) {
-        placerInstance = new SolutionFirstPlacer();
+    if (!instance) {
+        instance = new SolutionFirstPlacer();
     }
-    return placerInstance;
+    return instance;
 }
+
+export default SolutionFirstPlacer;

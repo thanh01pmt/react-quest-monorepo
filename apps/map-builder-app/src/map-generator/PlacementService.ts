@@ -197,40 +197,78 @@ export class PlacementService {
             console.log(`[PlacementService] Using SolutionFirstPlacer (priority: solution-first)`);
             const solutionPlacer = getSolutionFirstPlacer();
             
-            // Build params for placer
-            const placerParams = {
-                ...params,
-                ...config.academicParams,
-                difficulty_code: difficulty.toUpperCase(),
-                density_mode: config.densityMode
+            // Build topology structure for placer
+            const topologyInfo = {
+                type: pathInfo.metadata?.topology_type || 'unknown',
+                structure: pathInfo.path_coords,
+                semanticPositions: pathInfo.metadata?.semantic_positions,
+                segments: pathInfo.metadata?.segments
             };
             
-            const placementResult = solutionPlacer.placeItems(
-                pathInfo,
-                placerParams,
-                assetMap,
-                gridSize
+            // Map strategy to logic_type
+            const logicTypeMap: Record<string, 'function_logic' | 'loop_logic' | 'sequencing' | 'conditional'> = {
+                [PedagogyStrategy.FUNCTION_LOGIC]: 'function_logic',
+                [PedagogyStrategy.LOOP_LOGIC]: 'loop_logic',
+                [PedagogyStrategy.CONDITIONAL_BRANCHING]: 'conditional',
+                [PedagogyStrategy.NONE]: 'sequencing'
+            };
+            
+            // Build item goals from config
+            const itemGoalsConfig = config.itemGoals?.items_to_place?.reduce((acc, item) => {
+                acc[item.type] = item.count;
+                return acc;
+            }, {} as Record<string, number>) || { crystal: 3 };
+            
+            // Build academic config for SolutionFirstPlacer
+            const academicConfig = {
+                logic_type: logicTypeMap[strategy] || 'sequencing',
+                difficulty_code: (config.academicParams?.difficulty_code || 'MEDIUM') as 'EASY' | 'MEDIUM' | 'HARD',
+                item_goals: itemGoalsConfig,
+                force_function: strategy === PedagogyStrategy.FUNCTION_LOGIC
+            };
+            
+            const placementResult = solutionPlacer.generateMap(
+                topologyInfo,
+                academicConfig,
+                assetMap
             );
             
-            // Add collectibles to objects
-            if (placementResult.collectibles) {
-                placementResult.collectibles.forEach(obj => {
-                    if (!objects.some(o => o.id === obj.id)) {
-                        objects.push(obj);
-                    }
-                });
+            if (placementResult.success) {
+                // Add ground blocks (only if not already placed)
+                if (placementResult.groundBlocks) {
+                    placementResult.groundBlocks.forEach((obj: PlacedObject) => {
+                        if (!objects.some(o => 
+                            o.position[0] === obj.position[0] && 
+                            o.position[1] === obj.position[1] && 
+                            o.position[2] === obj.position[2]
+                        )) {
+                            objects.push(obj);
+                        }
+                    });
+                }
+                
+                // Add collectibles
+                if (placementResult.collectibles) {
+                    placementResult.collectibles.forEach((obj: PlacedObject) => {
+                        if (!objects.some(o => o.id === obj.id)) {
+                            objects.push(obj);
+                        }
+                    });
+                }
+                
+                // Add interactibles
+                if (placementResult.interactibles) {
+                    placementResult.interactibles.forEach((obj: PlacedObject) => {
+                        if (!objects.some(o => o.id === obj.id)) {
+                            objects.push(obj);
+                        }
+                    });
+                }
+                
+                console.log(`[PlacementService] SolutionFirstPlacer: ${placementResult.plannedSolution?.path?.length || 0} path steps, ${placementResult.collectibles?.length || 0} collectibles`);
+            } else {
+                console.warn(`[PlacementService] SolutionFirstPlacer failed: ${placementResult.errors.join(', ')}`);
             }
-            
-            // Add interactibles to objects
-            if (placementResult.interactibles) {
-                placementResult.interactibles.forEach(obj => {
-                    if (!objects.some(o => o.id === obj.id)) {
-                        objects.push(obj);
-                    }
-                });
-            }
-            
-            console.log(`[PlacementService] SolutionFirstPlacer placed ${placementResult.items?.length || 0} items`);
         }
         // PRIORITY 2: Use StrategyRegistry if available
         else {

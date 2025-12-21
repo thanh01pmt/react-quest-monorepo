@@ -5,11 +5,8 @@
  */
 
 // Base
-export { 
-    SynthesizerStrategy, 
-    SynthesisResult, 
-    StructuredBlock 
-} from './BaseSynthesizer';
+export { SynthesizerStrategy } from './BaseSynthesizer';
+export type { SynthesisResult, StructuredBlock } from './BaseSynthesizer';
 
 // Synthesizers
 export { FunctionSynthesizer, getFunctionSynthesizer } from './FunctionSynthesizer';

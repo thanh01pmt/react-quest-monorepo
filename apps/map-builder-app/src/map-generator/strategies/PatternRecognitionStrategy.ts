@@ -51,10 +51,10 @@ export class PatternRecognitionStrategy extends BaseStrategy {
         // Find segments of similar length to apply identical pattern
         const segmentGroups = this.groupByLength(segments);
         
-        const gemAsset = this.getAsset(context.assetMap, 'gem');
+        const gemAsset = this.getAsset(context.assetMap, 'crystal');
         const crystalAsset = this.getAsset(context.assetMap, 'crystal');
         if (!gemAsset) {
-            validationNotes.push('Error: Could not find gem asset');
+            validationNotes.push('Error: Could not find crystal asset');
             return this.createResult(objects, 0, 0, validationNotes);
         }
 

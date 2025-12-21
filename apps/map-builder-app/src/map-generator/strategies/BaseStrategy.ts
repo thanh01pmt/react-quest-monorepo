@@ -60,7 +60,7 @@ export abstract class BaseStrategy {
     protected getAsset(
         assetMap: Map<string, BuildableAsset>,
         key: string,
-        fallbackKeys: string[] = ['gem', 'crystal']
+        fallbackKeys: string[] = ['crystal', 'crystal']
     ): BuildableAsset | null {
         let asset = assetMap.get(key);
         if (!asset) {
@@ -129,7 +129,7 @@ export abstract class BaseStrategy {
         segment: Coord[],
         context: StrategyContext,
         objects: PlacedObject[],
-        itemKey: string = 'gem'
+        itemKey: string = 'crystal'
     ): number {
         let itemsAdded = 0;
         const asset = this.getAsset(context.assetMap, itemKey);
@@ -159,7 +159,7 @@ export abstract class BaseStrategy {
         context: StrategyContext,
         objects: PlacedObject[],
         interval: number = 1,
-        itemKey: string = 'gem'
+        itemKey: string = 'crystal'
     ): number {
         let itemsAdded = 0;
         const asset = this.getAsset(context.assetMap, itemKey);
@@ -184,7 +184,7 @@ export abstract class BaseStrategy {
         context: StrategyContext,
         objects: PlacedObject[],
         pattern: number[], // Indices within segment to place items
-        itemKey: string = 'gem'
+        itemKey: string = 'crystal'
     ): number {
         let itemsAdded = 0;
         const asset = this.getAsset(context.assetMap, itemKey);
