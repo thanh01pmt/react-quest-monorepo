@@ -161,14 +161,81 @@ export class ArrowShapeTopology extends BaseTopology {
     
     // Wing paths already built above as wingLeftCoords, wingRightCoords
     
-    // Segments: shaft + head (simplified for segment-based placement)
-    const shaftSegment = straightPathCoords.slice(0, shaftLen + 1);
-    const headSegment = straightPathCoords.slice(shaftLen);
+    // =========================================================================
+    // SEGMENTS: Build proper walkable segments including wings
+    // For function_logic: Player should visit wings to collect items
+    // 
+    // Full traversal order for Arrow Shape:
+    //   1. Walk up shaft: start → junction 
+    //   2. Explore left wing: junction → left tip → back to junction
+    //   3. Explore right wing: junction → right tip → back to junction
+    //   4. Walk to tip: junction → arrow tip
+    //
+    // This creates 4 segments with identical patterns on wings (function reuse!)
+    // =========================================================================
+    
+    // Segment 1: Shaft (start to junction)
+    const shaftSegment: Coord[] = shaft.slice(0, shaftLen + 1);  // Include junction
+    
+    // Segment 2: Left wing (junction → left tip)
+    // Build path from junction going left
+    const leftWingSegment: Coord[] = [junctionPos];
+    for (let i = 1; i <= maxWidth; i++) {
+      leftWingSegment.push([centerX - i, y, baseRowZ]);
+    }
+    
+    // Segment 3: Right wing (junction → right tip)
+    // Build path from junction going right  
+    const rightWingSegment: Coord[] = [junctionPos];
+    for (let i = 1; i <= maxWidth; i++) {
+      rightWingSegment.push([centerX + i, y, baseRowZ]);
+    }
+    
+    // Segment 4: Head/Tip (junction → tip)
+    const tipSegment: Coord[] = [junctionPos];
+    for (let row = 1; row <= headSize; row++) {
+      tipSegment.push([centerX, y, junctionPos[2] + row]);
+    }
+    
+    // Build full walkable path_coords for the intended traversal
+    // Order: shaft → left wing → (backtrack) → right wing → (backtrack) → tip
+    const walkablePath: Coord[] = [];
+    
+    // Add shaft
+    for (const c of shaftSegment) {
+      walkablePath.push(c);
+    }
+    
+    // Add left wing (outbound), then backtrack to junction
+    for (let i = 1; i < leftWingSegment.length; i++) {
+      walkablePath.push(leftWingSegment[i]);
+    }
+    // Backtrack from left wing tip to junction
+    for (let i = leftWingSegment.length - 2; i >= 0; i--) {
+      walkablePath.push(leftWingSegment[i]);
+    }
+    
+    // Add right wing (outbound), then backtrack to junction
+    for (let i = 1; i < rightWingSegment.length; i++) {
+      walkablePath.push(rightWingSegment[i]);
+    }
+    // Backtrack from right wing tip to junction
+    for (let i = rightWingSegment.length - 2; i >= 0; i--) {
+      walkablePath.push(rightWingSegment[i]);
+    }
+    
+    // Add tip segment (excluding junction since already there)
+    for (let i = 1; i < tipSegment.length; i++) {
+      walkablePath.push(tipSegment[i]);
+    }
+    
+    // Update path_coords to be this walkable path
+    const finalPathCoords = walkablePath;
 
     return {
       start_pos: startPos,
       target_pos: targetPos,
-      path_coords: uniquePathCoords,  // Unique tiles in visit order (no duplicates)
+      path_coords: finalPathCoords,  // Full walkable path including wings
       placement_coords: allPlacementCoords,
       obstacles: [],
       metadata: {
@@ -176,7 +243,8 @@ export class ArrowShapeTopology extends BaseTopology {
         shaft: shaft,
         head_rows: headRows,
         junction: junctionPos,
-        segments: [shaftSegment, headSegment],
+        // Segments for pattern matching - each wing is identical for function reuse
+        segments: [shaftSegment, leftWingSegment, rightWingSegment, tipSegment],
         branches: [shaft, headRows.flat()],
         corners: [junctionPos],
         landmarks: {
@@ -218,22 +286,25 @@ export class ArrowShapeTopology extends BaseTopology {
             {
               name: 'tail_all_zones_hard',
               start: 'tail',
-              end: 'wing_right',
+              end: 'tip',  // Changed to tip - full traversal ends at tip
               path_type: 'full_traversal',
-              strategies: ['strategic_zones', 'parallel_wings'],
+              strategies: ['function_reuse', 'parallel_wings'],
               difficulty: 'HARD',
-              teaching_goal: 'Visit all zones: shaft, wings, tip'
+              teaching_goal: 'Visit all zones: shaft, both wings (backtrack), tip'
             }
           ]
         },
         segment_analysis: {
-          num_segments: 2,
-          lengths: [shaftSegment.length, headSegment.length],
-          types: ['linear', 'triangular'],
-          min_length: Math.min(shaftSegment.length, headSegment.length),
-          max_length: Math.max(shaftSegment.length, headSegment.length),
-          avg_length: (shaftSegment.length + headSegment.length) / 2,
-          suggested_patterns: ['interval_fill', 'corner_checkpoints', 'parallel_climb']
+          num_segments: 4,
+          lengths: [shaftSegment.length, leftWingSegment.length, rightWingSegment.length, tipSegment.length],
+          types: ['linear_shaft', 'linear_wing', 'linear_wing', 'linear_tip'],
+          min_length: Math.min(shaftSegment.length, leftWingSegment.length, rightWingSegment.length, tipSegment.length),
+          max_length: Math.max(shaftSegment.length, leftWingSegment.length, rightWingSegment.length, tipSegment.length),
+          avg_length: (shaftSegment.length + leftWingSegment.length + rightWingSegment.length + tipSegment.length) / 4,
+          suggested_patterns: ['function_reuse', 'segment_pattern_reuse', 'interval_fill'],
+          // Wing segments are IDENTICAL - perfect for function_logic!
+          identical_segments: [1, 2],  // leftWingSegment and rightWingSegment indices
+          reusable_pattern_segments: 'wings'
         }
       },
     };

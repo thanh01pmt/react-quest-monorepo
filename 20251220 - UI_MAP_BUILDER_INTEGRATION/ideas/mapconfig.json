@@ -1,0 +1,582 @@
+{
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 7,
+          "y": 5,
+          "z": 4
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 12,
+          "y": 0,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 6,
+          "y": 3,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 8,
+          "y": 1,
+          "z": 11
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 8,
+          "y": 3,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 6,
+          "y": 1,
+          "z": 12
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 11,
+          "y": 0,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 7,
+          "y": 3,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 1,
+          "y": 6,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 3,
+          "y": 6,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 8,
+          "y": 5,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 6,
+          "y": 5,
+          "z": 3
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 7,
+          "y": 1,
+          "z": 11
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 13,
+          "y": 0,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 7,
+          "y": 5,
+          "z": 3
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 2,
+          "y": 6,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 12,
+          "y": 0,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 6,
+          "y": 1,
+          "z": 11
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 11,
+          "y": 0,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 8,
+          "y": 1,
+          "z": 10
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 8,
+          "y": 3,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 6,
+          "y": 3,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 7,
+          "y": 3,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 1,
+          "y": 6,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 6,
+          "y": 5,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 3,
+          "y": 6,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 8,
+          "y": 5,
+          "z": 4
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 13,
+          "y": 0,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 2,
+          "y": 6,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 7,
+          "y": 1,
+          "z": 10
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 12,
+          "y": 0,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 7,
+          "y": 5,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 6,
+          "y": 1,
+          "z": 10
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 6,
+          "y": 3,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 8,
+          "y": 3,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 8,
+          "y": 1,
+          "z": 12
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 11,
+          "y": 0,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 7,
+          "y": 3,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 2,
+          "y": 6,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 3,
+          "y": 6,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 1,
+          "y": 6,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 6,
+          "y": 5,
+          "z": 4
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 13,
+          "y": 0,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 8,
+          "y": 5,
+          "z": 3
+        }
+      },
+      {
+        "modelKey": "ground.snow",
+        "position": {
+          "x": 7,
+          "y": 1,
+          "z": 12
+        }
+      },
+      {
+        "modelKey": "ice.ice01",
+        "position": {
+          "x": 7,
+          "y": 2,
+          "z": 9
+        }
+      },
+      {
+        "modelKey": "stone.stone07",
+        "position": {
+          "x": 7,
+          "y": 1,
+          "z": 10
+        }
+      },
+      {
+        "modelKey": "ice.ice01",
+        "position": {
+          "x": 9,
+          "y": 2,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ice.ice01",
+        "position": {
+          "x": 10,
+          "y": 1,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "stone.stone07",
+        "position": {
+          "x": 11,
+          "y": 0,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ice.ice01",
+        "position": {
+          "x": 7,
+          "y": 4,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "stone.stone07",
+        "position": {
+          "x": 7,
+          "y": 5,
+          "z": 4
+        }
+      },
+      {
+        "modelKey": "ice.ice01",
+        "position": {
+          "x": 5,
+          "y": 4,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ice.ice01",
+        "position": {
+          "x": 4,
+          "y": 5,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "stone.stone07",
+        "position": {
+          "x": 3,
+          "y": 6,
+          "z": 7
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 7,
+          "y": 4,
+          "z": 7,
+          "direction": 3
+        }
+      }
+    ],
+    "collectibles": [
+      {
+        "id": "c1",
+        "type": "crystal",
+        "position": {
+          "x": 7,
+          "y": 6,
+          "z": 2
+        }
+      },
+      {
+        "id": "c2",
+        "type": "crystal",
+        "position": {
+          "x": 7,
+          "y": 2,
+          "z": 11
+        }
+      },
+      {
+        "id": "c3",
+        "type": "crystal",
+        "position": {
+          "x": 7,
+          "y": 2,
+          "z": 12
+        }
+      },
+      {
+        "id": "c4",
+        "type": "crystal",
+        "position": {
+          "x": 7,
+          "y": 6,
+          "z": 3
+        }
+      },
+      {
+        "id": "c5",
+        "type": "crystal",
+        "position": {
+          "x": 6,
+          "y": 4,
+          "z": 8
+        }
+      },
+      {
+        "id": "c6",
+        "type": "crystal",
+        "position": {
+          "x": 8,
+          "y": 4,
+          "z": 6
+        }
+      }
+    ],
+    "interactibles": [
+      {
+        "id": "s2",
+        "type": "switch",
+        "initialState": "off",
+        "position": {
+          "x": 3,
+          "y": 7,
+          "z": 8
+        }
+      },
+      {
+        "id": "s3",
+        "type": "switch",
+        "initialState": "off",
+        "position": {
+          "x": 3,
+          "y": 7,
+          "z": 6
+        }
+      },
+      {
+        "id": "s4",
+        "type": "switch",
+        "initialState": "off",
+        "position": {
+          "x": 12,
+          "y": 1,
+          "z": 8
+        }
+      },
+      {
+        "id": "s5",
+        "type": "switch",
+        "initialState": "off",
+        "position": {
+          "x": 12,
+          "y": 1,
+          "z": 6
+        }
+      },
+      {
+        "id": "s6",
+        "type": "switch",
+        "initialState": "off",
+        "position": {
+          "x": 8,
+          "y": 4,
+          "z": 8
+        }
+      },
+      {
+        "id": "s7",
+        "type": "switch",
+        "initialState": "off",
+        "position": {
+          "x": 6,
+          "y": 4,
+          "z": 6
+        }
+      }
+    ],
+    "finish": {
+      "x": 1,
+      "y": 7,
+      "z": 7
+    }
+  }
+}

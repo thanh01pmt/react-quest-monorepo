@@ -1,0 +1,2081 @@
+{
+  "tier1": {
+    "points": [
+      {
+        "id": "point_0",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 6
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_1",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 7
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_2",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_3",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 9
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_4",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 10
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_5",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 11
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_6",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 12
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_7",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 13
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_8",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 14
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_9",
+        "coord": {
+          "x": 8,
+          "y": 0,
+          "z": 12
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_1"
+        ]
+      },
+      {
+        "id": "point_10",
+        "coord": {
+          "x": 9,
+          "y": 0,
+          "z": 12
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_1"
+        ]
+      },
+      {
+        "id": "point_11",
+        "coord": {
+          "x": 12,
+          "y": 0,
+          "z": 12
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_2"
+        ]
+      },
+      {
+        "id": "point_12",
+        "coord": {
+          "x": 11,
+          "y": 0,
+          "z": 13
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_3"
+        ]
+      }
+    ],
+    "segments": [
+      {
+        "id": "seg_0",
+        "points": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "length": 8,
+        "plane": "xz"
+      },
+      {
+        "id": "seg_1",
+        "points": [
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "length": 1,
+        "plane": "xy"
+      },
+      {
+        "id": "seg_2",
+        "points": [
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "length": 1,
+        "plane": "xy"
+      },
+      {
+        "id": "seg_3",
+        "points": [
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          }
+        ],
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "length": 1,
+        "plane": "xz"
+      }
+    ],
+    "areas": [
+      {
+        "id": "area_0",
+        "blocks": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "boundary": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "center": {
+          "x": 10,
+          "y": 0,
+          "z": 10.933333333333334
+        },
+        "boundingBox": {
+          "min": {
+            "x": 8,
+            "y": 0,
+            "z": 6
+          },
+          "max": {
+            "x": 12,
+            "y": 0,
+            "z": 14
+          }
+        }
+      }
+    ],
+    "connectors": [],
+    "relations": [
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_0",
+        "path2Id": "seg_1",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_0",
+        "path2Id": "seg_2",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "parallel_axis",
+        "path1Id": "seg_0",
+        "path2Id": "seg_3",
+        "metadata": {
+          "distance": 1
+        }
+      },
+      {
+        "type": "parallel_axis",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "distance": 0
+        }
+      },
+      {
+        "type": "axis_symmetric",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "axis": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "type": "point_symmetric",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "center": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          }
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_1",
+        "path2Id": "seg_3",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_2",
+        "path2Id": "seg_3",
+        "metadata": {
+          "angle": 90
+        }
+      }
+    ]
+  },
+  "tier2": {
+    "points": [
+      {
+        "id": "point_0",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 6
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_1",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 7
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_2",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_3",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 9
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_4",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 10
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_5",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 11
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_6",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 12
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_7",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 13
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_8",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 14
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_9",
+        "coord": {
+          "x": 8,
+          "y": 0,
+          "z": 12
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_1"
+        ]
+      },
+      {
+        "id": "point_10",
+        "coord": {
+          "x": 9,
+          "y": 0,
+          "z": 12
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_1"
+        ]
+      },
+      {
+        "id": "point_11",
+        "coord": {
+          "x": 12,
+          "y": 0,
+          "z": 12
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_2"
+        ]
+      },
+      {
+        "id": "point_12",
+        "coord": {
+          "x": 11,
+          "y": 0,
+          "z": 13
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_3"
+        ]
+      }
+    ],
+    "segments": [
+      {
+        "id": "seg_0",
+        "points": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "length": 8,
+        "plane": "xz"
+      },
+      {
+        "id": "seg_1",
+        "points": [
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "length": 1,
+        "plane": "xy"
+      },
+      {
+        "id": "seg_2",
+        "points": [
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "length": 1,
+        "plane": "xy"
+      },
+      {
+        "id": "seg_3",
+        "points": [
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          }
+        ],
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "length": 1,
+        "plane": "xz"
+      }
+    ],
+    "areas": [
+      {
+        "id": "area_0",
+        "blocks": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "boundary": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "center": {
+          "x": 10,
+          "y": 0,
+          "z": 10.933333333333334
+        },
+        "boundingBox": {
+          "min": {
+            "x": 8,
+            "y": 0,
+            "z": 6
+          },
+          "max": {
+            "x": 12,
+            "y": 0,
+            "z": 14
+          }
+        }
+      }
+    ],
+    "connectors": [],
+    "relations": [
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_0",
+        "path2Id": "seg_1",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_0",
+        "path2Id": "seg_2",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "parallel_axis",
+        "path1Id": "seg_0",
+        "path2Id": "seg_3",
+        "metadata": {
+          "distance": 1
+        }
+      },
+      {
+        "type": "parallel_axis",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "distance": 0
+        }
+      },
+      {
+        "type": "axis_symmetric",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "axis": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "type": "point_symmetric",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "center": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          }
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_1",
+        "path2Id": "seg_3",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_2",
+        "path2Id": "seg_3",
+        "metadata": {
+          "angle": 90
+        }
+      }
+    ],
+    "patterns": []
+  },
+  "tier3": {
+    "points": [
+      {
+        "id": "point_0",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 6
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_1",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 7
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_2",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_3",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 9
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_4",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 10
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_5",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 11
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_6",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 12
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_7",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 13
+        },
+        "type": "isolated",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_8",
+        "coord": {
+          "x": 10,
+          "y": 0,
+          "z": 14
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_0"
+        ]
+      },
+      {
+        "id": "point_9",
+        "coord": {
+          "x": 8,
+          "y": 0,
+          "z": 12
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_1"
+        ]
+      },
+      {
+        "id": "point_10",
+        "coord": {
+          "x": 9,
+          "y": 0,
+          "z": 12
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_1"
+        ]
+      },
+      {
+        "id": "point_11",
+        "coord": {
+          "x": 12,
+          "y": 0,
+          "z": 12
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_2"
+        ]
+      },
+      {
+        "id": "point_12",
+        "coord": {
+          "x": 11,
+          "y": 0,
+          "z": 13
+        },
+        "type": "endpoint",
+        "connectedSegments": [
+          "seg_3"
+        ]
+      }
+    ],
+    "segments": [
+      {
+        "id": "seg_0",
+        "points": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "length": 8,
+        "plane": "xz"
+      },
+      {
+        "id": "seg_1",
+        "points": [
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "length": 1,
+        "plane": "xy"
+      },
+      {
+        "id": "seg_2",
+        "points": [
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "length": 1,
+        "plane": "xy"
+      },
+      {
+        "id": "seg_3",
+        "points": [
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          }
+        ],
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "length": 1,
+        "plane": "xz"
+      }
+    ],
+    "areas": [
+      {
+        "id": "area_0",
+        "blocks": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "boundary": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "center": {
+          "x": 10,
+          "y": 0,
+          "z": 10.933333333333334
+        },
+        "boundingBox": {
+          "min": {
+            "x": 8,
+            "y": 0,
+            "z": 6
+          },
+          "max": {
+            "x": 12,
+            "y": 0,
+            "z": 14
+          }
+        }
+      }
+    ],
+    "connectors": [],
+    "relations": [
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_0",
+        "path2Id": "seg_1",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_0",
+        "path2Id": "seg_2",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "parallel_axis",
+        "path1Id": "seg_0",
+        "path2Id": "seg_3",
+        "metadata": {
+          "distance": 1
+        }
+      },
+      {
+        "type": "parallel_axis",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "distance": 0
+        }
+      },
+      {
+        "type": "axis_symmetric",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "axis": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "type": "point_symmetric",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "center": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          }
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_1",
+        "path2Id": "seg_3",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_2",
+        "path2Id": "seg_3",
+        "metadata": {
+          "angle": 90
+        }
+      }
+    ],
+    "patterns": [],
+    "filteredSegments": [
+      {
+        "id": "seg_1",
+        "points": [
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "length": 1,
+        "plane": "xy"
+      },
+      {
+        "id": "seg_2",
+        "points": [
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "length": 1,
+        "plane": "xy"
+      },
+      {
+        "id": "seg_3",
+        "points": [
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          }
+        ],
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "length": 1,
+        "plane": "xz"
+      }
+    ],
+    "mergedSegments": [
+      {
+        "id": "seg_0",
+        "points": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "length": 8,
+        "plane": "xz"
+      }
+    ],
+    "keptShortSegments": []
+  },
+  "tier4": {
+    "segments": [
+      {
+        "id": "seg_0",
+        "points": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "length": 8,
+        "plane": "xz"
+      }
+    ],
+    "areas": [
+      {
+        "id": "area_0",
+        "blocks": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "boundary": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          },
+          {
+            "x": 9,
+            "y": 0,
+            "z": 13
+          },
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "center": {
+          "x": 10,
+          "y": 0,
+          "z": 10.933333333333334
+        },
+        "boundingBox": {
+          "min": {
+            "x": 8,
+            "y": 0,
+            "z": 6
+          },
+          "max": {
+            "x": 12,
+            "y": 0,
+            "z": 14
+          }
+        }
+      }
+    ],
+    "connectors": [],
+    "patterns": [],
+    "relations": [
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_0",
+        "path2Id": "seg_1",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_0",
+        "path2Id": "seg_2",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "parallel_axis",
+        "path1Id": "seg_0",
+        "path2Id": "seg_3",
+        "metadata": {
+          "distance": 1
+        }
+      },
+      {
+        "type": "parallel_axis",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "distance": 0
+        }
+      },
+      {
+        "type": "axis_symmetric",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "axis": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "type": "point_symmetric",
+        "path1Id": "seg_1",
+        "path2Id": "seg_2",
+        "metadata": {
+          "center": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          }
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_1",
+        "path2Id": "seg_3",
+        "metadata": {
+          "angle": 90
+        }
+      },
+      {
+        "type": "perpendicular",
+        "path1Id": "seg_2",
+        "path2Id": "seg_3",
+        "metadata": {
+          "angle": 90
+        }
+      }
+    ],
+    "suggestedPlacements": [
+      {
+        "positions": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          }
+        ],
+        "itemType": "crystal",
+        "rule": "ENDPOINT_PLACEMENT"
+      },
+      {
+        "positions": [
+          {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          }
+        ],
+        "itemType": "crystal",
+        "rule": "ENDPOINT_PLACEMENT"
+      },
+      {
+        "positions": [
+          {
+            "x": 8,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "itemType": "crystal",
+        "rule": "ENDPOINT_PLACEMENT"
+      },
+      {
+        "positions": [
+          {
+            "x": 9,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "itemType": "crystal",
+        "rule": "ENDPOINT_PLACEMENT"
+      },
+      {
+        "positions": [
+          {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          }
+        ],
+        "itemType": "crystal",
+        "rule": "ENDPOINT_PLACEMENT"
+      },
+      {
+        "positions": [
+          {
+            "x": 11,
+            "y": 0,
+            "z": 13
+          }
+        ],
+        "itemType": "crystal",
+        "rule": "ENDPOINT_PLACEMENT"
+      }
+    ]
+  }
+}

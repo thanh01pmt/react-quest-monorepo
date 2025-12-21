@@ -418,35 +418,70 @@ export class SolutionFirstPlacer {
     
     /**
      * Combine all pattern results into final solution
+     * 
+     * KEY FIX: Generate rawActions from the full walkable PATH (includes backtracking)
+     * instead of concatenating pattern expected_actions (which don't include backtrack)
      */
     private combinePatternResults(
         patternMatches: PatternMatch[],
         segments: Coord[][],
         path: Coord[]
     ): { rawActions: string[]; itemPlacements: ItemPlacement[] } {
-        const rawActions: string[] = [];
+        // 1. Collect all item placements from patterns
         const itemPlacements: ItemPlacement[] = [];
         
-        // Track global step index
-        let globalStepIndex = 0;
-        
         for (const match of patternMatches) {
-            // Add segment actions
-            rawActions.push(...match.expected_actions);
-            
-            // Add item placements with adjusted step index
             for (const placement of match.item_placements) {
-                itemPlacements.push({
-                    ...placement,
-                    step_index: globalStepIndex + placement.step_index
-                });
+                itemPlacements.push(placement);
             }
-            
-            // Update global index (subtract 1 because segments may share endpoint)
-            globalStepIndex += match.segment_coords.length - 1;
         }
         
-        // Add goal at end of path
+        // 2. Build map of positions with items for quick lookup
+        const itemPositionMap = new Map<string, ItemPlacement>();
+        for (const placement of itemPlacements) {
+            // Item position is at Y+1 above ground, so ground position is Y-1
+            const groundPos: Coord = [placement.position[0], placement.position[1] - 1, placement.position[2]];
+            const key = `${groundPos[0]},${groundPos[1]},${groundPos[2]}`;
+            itemPositionMap.set(key, placement);
+        }
+        
+        // 3. Generate rawActions by walking through the FULL path
+        //    This correctly handles backtracking, turns, etc.
+        const rawActions: string[] = [];
+        let currentDir = 'south'; // Default facing direction
+        
+        for (let i = 1; i < path.length; i++) {
+            const prev = path[i - 1];
+            const curr = path[i];
+            
+            // Calculate direction of movement
+            const moveDir = getDirection(prev, curr);
+            
+            // Add turns if direction changed
+            if (moveDir !== 'none' && moveDir !== currentDir) {
+                const turns = getTurnAction(currentDir, moveDir);
+                rawActions.push(...turns);
+                currentDir = moveDir;
+            }
+            
+            // Move forward
+            rawActions.push('moveForward');
+            
+            // Check if current position has an item
+            const currKey = `${curr[0]},${curr[1]},${curr[2]}`;
+            const item = itemPositionMap.get(currKey);
+            if (item) {
+                if (item.action === 'collect') {
+                    rawActions.push('collect');
+                } else if (item.action === 'toggle') {
+                    rawActions.push('toggleSwitch');
+                }
+                // Remove from map so we don't collect same item twice when backtracking
+                itemPositionMap.delete(currKey);
+            }
+        }
+        
+        // 4. Add goal at end of path
         if (path.length > 0) {
             const lastCoord = path[path.length - 1];
             itemPlacements.push({
