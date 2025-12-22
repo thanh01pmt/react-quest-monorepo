@@ -69,8 +69,7 @@ export type {
   AcademicConcept,
   ItemType,
   ItemPlacement,
-  AcademicPlacement,
-  PlacementOpportunity
+  AcademicPlacement
 } from './common';
 
 import type { PlacementContext, AcademicPlacement } from './common';

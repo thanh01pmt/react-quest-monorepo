@@ -251,6 +251,101 @@ npx tsx repair.ts test_game_config.json
 
 ---
 
+## 🎯 Selectable Placement System (NEW)
+
+Cho phép user chọn vị trí đặt items và lưu thành templates có thể tái sử dụng.
+
+### 1. Convert Topology to PlacementContext
+
+```typescript
+import { MapAnalyzer } from '@repo/academic-placer';
+
+// Từ IPathInfo của Topology
+const pathInfo = vShapeTopology.generatePathInfo();
+
+// Convert sang PlacementContext với selectableElements
+const context = MapAnalyzer.fromTopology(pathInfo);
+
+console.log(context.selectableElements);
+// → [
+//   { id: 'keypoint:apex', type: 'keypoint', category: 'critical', ... },
+//   { id: 'segment:seg_0', type: 'segment', category: 'recommended', ... },
+//   { id: 'position:seg_0[2]', type: 'position', category: 'optional', ... },
+// ]
+```
+
+### 2. Placement Templates
+
+```typescript
+import { 
+  getTemplateRegistry, 
+  PlacementTemplateRegistry 
+} from '@repo/academic-placer';
+
+const registry = getTemplateRegistry();
+
+// Save template
+const template = registry.save({
+  name: 'V-Shape Function Reuse',
+  topologyType: 'v_shape',
+  rules: [
+    { selector: { type: 'keypoint', name: 'apex' }, itemType: 'switch' },
+    { selector: { type: 'interval', segment: 'seg_0', every: 2 }, itemType: 'crystal', options: { symmetric: true } }
+  ]
+});
+
+// Apply template
+const placements = registry.apply(template.id, context.selectableElements);
+// → [
+//   { type: 'switch', position: [3, 0, 4] },
+//   { type: 'crystal', position: [2, 0, 2] },
+//   { type: 'crystal', position: [2, 0, 6] }, // symmetric
+// ]
+
+// Find templates for topology
+const vShapeTemplates = registry.findByTopology('v_shape');
+
+// Export/Import
+const json = registry.export();
+registry.import(json);
+```
+
+### 3. Element Selectors
+
+```typescript
+// Keypoint: select specific keypoint by name
+{ type: 'keypoint', name: 'apex' }
+
+// Segment: select entire segment
+{ type: 'segment', name: 'left_arm' }
+
+// Position: specific position in segment
+{ type: 'position', segment: 'seg_0', offset: 2 }
+
+// Interval: every N positions in segment
+{ type: 'interval', segment: 'seg_0', every: 2, skip: 1 }
+
+// All: all positions in segment
+{ type: 'all', segment: 'seg_0' }
+```
+
+### 4. Default Templates
+
+```typescript
+import { DEFAULT_TEMPLATES, initializeDefaultTemplates } from '@repo/academic-placer';
+
+// Initialize default templates on first run
+initializeDefaultTemplates();
+
+// Available defaults:
+// - 'V-Shape Function Reuse'
+// - 'V-Shape Simple'
+// - 'Linear Interval'
+// - 'L-Shape Corner'
+```
+
+---
+
 ## 📖 API Reference
 
 ### AcademicPlacementGenerator

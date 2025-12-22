@@ -21,8 +21,32 @@ export type {
   PrioritizedCoord,
   MapMetrics,
   PlacementConstraints,
-  CoordCategory
+  CoordCategory,
+  SelectableElement
 } from './MapAnalyzer';
+
+// Selectable Elements (for UI selection)
+export type {
+  Coord,
+  ElementType,
+  ElementCategory,
+  ElementDisplay,
+  ElementRelationships,
+  ElementSelector
+} from './SelectableElement';
+
+export {
+  generateElementId,
+  parseElementId,
+  getCategoryColor,
+  getTypeIcon,
+  createKeypointElement,
+  createSegmentElement,
+  createPositionElements,
+  findElementById,
+  findElementsBySelector,
+  getMirrorElement
+} from './SelectableElement';
 
 // Academic concepts
 export type {
@@ -49,6 +73,21 @@ export type {
   ItemType,
   ExpectedSolution
 } from './AcademicPlacementGenerator';
+
+// Placement Templates (for saving/applying placement patterns)
+export type {
+  PlacementRule,
+  PlacementRuleOptions,
+  PlacementTemplate,
+  TemplateItemPlacement
+} from './PlacementTemplate';
+
+export {
+  PlacementTemplateRegistry,
+  getTemplateRegistry,
+  initializeDefaultTemplates,
+  DEFAULT_TEMPLATES
+} from './PlacementTemplate';
 
 // Generators
 export * from './generators';

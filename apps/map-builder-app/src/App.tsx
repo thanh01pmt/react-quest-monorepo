@@ -21,6 +21,15 @@ import { BuilderModeProvider } from './store/builderModeContext';
 import { useMapValidation } from './hooks/useMapValidation';
 import { HelpButton } from './components/HelpButton';
 import { SolutionDebugPanel } from './components/SolutionDebugPanel';
+import { PlacementSelector } from './components/PlacementSelector';
+import { TemplateManager } from './components/TemplateManager';
+import { PlacementVariants } from './components/PlacementVariants';
+import {
+  MapAnalyzer,
+  type SelectableElement,
+  type TemplateItemPlacement,
+  type ItemPlacement
+} from '@repo/academic-placer';
 import _ from 'lodash';
 import './App.css';
 
@@ -60,7 +69,13 @@ function App() {
   const [selectedAsset, setSelectedAsset] = useState<BuildableAsset | null>(defaultAsset);
   // --- START: THAY ĐỔI ĐỂ QUẢN LÝ LỊCH SỬ UNDO/REDO ---
   const [isPaletteVisible, setIsPaletteVisible] = useState(true); // State để quản lý hiển thị palette
-  const [activeSidePanel, setActiveSidePanel] = useState<'assets' | 'topology'>('assets'); // THÊM MỚI: State chọn panel
+  const [activeSidePanel, setActiveSidePanel] = useState<'assets' | 'topology' | 'placement'>('assets'); // State chọn panel
+  // Placement selector state
+  const [placementSelections, setPlacementSelections] = useState<Array<{ elementId: string; itemType: 'crystal' | 'switch' | 'gem'; symmetric?: boolean }>>([]);
+  // Strategy and item goals for placement
+  const [placementStrategy, setPlacementStrategy] = useState<PedagogyStrategy>(PedagogyStrategy.NONE);
+  const [placementDifficulty, setPlacementDifficulty] = useState<'intro' | 'simple' | 'complex'>('simple');
+  const [itemGoals, setItemGoals] = useState<{ gems: number; crystals: number; switches: number }>({ gems: 3, crystals: 0, switches: 0 });
   const [activeLayer, setActiveLayer] = useState<'all' | 'ground' | 'items'>('all'); // NEW: Layer State
   const [smartSnapEnabled, setSmartSnapEnabled] = useState<boolean>(true); // NEW: Smart Snap State
   const [history, setHistory] = useState<PlacedObject[][]>([[]]); // Mảng lưu các trạng thái của placedObjects
@@ -457,6 +472,9 @@ function App() {
     });
     return map;
   }, []);
+
+  // Placement service instance for item generation
+  const placementService = useMemo(() => new PlacementService(), []);
 
   // --- START: LOGIC MỚI CHO VIỆC ÁP DỤNG THEME ---
   const handleThemeChange = (newTheme: MapTheme) => {
@@ -1511,7 +1529,6 @@ function App() {
 
 
   // --- SUGGEST PLACEMENT LOGIC ---
-  const placementService = useMemo(() => new PlacementService(), []);
 
   const handleSuggestPlacement = () => {
     if (!selectionBounds) {
@@ -1592,6 +1609,243 @@ function App() {
     return null;
   }, [questMetadata]);
 
+  // Compute selectable elements from pathInfo
+  const selectableElements = useMemo((): SelectableElement[] => {
+    if (!questMetadata?.pathInfo) return [];
+
+    try {
+      const pathInfo = questMetadata.pathInfo;
+      const context = MapAnalyzer.fromTopology({
+        start_pos: pathInfo.start_pos,
+        target_pos: pathInfo.target_pos,
+        path_coords: pathInfo.path_coords,
+        placement_coords: pathInfo.placement_coords || [],
+        metadata: pathInfo.metadata || {}
+      });
+      return context.selectableElements;
+    } catch (e) {
+      console.error('Failed to compute selectable elements:', e);
+      return [];
+    }
+  }, [questMetadata?.pathInfo]);
+
+  // Handle applying template placements
+  const handleApplyTemplatePlacements = useCallback((placements: TemplateItemPlacement[]) => {
+    if (placements.length === 0) return;
+
+    const newObjects: PlacedObject[] = [];
+
+    for (const placement of placements) {
+      const assetKey = placement.type;
+      const asset = assetMap.get(assetKey);
+
+      if (asset) {
+        newObjects.push({
+          id: uuidv4(),
+          asset,
+          position: [placement.position[0], placement.position[1], placement.position[2]],
+          rotation: [0, 0, 0],
+          properties: {}
+        });
+      }
+    }
+
+    if (newObjects.length > 0) {
+      setPlacedObjectsWithHistory(prev => {
+        // Filter out existing collectibles at same positions to avoid duplicates
+        const existingPositions = new Set(
+          newObjects.map(o => `${o.position[0]},${o.position[1]},${o.position[2]}`)
+        );
+        const filtered = prev.filter(o =>
+          o.asset.type !== 'collectible' ||
+          !existingPositions.has(`${o.position[0]},${o.position[1]},${o.position[2]}`)
+        );
+        return [...filtered, ...newObjects];
+      });
+      alert(`Applied ${newObjects.length} items from template.`);
+    }
+  }, [assetMap]);
+
+  // Handle applying items based on strategy and item goals
+  const handleApplyItems = useCallback(() => {
+    const pathInfo = questMetadata?.pathInfo;
+    if (!pathInfo?.path_coords || pathInfo.path_coords.length === 0) {
+      alert('⚠️ No path data available. Generate ground from the Topology tab first.');
+      return;
+    }
+
+    const pathCoords: Coord[] = pathInfo.path_coords;
+
+    // Use PlacementService to suggest placements based on strategy
+    const suggestedObjects = placementService.suggestPlacement(pathCoords, {
+      strategy: placementStrategy,
+      difficulty: placementDifficulty,
+      assetMap
+    });
+
+    // Add additional items based on item goals
+    const existingCrystals = suggestedObjects.filter(o => o.asset.key === 'crystal').length;
+    const existingSwitches = suggestedObjects.filter(o => o.asset.key === 'switch').length;
+    const existingGems = suggestedObjects.filter(o => o.asset.key === 'gem').length;
+
+    // Find available positions (not start, not finish, not already occupied)
+    const usedPositions = new Set([
+      ...suggestedObjects.map(o => `${o.position[0]},${o.position[1]},${o.position[2]}`),
+      ...placedObjects.filter(o => o.asset.type !== 'collectible').map(o => `${o.position[0]},${o.position[1]},${o.position[2]}`)
+    ]);
+
+    const startPos = pathInfo.start_pos;
+    const targetPos = pathInfo.target_pos;
+    usedPositions.add(`${startPos[0]},${startPos[1]},${startPos[2]}`);
+    usedPositions.add(`${targetPos[0]},${targetPos[1]},${targetPos[2]}`);
+
+    const availablePositions = pathCoords.filter(coord =>
+      !usedPositions.has(`${coord[0]},${coord[1]},${coord[2]}`)
+    );
+
+    // Add crystals if needed
+    const crystalsNeeded = Math.max(0, itemGoals.crystals - existingCrystals);
+    const crystalAsset = assetMap.get('crystal');
+    if (crystalAsset && crystalsNeeded > 0) {
+      for (let i = 0; i < Math.min(crystalsNeeded, availablePositions.length); i++) {
+        const pos = availablePositions.shift()!;
+        suggestedObjects.push({
+          id: uuidv4(),
+          asset: crystalAsset,
+          position: [pos[0], pos[1], pos[2]],
+          rotation: [0, 0, 0],
+          properties: {}
+        });
+      }
+    }
+
+    // Add switches if needed
+    const switchesNeeded = Math.max(0, itemGoals.switches - existingSwitches);
+    const switchAsset = assetMap.get('switch');
+    if (switchAsset && switchesNeeded > 0) {
+      for (let i = 0; i < Math.min(switchesNeeded, availablePositions.length); i++) {
+        const pos = availablePositions.shift()!;
+        suggestedObjects.push({
+          id: uuidv4(),
+          asset: switchAsset,
+          position: [pos[0], pos[1], pos[2]],
+          rotation: [0, 0, 0],
+          properties: {}
+        });
+      }
+    }
+
+    // Add gems if needed (using gem or alternate asset)
+    const gemsNeeded = Math.max(0, itemGoals.gems - existingGems);
+    const gemAsset = assetMap.get('gem') || assetMap.get('crystal'); // Fallback
+    if (gemAsset && gemsNeeded > 0) {
+      for (let i = 0; i < Math.min(gemsNeeded, availablePositions.length); i++) {
+        const pos = availablePositions.shift()!;
+        suggestedObjects.push({
+          id: uuidv4(),
+          asset: gemAsset,
+          position: [pos[0], pos[1], pos[2]],
+          rotation: [0, 0, 0],
+          properties: {}
+        });
+      }
+    }
+
+    if (suggestedObjects.length === 0) {
+      alert('⚠️ No items could be placed. Try adjusting the item goals or strategy.');
+      return;
+    }
+
+    // Remove existing collectibles and add new ones
+    setPlacedObjectsWithHistory(prev => {
+      const groundOnly = prev.filter(o =>
+        o.asset.type === 'block' ||
+        o.asset.key === 'player_start' ||
+        o.asset.key === 'finish'
+      );
+      return [...groundOnly, ...suggestedObjects];
+    });
+
+    // Update metadata with strategy
+    setQuestMetadata(prev => ({
+      ...prev,
+      pathInfo: {
+        ...prev?.pathInfo,
+        strategy: placementStrategy
+      }
+    }));
+    setLastUsedStrategy(placementStrategy);
+
+    alert(`✅ Applied ${suggestedObjects.length} items using ${placementStrategy || 'random'} strategy.`);
+  }, [questMetadata, placementStrategy, placementDifficulty, itemGoals, assetMap, placedObjects, placementService]);
+
+  // Handle applying items from PlacementVariants (AcademicPlacement)
+  const handleApplyVariant = useCallback((items: ItemPlacement[]) => {
+    console.log('[handleApplyVariant] Called with items:', items);
+    console.log('[handleApplyVariant] AssetMap keys:', Array.from(assetMap.keys()));
+
+    if (items.length === 0) {
+      alert('⚠️ This variant has no items to place.');
+      return;
+    }
+
+    const newObjects: PlacedObject[] = [];
+
+    for (const item of items) {
+      const assetKey = item.type;
+      const asset = assetMap.get(assetKey);
+      console.log(`[handleApplyVariant] Looking for "${assetKey}", found:`, asset?.key);
+
+      if (asset) {
+        // Items should be placed on top of ground (Y+1)
+        const itemY = item.position.y === 0 ? 1 : item.position.y;
+        newObjects.push({
+          id: uuidv4(),
+          asset,
+          position: [item.position.x, itemY, item.position.z],
+          rotation: [0, 0, 0],
+          properties: {}
+        });
+      } else {
+        console.warn(`Asset not found for item type: ${assetKey}`);
+      }
+    }
+
+    console.log('[handleApplyVariant] Created newObjects:', newObjects.length);
+    if (newObjects.length > 0) {
+      // Keep ground blocks (blocks, player_start, finish) and replace only collectibles/items
+      setPlacedObjectsWithHistory(prev => {
+        // Debug: log all asset types before filtering
+        console.log('[handleApplyVariant] Objects before filtering:', prev.map(o => ({
+          key: o.asset.key,
+          type: o.asset.type,
+          name: o.asset.name
+        })));
+
+        const groundAndStructure = prev.filter(o => {
+          // Keep all blocks (ground, wall, etc.)
+          if (o.asset.type === 'block') return true;
+          // Keep special items (player_start, finish, etc.)
+          if (o.asset.type === 'special') return true;
+          // Keep player start and finish markers by key (backup)
+          if (o.asset.key === 'player_start' || o.asset.key === 'finish') return true;
+          // Keep anything with 'ground' or 'wall' in key
+          if (o.asset.key?.includes('ground') || o.asset.key?.includes('wall')) return true;
+          // Remove collectibles/interactibles (crystal, gem, switch, star, etc.)
+          return false;
+        });
+
+        console.log(`[handleApplyVariant] Keeping ${groundAndStructure.length} ground objects out of ${prev.length}, adding ${newObjects.length} items`);
+        console.log('[handleApplyVariant] Kept objects:', groundAndStructure.map(o => o.asset.key));
+
+        return [...groundAndStructure, ...newObjects];
+      });
+      alert(`✅ Applied ${newObjects.length} items from selected variant.`);
+    } else {
+      alert('⚠️ No items could be created from this variant. Check asset availability.');
+    }
+  }, [assetMap, setPlacedObjectsWithHistory]);
+
   return (
     <div className="app-container">
       {isPaletteVisible && (
@@ -1608,6 +1862,12 @@ function App() {
               onClick={() => setActiveSidePanel('topology')}
             >
               Topology
+            </button>
+            <button
+              style={{ flex: 1, padding: '10px', background: activeSidePanel === 'placement' ? '#3c3c41' : '#2a2a2e', color: activeSidePanel === 'placement' ? '#fff' : '#888', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'placement' ? 'bold' : 'normal', transition: 'all 0.2s' }}
+              onClick={() => setActiveSidePanel('placement')}
+            >
+              Placement
             </button>
           </div>
 
@@ -1639,18 +1899,144 @@ function App() {
                 onSelectionAction={handleSelectionAction}
                 selectionBounds={selectionBounds}
                 onSelectionBoundsChange={handleSelectionBoundsChange}
-                // SỬA LỖI: Truyền hàm tiện ích mới vào AssetPalette
+                // SỬa LỖI: Truyền hàm tiện ích mới vào AssetPalette
                 getCorrectedAssetUrl={getCorrectedAssetUrl}
                 onLoadMapFromUrl={handleLoadMapFromUrl} // Truyền hàm mới vào
                 onShowTutorial={() => setIsWelcomeModalVisible(true)} // THÊM MỚI: Prop để mở lại modal
                 onCreateNewMap={handleCreateNewMap} // THÊM MỚI: Prop để tạo map mới
                 onImportMap={handleImportMap}
               />
-            ) : (
+            ) : activeSidePanel === 'topology' ? (
               <TopologyPanel
                 onGenerate={handleGenerateMap}
                 assetMap={assetMap}
               />
+            ) : (
+              /* Placement Panel - Item Placement Controls */
+              <div style={{ padding: '12px' }} className="placement-panel">
+                {/* Strategy Section */}
+                <div className="placement-section">
+                  <h4 style={{ margin: '0 0 8px 0', color: '#fff', fontSize: '13px' }}>🎯 Strategy (Pedagogy)</h4>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                    <select
+                      value={placementStrategy}
+                      onChange={e => setPlacementStrategy(e.target.value as PedagogyStrategy)}
+                      style={{ flex: 1, padding: '6px 8px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff' }}
+                    >
+                      <option value={PedagogyStrategy.NONE}>None (Random)</option>
+                      <option value={PedagogyStrategy.LOOP_LOGIC}>Loop Logic</option>
+                      <option value={PedagogyStrategy.FUNCTION_LOGIC}>Function Logic</option>
+                      <option value={PedagogyStrategy.WHILE_LOOP_DECREASING}>While Loop</option>
+                      <option value={PedagogyStrategy.CONDITIONAL_BRANCHING}>Conditional</option>
+                      <option value={PedagogyStrategy.NESTED_LOOPS}>Nested Loops</option>
+                      <option value={PedagogyStrategy.PATTERN_RECOGNITION}>Pattern</option>
+                    </select>
+                    <select
+                      value={placementDifficulty}
+                      onChange={e => setPlacementDifficulty(e.target.value as any)}
+                      style={{ padding: '6px 8px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff' }}
+                    >
+                      <option value="intro">Intro</option>
+                      <option value="simple">Simple</option>
+                      <option value="complex">Complex</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Item Goals Section */}
+                <div className="placement-section">
+                  <h4 style={{ margin: '0 0 8px 0', color: '#fff', fontSize: '13px' }}>📊 Item Goals</h4>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                    <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ fontSize: '11px', color: '#aaa' }}>💎 Crystals</span>
+                      <input
+                        type="number"
+                        value={itemGoals.crystals}
+                        onChange={e => setItemGoals(prev => ({ ...prev, crystals: parseInt(e.target.value) || 0 }))}
+                        min={0} max={20}
+                        style={{ padding: '6px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff', width: '100%' }}
+                      />
+                    </label>
+                    <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ fontSize: '11px', color: '#aaa' }}>🔘 Switches</span>
+                      <input
+                        type="number"
+                        value={itemGoals.switches}
+                        onChange={e => setItemGoals(prev => ({ ...prev, switches: parseInt(e.target.value) || 0 }))}
+                        min={0} max={10}
+                        style={{ padding: '6px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff', width: '100%' }}
+                      />
+                    </label>
+                    <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ fontSize: '11px', color: '#aaa' }}>💠 Gems</span>
+                      <input
+                        type="number"
+                        value={itemGoals.gems}
+                        onChange={e => setItemGoals(prev => ({ ...prev, gems: parseInt(e.target.value) || 0 }))}
+                        min={0} max={20}
+                        style={{ padding: '6px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff', width: '100%' }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Apply Items Button */}
+                <button
+                  onClick={handleApplyItems}
+                  disabled={!questMetadata?.pathInfo?.path_coords}
+                  style={{
+                    width: '100%',
+                    padding: '10px 16px',
+                    marginTop: '8px',
+                    background: !questMetadata?.pathInfo?.path_coords ? '#555' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    cursor: !questMetadata?.pathInfo?.path_coords ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  🎲 Apply Items
+                </button>
+
+                <hr style={{ border: 'none', borderTop: '1px solid #444', margin: '12px 0' }} />
+
+                {/* Place Items Section */}
+                <PlacementSelector
+                  elements={selectableElements}
+                  onSelectionsChange={setPlacementSelections}
+                  initialSelections={placementSelections}
+                />
+                <div style={{ height: '12px' }} />
+
+                {/* Placement Variants - AI Generated Options */}
+                <PlacementVariants
+                  pathInfo={questMetadata?.pathInfo || null}
+                  onApplyPlacement={handleApplyVariant}
+                />
+                <div style={{ height: '12px' }} />
+
+                {/* Template Manager */}
+                <TemplateManager
+                  topologyType={questMetadata?.pathInfo?.metadata?.topology_type || 'unknown'}
+                  selectableElements={selectableElements}
+                  currentSelections={placementSelections}
+                  onApplyTemplate={handleApplyTemplatePlacements}
+                />
+
+                {selectableElements.length === 0 && (
+                  <div style={{ textAlign: 'center', color: '#888', padding: '20px', fontSize: '13px' }}>
+                    <p>⚠️ No path data available.</p>
+                    <p>Generate ground from the <strong>Topology</strong> tab first.</p>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

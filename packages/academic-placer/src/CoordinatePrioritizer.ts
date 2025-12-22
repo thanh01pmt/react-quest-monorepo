@@ -9,7 +9,7 @@
  * Kết quả: Mỗi coord có priority score + reason
  */
 
-import type { Vector3, PlacementContext, PathSegment, SegmentRelation } from './MapAnalyzer';
+import type { Vector3, PlacementContext, PathSegment } from './MapAnalyzer';
 import type { TopologyType } from './PlacementStrategy';
 import { analyzeMapMetrics } from './PlacementStrategy';
 

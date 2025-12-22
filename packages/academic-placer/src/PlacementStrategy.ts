@@ -690,4 +690,3 @@ export {
   CODE_BLOCKS_ESTIMATE
 };
 
-export type { MapMetrics, PlacementConstraints, TopologyType, DistributionStrategy, PlacementConfig };

@@ -64,10 +64,10 @@ export class PlacementCalculator {
         const segmentLength = segment.length;
 
         // Scale offsets to fit segment
-        const scaleFactor = segmentLength / pattern.length;
+        const scaleFactor = segmentLength / pattern.min_segment_length;
 
-        for (let i = 0; i < pattern.offsets.length; i++) {
-            const offset = pattern.offsets[i];
+        for (let i = 0; i < pattern.item_coord_offsets.length; i++) {
+            const offset = pattern.item_coord_offsets[i];
             const itemType = pattern.item_types[i % pattern.item_types.length];
 
             // Calculate actual position in segment

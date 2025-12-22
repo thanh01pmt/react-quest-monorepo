@@ -1,0 +1,249 @@
+/**
+ * TemplateManager Styles
+ */
+
+.template-manager {
+  background: var(--bg-secondary, #1e1e2e);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.manager-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: var(--bg-tertiary, #2a2a3a);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: var(--bg-hover, #3a3a4a);
+}
+
+.btn-icon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Template List */
+.template-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-secondary, #888);
+  padding: 20px;
+  font-size: 12px;
+}
+
+.template-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  background: var(--bg-primary, #16161e);
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.template-item:hover {
+  border-color: var(--accent, #6366f1);
+}
+
+.template-item.selected {
+  border-color: var(--success, #22c55e);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.template-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.template-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.template-rules {
+  font-size: 10px;
+  color: var(--text-secondary, #888);
+}
+
+.btn-delete {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #888);
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.template-item:hover .btn-delete {
+  opacity: 1;
+}
+
+.btn-delete:hover {
+  color: var(--danger, #ef4444);
+}
+
+/* Apply Button */
+.btn-apply {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: var(--accent, #6366f1);
+  color: white;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-apply:hover:not(:disabled) {
+  background: var(--accent-hover, #4f46e5);
+}
+
+.btn-apply:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dialog */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background: var(--bg-secondary, #1e1e2e);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 280px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.dialog h4 {
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.dialog input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #3a3a4a);
+  background: var(--bg-primary, #16161e);
+  color: var(--text-primary, #e0e0e0);
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.dialog input:focus {
+  outline: none;
+  border-color: var(--accent, #6366f1);
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.dialog-actions button {
+  padding: 8px 16px;
+  border: none;
+  background: var(--bg-tertiary, #2a2a3a);
+  color: var(--text-primary, #e0e0e0);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dialog-actions button:hover {
+  background: var(--bg-hover, #3a3a4a);
+}
+
+.dialog-actions button.primary {
+  background: var(--accent, #6366f1);
+}
+
+.dialog-actions button.primary:hover {
+  background: var(--accent-hover, #4f46e5);
+}
+
+/* Export Actions */
+.export-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.export-actions button,
+.import-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border, #3a3a4a);
+  background: var(--bg-primary, #16161e);
+  color: var(--text-primary, #e0e0e0);
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.export-actions button:hover,
+.import-label:hover {
+  border-color: var(--accent, #6366f1);
+  background: rgba(99, 102, 241, 0.1);
+}

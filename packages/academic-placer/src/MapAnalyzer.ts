@@ -165,6 +165,18 @@ export interface PlacementConstraints {
   preferredInterval: number;
 }
 
+// Import SelectableElement types
+import {
+  SelectableElement,
+  Coord as SECoord,
+  createKeypointElement,
+  createSegmentElement,
+  createPositionElements
+} from './SelectableElement';
+
+// Re-export SelectableElement for consumers
+export type { SelectableElement };
+
 // Tier 4 Output (final)
 export interface PlacementContext {
   // Core structure (from Tier 1-3)
@@ -174,14 +186,17 @@ export interface PlacementContext {
   patterns: Pattern[];
   relations: PathRelation[];
   
-  // Prioritized coordinates (NEW)
+  // Prioritized coordinates
   prioritizedCoords: PrioritizedCoord[];
   
-  // Map metrics (NEW)
+  // Map metrics
   metrics: MapMetrics;
   
-  // Constraints (NEW)
+  // Constraints
   constraints: PlacementConstraints;
+  
+  // Selectable elements (NEW - for UI selection)
+  selectableElements: SelectableElement[];
   
   // Legacy: suggested placements
   suggestedPlacements: Array<{
@@ -912,6 +927,7 @@ class Tier4Analyzer {
     const metrics = this.computeMetrics(tier3Result);
     const constraints = this.computeConstraints(metrics);
     const prioritizedCoords = this.prioritizeCoordinates(tier3Result, metrics);
+    const selectableElements = this.generateSelectableElements(tier3Result, metrics);
 
     return {
       segments: tier3Result.mergedSegments,
@@ -922,8 +938,130 @@ class Tier4Analyzer {
       prioritizedCoords,
       metrics,
       constraints,
+      selectableElements,
       suggestedPlacements
     };
+  }
+
+  /**
+   * Generate selectable elements from tier3 result
+   */
+  private generateSelectableElements(tier3: Tier3Result, metrics: MapMetrics): SelectableElement[] {
+    const elements: SelectableElement[] = [];
+    
+    // 1. Generate segment elements
+    for (let i = 0; i < tier3.mergedSegments.length; i++) {
+      const segment = tier3.mergedSegments[i];
+      const segmentName = segment.id || `segment_${i}`;
+      
+      // Convert Vector3[] to Coord[]
+      const coords: SECoord[] = segment.points.map(p => [p.x, p.y, p.z] as SECoord);
+      
+      // Add segment element
+      elements.push(createSegmentElement(segmentName, coords, 'recommended'));
+      
+      // Check for mirror relationship
+      const mirrorSegment = this.findMirrorSegment(tier3, segment);
+      const mirrorName = mirrorSegment ? (mirrorSegment.id || undefined) : undefined;
+      
+      // Add position elements along segment
+      const positionElements = createPositionElements(segmentName, coords, {
+        interval: 1,
+        skipFirst: true,
+        skipLast: true,
+        mirrorSegment: mirrorName
+      });
+      elements.push(...positionElements);
+    }
+    
+    // 2. Generate keypoint elements from special points
+    // Endpoints
+    const endpoints = new Set<string>();
+    for (const segment of tier3.mergedSegments) {
+      if (segment.points.length >= 2) {
+        const start = segment.points[0];
+        const end = segment.points[segment.points.length - 1];
+        
+        const startKey = `${start.x},${start.y},${start.z}`;
+        const endKey = `${end.x},${end.y},${end.z}`;
+        
+        if (!endpoints.has(startKey)) {
+          endpoints.add(startKey);
+          elements.push(createKeypointElement(
+            `endpoint_${endpoints.size}`,
+            [start.x, start.y, start.z] as SECoord,
+            'important',
+            `Endpoint ${endpoints.size}`
+          ));
+        }
+        
+        if (!endpoints.has(endKey)) {
+          endpoints.add(endKey);
+          elements.push(createKeypointElement(
+            `endpoint_${endpoints.size}`,
+            [end.x, end.y, end.z] as SECoord,
+            'important',
+            `Endpoint ${endpoints.size}`
+          ));
+        }
+      }
+    }
+    
+    // 3. Add center as keypoint if map is not tiny
+    if (metrics.estimatedSize !== 'tiny') {
+      elements.push(createKeypointElement(
+        'center',
+        [metrics.center.x, metrics.center.y, metrics.center.z] as SECoord,
+        'recommended',
+        'Map Center'
+      ));
+    }
+    
+    // 4. Detect junctions (points where 3+ segments meet)
+    const pointCount = new Map<string, { coord: SECoord; count: number }>();
+    for (const segment of tier3.mergedSegments) {
+      for (const p of [segment.points[0], segment.points[segment.points.length - 1]]) {
+        const key = `${p.x},${p.y},${p.z}`;
+        const existing = pointCount.get(key);
+        if (existing) {
+          existing.count++;
+        } else {
+          pointCount.set(key, { coord: [p.x, p.y, p.z] as SECoord, count: 1 });
+        }
+      }
+    }
+    
+    let junctionIdx = 0;
+    for (const [key, data] of Array.from(pointCount.entries())) {
+      if (data.count >= 3) {
+        elements.push(createKeypointElement(
+          `junction_${junctionIdx}`,
+          data.coord,
+          'critical',
+          `Junction ${junctionIdx + 1}`
+        ));
+        junctionIdx++;
+      }
+    }
+    
+    return elements;
+  }
+
+  /**
+   * Find mirror segment based on symmetric relations
+   */
+  private findMirrorSegment(tier3: Tier3Result, segment: PathSegment): PathSegment | null {
+    for (const relation of tier3.relations) {
+      if (relation.type === 'axis_symmetric' || relation.type === 'point_symmetric') {
+        if (relation.path1Id === segment.id) {
+          return tier3.mergedSegments.find(s => s.id === relation.path2Id) || null;
+        }
+        if (relation.path2Id === segment.id) {
+          return tier3.mergedSegments.find(s => s.id === relation.path1Id) || null;
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -1238,6 +1376,171 @@ export class MapAnalyzer {
   constructor(config: { gameConfig: GameConfig }, options?: { minLength?: number }) {
     this.config = config.gameConfig;
     this.minLength = options?.minLength ?? 2;
+  }
+
+  /**
+   * Create PlacementContext from Topology IPathInfo output
+   * This is the bridge method that connects Topology output to MapAnalyzer analysis
+   * 
+   * @param pathInfo - Output from Topology.generatePathInfo()
+   * @returns PlacementContext with selectableElements
+   */
+  static fromTopology(pathInfo: {
+    start_pos: [number, number, number];
+    target_pos: [number, number, number];
+    path_coords: [number, number, number][];
+    placement_coords: [number, number, number][];
+    metadata: {
+      topology_type?: string;
+      segments?: [number, number, number][][];
+      semantic_positions?: Record<string, any>;
+      segment_analysis?: { count?: number; lengths?: number[] };
+      [key: string]: any;
+    };
+  }): PlacementContext {
+    // Convert path_coords to blocks format
+    const blocks: Block[] = pathInfo.path_coords.map((coord, idx) => ({
+      modelKey: 'block',
+      position: { x: coord[0], y: coord[1], z: coord[2] }
+    }));
+
+    // If topology provides segments, build PathSegments directly
+    const topoSegments = pathInfo.metadata.segments || [];
+    const prebuiltSegments: PathSegment[] = topoSegments.map((segCoords, idx) => {
+      const points: Vector3[] = segCoords.map(c => ({ x: c[0], y: c[1], z: c[2] }));
+      
+      // Calculate direction
+      let direction: Vector3 = { x: 0, y: 0, z: 1 };
+      if (points.length >= 2) {
+        const first = points[0];
+        const last = points[points.length - 1];
+        const dx = last.x - first.x;
+        const dy = last.y - first.y;
+        const dz = last.z - first.z;
+        const mag = Math.sqrt(dx*dx + dy*dy + dz*dz) || 1;
+        direction = { x: dx/mag, y: dy/mag, z: dz/mag };
+      }
+
+      return {
+        id: `seg_${idx}`,
+        points,
+        direction,
+        length: points.length - 1,
+        plane: 'xz' as const
+      };
+    });
+
+    // Extract keypoints from semantic_positions
+    const semanticPositions = pathInfo.metadata.semantic_positions || {};
+    const selectableElements: SelectableElement[] = [];
+
+    // Add segments and their positions
+    for (let i = 0; i < prebuiltSegments.length; i++) {
+      const seg = prebuiltSegments[i];
+      const segmentName = seg.id;
+      const coords: SECoord[] = seg.points.map(p => [p.x, p.y, p.z] as SECoord);
+
+      // Add segment element
+      selectableElements.push(createSegmentElement(segmentName, coords, 'recommended'));
+
+      // Add position elements
+      const positions = createPositionElements(segmentName, coords, {
+        interval: 1,
+        skipFirst: true,
+        skipLast: true
+      });
+      selectableElements.push(...positions);
+    }
+
+    // Add semantic keypoints
+    const excludeKeys = ['optimal_start', 'optimal_end', 'valid_pairs'];
+    for (const [key, value] of Object.entries(semanticPositions)) {
+      if (excludeKeys.includes(key)) continue;
+      if (Array.isArray(value) && value.length === 3 && typeof value[0] === 'number') {
+        const category = key.includes('apex') || key.includes('center') 
+          ? 'critical' as const 
+          : 'important' as const;
+        selectableElements.push(createKeypointElement(
+          key,
+          value as SECoord,
+          category
+        ));
+      }
+    }
+
+    // Add start and end as keypoints
+    selectableElements.push(createKeypointElement(
+      'start',
+      pathInfo.start_pos,
+      'avoid' as any, // Start position - should not place items
+      'Start Position'
+    ));
+    selectableElements.push(createKeypointElement(
+      'end',
+      pathInfo.target_pos,
+      'critical',
+      'Goal Position'
+    ));
+
+    // Calculate metrics
+    const allPoints = prebuiltSegments.flatMap(s => s.points);
+    const xs = allPoints.map(p => p.x);
+    const zs = allPoints.map(p => p.z);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minZ = Math.min(...zs), maxZ = Math.max(...zs);
+    const width = maxX - minX + 1;
+    const depth = maxZ - minZ + 1;
+    const area = width * depth;
+
+    let estimatedSize: MapMetrics['estimatedSize'] = 'small';
+    if (area <= 9) estimatedSize = 'tiny';
+    else if (area <= 25) estimatedSize = 'small';
+    else if (area <= 49) estimatedSize = 'medium';
+    else if (area <= 100) estimatedSize = 'large';
+    else estimatedSize = 'huge';
+
+    const metrics: MapMetrics = {
+      totalBlocks: pathInfo.path_coords.length,
+      boundingBox: { width, height: 1, depth },
+      area,
+      estimatedSize,
+      segmentCount: prebuiltSegments.length,
+      areaCount: 1,
+      junctionCount: 0, // TODO: detect from semantic_positions
+      longestPathLength: prebuiltSegments.reduce((max, s) => Math.max(max, s.length), 0),
+      center: {
+        x: Math.round((minX + maxX) / 2),
+        y: pathInfo.start_pos[1],
+        z: Math.round((minZ + maxZ) / 2)
+      },
+      detectedTopology: pathInfo.metadata.topology_type
+    };
+
+    // Compute constraints
+    const constraints: PlacementConstraints = {
+      maxItems: Math.max(3, Math.floor(pathInfo.path_coords.length * 0.5)),
+      minItems: 1,
+      targetItemRatio: 0.3,
+      preferredConcepts: [],
+      avoidConcepts: [],
+      maxCodeBlocks: 15,
+      distribution: 'spread',
+      preferredInterval: Math.max(2, Math.floor(metrics.longestPathLength / 4))
+    };
+
+    // Build minimal PlacementContext
+    return {
+      segments: prebuiltSegments,
+      areas: [],
+      connectors: [],
+      patterns: [],
+      relations: [],
+      prioritizedCoords: [],
+      metrics,
+      constraints,
+      selectableElements,
+      suggestedPlacements: []
+    };
   }
 
   analyze(): PlacementContext {

@@ -31,8 +31,6 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
     const { state, setIsEditing, setIsPathLocked, togglePathLock, setLastGenerateConfig, setIsGenerating } = useBuilderMode();
 
     const [selectedTopology, setSelectedTopology] = useState<string>('straight_line');
-    const [strategy, setStrategy] = useState<PedagogyStrategy>(PedagogyStrategy.NONE);
-    const [difficulty, setDifficulty] = useState<'intro' | 'simple' | 'complex'>('simple');
     const [params, setParams] = useState<Record<string, any>>({});
 
     // Collapsible section states
@@ -47,7 +45,7 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
         };
         window.addEventListener('trigger-generate', handleTriggerGenerate);
         return () => window.removeEventListener('trigger-generate', handleTriggerGenerate);
-    }, [selectedTopology, params, strategy, difficulty]); // Dependencies for handleGenerate
+    }, [selectedTopology, params]); // Dependencies for handleGenerate
 
     const toggleSection = (section: string) => {
         setExpandedSections(prev => {
@@ -731,48 +729,49 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
         setIsGenerating(true);
 
         try {
+            // Generate only ground (no items) - strategy = NONE for ground-only
             const { objects, pathInfo, plannedSolution } = await placementService.generateMap({
                 topology,
                 params,
-                strategy,
-                difficulty,
+                strategy: PedagogyStrategy.NONE, // No items, ground only
+                difficulty: 'simple',
                 assetMap
             });
+
+            // Filter to keep only ground blocks (no collectibles/interactibles)
+            const groundObjects = objects.filter(obj =>
+                obj.asset.type === 'block' ||
+                obj.asset.key === 'player_start' ||
+                obj.asset.key === 'finish'
+            );
 
             const config: GenerateConfig = {
                 topology: selectedTopology,
                 params: params,
-                strategy: strategy,
-                difficulty: difficulty,
-                academicParams: {
-                    bloomLevel: params.bloom_level ?
-                        ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'].indexOf(params.bloom_level) + 1 : 3,
-                },
-                itemGoals: {
-                    gems: params.gem_count || 3,
-                    crystals: params.crystal_count || 0,
-                    switches: params.switch_count || 0,
-                }
+                strategy: PedagogyStrategy.NONE,
+                difficulty: 'simple',
+                academicParams: { bloomLevel: 3 },
+                itemGoals: { gems: 0, crystals: 0, switches: 0 }
             };
 
             setLastGenerateConfig(config);
             setIsEditing(true);
 
             const metadataUpdate = {
-                strategy,
+                strategy: PedagogyStrategy.NONE,
                 pathInfo: {
                     ...pathInfo,
                     topology: selectedTopology,
                     params: params,
-                    strategy: strategy
+                    strategy: PedagogyStrategy.NONE
                 },
-                plannedSolution  // Include plannedSolution in metadata
+                plannedSolution: null  // No planned solution for ground-only
             };
 
-            onGenerate(objects, metadataUpdate);
+            onGenerate(groundObjects, metadataUpdate);
         } catch (error) {
-            console.error("Failed to generate map:", error);
-            alert("Error generating map. See console.");
+            console.error("Failed to generate ground:", error);
+            alert("Error generating ground. See console.");
         } finally {
             setIsGenerating(false);
         }
@@ -845,116 +844,16 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                         </div>
                     </div>
                 )}
-            </div>
 
-            {/* Strategy Selection */}
-            <div className="collapsible-section">
-                <button
-                    className="section-header"
-                    onClick={() => toggleSection('strategy')}
-                >
-                    <span>🎯 Strategy (Pedagogy)</span>
-                    <span className="toggle-icon">{expandedSections.has('strategy') ? '▼' : '▶'}</span>
+                {/* Generate Ground button */}
+                <button className="generate-btn" onClick={handleGenerate} disabled={state.isGenerating}>
+                    {state.isGenerating ? '⏳ Generating...' : '🚧 Generate Ground'}
                 </button>
-                {expandedSections.has('strategy') && (
-                    <div className="section-content">
-                        <div className="strategy-row">
-                            <select
-                                className="topology-select strategy-select"
-                                value={strategy}
-                                onChange={e => setStrategy(e.target.value as PedagogyStrategy)}
-                            >
-                                <option value={PedagogyStrategy.NONE}>None (Random)</option>
-                                <option value={PedagogyStrategy.LOOP_LOGIC}>Loop Logic</option>
-                                <option value={PedagogyStrategy.FUNCTION_LOGIC}>Function Logic</option>
-                                <option value={PedagogyStrategy.WHILE_LOOP_DECREASING}>While Loop (Decreasing)</option>
-                                <option value={PedagogyStrategy.CONDITIONAL_BRANCHING}>Conditional Branching</option>
-                                <option value={PedagogyStrategy.VARIABLE_RATE_CHANGE}>Variable Rate Change</option>
-                                <option value={PedagogyStrategy.NESTED_LOOPS}>Nested Loops</option>
-                                <option value={PedagogyStrategy.PATTERN_RECOGNITION}>Pattern Recognition</option>
-                                <option value={PedagogyStrategy.BACKTRACKING}>Backtracking</option>
-                            </select>
-                            <select
-                                className="topology-select difficulty-select"
-                                value={difficulty}
-                                onChange={e => setDifficulty(e.target.value as any)}
-                            >
-                                <option value="intro">Intro</option>
-                                <option value="simple">Simple</option>
-                                <option value="complex">Complex</option>
-                            </select>
-                        </div>
-                    </div>
-                )}
+
+                <p className="hint-text" style={{ fontSize: '11px', color: '#888', textAlign: 'center', marginTop: '8px', padding: '0 12px' }}>
+                    💡 After generating ground, switch to <strong>Placement</strong> tab to add items.
+                </p>
             </div>
-
-            {/* Academic Parameters */}
-            <div className="collapsible-section">
-                <button
-                    className="section-header"
-                    onClick={() => toggleSection('academic')}
-                >
-                    <span>📚 Academic Parameters</span>
-                    <span className="toggle-icon">{expandedSections.has('academic') ? '▼' : '▶'}</span>
-                </button>
-                {expandedSections.has('academic') && (
-                    <div className="section-content">
-                        <div className="param-group">
-                            <label>Bloom Level</label>
-                            <select
-                                className="topology-select"
-                                value={params.bloom_level || 'apply'}
-                                onChange={e => updateParam('bloom_level', e.target.value)}
-                            >
-                                <option value="remember">Remember (L1)</option>
-                                <option value="understand">Understand (L2)</option>
-                                <option value="apply">Apply (L3)</option>
-                                <option value="analyze">Analyze (L4)</option>
-                                <option value="evaluate">Evaluate (L5)</option>
-                                <option value="create">Create (L6)</option>
-                            </select>
-                        </div>
-
-                        <div className="item-goals">
-                            <label className="item-goals-label">Item Goals</label>
-                            <div className="item-goals-row">
-                                <div className="item-goal">
-                                    <label>Gems</label>
-                                    <input
-                                        type="number"
-                                        value={params.gem_count || 3}
-                                        onChange={e => updateParam('gem_count', parseInt(e.target.value))}
-                                        min={0} max={20}
-                                    />
-                                </div>
-                                <div className="item-goal">
-                                    <label>Crystals</label>
-                                    <input
-                                        type="number"
-                                        value={params.crystal_count || 0}
-                                        onChange={e => updateParam('crystal_count', parseInt(e.target.value))}
-                                        min={0} max={20}
-                                    />
-                                </div>
-                                <div className="item-goal">
-                                    <label>Switches</label>
-                                    <input
-                                        type="number"
-                                        value={params.switch_count || 0}
-                                        onChange={e => updateParam('switch_count', parseInt(e.target.value))}
-                                        min={0} max={10}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Generate button - still here for direct access, also triggered by ActionBar */}
-            <button className="generate-btn" onClick={handleGenerate} disabled={state.isGenerating}>
-                {state.isGenerating ? '⏳ Generating...' : '🚀 Generate Map'}
-            </button>
         </div>
     );
 };
