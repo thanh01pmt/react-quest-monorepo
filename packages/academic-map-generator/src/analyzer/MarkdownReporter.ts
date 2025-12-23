@@ -241,6 +241,51 @@ export class MarkdownReporter {
       byType.forEach((count, type) => {
         this.line(`- ${type}: ${count}`);
       });
+      
+      // Detailed Table
+      this.h3("Detailed Element List");
+      this.line("| ID | Type | Role | Label | Coordinates |");
+      this.line("|----|------|------|-------|-------------|");
+      
+      // Limit detailed output to avoid huge files
+      const detailedList = context.selectableElements.slice(0, 50); 
+      
+      detailedList.forEach(element => {
+          const el = element as any;
+          const role = el.metadata?.role || 'N/A';
+          const label = el.metadata?.label || 'N/A';
+          
+          let coordsStr = '-';
+          if (el.coords && el.coords.length > 0) {
+              if (el.coords.length <= 12) { // Show up to 12 coords (~3-4 blocks) inline
+                  coordsStr = el.coords.map((c: any) => `[${c[0]},${c[1]},${c[2]}]`).join(', ');
+              } else {
+                  coordsStr = `${el.coords.length} coords (See Map)`;
+              }
+          }
+          
+          this.line(`| **${el.id}** | ${el.type} | ${role} | ${label} | \`${coordsStr}\` |`);
+      });
+      
+      if (context.selectableElements.length > 50) {
+         this.line(`\n_...and ${context.selectableElements.length - 50} more elements..._`);
+      }
+
+      // Visual Gallery for Important Elements
+      const visualElements = detailedList.filter(e => {
+          const el = e as any;
+          return el.coords && el.coords.length > 0 && (el.coords.length > 1 || el.metadata?.role);
+      });
+
+      if (visualElements.length > 0) {
+          this.h3("Element Visualizations");
+          visualElements.forEach(element => {
+              const el = element as any;
+              const blocks: Vector3[] = el.coords.map((c: any) => ({x: c[0], y: c[1], z: c[2]}));
+              this.line(`**${el.id}** (${el.metadata?.label || el.type})`);
+              this.drawFragmentMap(blocks, el.id);
+          });
+      }
     }
 
     // Footer

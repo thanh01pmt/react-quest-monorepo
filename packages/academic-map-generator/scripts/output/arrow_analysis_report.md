@@ -1,7 +1,7 @@
 
 # MAP ANALYSIS REPORT: MAZE
 
-**Created:** 2025-12-23T09:14:34.768Z | **Total Blocks:** 15
+**Created:** 2025-12-23T09:35:18.127Z | **Total Blocks:** 15
 
 ## 1. 🗺️ Global Map Structure
 
@@ -107,8 +107,17 @@
 
 ## 3. 🔄 Pattern Analysis
 
-**Pattern #0:** `mirror`
-- Unit Elements: area_0_left_wing, area_0_right_wing
+**Pattern #0:** `repeat`
+- Unit Elements: area_0_edge_0_zigzag
+- Repetitions: 2
+**Pattern #1:** `repeat`
+- Unit Elements: area_0_edge_1_zigzag
+- Repetitions: 2
+**Pattern #2:** `repeat`
+- Unit Elements: area_0_edge_2_zigzag
+- Repetitions: 2
+**Pattern #3:** `mirror`
+- Unit Elements: area_0_left_mass, area_0_right_mass
 - Repetitions: 2
 
 ## 4. 📍 Prioritized Coordinates
@@ -125,7 +134,7 @@
 10 | .  . ██  .  . 
 9  | .  . ██  .  . 
 8  | .  . ██  .  . 
-7  | .  . ██  .  . 
+7  | .  . ░░  .  . 
 6  | .  . ██  .  . 
 ```
 | Priority | Position | Category | Reasons |
@@ -135,17 +144,116 @@
 | 9 | [12, 0, 12] | critical | Right Wing Tip (Area Extremity) |
 | 7 | [10, 0, 6] | important | Segment endpoint (start) |
 | 7 | [10, 0, 11] | important | Segment endpoint (end) |
-| 4 | [10, 0, 7] | optional | Interval point (every 1 steps) |
-| 4 | [10, 0, 8] | optional | Interval point (every 1 steps) |
-| 4 | [10, 0, 9] | optional | Interval point (every 1 steps) |
-| 4 | [10, 0, 10] | optional | Interval point (every 1 steps) |
+| 6 | [10, 0, 9] | recommended | Segment midpoint |
+| 4 | [10, 0, 8] | optional | Interval point (every 2 steps) |
+| 4 | [10, 0, 10] | optional | Interval point (every 2 steps) |
 
 ## 5. 🎛️ Selectable Elements
 
 **Element Distribution:**
-- segment: 4
+- segment: 6
 - position: 4
 - keypoint: 2
+
+### Detailed Element List
+
+| ID | Type | Role | Label | Coordinates |
+|----|------|------|-------|-------------|
+| **segment:seg_0** | segment | N/A | N/A | `-` |
+| **position:seg_0[1]** | position | N/A | N/A | `-` |
+| **position:seg_0[2]** | position | N/A | N/A | `-` |
+| **position:seg_0[3]** | position | N/A | N/A | `-` |
+| **position:seg_0[4]** | position | N/A | N/A | `-` |
+| **area_0_left_mass** | segment | wing_mass | N/A | `[9,0,12], [9,0,13], [8,0,12]` |
+| **area_0_right_mass** | segment | wing_mass | N/A | `[11,0,12], [11,0,13], [12,0,12]` |
+| **area_0_edge_0_zigzag** | segment | boundary_edge | Zigzag Edge (Staircase) | `[8,0,12], [9,0,13]` |
+| **area_0_edge_1_zigzag** | segment | boundary_edge | Zigzag Edge (Staircase) | `[9,0,13], [8,0,12]` |
+| **area_0_edge_2_zigzag** | segment | boundary_edge | Zigzag Edge (Staircase) | `[8,0,12], [9,0,13]` |
+| **keypoint:endpoint_1** | keypoint | N/A | N/A | `-` |
+| **keypoint:endpoint_2** | keypoint | N/A | N/A | `-` |
+
+### Element Visualizations
+
+**area_0_left_mass** (segment)
+
+**Visualization: area_0_left_mass**
+```text
+    8  9  10 11 12 
+    ---------------
+14 | .  . ░░  .  . 
+13 | . ██ ░░ ░░  . 
+12 |██ ██ ░░ ░░ ░░ 
+11 | .  . ░░  .  . 
+10 | .  . ░░  .  . 
+9  | .  . ░░  .  . 
+8  | .  . ░░  .  . 
+7  | .  . ░░  .  . 
+6  | .  . ░░  .  . 
+```
+**area_0_right_mass** (segment)
+
+**Visualization: area_0_right_mass**
+```text
+    8  9  10 11 12 
+    ---------------
+14 | .  . ░░  .  . 
+13 | . ░░ ░░ ██  . 
+12 |░░ ░░ ░░ ██ ██ 
+11 | .  . ░░  .  . 
+10 | .  . ░░  .  . 
+9  | .  . ░░  .  . 
+8  | .  . ░░  .  . 
+7  | .  . ░░  .  . 
+6  | .  . ░░  .  . 
+```
+**area_0_edge_0_zigzag** (Zigzag Edge (Staircase))
+
+**Visualization: area_0_edge_0_zigzag**
+```text
+    8  9  10 11 12 
+    ---------------
+14 | .  . ░░  .  . 
+13 | . ██ ░░ ░░  . 
+12 |██ ░░ ░░ ░░ ░░ 
+11 | .  . ░░  .  . 
+10 | .  . ░░  .  . 
+9  | .  . ░░  .  . 
+8  | .  . ░░  .  . 
+7  | .  . ░░  .  . 
+6  | .  . ░░  .  . 
+```
+**area_0_edge_1_zigzag** (Zigzag Edge (Staircase))
+
+**Visualization: area_0_edge_1_zigzag**
+```text
+    8  9  10 11 12 
+    ---------------
+14 | .  . ░░  .  . 
+13 | . ██ ░░ ░░  . 
+12 |██ ░░ ░░ ░░ ░░ 
+11 | .  . ░░  .  . 
+10 | .  . ░░  .  . 
+9  | .  . ░░  .  . 
+8  | .  . ░░  .  . 
+7  | .  . ░░  .  . 
+6  | .  . ░░  .  . 
+```
+**area_0_edge_2_zigzag** (Zigzag Edge (Staircase))
+
+**Visualization: area_0_edge_2_zigzag**
+```text
+    8  9  10 11 12 
+    ---------------
+14 | .  . ░░  .  . 
+13 | . ██ ░░ ░░  . 
+12 |██ ░░ ░░ ░░ ░░ 
+11 | .  . ░░  .  . 
+10 | .  . ░░  .  . 
+9  | .  . ░░  .  . 
+8  | .  . ░░  .  . 
+7  | .  . ░░  .  . 
+6  | .  . ░░  .  . 
+```
 
 ## 📊 Summary
 
@@ -154,7 +262,7 @@ Total Blocks: 15
 Areas: 1
 Path Segments: 1
 Meta-Paths: 1
-Patterns: 1
-Priority Coords: 9
-Selectable Elements: 10
+Patterns: 4
+Priority Coords: 8
+Selectable Elements: 12
 ```

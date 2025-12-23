@@ -181,10 +181,13 @@ try {
   console.log(`\nSelectable Elements (Detailed):`);
   context.selectableElements.forEach((element, i) => {
     const el = element as any;
-    // Chỉ in ra top 10 hoặc những cái quan trọng
-    if (i < 15) {
-      console.log(`  - ${el.id} (${el.type}): ${(el.coords || []).length} coords. Role: ${el.metadata?.role || 'N/A'}`);
-    }
+    // Print all elements
+    const coords = el.coords || [];
+    const coordsStr = coords.length <= 10 
+      ? coords.map((c: any) => `[${c[0]},${c[1]},${c[2]}]`).join(', ')
+      : `${coords.length} coords`;
+      
+    console.log(`  - ${el.id} (${el.type}): ${coordsStr}. Role: ${el.metadata?.role || 'N/A'} - Label: ${el.metadata?.label || 'N/A'}`);
   });
 
   console.log(`\nPrioritized Coords: ${context.prioritizedCoords.length}`);

@@ -64,11 +64,15 @@ export interface Area {
   holes?: Hole[];            // Internal holes
   gateways?: Gateway[];      // Entry/exit points connecting to paths
   // [NEW] Cấu trúc nội tại
-  subStructures?: {
-    type: 'wing' | 'body' | 'path_fragment';
-    coords: Vector3[];
-    id: string;
-  }[];
+  subStructures?: AreaSubStructure[]; // Internal components (wings, spine)
+  internalPaths?: PathSegment[]; // Contour edges (zigzag, base)
+}
+
+export interface AreaSubStructure {
+  type: 'wing_mass' | 'body_mass';
+  id: string;
+  coords: Vector3[];
+  description?: string;
 }
 
 // NEW: Hole in an Area (empty space inside)
@@ -315,6 +319,211 @@ function keyToVector(key: string): Vector3 {
 // ============================================================================
 // TIER 1: GEOMETRIC DECOMPOSITION
 // ============================================================================
+
+// ============================================================================
+// GENERIC AREA BOUNDARY ANALYZER (Contour Tracing)
+// ============================================================================
+
+class AreaBoundaryAnalyzer {
+  private blockSet: Set<string> = new Set();
+  
+  /**
+   * Analyze boundary to find generic edges
+   */
+  public analyzeBoundary(areaBlocks: Vector3[]): PathSegment[] {
+    // 1. Trace the contour (ordered list of boundary blocks)
+    const boundaryPoints = this.traceContour(areaBlocks);
+    if (boundaryPoints.length < 3) return [];
+
+    // 2. Segment based on vector changes
+    const segments = this.segmentContour(boundaryPoints);
+    
+    return segments;
+  }
+
+  /**
+   * Moore-Neighbor Tracing Algorithm
+   */
+  private traceContour(blocks: Vector3[]): Vector3[] {
+    if (blocks.length === 0) return [];
+    
+    // 1. Setup lookup
+    this.blockSet.clear();
+    blocks.forEach(b => this.blockSet.add(vectorToKey(b)));
+
+    // 2. Find Start Point (Min X, then Min Z) -> Top-Leftmost
+    // Sort logic: X ascending, then Z ascending
+    const sorted = [...blocks].sort((a,b) => (a.x - b.x) || (a.z - b.z));
+    const start = sorted[0];
+    
+    const contour: Vector3[] = [start];
+    
+    // 3. Moore-Neighbor Tracing
+    const dirs = [
+      {x:0, z:1},   // N
+      {x:1, z:1},   // NE
+      {x:1, z:0},   // E
+      {x:1, z:-1},  // SE
+      {x:0, z:-1},  // S
+      {x:-1, z:-1}, // SW
+      {x:-1, z:0},  // W
+      {x:-1, z:1}   // NW
+    ];
+
+    let curr = start;
+    let backtrackIdx = 6; // Start from West
+
+    let loopSanity = 0;
+    const MAX_LOOPS = blocks.length * 4; 
+
+    while (loopSanity < MAX_LOOPS) {
+      let foundNext = false;
+      
+      // Search 8 neighbors clockwise starting from backtrackIdx
+      for (let i = 0; i < 8; i++) {
+        const idx = (backtrackIdx + i) % 8;
+        const dir = dirs[idx];
+        const candidate = { x: curr.x + dir.x, y: curr.y, z: curr.z + dir.z };
+        
+        if (this.blockSet.has(vectorToKey(candidate))) {
+          const next = candidate;
+          
+          if (vectorEquals(next, start) && contour.length > 2) {
+             return contour;
+          }
+          
+          contour.push(next);
+          curr = next;
+          backtrackIdx = (idx + 4) % 8; 
+          foundNext = true;
+          break;
+        }
+      }
+      
+      if (!foundNext) break;
+      loopSanity++;
+    }
+
+    return contour;
+  }
+
+  private segmentContour(contour: Vector3[]): PathSegment[] {
+    const segments: PathSegment[] = [];
+    if (contour.length < 2) return segments;
+    
+    let currentSegment: Vector3[] = [contour[0]];
+    let currentVector = this.getSlopeVector(contour[0], contour[1]); 
+
+    for (let i = 1; i < contour.length; i++) {
+      const p1 = contour[i-1];
+      const p2 = contour[i];
+      const newVector = this.getSlopeVector(p1, p2);
+
+      if (!vectorEquals(currentVector, newVector)) {
+        segments.push({
+            id: `edge_${segments.length}`,
+            points: currentSegment,
+            direction: currentVector,
+            length: currentSegment.length,
+            plane: 'xz' as const
+        });
+        
+        currentSegment = [p1, p2]; 
+        currentVector = newVector;
+      } else {
+        currentSegment.push(p2);
+      }
+    }
+    
+    segments.push({
+        id: `edge_${segments.length}`,
+        points: currentSegment,
+        direction: currentVector,
+        length: currentSegment.length,
+        plane: 'xz' as const
+    });
+
+    return this.mergeStaircaseSegments(segments);
+  }
+
+  private mergeStaircaseSegments(rawSegments: PathSegment[]): PathSegment[] {
+    const merged: PathSegment[] = [];
+    
+    let i = 0;
+    while (i < rawSegments.length) {
+        // Detect Pattern Repetition (L=2 to 3)
+        let bestPatternLen = 0;
+        let bestPatternCount = 0;
+
+        for (let L = 2; L <= 3; L++) {
+            if (i + L * 2 <= rawSegments.length) {
+                const pattern = rawSegments.slice(i, i + L);
+                let count = 0;
+                let k = i;
+                let match = true;
+                while (k + L <= rawSegments.length) {
+                    for (let p = 0; p < L; p++) {
+                        if (!vectorEquals(rawSegments[k+p].direction, pattern[p].direction)) {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (!match) break;
+                    count++;
+                    k += L;
+                }
+                
+                if (count >= 2 && count * L > bestPatternCount * bestPatternLen) {
+                    bestPatternLen = L;
+                    bestPatternCount = count;
+                }
+            }
+        }
+        
+        if (bestPatternLen > 0) {
+            const totalSegments = bestPatternLen * bestPatternCount;
+            const segmentsToMerge = rawSegments.slice(i, i + totalSegments);
+            const mergedPoints: Vector3[] = [];
+            mergedPoints.push(segmentsToMerge[0].points[0]);
+            
+            for (const seg of segmentsToMerge) {
+                for (let pi = 1; pi < seg.points.length; pi++) {
+                    mergedPoints.push(seg.points[pi]);
+                }
+            }
+
+            const startP = mergedPoints[0];
+            const endP = mergedPoints[mergedPoints.length - 1];
+            const trendVec = vectorNormalize(vectorSub(endP, startP));
+            
+            const dx = Math.abs(endP.x - startP.x);
+            const dz = Math.abs(endP.z - startP.z);
+            const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
+            const divisor = gcd(dx, dz);
+            const slopeStr = divisor > 0 ? `${dx/divisor}:${dz/divisor}` : 'infinity';
+
+            merged.push({
+                id: `staircase_edge_${merged.length}_slope_${slopeStr}`,
+                points: mergedPoints,
+                direction: trendVec,
+                length: mergedPoints.length,
+                plane: 'xz' as const
+            });
+            
+            i += totalSegments;
+        } else {
+            merged.push(rawSegments[i]);
+            i++;
+        }
+    }
+    
+    return merged;
+  }
+
+  private getSlopeVector(p1: Vector3, p2: Vector3): Vector3 {
+      return { x: p2.x - p1.x, y: p2.y - p1.y, z: p2.z - p1.z };
+  }
+}
 
 class Tier1Analyzer {
   private blocks: Vector3[];
@@ -1443,47 +1652,56 @@ class Tier1Analyzer {
   private analyzeAreaInternals(areas: Area[]) {
     for (const area of areas) {
       area.subStructures = [];
+      area.internalPaths = [];
       const blocks = area.blocks;
       if (blocks.length < 3) continue;
 
-      // 1. Detect Symmetry Axis (Trục đối xứng)
-      // Tìm trục X trung tâm
+      // ---------------------------------------------------------
+      // 1. Mass Analysis (Symmetry)
+      // ---------------------------------------------------------
       const xs = blocks.map(b => b.x);
       const minX = Math.min(...xs);
       const maxX = Math.max(...xs);
       const midX = (minX + maxX) / 2;
 
-      // Kiểm tra đối xứng qua trục Z tại midX
       const leftBlocks = blocks.filter(b => b.x < midX);
       const rightBlocks = blocks.filter(b => b.x > midX);
-      const centerBlocks = blocks.filter(b => b.x === midX);
 
-      // Nếu số lượng block 2 bên bằng nhau -> Khả năng cao là đối xứng
-      if (leftBlocks.length > 0 && leftBlocks.length === rightBlocks.length) {
-        
-        // Define Left Wing
-        area.subStructures.push({
-          type: 'wing',
-          id: `${area.id}_left_wing`,
-          coords: leftBlocks
-        });
-
-        // Define Right Wing
-        area.subStructures.push({
-          type: 'wing',
-          id: `${area.id}_right_wing`,
-          coords: rightBlocks
-        });
-
-        // Define Center Body (Spine extension inside area)
-        if (centerBlocks.length > 0) {
-          area.subStructures.push({
-            type: 'body',
-            id: `${area.id}_spine`,
-            coords: centerBlocks
-          });
-        }
+      if (leftBlocks.length > 0 && Math.abs(leftBlocks.length - rightBlocks.length) <= 1) {
+        area.subStructures.push({ type: 'wing_mass', id: `${area.id}_left_mass`, coords: leftBlocks, description: "Left Wing Volume" });
+        area.subStructures.push({ type: 'wing_mass', id: `${area.id}_right_mass`, coords: rightBlocks, description: "Right Wing Volume" });
       }
+
+      // ---------------------------------------------------------
+      // 2. Generic Contour Tracing (New Engine)
+      // ---------------------------------------------------------
+      const tracer = new AreaBoundaryAnalyzer();
+      const boundaryPaths = tracer.analyzeBoundary(blocks);
+      
+      boundaryPaths.forEach(edge => {
+          // Add prefix to make ID unique per area
+          edge.id = `${area.id}_${edge.id}`;
+          
+          // Classify edge for UI/Optimization
+          const isDiagonal = Math.abs(edge.direction.x) > 0 && Math.abs(edge.direction.z) > 0;
+          const isHorizontal = Math.abs(edge.direction.x) > 0 && edge.direction.z === 0;
+          
+          if (isDiagonal) {
+              // Ensure keyword 'zigzag' or 'staircase' allows Tier 4 detection
+              if (!edge.id.includes('zigzag') && !edge.id.includes('staircase')) {
+                  edge.id += '_zigzag';
+              }
+          } else if (isHorizontal) {
+              // Identify potential Base edge (horizontal and reasonably long)
+              if (edge.length >= 3) {
+                  edge.id += '_base'; 
+              } else {
+                  edge.id += '_straight';
+              }
+          }
+      });
+       
+      area.internalPaths = boundaryPaths;
     }
   }
 
@@ -1628,26 +1846,47 @@ class Tier2Analyzer {
 
   private findPatterns(tier1: Tier1Result): Pattern[] {
     const patterns: Pattern[] = [];
+    
+    // 1. Internal Staircase/Zigzag Detection in Areas
+    // Analyze both Main Segments and Area Internal Paths
+    let allSegmentsToAnalyze = [...tier1.segments];
+    tier1.areas.forEach(a => {
+        if (a.internalPaths) allSegmentsToAnalyze.push(...a.internalPaths);
+    });
 
-    // [NEW] Tìm pattern từ Area Substructures
+    for (const seg of allSegmentsToAnalyze) {
+        // If diagonal direction (e.g. x=1, z=1)
+        if (Math.abs(seg.direction.x) > 0 && Math.abs(seg.direction.z) > 0) {
+            patterns.push({
+                id: `pattern_staircase_${seg.id}`,
+                type: 'repeat', 
+                unitElements: [seg.id],
+                repetitions: seg.length,
+                transform: { translate: seg.direction }
+            });
+        }
+    }
+
+    // 2. Area Symmetry (Wings)
     for (const area of tier1.areas) {
       if (area.subStructures) {
-        const leftWing = area.subStructures.find(s => s.id.includes('left_wing'));
-        const rightWing = area.subStructures.find(s => s.id.includes('right_wing'));
+        const leftWing = area.subStructures.find(s => s.id.includes('left_mass') || s.id.includes('left_wing'));
+        const rightWing = area.subStructures.find(s => s.id.includes('right_mass') || s.id.includes('right_wing'));
 
         if (leftWing && rightWing) {
           patterns.push({
             id: `pattern_area_symmetry_${area.id}`,
             type: 'mirror',
-            unitElements: [leftWing.id, rightWing.id], // ID của 2 cánh
+            unitElements: [leftWing.id, rightWing.id], 
             repetitions: 2,
             transform: {
-              mirrorPlane: 'xz' // Đối xứng qua trục Z
+              mirrorPlane: 'xz' 
             }
           });
         }
       }
     }
+
 
     // Find repeat patterns from relations
     const symmetricPairs = tier1.relations.filter(r => r.type === 'axis_symmetric');
@@ -1822,22 +2061,38 @@ class Tier4Analyzer {
       elements.push(...positionElements);
     }
     
-    // 1b. [NEW] Create selectable elements for Area Substructures (Wings)
+    // 1b. [NEW] Create selectable elements for Area Substructures & Internal Paths
     for (const area of tier3.areas) {
       if (area.subStructures) {
         for (const sub of area.subStructures) {
-          // Tạo selectable element cho từng cánh
-          // Chuyển đổi coords sang format SECoord
-          const coords: SECoord[] = sub.coords.map(c => [c.x, c.y, c.z] as SECoord);
+          elements.push({
+            id: sub.id,
+            type: 'segment', // Treat as segment for selection purposes
+            coords: sub.coords.map(c => [c.x, c.y, c.z] as SECoord),
+            metadata: { 
+              role: sub.type,
+              description: sub.description
+            }
+          } as any);
+        }
+      }
+
+      // [NEW] Area Internal Paths (Edges)
+      if (area.internalPaths) {
+        for (const path of area.internalPaths) {
+          const coords: SECoord[] = path.points.map(c => [c.x, c.y, c.z] as SECoord);
           
-          elements.push(createSegmentElement(
-            sub.id,
-            coords,
-            'recommended'
-          ));
-          
-          // Add metadata separately if needed (createSegmentElement might need strict types)
-          // Or update createSegmentElement to accept metadata
+          let label = 'Internal Path';
+          if (path.id.includes('zigzag')) label = 'Zigzag Edge (Staircase)';
+          if (path.id.includes('base')) label = 'Base Edge (Parallel)';
+          if (path.id.includes('spine')) label = 'Central Spine';
+
+          elements.push({
+            id: path.id,
+            type: 'segment', 
+            coords: coords,
+            metadata: { role: 'boundary_edge', label }
+          } as any);
         }
       }
     }
