@@ -11,9 +11,54 @@ import {
     MapAnalyzer,
     type AcademicPlacement,
     type ItemPlacement,
-    type PlacementContext
+    type PlacementContext,
+    type AcademicConcept
 } from '@repo/academic-placer';
 import './PlacementVariants.css';
+
+// Mapping from academic concept to recommended toolbox preset
+const CONCEPT_TO_TOOLBOX: Partial<Record<AcademicConcept, string>> = {
+    // Sequential
+    'sequential': 'commands_l6_comprehensive',
+
+    // Loop concepts
+    'repeat_n': 'loops_l2_with_actions',
+    'repeat_until': 'loops_l2_with_actions',
+    'while_condition': 'while_loops_l2_item_sensing',
+    'for_each': 'loops_l2_with_actions',
+    'infinite_loop': 'while_loops_l1_basic',
+    'nested_loop': 'loops_l2_with_actions',
+
+    // Conditional concepts
+    'if_simple': 'conditionals_l1_movement_sensing',
+    'if_else': 'conditionals_l2_interaction_sensing',
+    'if_elif_else': 'conditionals_l3_comprehensive',
+    'switch_case': 'conditionals_l3_comprehensive',
+    'nested_if': 'conditionals_l3_comprehensive',
+
+    // Variable concepts
+    'counter': 'variables_l2_calculation',
+    'state_toggle': 'variables_l1_basic_assignment',
+    'accumulator': 'variables_l2_calculation',
+    'flag': 'variables_l1_basic_assignment',
+    'collection': 'variables_comprehensive',
+
+    // Function concepts
+    'procedure_simple': 'functions_l4_comprehensive',
+    'procedure_with_param': 'functions_l4_comprehensive',
+    'function_return': 'functions_l4_comprehensive',
+    'function_compose': 'functions_l4_comprehensive',
+    'recursion': 'functions_l4_comprehensive',
+
+    // Combinations
+    'repeat_n_counter': 'variables_comprehensive',
+    'while_counter': 'while_loops_comprehensive',
+    'loop_function_call': 'loops_l3_functions_integration',
+    'loop_if_inside': 'conditionals_l3_comprehensive',
+    'if_loop_inside': 'conditionals_l3_comprehensive',
+    'function_loop_inside': 'mixed_basic_full_integration',
+    'conditional_function_call': 'mixed_basic_full_integration',
+};
 
 interface PlacementVariantsProps {
     pathInfo: {
@@ -23,12 +68,19 @@ interface PlacementVariantsProps {
         placement_coords?: [number, number, number][];
         metadata?: Record<string, any>;
     } | null;
-    onApplyPlacement: (items: ItemPlacement[]) => void;
+    onApplyPlacement: (items: ItemPlacement[], suggestedToolbox?: string) => void;
+    currentToolboxPreset?: string;
+    onSuggestToolbox?: (presetKey: string) => void;
 }
 
 type CategoryFilter = 'all' | 'sequential' | 'loop' | 'conditional' | 'function' | 'variable' | 'combination';
 
-export function PlacementVariants({ pathInfo, onApplyPlacement }: PlacementVariantsProps) {
+export function PlacementVariants({
+    pathInfo,
+    onApplyPlacement,
+    currentToolboxPreset,
+    onSuggestToolbox
+}: PlacementVariantsProps) {
     const [placements, setPlacements] = useState<AcademicPlacement[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
@@ -102,12 +154,55 @@ export function PlacementVariants({ pathInfo, onApplyPlacement }: PlacementVaria
         return placements.find(p => p.id === selectedId) || null;
     }, [placements, selectedId]);
 
-    // Apply selected placement
+    // Get suggested toolbox for a placement
+    const getSuggestedToolbox = useCallback((placement: AcademicPlacement): string | undefined => {
+        return CONCEPT_TO_TOOLBOX[placement.primaryConcept as AcademicConcept];
+    }, []);
+
+    // Check if current toolbox matches required concept
+    const isToolboxMismatch = useMemo(() => {
+        if (!selectedPlacement || !currentToolboxPreset) return false;
+        const suggested = getSuggestedToolbox(selectedPlacement);
+        if (!suggested) return false;
+
+        // Simple check: if suggested toolbox contains a different prefix
+        const suggestedPrefix = suggested.split('_')[0];
+        const currentPrefix = currentToolboxPreset.split('_')[0];
+
+        // More advanced: check if current preset includes the required category
+        if (selectedPlacement.primaryConcept.includes('procedure') && !currentToolboxPreset.includes('function') && !currentToolboxPreset.includes('mixed')) {
+            return true;
+        }
+        if (selectedPlacement.primaryConcept.includes('repeat') && !currentToolboxPreset.includes('loop') && !currentToolboxPreset.includes('mixed')) {
+            return true;
+        }
+        if (selectedPlacement.primaryConcept.includes('if') && !currentToolboxPreset.includes('conditional') && !currentToolboxPreset.includes('mixed')) {
+            return true;
+        }
+        if (selectedPlacement.primaryConcept.includes('var') && !currentToolboxPreset.includes('variable') && !currentToolboxPreset.includes('mixed')) {
+            return true;
+        }
+
+        return false;
+    }, [selectedPlacement, currentToolboxPreset, getSuggestedToolbox]);
+
+    // Apply selected placement with toolbox suggestion
     const handleApply = useCallback(() => {
         if (selectedPlacement) {
-            onApplyPlacement(selectedPlacement.items);
+            const suggestedToolbox = getSuggestedToolbox(selectedPlacement);
+            onApplyPlacement(selectedPlacement.items, suggestedToolbox);
         }
-    }, [selectedPlacement, onApplyPlacement]);
+    }, [selectedPlacement, onApplyPlacement, getSuggestedToolbox]);
+
+    // Handle suggest toolbox button
+    const handleSuggestToolbox = useCallback(() => {
+        if (selectedPlacement && onSuggestToolbox) {
+            const suggested = getSuggestedToolbox(selectedPlacement);
+            if (suggested) {
+                onSuggestToolbox(suggested);
+            }
+        }
+    }, [selectedPlacement, onSuggestToolbox, getSuggestedToolbox]);
 
     // Get category badge class
     const getCategoryClass = (concept: string): string => {
@@ -241,9 +336,36 @@ export function PlacementVariants({ pathInfo, onApplyPlacement }: PlacementVaria
 
             {/* Apply Button */}
             {selectedPlacement && (
-                <button className="apply-variant-btn" onClick={handleApply}>
-                    ✅ Apply "{selectedPlacement.name}"
-                </button>
+                <div className="apply-section">
+                    {/* Toolbox Mismatch Warning */}
+                    {isToolboxMismatch && (
+                        <div className="toolbox-warning">
+                            ⚠️ <strong>Toolbox Mismatch:</strong> The selected variant requires blocks for "{selectedPlacement.primaryConcept.replace(/_/g, ' ')}"
+                            that may not be in the current toolbox.
+                            {onSuggestToolbox && (
+                                <button className="suggest-toolbox-btn" onClick={handleSuggestToolbox}>
+                                    🔧 Suggest Toolbox
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Suggested Toolbox Info */}
+                    {getSuggestedToolbox(selectedPlacement) && (
+                        <div className="toolbox-suggestion">
+                            💡 <strong>Recommended:</strong> {getSuggestedToolbox(selectedPlacement)?.replace(/_/g, ' ')}
+                            {onSuggestToolbox && !isToolboxMismatch && (
+                                <button className="suggest-toolbox-btn small" onClick={handleSuggestToolbox}>
+                                    Apply
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    <button className="apply-variant-btn" onClick={handleApply}>
+                        ✅ Apply "{selectedPlacement.name}"
+                    </button>
+                </div>
             )}
 
             {/* Empty state */}

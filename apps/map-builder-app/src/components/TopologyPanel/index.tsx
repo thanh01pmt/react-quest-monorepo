@@ -16,19 +16,28 @@ import { PlacedObject, BuildableAsset } from '../../types';
 import { PlacementService, PedagogyStrategy } from '../../map-generator/PlacementService';
 import { useBuilderMode, GenerateConfig } from '../../store/builderModeContext';
 import { v4 as uuidv4 } from 'uuid';
+import { TopologyInspector, HighlightItem } from '../TopologyInspector';
 import './TopologyPanel.css';
 
 interface TopologyPanelProps {
     onGenerate: (objects: PlacedObject[], metadataUpdate?: Record<string, any>) => void;
     assetMap: Map<string, BuildableAsset>;
+    pathInfo?: {
+        start_pos: [number, number, number];
+        target_pos: [number, number, number];
+        path_coords: [number, number, number][];
+        placement_coords?: [number, number, number][];
+        metadata?: Record<string, any>;
+    } | null;
+    onHighlightChange?: (highlights: HighlightItem[]) => void;
 }
 
-export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetMap }) => {
+export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetMap, pathInfo, onHighlightChange }) => {
     const registry = useMemo(() => TopologyRegistry.getInstance(), []);
     const placementService = useMemo(() => new PlacementService(), []);
     const topologyGroups = useMemo(() => registry.getGrouped(), [registry]);
 
-    const { state, setIsEditing, setIsPathLocked, togglePathLock, setLastGenerateConfig, setIsGenerating } = useBuilderMode();
+    const { state, setIsEditing, setLastGenerateConfig, setIsGenerating } = useBuilderMode();
 
     const [selectedTopology, setSelectedTopology] = useState<string>('straight_line');
     const [params, setParams] = useState<Record<string, any>>({});
@@ -777,37 +786,18 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
         }
     };
 
-    const handleRegenerateItemsOnly = async () => {
-        // TODO: Implement regenerate items only logic
-        // This would keep ground blocks and regenerate only collectibles/interactibles
-        alert("Regenerate Items Only - Coming soon!");
-    };
-
     return (
         <div className="topology-panel">
-            {/* Post-Generate Options (visible only when editing) */}
+            {/* Post-Generate Status (visible only when editing) */}
             {state.isEditing && (
                 <div className="post-generate-section">
                     <div className="post-generate-header">
                         <span className="status-indicator">✅ Generated</span>
                         <span className="status-text">Editing mode active</span>
                     </div>
-                    <div className="post-generate-controls">
-                        <label className="lock-ground-toggle">
-                            <input
-                                type="checkbox"
-                                checked={state.isPathLocked}
-                                onChange={togglePathLock}
-                            />
-                            <span>🔒 Lock Ground</span>
-                        </label>
-                        <button
-                            className="regen-items-btn"
-                            onClick={handleRegenerateItemsOnly}
-                        >
-                            🔄 Regenerate Items
-                        </button>
-                    </div>
+                    <p className="post-generate-hint">
+                        💡 After generating ground, switch to <strong>Placement</strong> tab to add items.
+                    </p>
                 </div>
             )}
 
@@ -854,6 +844,14 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                     💡 After generating ground, switch to <strong>Placement</strong> tab to add items.
                 </p>
             </div>
+
+            {/* Topology Inspector - Shows after generation */}
+            {pathInfo && (
+                <TopologyInspector
+                    pathInfo={pathInfo}
+                    onHighlightChange={onHighlightChange}
+                />
+            )}
         </div>
     );
 };

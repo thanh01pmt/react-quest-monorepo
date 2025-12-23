@@ -1,0 +1,146 @@
+{
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 9
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 10
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 11
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 8,
+          "y": 0,
+          "z": 12
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 9,
+          "y": 0,
+          "z": 12
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 12
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 11,
+          "y": 0,
+          "z": 12
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 12,
+          "y": 0,
+          "z": 12
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 9,
+          "y": 0,
+          "z": 13
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 13
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 11,
+          "y": 0,
+          "z": 13
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 14
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 10,
+          "y": 1,
+          "z": 6,
+          "direction": 0
+        }
+      }
+    ],
+    "collectibles": [],
+    "interactibles": [],
+    "finish": {
+      "x": 10,
+      "y": 1,
+      "z": 14
+    }
+  }
+}

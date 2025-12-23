@@ -1,0 +1,393 @@
+/**
+ * TopologyInspector Styles
+ */
+
+.topology-inspector {
+    background: #1e1e26;
+    border-radius: 6px;
+    margin: 12px;
+    overflow: hidden;
+}
+
+.inspector-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: #2a2a34;
+    border: none;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.inspector-toggle:hover {
+    background: #333340;
+}
+
+.toggle-icon {
+    font-size: 0.7rem;
+    color: #888;
+}
+
+.inspector-content {
+    padding: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.refresh-btn {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    background: #3c3c48;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+    background: #4a4a58;
+    border-color: #666;
+}
+
+.inspector-error {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-bottom: 12px;
+}
+
+/* Metrics Section */
+.metrics-section h4,
+.segments-section h4,
+.positions-section h4,
+.patterns-section h4 {
+    margin: 0 0 8px;
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+/* Tier labels */
+.tier-label {
+    font-size: 0.55rem;
+    font-weight: 400;
+    color: #666;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* Detected topology */
+.detected-topology {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #a5b4fc;
+    margin-bottom: 12px;
+}
+
+.detected-topology strong {
+    color: #c4b5fd;
+    text-transform: capitalize;
+}
+
+.metric-item {
+    background: #2a2a34;
+    padding: 8px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.metric-label {
+    font-size: 0.65rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.metric-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* Segments/Positions List */
+.items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 150px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+.item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: #2a2a34;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.item-row:hover {
+    background: #333340;
+}
+
+.item-row input[type="checkbox"] {
+    accent-color: #22c55e;
+}
+
+.item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.item-name {
+    font-size: 0.8rem;
+    color: #fff;
+}
+
+.item-meta {
+    font-size: 0.65rem;
+    color: #888;
+}
+
+.color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+/* Priority Badges */
+.priority-badge {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.priority-critical {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.priority-important {
+    background: rgba(249, 115, 22, 0.2);
+    color: #fb923c;
+}
+
+.priority-recommended {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.priority-optional {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.priority-avoid {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.priority-score {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #888;
+    background: #2a2a34;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Patterns */
+.pattern-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: #2a2a34;
+    border-radius: 4px;
+}
+
+.pattern-type {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.type-repeat {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.type-mirror {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+}
+
+.type-rotate {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.type-scale {
+    background: rgba(249, 115, 22, 0.2);
+    color: #fb923c;
+}
+
+.pattern-meta {
+    font-size: 0.7rem;
+    color: #888;
+}
+
+/* More Items */
+.more-items {
+    font-size: 0.7rem;
+    color: #666;
+    text-align: center;
+    padding: 8px;
+    font-style: italic;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    color: #666;
+    font-size: 0.8rem;
+    padding: 20px;
+}
+
+/* Scrollbar */
+.items-list::-webkit-scrollbar,
+.inspector-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.items-list::-webkit-scrollbar-track,
+.inspector-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.items-list::-webkit-scrollbar-thumb,
+.inspector-content::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+
+/* Tier Sections */
+.tier-section {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #2a2a34;
+}
+
+.tier-header {
+    font-size: 0.7rem;
+    color: #22c55e;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* Point Types */
+.point-type {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.type-junction {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.type-endpoint {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.type-center {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+}
+
+.type-isolated {
+    background: rgba(100, 116, 139, 0.2);
+    color: #94a3b8;
+}
+
+/* Relation Types */
+.relation-type {
+    font-size: 0.55rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.type-parallel_axis {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.type-perpendicular {
+    background: rgba(249, 115, 22, 0.2);
+    color: #fb923c;
+}
+
+.type-axis_symmetric {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+}
+
+.type-point_symmetric {
+    background: rgba(236, 72, 153, 0.2);
+    color: #f472b6;
+}
+
+/* Compact rows */
+.item-row.compact {
+    padding: 4px 8px;
+    gap: 6px;
+}
+
+.item-row.compact .item-name {
+    font-size: 0.7rem;
+}
+
+.item-row.compact .item-meta {
+    font-size: 0.6rem;
+}

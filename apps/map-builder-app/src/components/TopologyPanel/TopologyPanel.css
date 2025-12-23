@@ -36,39 +36,15 @@
   color: #22c55e;
 }
 
-.post-generate-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.lock-ground-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  color: #ccc;
-}
-
-.lock-ground-toggle input {
-  accent-color: #f59e0b;
-}
-
-.regen-items-btn {
-  padding: 6px 12px;
-  background: #3c3c41;
-  border: 1px solid #555;
-  border-radius: 6px;
-  color: #fff;
+.post-generate-hint {
+  margin: 8px 0 0;
   font-size: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s;
+  color: #aaa;
+  line-height: 1.4;
 }
 
-.regen-items-btn:hover {
-  background: #4a4a50;
-  border-color: #666;
+.post-generate-hint strong {
+  color: #22c55e;
 }
 
 /* Collapsible Sections */

@@ -1,0 +1,3707 @@
+{
+  "timestamp": "2025-12-22T03:52:55.593Z",
+  "config": "/Users/tonypham/MEGA/WebApp/blockly-react/react-quest-monorepo/packages/academic-placer/examples/arrow-map.json",
+  "coverage": {
+    "sequential": {
+      "implemented": 1,
+      "total": 1
+    },
+    "loop": {
+      "implemented": 6,
+      "total": 6
+    },
+    "conditional": {
+      "implemented": 5,
+      "total": 5
+    },
+    "function": {
+      "implemented": 5,
+      "total": 5
+    },
+    "variable": {
+      "implemented": 5,
+      "total": 5
+    },
+    "combination": {
+      "implemented": 15,
+      "total": 17
+    },
+    "totalImplemented": 37,
+    "totalConcepts": 39,
+    "percentage": 95,
+    "summary": "37/39 = 95%"
+  },
+  "mapAnalysis": {
+    "segments": 1,
+    "areas": 1,
+    "relations": 8,
+    "patterns": 0
+  },
+  "testResults": {
+    "individual": [
+      {
+        "name": "Sequential",
+        "passed": true,
+        "count": 2
+      },
+      {
+        "name": "RepeatN",
+        "passed": true,
+        "count": 3
+      },
+      {
+        "name": "RepeatUntil",
+        "passed": true,
+        "count": 2
+      },
+      {
+        "name": "While",
+        "passed": true,
+        "count": 2
+      },
+      {
+        "name": "ForEach",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "InfiniteLoop",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "NestedLoop",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "IfSimple",
+        "passed": true,
+        "count": 2
+      },
+      {
+        "name": "IfElse",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "IfElifElse",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "SwitchCase",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "NestedIf",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "ProcedureSimple",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "ProcedureWithParam",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "FunctionReturn",
+        "passed": true,
+        "count": 2
+      },
+      {
+        "name": "FunctionCompose",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "Recursion",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "Counter",
+        "passed": true,
+        "count": 2
+      },
+      {
+        "name": "StateToggle",
+        "passed": true,
+        "count": 2
+      },
+      {
+        "name": "Accumulator",
+        "passed": true,
+        "count": 2
+      },
+      {
+        "name": "Collection",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "Flag",
+        "passed": true,
+        "count": 2
+      },
+      {
+        "name": "RepeatN+Counter",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "While+Counter",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "RepeatUntil+State",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "ForEach+Accumulator",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "Loop+If",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "If+Loop",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "Loop+Break",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "Function+Loop",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "Loop+Function",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "Function+If",
+        "passed": true,
+        "count": 1
+      },
+      {
+        "name": "Conditional+Function",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "Loop+If+Function",
+        "passed": true,
+        "count": 0
+      },
+      {
+        "name": "Function+Loop+If",
+        "passed": true,
+        "count": 1
+      }
+    ],
+    "aggregate": [
+      {
+        "name": "AllLoop",
+        "passed": true,
+        "count": 8
+      },
+      {
+        "name": "AllConditional",
+        "passed": true,
+        "count": 3
+      },
+      {
+        "name": "AllFunction",
+        "passed": true,
+        "count": 5
+      },
+      {
+        "name": "AllVariable",
+        "passed": true,
+        "count": 8
+      },
+      {
+        "name": "AllCombination",
+        "passed": true,
+        "count": 7
+      }
+    ]
+  },
+  "opportunities": [
+    {
+      "type": "MAIN_PATH_LOOP",
+      "description": "Main segment (seg_0) có 9 blocks - có thể tạo loop pattern",
+      "segments": [
+        "seg_0"
+      ],
+      "positions": [
+        {
+          "x": 10,
+          "y": 0,
+          "z": 6
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "z": 7
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "z": 9
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "z": 10
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "z": 11
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "z": 12
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "z": 13
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "z": 14
+        }
+      ],
+      "concepts": [
+        "repeat_n",
+        "sequential"
+      ],
+      "potentialDifficulty": [
+        2,
+        5
+      ]
+    },
+    {
+      "type": "PERPENDICULAR_BRANCHES",
+      "description": "4 cặp vuông góc - có thể tạo conditional hoặc function",
+      "concepts": [
+        "if_else",
+        "procedure_simple"
+      ],
+      "potentialDifficulty": [
+        5,
+        8
+      ]
+    },
+    {
+      "type": "PARALLEL_SEGMENTS",
+      "description": "2 cặp song song - có thể tạo nested loop",
+      "concepts": [
+        "nested_loop",
+        "repeat_n"
+      ],
+      "potentialDifficulty": [
+        6,
+        9
+      ]
+    }
+  ],
+  "summary": {
+    "totalSegments": 1,
+    "totalAreas": 1,
+    "availableConcepts": [
+      "sequential",
+      "pattern_recognition",
+      "repeat_n",
+      "if_simple",
+      "counter",
+      "repeat_until",
+      "state_toggle",
+      "if_else",
+      "while_condition",
+      "accumulator",
+      "flag",
+      "procedure_simple",
+      "nested_if",
+      "infinite_loop",
+      "procedure_with_param",
+      "function_return",
+      "recursion"
+    ],
+    "difficultyRange": [
+      1,
+      9
+    ],
+    "placementCount": 33,
+    "byCategory": {
+      "sequential": 2,
+      "loop": 8,
+      "conditional": 3,
+      "variable": 8,
+      "function": 5,
+      "combination": 7
+    },
+    "recommendedPlacements": [
+      {
+        "id": "sequential_basic",
+        "name": "Đường thẳng cơ bản",
+        "concepts": [
+          "sequential"
+        ],
+        "primaryConcept": "sequential",
+        "difficulty": 1,
+        "items": [
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 14
+            },
+            "groupId": "main"
+          }
+        ],
+        "patternDescription": "Di chuyển thẳng đến crystal",
+        "expectedSolution": {
+          "hasLoop": false,
+          "hasProcedure": false,
+          "hasConditional": false,
+          "hasVariable": false,
+          "estimatedSteps": 8,
+          "estimatedBlocks": 8
+        },
+        "requiredBlocks": [
+          "moveForward",
+          "turnLeft",
+          "turnRight"
+        ],
+        "tags": [
+          "beginner",
+          "tutorial"
+        ],
+        "educationalGoal": "Hiểu cách lệnh thực hiện tuần tự từ trên xuống",
+        "prerequisiteConcepts": []
+      },
+      {
+        "id": "sequential_multiple",
+        "name": "Thu thập nhiều crystal",
+        "concepts": [
+          "sequential",
+          "pattern_recognition"
+        ],
+        "primaryConcept": "sequential",
+        "difficulty": 2,
+        "items": [
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 7
+            },
+            "groupId": "collect",
+            "patternRole": "crystal_1"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 9
+            },
+            "groupId": "collect",
+            "patternRole": "crystal_2"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 11
+            },
+            "groupId": "collect",
+            "patternRole": "crystal_3"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 13
+            },
+            "groupId": "collect",
+            "patternRole": "crystal_4"
+          }
+        ],
+        "patternDescription": "Di chuyển và thu thập nhiều crystal trên đường thẳng",
+        "expectedSolution": {
+          "hasLoop": false,
+          "hasProcedure": false,
+          "hasConditional": false,
+          "hasVariable": false,
+          "estimatedSteps": 12,
+          "estimatedBlocks": 12
+        },
+        "requiredBlocks": [
+          "moveForward",
+          "turnLeft",
+          "turnRight",
+          "collect"
+        ],
+        "tags": [
+          "beginner",
+          "collect"
+        ],
+        "educationalGoal": "Học cách lập trình tuần tự với nhiều lệnh",
+        "prerequisiteConcepts": []
+      },
+      {
+        "id": "repeat_n_interval_2",
+        "name": "Repeat - crystal cách 2 bước",
+        "concepts": [
+          "repeat_n",
+          "pattern_recognition"
+        ],
+        "primaryConcept": "repeat_n",
+        "difficulty": 2,
+        "items": [
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 6
+            },
+            "groupId": "loop_interval",
+            "patternRole": "first"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 8
+            },
+            "groupId": "loop_interval",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 10
+            },
+            "groupId": "loop_interval",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 12
+            },
+            "groupId": "loop_interval",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 14
+            },
+            "groupId": "loop_interval",
+            "patternRole": "repeat"
+          }
+        ],
+        "patternDescription": "Repeat 5 times: move 2, collect",
+        "expectedSolution": {
+          "hasLoop": true,
+          "hasProcedure": false,
+          "hasConditional": false,
+          "hasVariable": false,
+          "estimatedSteps": 9,
+          "estimatedBlocks": 5,
+          "loopType": "repeat_n",
+          "loopCount": 5
+        },
+        "requiredBlocks": [
+          "repeat_times"
+        ],
+        "tags": [
+          "loop",
+          "repeat",
+          "pattern",
+          "interval"
+        ],
+        "educationalGoal": "Nhận diện pattern lặp lại và sử dụng repeat",
+        "prerequisiteConcepts": [
+          "sequential"
+        ]
+      },
+      {
+        "id": "repeat_n_every_step",
+        "name": "Repeat - thu thập mỗi bước",
+        "concepts": [
+          "repeat_n"
+        ],
+        "primaryConcept": "repeat_n",
+        "difficulty": 3,
+        "items": [
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 7
+            },
+            "groupId": "loop_every",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 8
+            },
+            "groupId": "loop_every",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 9
+            },
+            "groupId": "loop_every",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 10
+            },
+            "groupId": "loop_every",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 11
+            },
+            "groupId": "loop_every",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 12
+            },
+            "groupId": "loop_every",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 13
+            },
+            "groupId": "loop_every",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 14
+            },
+            "groupId": "loop_every",
+            "patternRole": "repeat"
+          }
+        ],
+        "patternDescription": "Repeat 8 times: move, collect",
+        "expectedSolution": {
+          "hasLoop": true,
+          "hasProcedure": false,
+          "hasConditional": false,
+          "hasVariable": false,
+          "estimatedSteps": 11,
+          "estimatedBlocks": 4,
+          "loopType": "repeat_n",
+          "loopCount": 8
+        },
+        "requiredBlocks": [
+          "repeat_times"
+        ],
+        "tags": [
+          "loop",
+          "repeat",
+          "dense"
+        ],
+        "educationalGoal": "Tối ưu code bằng vòng lặp cho pattern đều đặn",
+        "prerequisiteConcepts": [
+          "sequential"
+        ]
+      },
+      {
+        "id": "repeat_n_interval_3",
+        "name": "Repeat - crystal cách 3 bước",
+        "concepts": [
+          "repeat_n",
+          "pattern_recognition"
+        ],
+        "primaryConcept": "repeat_n",
+        "difficulty": 3,
+        "items": [
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 6
+            },
+            "groupId": "loop_3",
+            "patternRole": "first"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 9
+            },
+            "groupId": "loop_3",
+            "patternRole": "repeat"
+          },
+          {
+            "type": "crystal",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "z": 12
+            },
+            "groupId": "loop_3",
+            "patternRole": "repeat"
+          }
+        ],
+        "patternDescription": "Repeat 3 times: move 3, collect",
+        "expectedSolution": {
+          "hasLoop": true,
+          "hasProcedure": false,
+          "hasConditional": false,
+          "hasVariable": false,
+          "estimatedSteps": 7,
+          "estimatedBlocks": 5,
+          "loopType": "repeat_n",
+          "loopCount": 3
+        },
+        "requiredBlocks": [
+          "repeat_times"
+        ],
+        "tags": [
+          "loop",
+          "repeat",
+          "pattern"
+        ],
+        "educationalGoal": "Nhận diện pattern với khoảng cách khác nhau",
+        "prerequisiteConcepts": [
+          "sequential"
+        ]
+      }
+    ]
+  },
+  "allPlacements": [
+    {
+      "id": "sequential_basic",
+      "name": "Đường thẳng cơ bản",
+      "concepts": [
+        "sequential"
+      ],
+      "primaryConcept": "sequential",
+      "difficulty": 1,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "main"
+        }
+      ],
+      "patternDescription": "Di chuyển thẳng đến crystal",
+      "expectedSolution": {
+        "hasLoop": false,
+        "hasProcedure": false,
+        "hasConditional": false,
+        "hasVariable": false,
+        "estimatedSteps": 8,
+        "estimatedBlocks": 8
+      },
+      "requiredBlocks": [
+        "moveForward",
+        "turnLeft",
+        "turnRight"
+      ],
+      "tags": [
+        "beginner",
+        "tutorial"
+      ],
+      "educationalGoal": "Hiểu cách lệnh thực hiện tuần tự từ trên xuống",
+      "prerequisiteConcepts": []
+    },
+    {
+      "id": "sequential_multiple",
+      "name": "Thu thập nhiều crystal",
+      "concepts": [
+        "sequential",
+        "pattern_recognition"
+      ],
+      "primaryConcept": "sequential",
+      "difficulty": 2,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "collect",
+          "patternRole": "crystal_1"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "collect",
+          "patternRole": "crystal_2"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "collect",
+          "patternRole": "crystal_3"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "collect",
+          "patternRole": "crystal_4"
+        }
+      ],
+      "patternDescription": "Di chuyển và thu thập nhiều crystal trên đường thẳng",
+      "expectedSolution": {
+        "hasLoop": false,
+        "hasProcedure": false,
+        "hasConditional": false,
+        "hasVariable": false,
+        "estimatedSteps": 12,
+        "estimatedBlocks": 12
+      },
+      "requiredBlocks": [
+        "moveForward",
+        "turnLeft",
+        "turnRight",
+        "collect"
+      ],
+      "tags": [
+        "beginner",
+        "collect"
+      ],
+      "educationalGoal": "Học cách lập trình tuần tự với nhiều lệnh",
+      "prerequisiteConcepts": []
+    },
+    {
+      "id": "repeat_n_interval_2",
+      "name": "Repeat - crystal cách 2 bước",
+      "concepts": [
+        "repeat_n",
+        "pattern_recognition"
+      ],
+      "primaryConcept": "repeat_n",
+      "difficulty": 2,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          "groupId": "loop_interval",
+          "patternRole": "first"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "loop_interval",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "loop_interval",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "loop_interval",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "loop_interval",
+          "patternRole": "repeat"
+        }
+      ],
+      "patternDescription": "Repeat 5 times: move 2, collect",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": false,
+        "hasVariable": false,
+        "estimatedSteps": 9,
+        "estimatedBlocks": 5,
+        "loopType": "repeat_n",
+        "loopCount": 5
+      },
+      "requiredBlocks": [
+        "repeat_times"
+      ],
+      "tags": [
+        "loop",
+        "repeat",
+        "pattern",
+        "interval"
+      ],
+      "educationalGoal": "Nhận diện pattern lặp lại và sử dụng repeat",
+      "prerequisiteConcepts": [
+        "sequential"
+      ]
+    },
+    {
+      "id": "repeat_n_every_step",
+      "name": "Repeat - thu thập mỗi bước",
+      "concepts": [
+        "repeat_n"
+      ],
+      "primaryConcept": "repeat_n",
+      "difficulty": 3,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "loop_every",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "loop_every",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "loop_every",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "loop_every",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "loop_every",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "loop_every",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "loop_every",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "loop_every",
+          "patternRole": "repeat"
+        }
+      ],
+      "patternDescription": "Repeat 8 times: move, collect",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": false,
+        "hasVariable": false,
+        "estimatedSteps": 11,
+        "estimatedBlocks": 4,
+        "loopType": "repeat_n",
+        "loopCount": 8
+      },
+      "requiredBlocks": [
+        "repeat_times"
+      ],
+      "tags": [
+        "loop",
+        "repeat",
+        "dense"
+      ],
+      "educationalGoal": "Tối ưu code bằng vòng lặp cho pattern đều đặn",
+      "prerequisiteConcepts": [
+        "sequential"
+      ]
+    },
+    {
+      "id": "repeat_n_interval_3",
+      "name": "Repeat - crystal cách 3 bước",
+      "concepts": [
+        "repeat_n",
+        "pattern_recognition"
+      ],
+      "primaryConcept": "repeat_n",
+      "difficulty": 3,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 6
+          },
+          "groupId": "loop_3",
+          "patternRole": "first"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "loop_3",
+          "patternRole": "repeat"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "loop_3",
+          "patternRole": "repeat"
+        }
+      ],
+      "patternDescription": "Repeat 3 times: move 3, collect",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": false,
+        "hasVariable": false,
+        "estimatedSteps": 7,
+        "estimatedBlocks": 5,
+        "loopType": "repeat_n",
+        "loopCount": 3
+      },
+      "requiredBlocks": [
+        "repeat_times"
+      ],
+      "tags": [
+        "loop",
+        "repeat",
+        "pattern"
+      ],
+      "educationalGoal": "Nhận diện pattern với khoảng cách khác nhau",
+      "prerequisiteConcepts": [
+        "sequential"
+      ]
+    },
+    {
+      "id": "if_simple_crystal",
+      "name": "If - kiểm tra crystal",
+      "concepts": [
+        "if_simple"
+      ],
+      "primaryConcept": "if_simple",
+      "difficulty": 3,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "sparse",
+          "patternRole": "if_target"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "sparse",
+          "patternRole": "if_target"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "sparse",
+          "patternRole": "if_target"
+        }
+      ],
+      "patternDescription": "For each step: if hasCrystal → collect",
+      "expectedSolution": {
+        "hasLoop": false,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 11,
+        "estimatedBlocks": 6,
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "if"
+      ],
+      "tags": [
+        "conditional",
+        "if",
+        "crystal"
+      ],
+      "educationalGoal": "Kiểm tra điều kiện trước khi hành động",
+      "prerequisiteConcepts": [
+        "sequential"
+      ]
+    },
+    {
+      "id": "if_simple_path",
+      "name": "If - kiểm tra đường đi",
+      "concepts": [
+        "if_simple"
+      ],
+      "primaryConcept": "if_simple",
+      "difficulty": 3,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "goal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "target",
+          "patternRole": "goal"
+        }
+      ],
+      "patternDescription": "While true: if pathAhead → move, else → done",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 10,
+        "estimatedBlocks": 8,
+        "conditionalType": "if_simple",
+        "loopType": "while_condition"
+      },
+      "requiredBlocks": [
+        "if"
+      ],
+      "tags": [
+        "conditional",
+        "if",
+        "path"
+      ],
+      "educationalGoal": "Kiểm tra điều kiện môi trường trước khi hành động",
+      "prerequisiteConcepts": [
+        "sequential"
+      ]
+    },
+    {
+      "id": "counter_steps",
+      "name": "Counter - đếm bước đi",
+      "concepts": [
+        "counter",
+        "repeat_n"
+      ],
+      "primaryConcept": "counter",
+      "difficulty": 3,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "steps",
+          "patternRole": "counted"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "steps",
+          "patternRole": "counted"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "steps",
+          "patternRole": "counted"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "steps",
+          "patternRole": "counted"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "steps",
+          "patternRole": "counted"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "steps",
+          "patternRole": "counted"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "steps",
+          "patternRole": "counted"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "target",
+          "patternRole": "target_count"
+        }
+      ],
+      "patternDescription": "count = 0, repeat: move, count++, until count == target",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": false,
+        "hasVariable": true,
+        "estimatedSteps": 10,
+        "estimatedBlocks": 8,
+        "loopType": "repeat_n",
+        "variableType": "counter"
+      },
+      "requiredBlocks": [
+        "variables_set",
+        "variables_get",
+        "math_arithmetic"
+      ],
+      "tags": [
+        "variable",
+        "counter",
+        "steps"
+      ],
+      "educationalGoal": "Theo dõi số lượng với biến",
+      "prerequisiteConcepts": [
+        "repeat_n"
+      ]
+    },
+    {
+      "id": "repeat_until_goal",
+      "name": "Repeat Until - đến đích",
+      "concepts": [
+        "repeat_until"
+      ],
+      "primaryConcept": "repeat_until",
+      "difficulty": 4,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "goal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "target",
+          "patternRole": "goal"
+        }
+      ],
+      "patternDescription": "Repeat until atGoal: move, if crystal → collect",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 10,
+        "estimatedBlocks": 7,
+        "loopType": "repeat_until",
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "repeat_until"
+      ],
+      "tags": [
+        "loop",
+        "repeat_until",
+        "goal"
+      ],
+      "educationalGoal": "Sử dụng vòng lặp có điều kiện dừng",
+      "prerequisiteConcepts": [
+        "repeat_n",
+        "if_simple"
+      ]
+    },
+    {
+      "id": "repeat_until_switch",
+      "name": "Repeat Until - tìm switch",
+      "concepts": [
+        "repeat_until",
+        "state_toggle"
+      ],
+      "primaryConcept": "repeat_until",
+      "difficulty": 4,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "before",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "before",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "before",
+          "patternRole": "collect"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "target",
+          "patternRole": "until_target"
+        }
+      ],
+      "patternDescription": "Repeat until atSwitch: move, collect if crystal",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 6,
+        "estimatedBlocks": 8,
+        "loopType": "repeat_until",
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "repeat_until"
+      ],
+      "tags": [
+        "loop",
+        "repeat_until",
+        "switch"
+      ],
+      "educationalGoal": "Lặp đến khi tìm thấy mục tiêu cụ thể",
+      "prerequisiteConcepts": [
+        "repeat_n",
+        "if_simple"
+      ]
+    },
+    {
+      "id": "counter_crystals",
+      "name": "Counter - đếm crystal thu được",
+      "concepts": [
+        "counter",
+        "repeat_n"
+      ],
+      "primaryConcept": "counter",
+      "difficulty": 4,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "collect",
+          "patternRole": "countable"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "collect",
+          "patternRole": "countable"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "collect",
+          "patternRole": "countable"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "collect",
+          "patternRole": "countable"
+        },
+        {
+          "type": "goal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "target",
+          "patternRole": "need_4"
+        }
+      ],
+      "patternDescription": "collected = 0, move and collect until collected >= 4",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": true,
+        "estimatedSteps": 12,
+        "estimatedBlocks": 12,
+        "loopType": "while_condition",
+        "variableType": "counter",
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "variables_set",
+        "variables_get",
+        "math_arithmetic"
+      ],
+      "tags": [
+        "variable",
+        "counter",
+        "collect"
+      ],
+      "educationalGoal": "Đếm và so sánh số lượng thu thập",
+      "prerequisiteConcepts": [
+        "repeat_n",
+        "if_simple"
+      ]
+    },
+    {
+      "id": "state_toggle_alternate",
+      "name": "State Toggle - hành động xen kẽ",
+      "concepts": [
+        "state_toggle",
+        "if_else"
+      ],
+      "primaryConcept": "state_toggle",
+      "difficulty": 4,
+      "items": [
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "toggles",
+          "patternRole": "toggle_on"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "toggles",
+          "patternRole": "toggle_on"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "toggles",
+          "patternRole": "toggle_on"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "crystals",
+          "patternRole": "when_on"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "crystals",
+          "patternRole": "when_on"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "crystals",
+          "patternRole": "when_on"
+        }
+      ],
+      "patternDescription": "isEnabled = false, if switch → toggle, if isEnabled → collect",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": true,
+        "estimatedSteps": 14,
+        "estimatedBlocks": 14,
+        "loopType": "repeat_n",
+        "variableType": "state_toggle",
+        "conditionalType": "if_else"
+      },
+      "requiredBlocks": [
+        "variables_set",
+        "variables_get",
+        "logic_boolean"
+      ],
+      "tags": [
+        "variable",
+        "state",
+        "toggle",
+        "alternating"
+      ],
+      "educationalGoal": "Lưu trạng thái và thay đổi",
+      "prerequisiteConcepts": [
+        "if_simple"
+      ]
+    },
+    {
+      "id": "repeat_n_counter_tracking",
+      "name": "Repeat + Counter - theo dõi tiến trình",
+      "concepts": [
+        "repeat_n",
+        "counter"
+      ],
+      "primaryConcept": "repeat_n_counter",
+      "difficulty": 4,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "count",
+          "patternRole": "step_2"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "count",
+          "patternRole": "step_4"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "count",
+          "patternRole": "step_6"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "count",
+          "patternRole": "step_8"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "target",
+          "patternRole": "goal"
+        }
+      ],
+      "patternDescription": "step = 0, repeat 4: move 2, step += 2, collect",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": false,
+        "hasVariable": true,
+        "estimatedSteps": 12,
+        "estimatedBlocks": 10,
+        "loopType": "repeat_n",
+        "loopCount": 4,
+        "variableType": "counter"
+      },
+      "requiredBlocks": [
+        "repeat_times",
+        "variables_set",
+        "variables_get"
+      ],
+      "tags": [
+        "combination",
+        "loop",
+        "counter",
+        "tracking"
+      ],
+      "educationalGoal": "Theo dõi tiến trình trong vòng lặp",
+      "prerequisiteConcepts": [
+        "repeat_n",
+        "counter"
+      ]
+    },
+    {
+      "id": "while_path_ahead",
+      "name": "While - còn đường phía trước",
+      "concepts": [
+        "while_condition"
+      ],
+      "primaryConcept": "while_condition",
+      "difficulty": 5,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "path",
+          "patternRole": "while_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "path",
+          "patternRole": "while_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "path",
+          "patternRole": "while_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "path",
+          "patternRole": "while_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "path",
+          "patternRole": "while_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "path",
+          "patternRole": "while_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "path",
+          "patternRole": "while_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "path",
+          "patternRole": "while_collect"
+        }
+      ],
+      "patternDescription": "While pathAhead: move, collect",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": false,
+        "hasVariable": false,
+        "estimatedSteps": 10,
+        "estimatedBlocks": 5,
+        "loopType": "while_condition"
+      },
+      "requiredBlocks": [
+        "while"
+      ],
+      "tags": [
+        "loop",
+        "while",
+        "path_ahead"
+      ],
+      "educationalGoal": "Phân biệt while và repeat_until",
+      "prerequisiteConcepts": [
+        "repeat_until"
+      ]
+    },
+    {
+      "id": "while_not_goal",
+      "name": "While - chưa đến đích",
+      "concepts": [
+        "while_condition"
+      ],
+      "primaryConcept": "while_condition",
+      "difficulty": 5,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "goal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "target",
+          "patternRole": "goal"
+        }
+      ],
+      "patternDescription": "While not atGoal: move, if crystal → collect",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 11,
+        "estimatedBlocks": 8,
+        "loopType": "while_condition",
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "while"
+      ],
+      "tags": [
+        "loop",
+        "while",
+        "goal"
+      ],
+      "educationalGoal": "Hiểu sự khác biệt giữa while và repeat_until",
+      "prerequisiteConcepts": [
+        "repeat_until"
+      ]
+    },
+    {
+      "id": "state_toggle_gate",
+      "name": "State Toggle - cổng và chìa khóa",
+      "concepts": [
+        "state_toggle",
+        "if_simple"
+      ],
+      "primaryConcept": "state_toggle",
+      "difficulty": 5,
+      "items": [
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "key",
+          "patternRole": "unlock"
+        },
+        {
+          "type": "gem",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "gate",
+          "patternRole": "gate"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "treasure",
+          "patternRole": "reward"
+        }
+      ],
+      "patternDescription": "gateOpen = false, get key → gateOpen = true, if gateOpen → pass",
+      "expectedSolution": {
+        "hasLoop": false,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": true,
+        "estimatedSteps": 12,
+        "estimatedBlocks": 12,
+        "variableType": "state_toggle",
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "variables_set",
+        "variables_get",
+        "logic_boolean"
+      ],
+      "tags": [
+        "variable",
+        "state",
+        "gate",
+        "sequence"
+      ],
+      "educationalGoal": "Quản lý state để mở khóa tiến trình",
+      "prerequisiteConcepts": [
+        "if_simple"
+      ]
+    },
+    {
+      "id": "accumulator_sum",
+      "name": "Accumulator - tính tổng",
+      "concepts": [
+        "accumulator",
+        "repeat_n"
+      ],
+      "primaryConcept": "accumulator",
+      "difficulty": 5,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "values",
+          "patternRole": "value_1"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "values",
+          "patternRole": "value_2"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "values",
+          "patternRole": "value_3"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "values",
+          "patternRole": "value_4"
+        }
+      ],
+      "patternDescription": "total = 0, repeat: collect crystal, total += value, until total >= target",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": false,
+        "hasVariable": true,
+        "estimatedSteps": 12,
+        "estimatedBlocks": 10,
+        "loopType": "repeat_n",
+        "variableType": "accumulator"
+      },
+      "requiredBlocks": [
+        "variables_set",
+        "variables_get",
+        "math_arithmetic"
+      ],
+      "tags": [
+        "variable",
+        "accumulator",
+        "sum"
+      ],
+      "educationalGoal": "Tổng hợp giá trị qua nhiều bước",
+      "prerequisiteConcepts": [
+        "counter",
+        "repeat_n"
+      ]
+    },
+    {
+      "id": "flag_found",
+      "name": "Flag - đã tìm thấy",
+      "concepts": [
+        "flag",
+        "while_condition"
+      ],
+      "primaryConcept": "flag",
+      "difficulty": 5,
+      "items": [
+        {
+          "type": "gem",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "target",
+          "patternRole": "search_target"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "path",
+          "patternRole": "path_crystal"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "path",
+          "patternRole": "path_crystal"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "path",
+          "patternRole": "path_crystal"
+        }
+      ],
+      "patternDescription": "found = false, while not found: move, if gem → found = true",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": true,
+        "estimatedSteps": 6,
+        "estimatedBlocks": 10,
+        "loopType": "while_condition",
+        "variableType": "flag",
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "variables_set",
+        "variables_get",
+        "logic_boolean"
+      ],
+      "tags": [
+        "variable",
+        "flag",
+        "search"
+      ],
+      "educationalGoal": "Sử dụng cờ để điều khiển luồng",
+      "prerequisiteConcepts": [
+        "if_simple",
+        "state_toggle"
+      ]
+    },
+    {
+      "id": "procedure_repeated_pattern",
+      "name": "Procedure - pattern lặp lại",
+      "concepts": [
+        "procedure_simple",
+        "repeat_n"
+      ],
+      "primaryConcept": "procedure_simple",
+      "difficulty": 5,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "pattern_0",
+          "patternRole": "pattern_item"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "pattern_1",
+          "patternRole": "pattern_item"
+        }
+      ],
+      "patternDescription": "Define doPattern(), repeat 2 times",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": true,
+        "hasConditional": false,
+        "hasVariable": false,
+        "estimatedSteps": 9,
+        "estimatedBlocks": 8,
+        "procedureCount": 1,
+        "loopType": "repeat_n",
+        "loopCount": 2
+      },
+      "requiredBlocks": [
+        "procedures_defnoreturn",
+        "procedures_callnoreturn"
+      ],
+      "tags": [
+        "function",
+        "procedure",
+        "pattern"
+      ],
+      "educationalGoal": "Đóng gói pattern thành procedure",
+      "prerequisiteConcepts": [
+        "repeat_n"
+      ]
+    },
+    {
+      "id": "repeat_until_state_switch",
+      "name": "Repeat Until + State - tìm switch",
+      "concepts": [
+        "repeat_until",
+        "state_toggle"
+      ],
+      "primaryConcept": "repeat_until_state",
+      "difficulty": 5,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "switch",
+          "patternRole": "toggle_target"
+        },
+        {
+          "type": "gem",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "reward",
+          "patternRole": "after_toggle"
+        }
+      ],
+      "patternDescription": "doorOpen = false, repeat until doorOpen: move, if switch → toggle, doorOpen = true",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": true,
+        "estimatedSteps": 10,
+        "estimatedBlocks": 12,
+        "loopType": "repeat_until",
+        "variableType": "state_toggle",
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "repeat_until",
+        "variables_set",
+        "variables_get"
+      ],
+      "tags": [
+        "combination",
+        "repeat_until",
+        "state"
+      ],
+      "educationalGoal": "Kết hợp loop và state management",
+      "prerequisiteConcepts": [
+        "repeat_until",
+        "state_toggle"
+      ]
+    },
+    {
+      "id": "loop_if_inside_mixed",
+      "name": "Loop + If Inside - xử lý xen kẽ",
+      "concepts": [
+        "repeat_n",
+        "if_simple"
+      ],
+      "primaryConcept": "loop_if_inside",
+      "difficulty": 5,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "crystals",
+          "patternRole": "if_crystal"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "crystals",
+          "patternRole": "if_crystal"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "crystals",
+          "patternRole": "if_crystal"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "switches",
+          "patternRole": "if_switch"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "switches",
+          "patternRole": "if_switch"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "switches",
+          "patternRole": "if_switch"
+        }
+      ],
+      "patternDescription": "Repeat 8: move, if crystal → collect, if switch → toggle",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 14,
+        "estimatedBlocks": 12,
+        "loopType": "repeat_n",
+        "loopCount": 8,
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "repeat_times",
+        "if"
+      ],
+      "tags": [
+        "combination",
+        "loop",
+        "if",
+        "mixed"
+      ],
+      "educationalGoal": "Kết hợp lặp và kiểm tra điều kiện",
+      "prerequisiteConcepts": [
+        "repeat_n",
+        "if_simple"
+      ]
+    },
+    {
+      "id": "function_if_inside_process",
+      "name": "Function(If) - procedure với logic",
+      "concepts": [
+        "procedure_simple",
+        "if_else"
+      ],
+      "primaryConcept": "function_if_inside",
+      "difficulty": 5,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "crystals",
+          "patternRole": "if_case"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "crystals",
+          "patternRole": "if_case"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "crystals",
+          "patternRole": "if_case"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "switches",
+          "patternRole": "else_case"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "switches",
+          "patternRole": "else_case"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "switches",
+          "patternRole": "else_case"
+        }
+      ],
+      "patternDescription": "Define processItem(): if crystal → collect, else → toggle",
+      "expectedSolution": {
+        "hasLoop": false,
+        "hasProcedure": true,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 14,
+        "estimatedBlocks": 14,
+        "procedureCount": 1,
+        "conditionalType": "if_else"
+      },
+      "requiredBlocks": [
+        "procedures_defnoreturn",
+        "if"
+      ],
+      "tags": [
+        "combination",
+        "function",
+        "if",
+        "inside"
+      ],
+      "educationalGoal": "Function với logic điều kiện",
+      "prerequisiteConcepts": [
+        "procedure_simple",
+        "if_simple"
+      ]
+    },
+    {
+      "id": "nested_if_two_conditions",
+      "name": "Nested If - hai điều kiện",
+      "concepts": [
+        "nested_if"
+      ],
+      "primaryConcept": "nested_if",
+      "difficulty": 6,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "crystals",
+          "patternRole": "outer_if"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "crystals",
+          "patternRole": "outer_if"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "crystals",
+          "patternRole": "outer_if"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "switches",
+          "patternRole": "inner_if"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "switches",
+          "patternRole": "inner_if"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "switches",
+          "patternRole": "inner_if"
+        }
+      ],
+      "patternDescription": "If pathAhead: if hasCrystal → collect, elif hasSwitch → toggle",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 14,
+        "estimatedBlocks": 14,
+        "conditionalType": "nested_if",
+        "loopType": "while_condition"
+      },
+      "requiredBlocks": [
+        "if",
+        "if_else"
+      ],
+      "tags": [
+        "conditional",
+        "nested-if",
+        "complex"
+      ],
+      "educationalGoal": "Kết hợp nhiều điều kiện logic",
+      "prerequisiteConcepts": [
+        "if_else"
+      ]
+    },
+    {
+      "id": "accumulator_weighted",
+      "name": "Accumulator - tổng có trọng số",
+      "concepts": [
+        "accumulator",
+        "if_else"
+      ],
+      "primaryConcept": "accumulator",
+      "difficulty": 6,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "crystals",
+          "patternRole": "value_1"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "crystals",
+          "patternRole": "value_1"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "crystals",
+          "patternRole": "value_1"
+        },
+        {
+          "type": "gem",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "gems",
+          "patternRole": "value_5"
+        },
+        {
+          "type": "gem",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "gems",
+          "patternRole": "value_5"
+        },
+        {
+          "type": "gem",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "gems",
+          "patternRole": "value_5"
+        }
+      ],
+      "patternDescription": "score = 0, if crystal → score += 1, if gem → score += 5",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": true,
+        "estimatedSteps": 14,
+        "estimatedBlocks": 14,
+        "loopType": "repeat_n",
+        "variableType": "accumulator",
+        "conditionalType": "if_else"
+      },
+      "requiredBlocks": [
+        "variables_set",
+        "variables_get",
+        "math_arithmetic",
+        "if_else"
+      ],
+      "tags": [
+        "variable",
+        "accumulator",
+        "weighted",
+        "scoring"
+      ],
+      "educationalGoal": "Tích lũy giá trị khác nhau dựa trên loại",
+      "prerequisiteConcepts": [
+        "counter",
+        "if_else"
+      ]
+    },
+    {
+      "id": "flag_multiple",
+      "name": "Flags - nhiều điều kiện",
+      "concepts": [
+        "flag",
+        "if_else",
+        "while_condition"
+      ],
+      "primaryConcept": "flag",
+      "difficulty": 6,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "key1",
+          "patternRole": "flag1"
+        },
+        {
+          "type": "gem",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "key2",
+          "patternRole": "flag2"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "goal",
+          "patternRole": "requires_both"
+        }
+      ],
+      "patternDescription": "hasKey1 = false, hasKey2 = false, while not (hasKey1 and hasKey2)...",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": true,
+        "estimatedSteps": 12,
+        "estimatedBlocks": 18,
+        "loopType": "while_condition",
+        "variableType": "flag",
+        "conditionalType": "if_else"
+      },
+      "requiredBlocks": [
+        "variables_set",
+        "variables_get",
+        "logic_boolean"
+      ],
+      "tags": [
+        "variable",
+        "flag",
+        "multiple",
+        "and-condition"
+      ],
+      "educationalGoal": "Kết hợp nhiều flags để kiểm tra điều kiện phức tạp",
+      "prerequisiteConcepts": [
+        "if_else",
+        "state_toggle"
+      ]
+    },
+    {
+      "id": "while_counter_spiral",
+      "name": "While + Counter - di chuyển đến đích",
+      "concepts": [
+        "while_condition",
+        "counter"
+      ],
+      "primaryConcept": "while_counter",
+      "difficulty": 6,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "path",
+          "patternRole": "step"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "path",
+          "patternRole": "step"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "path",
+          "patternRole": "step"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "path",
+          "patternRole": "step"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "path",
+          "patternRole": "step"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "path",
+          "patternRole": "step"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "path",
+          "patternRole": "step"
+        },
+        {
+          "type": "goal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "target",
+          "patternRole": "goal"
+        }
+      ],
+      "patternDescription": "distance = 8, while distance > 0: move, distance--",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": false,
+        "hasVariable": true,
+        "estimatedSteps": 10,
+        "estimatedBlocks": 10,
+        "loopType": "while_condition",
+        "variableType": "counter"
+      },
+      "requiredBlocks": [
+        "while",
+        "variables_set",
+        "variables_get",
+        "math_arithmetic"
+      ],
+      "tags": [
+        "combination",
+        "while",
+        "counter",
+        "distance"
+      ],
+      "educationalGoal": "Điều khiển loop bằng biến đếm",
+      "prerequisiteConcepts": [
+        "while_condition",
+        "counter"
+      ]
+    },
+    {
+      "id": "loop_break_find_target",
+      "name": "Loop + Break - tìm và dừng",
+      "concepts": [
+        "while_condition",
+        "if_simple"
+      ],
+      "primaryConcept": "loop_break",
+      "difficulty": 6,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "gem",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "target",
+          "patternRole": "break_trigger"
+        }
+      ],
+      "patternDescription": "While pathAhead: move, if gem → collect, break",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 7,
+        "estimatedBlocks": 10,
+        "loopType": "while_condition",
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "while",
+        "if",
+        "break"
+      ],
+      "tags": [
+        "combination",
+        "loop",
+        "break",
+        "search"
+      ],
+      "educationalGoal": "Thoát loop khi đạt điều kiện",
+      "prerequisiteConcepts": [
+        "while_condition",
+        "if_simple"
+      ]
+    },
+    {
+      "id": "infinite_until_goal",
+      "name": "Loop Forever - break khi đến đích",
+      "concepts": [
+        "infinite_loop",
+        "if_simple"
+      ],
+      "primaryConcept": "infinite_loop",
+      "difficulty": 7,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "path",
+          "patternRole": "collect"
+        },
+        {
+          "type": "goal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "target",
+          "patternRole": "break_condition"
+        }
+      ],
+      "patternDescription": "Loop forever: move, if atGoal → break, if crystal → collect",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": false,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 11,
+        "estimatedBlocks": 10,
+        "loopType": "infinite_loop",
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "while_true",
+        "break"
+      ],
+      "tags": [
+        "loop",
+        "infinite",
+        "break"
+      ],
+      "educationalGoal": "Xử lý trường hợp không biết trước số lần lặp",
+      "prerequisiteConcepts": [
+        "while_condition",
+        "if_simple"
+      ]
+    },
+    {
+      "id": "procedure_param_action",
+      "name": "Procedure(action) - hành động khác nhau",
+      "concepts": [
+        "procedure_with_param",
+        "if_else"
+      ],
+      "primaryConcept": "procedure_with_param",
+      "difficulty": 7,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "crystals",
+          "patternRole": "crystal_action"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "crystals",
+          "patternRole": "crystal_action"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "switches",
+          "patternRole": "switch_action"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "switches",
+          "patternRole": "switch_action"
+        }
+      ],
+      "patternDescription": "Define doAction(type), if type==\"collect\" → ..., else → ...",
+      "expectedSolution": {
+        "hasLoop": false,
+        "hasProcedure": true,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 12,
+        "estimatedBlocks": 15,
+        "procedureCount": 1,
+        "conditionalType": "if_else"
+      },
+      "requiredBlocks": [
+        "procedures_defnoreturn",
+        "procedures_callnoreturn",
+        "variables_get",
+        "if_else"
+      ],
+      "tags": [
+        "function",
+        "procedure",
+        "parameter",
+        "action"
+      ],
+      "educationalGoal": "Procedure linh hoạt với tham số xác định hành vi",
+      "prerequisiteConcepts": [
+        "procedure_simple",
+        "if_else"
+      ]
+    },
+    {
+      "id": "function_return_count",
+      "name": "Function → return count",
+      "concepts": [
+        "function_return",
+        "counter",
+        "if_else"
+      ],
+      "primaryConcept": "function_return",
+      "difficulty": 7,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "count",
+          "patternRole": "countable"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "count",
+          "patternRole": "countable"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "count",
+          "patternRole": "countable"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "count",
+          "patternRole": "countable"
+        }
+      ],
+      "patternDescription": "Define countCrystals() → number, if count >= 3 → success",
+      "expectedSolution": {
+        "hasLoop": false,
+        "hasProcedure": true,
+        "hasConditional": true,
+        "hasVariable": true,
+        "estimatedSteps": 15,
+        "estimatedBlocks": 18,
+        "procedureCount": 1,
+        "variableType": "counter",
+        "conditionalType": "if_else"
+      },
+      "requiredBlocks": [
+        "procedures_defreturn",
+        "procedures_callreturn"
+      ],
+      "tags": [
+        "function",
+        "return",
+        "count"
+      ],
+      "educationalGoal": "Tính toán và trả về kết quả",
+      "prerequisiteConcepts": [
+        "procedure_with_param"
+      ]
+    },
+    {
+      "id": "function_return_bool",
+      "name": "Function → return boolean",
+      "concepts": [
+        "function_return",
+        "if_simple"
+      ],
+      "primaryConcept": "function_return",
+      "difficulty": 7,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "check",
+          "patternRole": "checkable"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "check",
+          "patternRole": "checkable"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "check",
+          "patternRole": "checkable"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "target",
+          "patternRole": "goal"
+        }
+      ],
+      "patternDescription": "Define hasItems() → bool, while hasItems() → collect",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": true,
+        "hasConditional": false,
+        "hasVariable": false,
+        "estimatedSteps": 13,
+        "estimatedBlocks": 14,
+        "procedureCount": 1,
+        "loopType": "while_condition"
+      },
+      "requiredBlocks": [
+        "procedures_defreturn",
+        "procedures_callreturn"
+      ],
+      "tags": [
+        "function",
+        "return",
+        "boolean"
+      ],
+      "educationalGoal": "Function trả về giá trị để điều khiển luồng",
+      "prerequisiteConcepts": [
+        "procedure_with_param"
+      ]
+    },
+    {
+      "id": "function_loop_if_process",
+      "name": "Function(Loop(If)) - procedure phức tạp",
+      "concepts": [
+        "procedure_simple",
+        "repeat_n",
+        "if_simple"
+      ],
+      "primaryConcept": "function_loop_if",
+      "difficulty": 8,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "collect",
+          "patternRole": "if_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "collect",
+          "patternRole": "if_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "collect",
+          "patternRole": "if_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "collect",
+          "patternRole": "if_collect"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "toggle",
+          "patternRole": "if_toggle"
+        },
+        {
+          "type": "switch",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "toggle",
+          "patternRole": "if_toggle"
+        }
+      ],
+      "patternDescription": "Define processPath(): repeat n: move, if crystal → collect, if switch → toggle",
+      "expectedSolution": {
+        "hasLoop": true,
+        "hasProcedure": true,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 14,
+        "estimatedBlocks": 16,
+        "procedureCount": 1,
+        "loopType": "repeat_n",
+        "loopCount": 8,
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "procedures_defnoreturn",
+        "repeat_times",
+        "if"
+      ],
+      "tags": [
+        "advanced",
+        "combination",
+        "function",
+        "loop",
+        "if"
+      ],
+      "educationalGoal": "Function phức tạp với nhiều logic",
+      "prerequisiteConcepts": [
+        "procedure_simple",
+        "repeat_n",
+        "if_simple"
+      ]
+    },
+    {
+      "id": "recursion_traversal",
+      "name": "Recursion - duyệt đến đích",
+      "concepts": [
+        "recursion",
+        "if_simple"
+      ],
+      "primaryConcept": "recursion",
+      "difficulty": 9,
+      "items": [
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 7
+          },
+          "groupId": "path",
+          "patternRole": "recursive_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 8
+          },
+          "groupId": "path",
+          "patternRole": "recursive_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 9
+          },
+          "groupId": "path",
+          "patternRole": "recursive_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 10
+          },
+          "groupId": "path",
+          "patternRole": "recursive_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 11
+          },
+          "groupId": "path",
+          "patternRole": "recursive_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 12
+          },
+          "groupId": "path",
+          "patternRole": "recursive_collect"
+        },
+        {
+          "type": "crystal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 13
+          },
+          "groupId": "path",
+          "patternRole": "recursive_collect"
+        },
+        {
+          "type": "goal",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "z": 14
+          },
+          "groupId": "base",
+          "patternRole": "base_case"
+        }
+      ],
+      "patternDescription": "Define explore(): if atGoal → done, else → move, collect, explore()",
+      "expectedSolution": {
+        "hasLoop": false,
+        "hasProcedure": true,
+        "hasConditional": true,
+        "hasVariable": false,
+        "estimatedSteps": 10,
+        "estimatedBlocks": 10,
+        "procedureCount": 1,
+        "conditionalType": "if_simple"
+      },
+      "requiredBlocks": [
+        "procedures_defnoreturn",
+        "procedures_callnoreturn",
+        "if"
+      ],
+      "tags": [
+        "function",
+        "recursion",
+        "traversal"
+      ],
+      "educationalGoal": "Giải quyết bài toán phân rã tự tương tự",
+      "prerequisiteConcepts": [
+        "procedure_simple",
+        "if_simple"
+      ]
+    }
+  ]
+}

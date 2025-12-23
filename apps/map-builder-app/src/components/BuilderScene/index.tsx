@@ -1,13 +1,14 @@
 import { Suspense, useMemo, useRef, useState, useEffect, forwardRef, useImperativeHandle, Dispatch, SetStateAction } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import type { ThreeEvent } from '@react-three/fiber/dist/declarations/src/core/events';
-import { Grid, useGLTF, CameraControls, GizmoHelper, GizmoViewport, Line, Outlines } from '@react-three/drei';
+import { Grid, useGLTF, CameraControls, GizmoHelper, GizmoViewport, Line, Outlines, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
 import { buildableAssetGroups } from '../../config/gameAssets';
 import type { BuildableAsset, PlacedObject, BuilderMode, BoxDimensions, SelectionBounds, AssetGroup } from '../../types';
 import { BoundingBox } from '../BoundingBox';
 import { SelectionBox } from '../SelectionBox';
-import { SelectionHighlight } from '../PropertiesPanel/SelectionHighlight'; // THAY ĐỔI: Sửa đường dẫn import
+import { SelectionHighlight } from '../PropertiesPanel/SelectionHighlight';
+import type { HighlightItem } from '../TopologyInspector';
 
 const TILE_SIZE = 2;
 
@@ -36,7 +37,8 @@ interface BuilderSceneProps {
   isMovingObject: boolean;
   onSetIsMovingObject: (isMoving: boolean) => void;
   // --- END: SỬA LỖI HIỆU ỨNG ---
-  solutionPath?: [number, number, number][] | null; // NEW PROP
+  solutionPath?: [number, number, number][] | null;
+  highlights?: HighlightItem[]; // Topology Inspector highlights
 }
 
 // --- COMPONENT MỚI ĐỂ RENDER ASSET ---
@@ -185,6 +187,110 @@ const SolutionOverlay = ({ path }: { path: [number, number, number][] }) => {
   );
 };
 
+// Topology Inspector Highlights - render segments and positions with colors
+const HighlightLines = ({ highlights }: { highlights: HighlightItem[] }) => {
+  if (!highlights || highlights.length === 0) return null;
+
+  return (
+    <>
+      {highlights.map(highlight => {
+        if (highlight.type === 'segment' && highlight.positions.length >= 2) {
+          // Render line for segments
+          const points = highlight.positions.map(p => new THREE.Vector3(
+            p.x * TILE_SIZE + TILE_SIZE / 2,
+            p.y * TILE_SIZE + TILE_SIZE / 2 + 0.5, // Slightly above blocks
+            p.z * TILE_SIZE + TILE_SIZE / 2
+          ));
+          return (
+            <Line
+              key={highlight.id}
+              points={points}
+              color={highlight.color}
+              lineWidth={4}
+              opacity={0.9}
+              transparent
+              depthTest={false}
+            />
+          );
+        } else if (highlight.type === 'position' && highlight.positions.length > 0) {
+          // Render spheres for positions
+          return highlight.positions.map((pos, i) => (
+            <Sphere
+              key={`${highlight.id}-${i}`}
+              args={[0.4, 16, 16]}
+              position={[
+                pos.x * TILE_SIZE + TILE_SIZE / 2,
+                pos.y * TILE_SIZE + TILE_SIZE / 2 + 0.5,
+                pos.z * TILE_SIZE + TILE_SIZE / 2
+              ]}
+            >
+              <meshBasicMaterial color={highlight.color} opacity={0.8} transparent depthTest={false} />
+            </Sphere>
+          ));
+        } else if (highlight.type === 'keypoint' && highlight.positions.length > 0) {
+          // Render larger cubes with wireframe for keypoints (Tier 1 Special Points)
+          return highlight.positions.map((pos, i) => (
+            <group
+              key={`${highlight.id}-${i}`}
+              position={[
+                pos.x * TILE_SIZE + TILE_SIZE / 2,
+                pos.y * TILE_SIZE + TILE_SIZE / 2 + 0.5,
+                pos.z * TILE_SIZE + TILE_SIZE / 2
+              ]}
+            >
+              {/* Inner solid sphere */}
+              <Sphere args={[0.5, 16, 16]}>
+                <meshBasicMaterial color={highlight.color} opacity={0.6} transparent depthTest={false} />
+              </Sphere>
+              {/* Outer ring to make it more visible */}
+              <mesh>
+                <torusGeometry args={[0.6, 0.08, 8, 32]} />
+                <meshBasicMaterial color={highlight.color} opacity={0.9} transparent depthTest={false} />
+              </mesh>
+            </group>
+          ));
+        } else if (highlight.type === 'area' && highlight.positions.length > 0) {
+          // Render small cubes at each block position to show area extent
+          return highlight.positions.map((pos, i) => (
+            <mesh
+              key={`${highlight.id}-${i}`}
+              position={[
+                pos.x * TILE_SIZE + TILE_SIZE / 2,
+                pos.y * TILE_SIZE + TILE_SIZE / 2 + 0.1, // Slightly above
+                pos.z * TILE_SIZE + TILE_SIZE / 2
+              ]}
+            >
+              <boxGeometry args={[TILE_SIZE * 0.9, 0.2, TILE_SIZE * 0.9]} />
+              <meshBasicMaterial color={highlight.color} opacity={0.5} transparent depthTest={false} />
+            </mesh>
+          ));
+        } else if (highlight.type === 'relation' && highlight.positions.length >= 2) {
+          // Render dashed line between segment midpoints to show relation
+          const points = highlight.positions.map(p => new THREE.Vector3(
+            p.x * TILE_SIZE + TILE_SIZE / 2,
+            p.y * TILE_SIZE + TILE_SIZE / 2 + 1.0, // Above blocks
+            p.z * TILE_SIZE + TILE_SIZE / 2
+          ));
+          return (
+            <Line
+              key={highlight.id}
+              points={points}
+              color={highlight.color}
+              lineWidth={3}
+              opacity={0.9}
+              transparent
+              dashed
+              dashSize={0.5}
+              gapSize={0.3}
+              depthTest={false}
+            />
+          );
+        }
+        return null;
+      })}
+    </>
+  );
+};
 
 const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefObject<CameraControls | null> }) => {
   const { camera, raycaster, scene } = useThree();
@@ -203,7 +309,8 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     builderMode, selectedAsset, placedObjects, boxDimensions, onModeChange,
     isMovingObject, onSetIsMovingObject, selectionStart,
     onAddObject, onRemoveObject, selectionBounds, onSetSelectionStart, onSetSelectionEnd, cameraControlsRef, selectedObjectIds, onSelectObject, onMoveObject, onMoveObjectByStep, onObjectContextMenu,
-    solutionPath // Destructure prop
+    solutionPath,
+    highlights // Destructure highlights prop
   } = props;
 
   const plane = useMemo(() => new THREE.Mesh(
@@ -520,6 +627,7 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
       </group>
       <PortalConnections objects={placedObjects} />
       {solutionPath && <SolutionOverlay path={solutionPath} />}
+      {highlights && highlights.length > 0 && <HighlightLines highlights={highlights} />}
       <primitive object={plane} onPointerMove={handlePointerMove} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerOut={() => setPointer(new THREE.Vector2(99, 99))} />
       <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
         <GizmoViewport axisColors={['#ff2060', '#20ff60', '#2060ff']} labelColor="white" />

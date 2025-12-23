@@ -179,12 +179,15 @@ export type { SelectableElement };
 
 // Tier 4 Output (final)
 export interface PlacementContext {
-  // Core structure (from Tier 1-3)
-  segments: PathSegment[];
-  areas: Area[];
-  connectors: Connector[];
+  // Tier 1 Core structure
+  points: SpecialPoint[];        // Special points (junctions, endpoints, etc.)
+  segments: PathSegment[];       // Path segments
+  areas: Area[];                 // Connected areas
+  connectors: Connector[];       // Connections between areas
+  relations: PathRelation[];     // Geometric relations between paths
+  
+  // Tier 2 Patterns
   patterns: Pattern[];
-  relations: PathRelation[];
   
   // Prioritized coordinates
   prioritizedCoords: PrioritizedCoord[];
@@ -296,43 +299,121 @@ class Tier1Analyzer {
   }
 
   /**
-   * Tìm các vùng (areas) - các cluster blocks liền kề
-   * Một area là một tập hợp blocks có thể đi tới nhau mà không cần nhảy
+   * Tìm các vùng (Areas) dựa trên cấu trúc hình học
+   * - Area Core: Các blocks có degree >= 3 (junctions)
+   * - Area Radius 1: Include TẤT CẢ neighbors trực tiếp của Core (đảm bảo coverage vùng giao lộ)
+   * - Features: Include các nhánh ngắn (spurs) extents (như tip mũi tên dài)
    */
   private findAreas(): Area[] {
     const areas: Area[] = [];
-    const visited = new Set<string>();
+    const visitedInArea = new Set<string>();
 
+    // 1. Identify Seed Blocks (Junctions, Degree >= 3)
+    const seedBlocks = new Set<string>();
     for (const block of this.blocks) {
-      const key = vectorToKey(block);
-      if (visited.has(key)) continue;
+      if (this.countHorizontalNeighbors(block) >= 3) {
+        seedBlocks.add(vectorToKey(block));
+      }
+    }
 
-      // BFS để tìm tất cả blocks liền kề (chỉ xét kề ngang, không xét kề dọc y)
+    // 2. Cluster seeds and expand
+    for (const seedKey of seedBlocks) {
+      if (visitedInArea.has(seedKey)) continue;
+
       const areaBlocks: Vector3[] = [];
-      const queue: Vector3[] = [block];
-      
-      while (queue.length > 0) {
-        const current = queue.shift()!;
-        const currentKey = vectorToKey(current);
-        
-        if (visited.has(currentKey)) continue;
-        visited.add(currentKey);
-        areaBlocks.push(current);
+      const queue: Vector3[] = [this.findBlockByKey(seedKey)!];
+      visitedInArea.add(seedKey);
+      areaBlocks.push(queue[0]);
 
-        // Check 4 hướng ngang (không check y vì đó là độ cao)
-        const neighbors = [
-          { x: current.x + 1, y: current.y, z: current.z },
-          { x: current.x - 1, y: current.y, z: current.z },
-          { x: current.x, y: current.y, z: current.z + 1 },
-          { x: current.x, y: current.y, z: current.z - 1 },
-        ];
-
-        for (const neighbor of neighbors) {
-          const neighborKey = vectorToKey(neighbor);
-          if (this.blockSet.has(neighborKey) && !visited.has(neighborKey)) {
-            queue.push(neighbor);
+      // Phase 1: Cluster adjacent Junctions (CORE)
+      let qIndex = 0;
+      while (qIndex < queue.length) {
+        const current = queue[qIndex++];
+        const neighbors = this.getHorizontalNeighbors(current);
+        for (const n of neighbors) {
+          const nKey = vectorToKey(n);
+          if (seedBlocks.has(nKey) && !visitedInArea.has(nKey) && this.blockSet.has(nKey)) {
+            visitedInArea.add(nKey);
+            areaBlocks.push(n);
+            queue.push(n);
           }
         }
+      }
+
+      // Phase 2: Expand Radius 1 (Include ALL direct neighbors of Core)
+      // This creates a basic 'cross' shape for junctions
+      const coreBlocks = [...areaBlocks];
+      const boundaryBlocks: Vector3[] = []; 
+
+      for (const core of coreBlocks) {
+        const neighbors = this.getHorizontalNeighbors(core);
+        for (const n of neighbors) {
+          const nKey = vectorToKey(n);
+          if (this.blockSet.has(nKey) && !visitedInArea.has(nKey)) {
+            visitedInArea.add(nKey);
+            areaBlocks.push(n);
+            boundaryBlocks.push(n);
+          }
+        }
+      }
+
+// Phase 3: Fill Gaps / Corners (Limited Expansion)
+      // Only fill blocks that are SURROUNDED by area blocks (corners/gaps)
+      // NOT linear extensions (shafts)
+      let addedInPass = true;
+      let passCount = 0;
+      const MAX_PASSES = 2; // Limit expansion to prevent over-growing
+      
+      while (addedInPass && passCount < MAX_PASSES) {
+        addedInPass = false;
+        passCount++;
+        
+        const currentAreaSet = new Set(areaBlocks.map(b => vectorToKey(b)));
+        const potentialCandidates = new Set<string>();
+        
+        // Collect candidates: all unvisited neighbors of current area
+        for (const b of areaBlocks) {
+           for (const n of this.getHorizontalNeighbors(b)) {
+             const nKey = vectorToKey(n);
+             if (this.blockSet.has(nKey) && !visitedInArea.has(nKey)) {
+               potentialCandidates.add(nKey);
+             }
+           }
+        }
+
+        // Check candidates - must connect to 3+ area blocks (strict corner/gap filling)
+        for (const candKey of potentialCandidates) {
+           const candBlock = this.findBlockByKey(candKey)!;
+           const neighbors = this.getHorizontalNeighbors(candBlock);
+           const neighborKeys = neighbors.map(n => vectorToKey(n));
+           const connectedCount = neighborKeys.filter(k => currentAreaSet.has(k)).length;
+           
+           // Only add if connected to 3+ sides (true corner/gap)
+           // This excludes linear extensions (which only connect to 1-2 sides)
+           if (connectedCount >= 3) {
+             visitedInArea.add(candKey);
+             areaBlocks.push(candBlock);
+             boundaryBlocks.push(candBlock);
+             addedInPass = true;
+           }
+        }
+      }
+
+      // Phase 4: Trace Spurs from Boundary
+      // If a boundary block leads to a short dead-end, include it (e.g. Tip 2nd block)
+      for (const boundary of boundaryBlocks) {
+        // Trace outward (using updated visitedInArea to avoid tracing back into filled gaps)
+        const traceResult = this.traceBranch(boundary, boundary, seedBlocks); 
+         if (traceResult.isShort && traceResult.isSpur && traceResult.blocks.length > 1) {
+            for (let i = 1; i < traceResult.blocks.length; i++) {
+              const b = traceResult.blocks[i];
+              const bKey = vectorToKey(b);
+              if (!visitedInArea.has(bKey)) {
+                visitedInArea.add(bKey);
+                areaBlocks.push(b);
+              }
+            }
+         }
       }
 
       if (areaBlocks.length > 0) {
@@ -341,6 +422,103 @@ class Tier1Analyzer {
     }
 
     return areas;
+  }
+
+  /**
+   * Helper to find block object from key
+   */
+  private findBlockByKey(key: string): Vector3 | undefined {
+    // This is inefficient O(N), but given map size usually < 1000, acceptable.
+    // Optimization: could Map<string, Vector3> in constructor if needed.
+    return this.blocks.find(b => vectorToKey(b) === key);
+  }
+
+  /**
+   * Trace a branch to see if it's a short spur or a long segment
+   * MAX_SPUR_LEN = 2 (Wings, Tips usually 1-2 blocks)
+   */
+  private traceBranch(start: Vector3, from: Vector3, allSeeds: Set<string>): { 
+    blocks: Vector3[], 
+    isShort: boolean, 
+    isSpur: boolean, // Endpoints
+    targetSeed?: Vector3 // Connects to another junction
+  } {
+    const MAX_LEN = 2; // Threshold for "Feature" vs "Segment"
+    const path: Vector3[] = [start];
+    let curr = start;
+    let prev = from;
+
+    while (path.length <= MAX_LEN + 1) { // Look slightly ahead
+      const nexts = this.getHorizontalNeighbors(curr).filter(n => {
+        const k = vectorToKey(n);
+        return this.blockSet.has(k) && vectorToKey(n) !== vectorToKey(prev);
+      });
+
+      if (nexts.length === 0) {
+        // Enpoint reached
+        return { blocks: path, isShort: path.length <= MAX_LEN, isSpur: true };
+      }
+
+      if (nexts.length > 1) {
+        // Should not happen if non-seed (degree < 3), unless we missed a seed definition?
+        // Or simply split path. Treat as endpoint for simplicity or seed.
+        // Actually if degree >= 3 it would be in allSeeds.
+        // So nexts must be length 1.
+        return { blocks: path, isShort: path.length <= MAX_LEN, isSpur: true };
+      }
+
+      const next = nexts[0];
+      const nKey = vectorToKey(next);
+
+      // Hit a seed?
+      if (allSeeds.has(nKey)) {
+         return { blocks: path, isShort: path.length <= MAX_LEN, isSpur: false, targetSeed: next };
+      }
+
+      // Continue
+      path.push(next);
+      prev = curr;
+      curr = next;
+    }
+
+    // Too long
+    return { blocks: path, isShort: false, isSpur: false };
+  }
+
+  /**
+   * Count horizontal neighbors (4-directional) that exist in blockSet
+   */
+  private countHorizontalNeighbors(block: Vector3): number {
+    return this.getHorizontalNeighbors(block).filter(n => 
+      this.blockSet.has(vectorToKey(n))
+    ).length;
+  }
+
+  /**
+   * Get 4-directional horizontal neighbors
+   */
+  private getHorizontalNeighbors(block: Vector3): Vector3[] {
+    return [
+      { x: block.x + 1, y: block.y, z: block.z },
+      { x: block.x - 1, y: block.y, z: block.z },
+      { x: block.x, y: block.y, z: block.z + 1 },
+      { x: block.x, y: block.y, z: block.z - 1 },
+    ];
+  }
+
+  /**
+   * Check if block is adjacent to 2+ junction blocks
+   */
+  private isAdjacentToMultipleJunctions(block: Vector3, junctions: Vector3[]): boolean {
+    const junctionSet = new Set(junctions.map(j => vectorToKey(j)));
+    const neighbors = this.getHorizontalNeighbors(block);
+    let adjacentJunctionCount = 0;
+    for (const n of neighbors) {
+      if (junctionSet.has(vectorToKey(n))) {
+        adjacentJunctionCount++;
+      }
+    }
+    return adjacentJunctionCount >= 2;
   }
 
   /**
@@ -930,6 +1108,7 @@ class Tier4Analyzer {
     const selectableElements = this.generateSelectableElements(tier3Result, metrics);
 
     return {
+      points: tier3Result.points,
       segments: tier3Result.mergedSegments,
       areas: tier3Result.areas,
       connectors: tier3Result.connectors,
@@ -1530,6 +1709,7 @@ export class MapAnalyzer {
 
     // Build minimal PlacementContext
     return {
+      points: [],
       segments: prebuiltSegments,
       areas: [],
       connectors: [],

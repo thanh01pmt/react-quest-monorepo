@@ -248,3 +248,76 @@
 .empty-state p {
   margin: 0;
 }
+
+/* Apply Section */
+.apply-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Toolbox Warning */
+.toolbox-warning {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbox-warning strong {
+  color: #f87171;
+}
+
+/* Toolbox Suggestion */
+.toolbox-suggestion {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  color: #86efac;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbox-suggestion strong {
+  color: #4ade80;
+}
+
+/* Suggest Toolbox Button */
+.suggest-toolbox-btn {
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.suggest-toolbox-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+}
+
+.suggest-toolbox-btn.small {
+  padding: 3px 8px;
+  font-size: 10px;
+  background: #16a34a;
+}
+
+.suggest-toolbox-btn.small:hover {
+  background: #22c55e;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+}

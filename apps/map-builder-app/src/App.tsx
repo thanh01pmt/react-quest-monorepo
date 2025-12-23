@@ -15,6 +15,7 @@ import { type BuildableAsset, type PlacedObject, type BuilderMode, type BoxDimen
 import { type Coord, type IPathInfo } from './map-generator/types';
 import { PlacementService, PedagogyStrategy } from './map-generator/PlacementService';
 import { TopologyPanel } from './components/TopologyPanel';
+import type { HighlightItem } from './components/TopologyInspector';
 import { MapInspector } from './components/MapInspector';
 import { ValidationBadge } from './components/ValidationBadge';
 import { BuilderModeProvider } from './store/builderModeContext';
@@ -119,6 +120,7 @@ function App() {
   // --- START: SỬA LỖI HIỆU ỨNG ---
   const [isMovingObject, setIsMovingObject] = useState(false);
   // --- END: SỬA LỖI HIỆU ỨNG ---
+  const [topologyHighlights, setTopologyHighlights] = useState<HighlightItem[]>([]);
   const sceneRef = useRef<SceneController>(null);
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<HTMLDivElement>(null); // Ref cho right-sidebar
@@ -1780,13 +1782,26 @@ function App() {
   }, [questMetadata, placementStrategy, placementDifficulty, itemGoals, assetMap, placedObjects, placementService]);
 
   // Handle applying items from PlacementVariants (AcademicPlacement)
-  const handleApplyVariant = useCallback((items: ItemPlacement[]) => {
+  const handleApplyVariant = useCallback((items: ItemPlacement[], suggestedToolbox?: string) => {
     console.log('[handleApplyVariant] Called with items:', items);
     console.log('[handleApplyVariant] AssetMap keys:', Array.from(assetMap.keys()));
+    console.log('[handleApplyVariant] Suggested toolbox:', suggestedToolbox);
 
     if (items.length === 0) {
       alert('⚠️ This variant has no items to place.');
       return;
+    }
+
+    // Auto-update toolbox preset if suggested (Option B)
+    if (suggestedToolbox) {
+      setQuestMetadata(prev => ({
+        ...prev,
+        blockly: {
+          ...prev?.blockly,
+          toolboxPreset: suggestedToolbox
+        }
+      }));
+      console.log(`[handleApplyVariant] Auto-set toolbox preset to: ${suggestedToolbox}`);
     }
 
     const newObjects: PlacedObject[] = [];
@@ -1846,6 +1861,25 @@ function App() {
     }
   }, [assetMap, setPlacedObjectsWithHistory]);
 
+  // Handle suggest toolbox from PlacementVariants (Option A)
+  const handleSuggestToolbox = useCallback((presetKey: string) => {
+    const confirmChange = window.confirm(
+      `Do you want to change the toolbox preset to "${presetKey.replace(/_/g, ' ')}"?\n\n` +
+      `This will update the Blockly toolbox to include the required blocks for the selected variant.`
+    );
+
+    if (confirmChange) {
+      setQuestMetadata(prev => ({
+        ...prev,
+        blockly: {
+          ...prev?.blockly,
+          toolboxPreset: presetKey
+        }
+      }));
+      alert(`✅ Toolbox preset updated to: ${presetKey.replace(/_/g, ' ')}`);
+    }
+  }, []);
+
   return (
     <div className="app-container">
       {isPaletteVisible && (
@@ -1872,15 +1906,19 @@ function App() {
           </div>
 
 
-
           <div style={{ padding: '10px', background: '#333', borderBottom: '1px solid #3c3c41' }}>
-            <label style={{ marginRight: '10px', fontWeight: 'bold', color: '#fff' }}>Layer:</label>
-            <select value={activeLayer} onChange={(e) => setActiveLayer(e.target.value as any)} style={{ background: '#3c3c41', color: '#fff', border: '1px solid #555', borderRadius: '4px', padding: '4px 8px' }}>
-              <option value="all">All</option>
-              <option value="ground">Ground</option>
-              <option value="items">Items</option>
-            </select>
-            <label style={{ marginLeft: '10px', color: '#ccc' }}>
+            {/* Hide Layer filter in Topology tab since it only handles Ground */}
+            {activeSidePanel !== 'topology' && (
+              <>
+                <label style={{ marginRight: '10px', fontWeight: 'bold', color: '#fff' }}>Layer:</label>
+                <select value={activeLayer} onChange={(e) => setActiveLayer(e.target.value as any)} style={{ background: '#3c3c41', color: '#fff', border: '1px solid #555', borderRadius: '4px', padding: '4px 8px' }}>
+                  <option value="all">All</option>
+                  <option value="ground">Ground</option>
+                  <option value="items">Items</option>
+                </select>
+              </>
+            )}
+            <label style={{ marginLeft: activeSidePanel === 'topology' ? '0' : '10px', color: '#ccc' }}>
               <input type="checkbox" checked={smartSnapEnabled} onChange={e => setSmartSnapEnabled(e.target.checked)} style={{ accentColor: '#007bff' }} /> Smart Snap
             </label>
           </div>
@@ -1910,6 +1948,8 @@ function App() {
               <TopologyPanel
                 onGenerate={handleGenerateMap}
                 assetMap={assetMap}
+                pathInfo={questMetadata?.pathInfo || null}
+                onHighlightChange={setTopologyHighlights}
               />
             ) : (
               /* Placement Panel - Item Placement Controls */
@@ -2019,6 +2059,8 @@ function App() {
                 <PlacementVariants
                   pathInfo={questMetadata?.pathInfo || null}
                   onApplyPlacement={handleApplyVariant}
+                  currentToolboxPreset={questMetadata?.blockly?.toolboxPreset || ''}
+                  onSuggestToolbox={handleSuggestToolbox}
                 />
                 <div style={{ height: '12px' }} />
 
@@ -2098,7 +2140,8 @@ function App() {
           isMovingObject={isMovingObject} // THÊM MỚI: Truyền trạng thái di chuyển xuống
           onSetIsMovingObject={setIsMovingObject} // THÊM MỚI: Cho phép Scene cập nhật trạng thái này
           onObjectContextMenu={handleObjectContextMenu}
-          solutionPath={solutionPath} // NEW PROP
+          solutionPath={solutionPath}
+          highlights={topologyHighlights}
         />
       </div>
       {/* --- START: THÊM THANH RESIZER VÀ ÁP DỤNG WIDTH ĐỘNG --- */}
