@@ -1,0 +1,159 @@
+{
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 14,
+          "y": 0,
+          "z": 14
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 15,
+          "y": 0,
+          "z": 14
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 16,
+          "y": 0,
+          "z": 14
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 14
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 15
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 16
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 16,
+          "y": 0,
+          "z": 16
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 14,
+          "y": 1,
+          "z": 14,
+          "direction": 1
+        }
+      }
+    ],
+    "collectibles": [
+      {
+        "id": "c1",
+        "type": "crystal",
+        "position": {
+          "x": 17,
+          "y": 1,
+          "z": 14
+        }
+      },
+      {
+        "id": "c2",
+        "type": "crystal",
+        "position": {
+          "x": 17,
+          "y": 1,
+          "z": 15
+        }
+      },
+      {
+        "id": "c3",
+        "type": "crystal",
+        "position": {
+          "x": 17,
+          "y": 1,
+          "z": 16
+        }
+      },
+      {
+        "id": "c4",
+        "type": "crystal",
+        "position": {
+          "x": 15,
+          "y": 1,
+          "z": 14
+        }
+      },
+      {
+        "id": "c5",
+        "type": "crystal",
+        "position": {
+          "x": 16,
+          "y": 1,
+          "z": 14
+        }
+      }
+    ],
+    "interactibles": [],
+    "finish": {
+      "x": 16,
+      "y": 1,
+      "z": 16
+    },
+    "blocklyConfig": {
+      "toolbox": {
+        "contents": [
+          {
+            "kind": "block",
+            "type": "maze_moveForward"
+          },
+          {
+            "kind": "block",
+            "type": "maze_turn"
+          },
+          {
+            "kind": "block",
+            "type": "maze_collect"
+          },
+          {
+            "kind": "block",
+            "type": "maze_toggle_switch"
+          },
+          {
+            "kind": "block",
+            "type": "maze_repeat"
+          },
+          {
+            "kind": "category",
+            "custom": "PROCEDURE",
+            "contents": []
+          }
+        ]
+      }
+    }
+  }
+}

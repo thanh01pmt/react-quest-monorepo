@@ -1,0 +1,215 @@
+{
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": 25
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 27
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 23
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 22,
+          "y": 0,
+          "z": 25
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 20,
+          "y": 0,
+          "z": 23
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 26
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": 27
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": 23
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 25
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 20,
+          "y": 0,
+          "z": 27
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 20,
+          "y": 0,
+          "z": 25
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 22,
+          "y": 0,
+          "z": 27
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 22,
+          "y": 0,
+          "z": 23
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 24
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 19,
+          "y": 1,
+          "z": 23,
+          "direction": 1
+        }
+      }
+    ],
+    "collectibles": [
+      {
+        "id": "c1",
+        "type": "crystal",
+        "position": {
+          "x": 19,
+          "y": 1,
+          "z": 26
+        }
+      },
+      {
+        "id": "c2",
+        "type": "crystal",
+        "position": {
+          "x": 19,
+          "y": 1,
+          "z": 27
+        }
+      },
+      {
+        "id": "c3",
+        "type": "crystal",
+        "position": {
+          "x": 22,
+          "y": 1,
+          "z": 23
+        }
+      },
+      {
+        "id": "c4",
+        "type": "crystal",
+        "position": {
+          "x": 21,
+          "y": 1,
+          "z": 25
+        }
+      },
+      {
+        "id": "c5",
+        "type": "crystal",
+        "position": {
+          "x": 22,
+          "y": 1,
+          "z": 27
+        }
+      }
+    ],
+    "interactibles": [],
+    "finish": {
+      "x": 22,
+      "y": 1,
+      "z": 25
+    },
+    "blocklyConfig": {
+      "toolbox": {
+        "contents": [
+          {
+            "kind": "block",
+            "type": "maze_moveForward"
+          },
+          {
+            "kind": "block",
+            "type": "maze_turn"
+          },
+          {
+            "kind": "block",
+            "type": "maze_collect"
+          },
+          {
+            "kind": "block",
+            "type": "maze_toggle_switch"
+          },
+          {
+            "kind": "block",
+            "type": "maze_repeat"
+          },
+          {
+            "kind": "category",
+            "custom": "PROCEDURE",
+            "contents": []
+          }
+        ]
+      }
+    }
+  }
+}

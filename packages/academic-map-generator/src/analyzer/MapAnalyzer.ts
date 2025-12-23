@@ -63,6 +63,12 @@ export interface Area {
   shapeType?: 'rectangle' | 'square' | 'irregular';
   holes?: Hole[];            // Internal holes
   gateways?: Gateway[];      // Entry/exit points connecting to paths
+  // [NEW] Cấu trúc nội tại
+  subStructures?: {
+    type: 'wing' | 'body' | 'path_fragment';
+    coords: Vector3[];
+    id: string;
+  }[];
 }
 
 // NEW: Hole in an Area (empty space inside)
@@ -330,13 +336,22 @@ class Tier1Analyzer {
   analyze(): Tier1Result {
     // Phase 1: Core geometric decomposition
     const areas = this.findAreas();
+    
+    // [FIX] Tạo mask để đánh dấu các block đã thuộc Area
+    const areaBlockKeys = new Set<string>();
+    areas.forEach(a => a.blocks.forEach(b => areaBlockKeys.add(vectorToKey(b))));
+    
     const connectors = this.findConnectors(areas);
-    const segments = this.traceAllSegments();
+    const segments = this.traceAllSegments(areaBlockKeys); // Pass exclusion set
     const points = this.findSpecialPoints(segments);
     const relations = this.analyzeRelations(segments);
     
     // Phase 2: Enhanced analysis from Geometric Reasoning Engine
     const gateways = this.findGateways(areas, segments);
+    
+    // [NEW] Phân tích cấu trúc bên trong Area (tìm cánh, đối xứng)
+    this.analyzeAreaInternals(areas);
+    
     const metaPaths = this.analyzeMetaPaths(segments);
     
     // Enrich areas with holes and gateways
@@ -369,153 +384,201 @@ class Tier1Analyzer {
   }
 
   /**
-   * Tìm các vùng (Areas) dựa trên cấu trúc hình học
+   * Helper: Calculate degree (neighbor count) for a 2D position
+   */
+  private getDegree2D(x: number, z: number, grid2D: Set<string>): number {
+    let count = 0;
+    for (const dir of this.DIRECTIONS_2D) {
+      if (grid2D.has(`${x + dir.x},${z + dir.z}`)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * [UPDATED] Tìm Area bằng thuật toán Morphological Erosion
+   * Khắc phục lỗi: Area không còn "ăn" nhầm vào Shaft (Path)
    * 
-   * Algorithm gồm 3 phương pháp (theo Geometric Reasoning Engine):
-   * 1. Core-based: Blocks có degree = 4 (bị bao kín 4 phía) + Flood Fill reconstruction
-   * 2. Junction-based: Fallback cho shapes có junctions nhưng không có cores
-   * 3. Expansion Zone: Phát hiện vùng mở rộng đột ngột (như đầu mũi tên)
-   * 
-   * MIN_AREA_SIZE = 5 để tránh false positives
+   * Algorithm:
+   * 1. EROSION: Tìm Lõi (Core) - block bị bao kín tứ phía (4 neighbors)
+   * 2. EXPANSION Pass 1: Lấy neighbors trực tiếp của Core
+   * 3. EXPANSION Pass 2: Filter - chỉ giữ ô có >=3 neighbors HOẶC connected to core
+   * 4. Grouping & Create Area objects
    */
   private findAreas(): Area[] {
     const areas: Area[] = [];
-    const visitedInArea = new Set<string>();
-    const yLevel = this.blocks[0]?.y ?? 0;
-
-    // Create 2D grid representation for analysis
-    const grid2D = new Set<string>();
+    const grid2D = new Set<string>(); // Bản đồ 2D (x,z)
+    
+    // 1. Build 2D Grid
     for (const block of this.blocks) {
       grid2D.add(this.vector2DKey(block));
     }
 
-    // ========================================
-    // STRATEGY 1: Core-based Detection (Degree = 4)
-    // ========================================
-    // Core blocks are completely surrounded (4 neighbors)
-    // This is the most reliable indicator of an "area" vs "path"
-    
-    const coreBlocks2D = new Set<string>();
-    for (const block of this.blocks) {
-      const key2D = this.vector2DKey(block);
-      let neighborCount = 0;
-      
+    // 2. EROSION: Tìm Lõi (Core)
+    // Core là những block bị bao vây tứ phía (4 hàng xóm)
+    const coreBlocks = new Set<string>();
+    for (const key of grid2D) {
+      const { x, z } = this.parse2DKey(key);
+      let neighbors = 0;
       for (const dir of this.DIRECTIONS_2D) {
-        const neighborKey = `${block.x + dir.x},${block.z + dir.z}`;
-        if (grid2D.has(neighborKey)) {
-          neighborCount++;
-        }
+        if (grid2D.has(`${x + dir.x},${z + dir.z}`)) neighbors++;
       }
-      
-      if (neighborCount === 4) {
-        coreBlocks2D.add(key2D);
+      if (neighbors === 4) {
+        coreBlocks.add(key);
       }
     }
 
-    // If we have enough core blocks, use flood fill reconstruction
-    if (coreBlocks2D.size >= 1) {
-      // Flood fill from core to reconstruct full area
-      const areaBlocks2D = new Set(coreBlocks2D);
-      const queue = Array.from(coreBlocks2D).map(k => this.parse2DKey(k));
+    // Nếu không có lõi, chuyển sang fallback strategies
+    if (coreBlocks.size === 0) {
+      return this.findAreasFallback(grid2D);
+    }
+
+    // 3. RECONSTRUCTION (DILATION): Khôi phục Area từ Lõi
+    const areaKeySet = new Set<string>(coreBlocks);
+    
+    // Pass 1: Lấy neighbors trực tiếp của Core
+    const expansionCandidates = new Set<string>();
+    for (const key of coreBlocks) {
+      const { x, z } = this.parse2DKey(key);
+      for (const dir of this.DIRECTIONS_2D) {
+        const nKey = `${x + dir.x},${z + dir.z}`;
+        if (grid2D.has(nKey) && !areaKeySet.has(nKey)) {
+          expansionCandidates.add(nKey);
+        }
+      }
+    }
+
+    // Pass 2: Filter Candidates - Chỉ giữ lại ô thực sự thuộc về khối đặc
+    for (const key of expansionCandidates) {
+      const { x, z } = this.parse2DKey(key);
+      let neighborsCount = 0;
+      for (const dir of this.DIRECTIONS_2D) {
+        if (grid2D.has(`${x + dir.x},${z + dir.z}`)) neighborsCount++;
+      }
       
-      while (queue.length > 0) {
-        const {x, z} = queue.shift()!;
-        
+      // Rule: Một ô thuộc Area viền thường có 2-3 hàng xóm.
+      // Shaft (Path) thường chỉ có 2 hàng xóm (trước/sau).
+      if (neighborsCount >= 3) { 
+        areaKeySet.add(key);
+      } else {
+        // Edge case: Đỉnh nhọn (Wing Tip) chỉ có 1-2 hàng xóm
+        // Nhưng dính trực tiếp với Core -> cần kiểm tra kỹ
+        let connectedToCore = false;
         for (const dir of this.DIRECTIONS_2D) {
-          const nx = x + dir.x;
-          const nz = z + dir.z;
-          const neighborKey = `${nx},${nz}`;
-          
-          if (grid2D.has(neighborKey) && !areaBlocks2D.has(neighborKey)) {
-            areaBlocks2D.add(neighborKey);
-            queue.push({x: nx, z: nz});
+          if (coreBlocks.has(`${x + dir.x},${z + dir.z}`)) {
+            connectedToCore = true;
+            break;
+          }
+        }
+        
+        if (connectedToCore) {
+          // Chỉ thêm nếu nó KHÔNG phải là đường nối (connector) ra khỏi area
+          // Kiểm tra chiều rộng tại Z-level hiện tại
+          const blocksAtZ = this.blocks.filter(b => b.z === z);
+          const xValues = blocksAtZ.map(b => b.x);
+          const width = xValues.length > 0 ? Math.max(...xValues) - Math.min(...xValues) + 1 : 0;
+
+          // Rule: Thêm vào nếu:
+          // 1. Z-level rộng (>=2 blocks) -> Wing tip
+          // 2. Hoặc là ngõ cụt (neighborsCount <= 1) -> Arrow tip
+          // 3. Nếu width=1 và neighbors=2 -> Đây là Shaft connector -> BỎ QUA
+          if (width >= 2 || neighborsCount <= 1) {
+            areaKeySet.add(key);
           }
         }
       }
-      
-      // Apply MIN_AREA_SIZE threshold
-      if (areaBlocks2D.size >= this.MIN_AREA_SIZE) {
-        // Convert back to Vector3 and group connected components
-        const areaBlocks3D: Vector3[] = [];
-        for (const key2D of areaBlocks2D) {
-          const {x, z} = this.parse2DKey(key2D);
-          areaBlocks3D.push({x, y: yLevel, z});
-          visitedInArea.add(vectorToKey({x, y: yLevel, z}));
+    }
+
+    // Pass 3: Thêm một lượt expansion nữa cho các ô viền còn lại
+    // Để bao gồm các đầu cánh (wing tips) và đỉnh mũi tên
+    const finalExpansion = new Set<string>();
+    for (const key of areaKeySet) {
+      const { x, z } = this.parse2DKey(key);
+      for (const dir of this.DIRECTIONS_2D) {
+        const nKey = `${x + dir.x},${z + dir.z}`;
+        if (grid2D.has(nKey) && !areaKeySet.has(nKey)) {
+          // Chỉ thêm nếu ô này KHÔNG phải là phần của shaft (kiểm tra độ rộng Z-level)
+          const { z: nz } = this.parse2DKey(nKey);
+          const blocksAtZ = this.blocks.filter(b => b.z === nz);
+          const xValues = blocksAtZ.map(b => b.x);
+          const width = xValues.length > 0 ? Math.max(...xValues) - Math.min(...xValues) + 1 : 0;
+          
+          // Nếu Z-level này rộng (>=2 blocks) hoặc block kề với area block, thêm vào
+          if (width >= 2 || blocksAtZ.length >= 2) {
+            finalExpansion.add(nKey);
+          }
         }
-        
-        areas.push(this.createArea(`area_${areas.length}`, areaBlocks3D));
+      }
+    }
+    for (const key of finalExpansion) {
+      areaKeySet.add(key);
+    }
+
+    // 4. Grouping & Creating Area Objects
+    if (areaKeySet.size >= this.MIN_AREA_SIZE) {
+      const areaBlocks: Vector3[] = [];
+      const yLevel = this.blocks[0]?.y ?? 0;
+      
+      for (const key of areaKeySet) {
+        const { x, z } = this.parse2DKey(key);
+        areaBlocks.push({ x, y: yLevel, z });
+      }
+      
+      areas.push(this.createArea(`area_${areas.length}`, areaBlocks));
+    }
+
+    return areas;
+  }
+
+  /**
+   * Fallback strategies khi không tìm thấy core blocks
+   */
+  private findAreasFallback(grid2D: Set<string>): Area[] {
+    const areas: Area[] = [];
+    const visitedInArea = new Set<string>();
+    const yLevel = this.blocks[0]?.y ?? 0;
+
+    // Strategy: Junction-based - dùng cho T-shape, cross-shape
+    const junctionBlocks = new Set<string>();
+    for (const block of this.blocks) {
+      if (this.countHorizontalNeighbors(block) >= 3) {
+        junctionBlocks.add(vectorToKey(block));
       }
     }
 
-    // ========================================
-    // STRATEGY 2: Junction-based Fallback
-    // ========================================
-    // For shapes with junctions (degree >= 3) but no core blocks (e.g., T-shape top)
-    // Only if Strategy 1 didn't find anything
-    
-    if (areas.length === 0) {
-      const junctionBlocks = new Set<string>();
-      for (const block of this.blocks) {
-        if (this.countHorizontalNeighbors(block) >= 3) {
-          junctionBlocks.add(vectorToKey(block));
-        }
-      }
+    // Cluster adjacent junctions
+    for (const junctionKey of junctionBlocks) {
+      if (visitedInArea.has(junctionKey)) continue;
 
-      // Cluster adjacent junctions
-      for (const junctionKey of junctionBlocks) {
-        if (visitedInArea.has(junctionKey)) continue;
+      const areaBlocks: Vector3[] = [];
+      const block = this.findBlockByKey(junctionKey);
+      if (!block) continue;
+      
+      const queue: Vector3[] = [block];
+      visitedInArea.add(junctionKey);
+      areaBlocks.push(block);
 
-        const areaBlocks: Vector3[] = [];
-        const queue: Vector3[] = [this.findBlockByKey(junctionKey)!];
-        visitedInArea.add(junctionKey);
-        areaBlocks.push(queue[0]);
-
-        // Expand to adjacent junctions
-        let qIndex = 0;
-        while (qIndex < queue.length) {
-          const current = queue[qIndex++];
-          const neighbors = this.getHorizontalNeighbors(current);
-          
-          for (const n of neighbors) {
-            const nKey = vectorToKey(n);
-            if (junctionBlocks.has(nKey) && !visitedInArea.has(nKey) && this.blockSet.has(nKey)) {
-              visitedInArea.add(nKey);
-              areaBlocks.push(n);
+      // Expand to adjacent junctions and radius 1
+      let qIndex = 0;
+      while (qIndex < queue.length) {
+        const current = queue[qIndex++];
+        const neighbors = this.getHorizontalNeighbors(current);
+        
+        for (const n of neighbors) {
+          const nKey = vectorToKey(n);
+          if (!visitedInArea.has(nKey) && this.blockSet.has(nKey)) {
+            visitedInArea.add(nKey);
+            areaBlocks.push(n);
+            if (junctionBlocks.has(nKey)) {
               queue.push(n);
             }
           }
         }
-
-        // Expand radius 1 from junction core
-        const coreBlocks = [...areaBlocks];
-        for (const core of coreBlocks) {
-          const neighbors = this.getHorizontalNeighbors(core);
-          for (const n of neighbors) {
-            const nKey = vectorToKey(n);
-            if (this.blockSet.has(nKey) && !visitedInArea.has(nKey)) {
-              visitedInArea.add(nKey);
-              areaBlocks.push(n);
-            }
-          }
-        }
-
-        // Apply MIN_AREA_SIZE threshold
-        if (areaBlocks.length >= this.MIN_AREA_SIZE) {
-          areas.push(this.createArea(`area_${areas.length}`, areaBlocks));
-        }
       }
-    }
 
-    // ========================================
-    // STRATEGY 3: Expansion Zone Detection
-    // ========================================
-    // Detect areas where width suddenly increases (like arrow head)
-    // This catches shapes that don't have traditional cores or junctions
-    
-    const expansionZones = this.findExpansionZones(visitedInArea);
-    for (const zone of expansionZones) {
-      if (zone.length >= this.MIN_AREA_SIZE) {
-        areas.push(this.createArea(`area_${areas.length}`, zone));
+      if (areaBlocks.length >= this.MIN_AREA_SIZE) {
+        areas.push(this.createArea(`area_${areas.length}`, areaBlocks));
       }
     }
 
@@ -1006,8 +1069,10 @@ class Tier1Analyzer {
       }
     }
     
-    // Calculate total length
-    const totalLength = chain.reduce((sum, s) => sum + s.length, 0);
+    // Calculate total length (Block Count)
+    // Formula: Sum of segment lengths (blocks) - Number of joints (overlaps)
+    // Assuming linear chain where Segments share 1 point at each joint: Overlaps = Segments - 1
+    const totalLength = chain.reduce((sum, s) => sum + s.length, 0) - (chain.length - 1);
     
     // Determine structure type based on directions
     let structureType: MetaPath['structureType'] = 'random';
@@ -1170,18 +1235,21 @@ class Tier1Analyzer {
 
   /**
    * Trace tất cả segments từ blocks
+   * [UPDATED] Thêm excludeSet để tránh trace vào Area
    */
-  private traceAllSegments(): PathSegment[] {
+  private traceAllSegments(excludeSet: Set<string> = new Set()): PathSegment[] {
     const segments: PathSegment[] = [];
     const visited = new Set<string>();
 
     for (const block of this.blocks) {
       const key = vectorToKey(block);
-      if (visited.has(key)) continue;
+      
+      // [FIX] Nếu block đã thuộc Area hoặc đã thăm -> Bỏ qua
+      if (visited.has(key) || excludeSet.has(key)) continue;
 
       // Try to trace segment in each direction
       for (const dir of this.getCardinalDirections()) {
-        const segment = this.traceSegmentInDirection(block, dir, visited);
+        const segment = this.traceSegmentInDirection(block, dir, visited, excludeSet);
         if (segment && segment.points.length >= 2) {
           segment.id = `seg_${segments.length}`;
           segments.push(segment);
@@ -1200,7 +1268,12 @@ class Tier1Analyzer {
   /**
    * Trace segment theo 1 hướng
    */
-  private traceSegmentInDirection(start: Vector3, direction: Vector3, visited: Set<string>): PathSegment | null {
+  private traceSegmentInDirection(
+    start: Vector3, 
+    direction: Vector3, 
+    visited: Set<string>,
+    excludeSet: Set<string> = new Set()
+  ): PathSegment | null {
     const points: Vector3[] = [start];
     let current = start;
 
@@ -1208,7 +1281,7 @@ class Tier1Analyzer {
       const next = vectorAdd(current, direction);
       const nextKey = vectorToKey(next);
 
-      if (!this.blockSet.has(nextKey) || visited.has(nextKey)) break;
+      if (!this.blockSet.has(nextKey) || visited.has(nextKey) || excludeSet.has(nextKey)) break;
 
       points.push(next);
       current = next;
@@ -1223,7 +1296,7 @@ class Tier1Analyzer {
       const next = vectorAdd(current, backDir);
       const nextKey = vectorToKey(next);
 
-      if (!this.blockSet.has(nextKey) || visited.has(nextKey)) break;
+      if (!this.blockSet.has(nextKey) || visited.has(nextKey) || excludeSet.has(nextKey)) break;
 
       backPoints.unshift(next);
       current = next;
@@ -1239,7 +1312,7 @@ class Tier1Analyzer {
       id: '', // Will be set by caller
       points: allPoints,
       direction: segmentDir,
-      length: allPoints.length - 1,
+      length: allPoints.length, // Block count (was -1 for edge count)
       plane
     };
   }
@@ -1267,7 +1340,7 @@ class Tier1Analyzer {
             id: `${prefix}_${segments.length}`,
             points: segmentPoints,
             direction: currentDir,
-            length: segmentPoints.length - 1,
+            length: segmentPoints.length, // Block count
             plane: this.determinePlane(currentDir)
           });
         }
@@ -1283,7 +1356,7 @@ class Tier1Analyzer {
         id: `${prefix}_${segments.length}`,
         points: lastPoints,
         direction: currentDir,
-        length: lastPoints.length - 1,
+        length: lastPoints.length, // Block count
         plane: this.determinePlane(currentDir)
       });
     }
@@ -1364,6 +1437,54 @@ class Tier1Analyzer {
     }
 
     return specialPoints;
+  }
+
+  // [NEW] Hàm tách cánh và cấu trúc con trong Area
+  private analyzeAreaInternals(areas: Area[]) {
+    for (const area of areas) {
+      area.subStructures = [];
+      const blocks = area.blocks;
+      if (blocks.length < 3) continue;
+
+      // 1. Detect Symmetry Axis (Trục đối xứng)
+      // Tìm trục X trung tâm
+      const xs = blocks.map(b => b.x);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const midX = (minX + maxX) / 2;
+
+      // Kiểm tra đối xứng qua trục Z tại midX
+      const leftBlocks = blocks.filter(b => b.x < midX);
+      const rightBlocks = blocks.filter(b => b.x > midX);
+      const centerBlocks = blocks.filter(b => b.x === midX);
+
+      // Nếu số lượng block 2 bên bằng nhau -> Khả năng cao là đối xứng
+      if (leftBlocks.length > 0 && leftBlocks.length === rightBlocks.length) {
+        
+        // Define Left Wing
+        area.subStructures.push({
+          type: 'wing',
+          id: `${area.id}_left_wing`,
+          coords: leftBlocks
+        });
+
+        // Define Right Wing
+        area.subStructures.push({
+          type: 'wing',
+          id: `${area.id}_right_wing`,
+          coords: rightBlocks
+        });
+
+        // Define Center Body (Spine extension inside area)
+        if (centerBlocks.length > 0) {
+          area.subStructures.push({
+            type: 'body',
+            id: `${area.id}_spine`,
+            coords: centerBlocks
+          });
+        }
+      }
+    }
   }
 
   /**
@@ -1508,6 +1629,26 @@ class Tier2Analyzer {
   private findPatterns(tier1: Tier1Result): Pattern[] {
     const patterns: Pattern[] = [];
 
+    // [NEW] Tìm pattern từ Area Substructures
+    for (const area of tier1.areas) {
+      if (area.subStructures) {
+        const leftWing = area.subStructures.find(s => s.id.includes('left_wing'));
+        const rightWing = area.subStructures.find(s => s.id.includes('right_wing'));
+
+        if (leftWing && rightWing) {
+          patterns.push({
+            id: `pattern_area_symmetry_${area.id}`,
+            type: 'mirror',
+            unitElements: [leftWing.id, rightWing.id], // ID của 2 cánh
+            repetitions: 2,
+            transform: {
+              mirrorPlane: 'xz' // Đối xứng qua trục Z
+            }
+          });
+        }
+      }
+    }
+
     // Find repeat patterns from relations
     const symmetricPairs = tier1.relations.filter(r => r.type === 'axis_symmetric');
     if (symmetricPairs.length >= 2) {
@@ -1624,6 +1765,8 @@ class Tier3Analyzer {
 // ============================================================================
 
 class Tier4Analyzer {
+  constructor(private preferredInterval?: number) {}
+
   analyze(tier3Result: Tier3Result): PlacementContext {
     const suggestedPlacements = this.generateSuggestions(tier3Result);
     const metrics = this.computeMetrics(tier3Result);
@@ -1679,6 +1822,26 @@ class Tier4Analyzer {
       elements.push(...positionElements);
     }
     
+    // 1b. [NEW] Create selectable elements for Area Substructures (Wings)
+    for (const area of tier3.areas) {
+      if (area.subStructures) {
+        for (const sub of area.subStructures) {
+          // Tạo selectable element cho từng cánh
+          // Chuyển đổi coords sang format SECoord
+          const coords: SECoord[] = sub.coords.map(c => [c.x, c.y, c.z] as SECoord);
+          
+          elements.push(createSegmentElement(
+            sub.id,
+            coords,
+            'recommended'
+          ));
+          
+          // Add metadata separately if needed (createSegmentElement might need strict types)
+          // Or update createSegmentElement to accept metadata
+        }
+      }
+    }
+
     // 2. Generate keypoint elements from special points
     // Endpoints
     const endpoints = new Set<string>();
@@ -1820,14 +1983,14 @@ class Tier4Analyzer {
     }
     const junctionCount = Array.from(pointCounts.values()).filter(c => c >= 3).length;
 
-    // Longest path
-    const longestPathLength = tier3.mergedSegments.reduce((max, s) => Math.max(max, s.length), 0);
+    // Longest path (Block count)
+    const longestPathLength = tier3.mergedSegments.reduce((max, s) => Math.max(max, s.points.length), 0);
 
     // Detect topology
     const detectedTopology = this.detectTopology(tier3, junctionCount);
 
     return {
-      totalBlocks: tier3.areas.reduce((sum, a) => sum + a.blocks.length, 0) || allPoints.length,
+      totalBlocks: tier3.areas.reduce((sum, a) => sum + a.blocks.length, 0) + allPoints.length,
       boundingBox: { width, height, depth },
       area,
       estimatedSize,
@@ -1849,7 +2012,16 @@ class Tier4Analyzer {
    */
   private detectTopology(tier3: Tier3Result, junctionCount: number): string {
     const segments = tier3.mergedSegments;
+    const areas = tier3.areas;
     const relations = tier3.relations;
+
+    // Logic nhận diện Arrow/Key (1 Path nối vào 1 Area rộng)
+    if (segments.length === 1 && areas.length === 1) {
+      const areaWidth = areas[0].dimensions?.width || 0;
+      // Nếu Area rộng hơn Path đáng kể -> Arrow hoặc Spoon
+      if (areaWidth >= 3) return 'arrow_shape'; 
+      return 'key_shape';
+    }
 
     if (segments.length === 1 && junctionCount === 0) return 'linear';
 
@@ -1902,7 +2074,11 @@ class Tier4Analyzer {
 
     const calculatedMax = Math.floor(metrics.totalBlocks * d.ratio);
     const maxItems = Math.min(Math.max(calculatedMax, d.min), d.max);
-    const preferredInterval = metrics.longestPathLength > 0 ? Math.ceil(metrics.longestPathLength / maxItems) : 2;
+    
+    // Use preferredInterval if provided, otherwise auto-calculate
+    const preferredInterval = this.preferredInterval ?? (
+      metrics.longestPathLength > 0 ? Math.ceil(metrics.longestPathLength / maxItems) : 2
+    );
 
     return {
       maxItems,
@@ -1939,6 +2115,45 @@ class Tier4Analyzer {
       if (seg.points.length >= 2) {
         addCoord(seg.points[0], 7, 'important', 'Segment endpoint (start)', seg.id);
         addCoord(seg.points[seg.points.length - 1], 7, 'important', 'Segment endpoint (end)', seg.id);
+      }
+    }
+
+    // [NEW] Quét Area Extremities (Tìm cánh và đỉnh)
+    for (const area of tier3.areas) {
+      const blocks = area.blocks;
+      if (blocks.length === 0) continue;
+
+      // Tìm min/max X (Cánh) và max Z (Đỉnh)
+      // Group by Z first to find wideness
+      const blocksByZ = new Map<number, Vector3[]>();
+      blocks.forEach(b => {
+        if (!blocksByZ.has(b.z)) blocksByZ.set(b.z, []);
+        blocksByZ.get(b.z)!.push(b);
+      });
+
+      // Tìm row rộng nhất
+      let maxRowWidth = 0;
+      let widestRowZ = -1;
+      blocksByZ.forEach((row, z) => {
+        if (row.length > maxRowWidth) {
+          maxRowWidth = row.length;
+          widestRowZ = z;
+        }
+      });
+
+      // Nếu row rộng nhất >= 3 blocks, lấy 2 đầu mút
+      if (maxRowWidth >= 3 && widestRowZ !== -1) {
+        const row = blocksByZ.get(widestRowZ)!;
+        row.sort((a, b) => a.x - b.x);
+        addCoord(row[0], 9, 'critical', 'Left Wing Tip (Area Extremity)');
+        addCoord(row[row.length - 1], 9, 'critical', 'Right Wing Tip (Area Extremity)');
+      }
+
+      // Tìm đỉnh cao nhất (Apex)
+      const maxZ = Math.max(...blocks.map(b => b.z));
+      const apexBlock = blocks.find(b => b.z === maxZ);
+      if (apexBlock) {
+        addCoord(apexBlock, 10, 'critical', 'Area Apex (Goal Position)');
       }
     }
 
@@ -1994,7 +2209,7 @@ class Tier4Analyzer {
 
     // 5. Interval points
     for (const seg of tier3.mergedSegments) {
-      const interval = Math.max(2, Math.floor(seg.points.length / 4));
+      const interval = this.preferredInterval ?? Math.max(2, Math.floor(seg.points.length / 4));
       for (let i = interval; i < seg.points.length - 1; i += interval) {
         const key = `${seg.points[i].x},${seg.points[i].y},${seg.points[i].z}`;
         if (!scored.has(key)) {
@@ -2074,13 +2289,20 @@ class Tier4Analyzer {
 // MAIN ANALYZER CLASS
 // ============================================================================
 
+export interface AnalyzerOptions {
+  minLength?: number;
+  preferredInterval?: number;
+}
+
 export class MapAnalyzer {
   private config: GameConfig;
   private minLength: number;
+  private preferredInterval?: number;
 
-  constructor(config: { gameConfig: GameConfig }, options?: { minLength?: number }) {
+  constructor(config: { gameConfig: GameConfig }, options?: AnalyzerOptions) {
     this.config = config.gameConfig;
     this.minLength = options?.minLength ?? 2;
+    this.preferredInterval = options?.preferredInterval;
   }
 
   /**
@@ -2130,7 +2352,7 @@ export class MapAnalyzer {
         id: `seg_${idx}`,
         points,
         direction,
-        length: points.length - 1,
+        length: points.length, // Block count
         plane: 'xz' as const
       };
     });
@@ -2265,7 +2487,7 @@ export class MapAnalyzer {
     const tier3Result = tier3.analyze(tier2Result);
 
     // Tier 4: Final Output
-    const tier4 = new Tier4Analyzer();
+    const tier4 = new Tier4Analyzer(this.preferredInterval);
     const result = tier4.analyze(tier3Result);
 
     return result;
