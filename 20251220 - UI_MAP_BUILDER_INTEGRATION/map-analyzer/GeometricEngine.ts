@@ -23,7 +23,7 @@ interface Segment {
   vectorSequence?: Coord[]; // For paths only
   properties: {
     length?: number;
-    shape?: 'straight' | 'staircase' | 'complex';
+    shape?: 'straight' | 'staircase' | 'complex' | 'straight_chain' | 'macro_staircase' | 'spiral' | 'u_shape' | 'branching' | 'random';
     dimensions?: [number, number]; // width, depth for areas
     shapeType?: 'rectangle' | 'square' | 'circle';
     centroid?: Coord;
