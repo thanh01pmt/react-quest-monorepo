@@ -4,7 +4,7 @@
  */
 
 import { Coord } from '../types';
-import { PlacedObject, BuildableAsset } from '../../types';
+import { PlacedObject, BuildableAsset } from '../../../apps/map-builder-app/src/types';
 
 /**
  * All 7 pedagogical strategies from Python implementation

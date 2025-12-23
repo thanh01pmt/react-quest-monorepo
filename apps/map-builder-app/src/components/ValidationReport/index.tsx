@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { ValidationReport as ValidationReportType, TierValidationResult } from '../../map-generator/validation';
+import { ValidationReport as ValidationReportType, TierValidationResult } from '../../../../../packages/map-generator/validation';
 import './ValidationReport.css';
 
 interface ValidationReportProps {

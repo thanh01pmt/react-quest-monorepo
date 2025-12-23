@@ -1,4 +1,4 @@
-import { PlacedObject, BuildableAsset } from '../types';
+import { PlacedObject, BuildableAsset } from '../../apps/map-builder-app/src/types';
 import { BaseTopology } from './topologies/BaseTopology';
 import { IPathInfo, Coord } from './types';
 import { v4 as uuidv4 } from 'uuid';

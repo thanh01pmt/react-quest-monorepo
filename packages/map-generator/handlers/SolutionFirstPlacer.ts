@@ -26,7 +26,7 @@
  */
 
 import { IPathInfo, Coord } from '../types';
-import { PlacedObject, BuildableAsset } from '../../types';
+import { PlacedObject, BuildableAsset } from '../../../apps/map-builder-app/src/types';
 import { v4 as uuidv4 } from 'uuid';
 import { getSynthesizerRegistry, SynthesisResult } from '../synthesizers';
 import { 

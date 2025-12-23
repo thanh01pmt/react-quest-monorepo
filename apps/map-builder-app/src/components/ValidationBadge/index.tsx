@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { ValidationReport } from '../../map-generator/validation';
+import { ValidationReport } from '../../../../../packages/map-generator/validation';
 import { ValidationReportComponent } from '../ValidationReport';
 import './ValidationBadge.css';
 

@@ -58,6 +58,38 @@ export interface Area {
   boundary: Vector3[];       // Perimeter blocks (đường bao)
   center: Vector3;           // Centroid
   boundingBox: { min: Vector3; max: Vector3 };
+  // NEW: Enhanced area properties from Geometric Reasoning Engine
+  dimensions?: { width: number; depth: number };
+  shapeType?: 'rectangle' | 'square' | 'irregular';
+  holes?: Hole[];            // Internal holes
+  gateways?: Gateway[];      // Entry/exit points connecting to paths
+}
+
+// NEW: Hole in an Area (empty space inside)
+export interface Hole {
+  id: string;
+  coords: Vector3[];         // Coordinates of the hole
+  size: number;              // Number of blocks in hole
+  isCentered: boolean;       // Is the hole centered in the parent area?
+}
+
+// NEW: Gateway - connection point between Path and Area
+export interface Gateway {
+  id: string;
+  coord: Vector3;            // Gateway position
+  connectedPathId: string;   // ID of the connected path
+  connectedAreaId: string;   // ID of the connected area
+  direction: Vector3;        // Direction from path into area
+}
+
+// NEW: MetaPath - chain of connected path segments with pattern analysis
+export interface MetaPath {
+  id: string;
+  segments: PathSegment[];   // Ordered list of connected segments
+  joints: Vector3[];         // Corner points where direction changes
+  structureType: 'straight_chain' | 'macro_staircase' | 'spiral' | 'u_shape' | 'branching' | 'random';
+  isRegular: boolean;        // True if segments have equal/pattern lengths
+  totalLength: number;
 }
 
 export interface Connector {
@@ -94,6 +126,9 @@ export interface Tier1Result {
   areas: Area[];
   connectors: Connector[];
   relations: PathRelation[];
+  // NEW: From Geometric Reasoning Engine
+  metaPaths: MetaPath[];     // Connected path chains with pattern analysis
+  gateways: Gateway[];       // Path-Area connection points
 }
 
 // Tier 2 Types
@@ -186,6 +221,10 @@ export interface PlacementContext {
   connectors: Connector[];       // Connections between areas
   relations: PathRelation[];     // Geometric relations between paths
   
+  // NEW: From Geometric Reasoning Engine
+  metaPaths: MetaPath[];         // Connected path chains with pattern analysis
+  gateways: Gateway[];           // Path-Area connection points
+  
   // Tier 2 Patterns
   patterns: Pattern[];
   
@@ -275,6 +314,12 @@ class Tier1Analyzer {
   private blocks: Vector3[];
   private blockSet: Set<string>;
   private visited: Set<string>;
+  
+  // NEW: Constants from Geometric Reasoning Engine
+  private readonly MIN_AREA_SIZE = 5;  // Minimum blocks for a valid area (cross shape)
+  private readonly DIRECTIONS_2D: Array<{x: number, z: number}> = [
+    {x: 0, z: 1}, {x: 0, z: -1}, {x: 1, z: 0}, {x: -1, z: 0}
+  ];
 
   constructor(blocks: Block[]) {
     this.blocks = blocks.map(b => b.position);
@@ -283,145 +328,282 @@ class Tier1Analyzer {
   }
 
   analyze(): Tier1Result {
+    // Phase 1: Core geometric decomposition
     const areas = this.findAreas();
     const connectors = this.findConnectors(areas);
     const segments = this.traceAllSegments();
     const points = this.findSpecialPoints(segments);
     const relations = this.analyzeRelations(segments);
+    
+    // Phase 2: Enhanced analysis from Geometric Reasoning Engine
+    const gateways = this.findGateways(areas, segments);
+    const metaPaths = this.analyzeMetaPaths(segments);
+    
+    // Enrich areas with holes and gateways
+    this.enrichAreasWithHolesAndGateways(areas, gateways);
 
     return {
       points,
       segments,
       areas,
       connectors,
-      relations
+      relations,
+      metaPaths,
+      gateways
     };
+  }
+  
+  /**
+   * Helper: Convert Vector3 to 2D key (x,z)
+   */
+  private vector2DKey(v: Vector3): string {
+    return `${v.x},${v.z}`;
+  }
+  
+  /**
+   * Helper: Parse 2D key back to x, z
+   */
+  private parse2DKey(key: string): {x: number, z: number} {
+    const [x, z] = key.split(',').map(Number);
+    return {x, z};
   }
 
   /**
    * Tìm các vùng (Areas) dựa trên cấu trúc hình học
-   * - Area Core: Các blocks có degree >= 3 (junctions)
-   * - Area Radius 1: Include TẤT CẢ neighbors trực tiếp của Core (đảm bảo coverage vùng giao lộ)
-   * - Features: Include các nhánh ngắn (spurs) extents (như tip mũi tên dài)
+   * 
+   * Algorithm gồm 3 phương pháp (theo Geometric Reasoning Engine):
+   * 1. Core-based: Blocks có degree = 4 (bị bao kín 4 phía) + Flood Fill reconstruction
+   * 2. Junction-based: Fallback cho shapes có junctions nhưng không có cores
+   * 3. Expansion Zone: Phát hiện vùng mở rộng đột ngột (như đầu mũi tên)
+   * 
+   * MIN_AREA_SIZE = 5 để tránh false positives
    */
   private findAreas(): Area[] {
     const areas: Area[] = [];
     const visitedInArea = new Set<string>();
+    const yLevel = this.blocks[0]?.y ?? 0;
 
-    // 1. Identify Seed Blocks (Junctions, Degree >= 3)
-    const seedBlocks = new Set<string>();
+    // Create 2D grid representation for analysis
+    const grid2D = new Set<string>();
     for (const block of this.blocks) {
-      if (this.countHorizontalNeighbors(block) >= 3) {
-        seedBlocks.add(vectorToKey(block));
+      grid2D.add(this.vector2DKey(block));
+    }
+
+    // ========================================
+    // STRATEGY 1: Core-based Detection (Degree = 4)
+    // ========================================
+    // Core blocks are completely surrounded (4 neighbors)
+    // This is the most reliable indicator of an "area" vs "path"
+    
+    const coreBlocks2D = new Set<string>();
+    for (const block of this.blocks) {
+      const key2D = this.vector2DKey(block);
+      let neighborCount = 0;
+      
+      for (const dir of this.DIRECTIONS_2D) {
+        const neighborKey = `${block.x + dir.x},${block.z + dir.z}`;
+        if (grid2D.has(neighborKey)) {
+          neighborCount++;
+        }
+      }
+      
+      if (neighborCount === 4) {
+        coreBlocks2D.add(key2D);
       }
     }
 
-    // 2. Cluster seeds and expand
-    for (const seedKey of seedBlocks) {
-      if (visitedInArea.has(seedKey)) continue;
-
-      const areaBlocks: Vector3[] = [];
-      const queue: Vector3[] = [this.findBlockByKey(seedKey)!];
-      visitedInArea.add(seedKey);
-      areaBlocks.push(queue[0]);
-
-      // Phase 1: Cluster adjacent Junctions (CORE)
-      let qIndex = 0;
-      while (qIndex < queue.length) {
-        const current = queue[qIndex++];
-        const neighbors = this.getHorizontalNeighbors(current);
-        for (const n of neighbors) {
-          const nKey = vectorToKey(n);
-          if (seedBlocks.has(nKey) && !visitedInArea.has(nKey) && this.blockSet.has(nKey)) {
-            visitedInArea.add(nKey);
-            areaBlocks.push(n);
-            queue.push(n);
-          }
-        }
-      }
-
-      // Phase 2: Expand Radius 1 (Include ALL direct neighbors of Core)
-      // This creates a basic 'cross' shape for junctions
-      const coreBlocks = [...areaBlocks];
-      const boundaryBlocks: Vector3[] = []; 
-
-      for (const core of coreBlocks) {
-        const neighbors = this.getHorizontalNeighbors(core);
-        for (const n of neighbors) {
-          const nKey = vectorToKey(n);
-          if (this.blockSet.has(nKey) && !visitedInArea.has(nKey)) {
-            visitedInArea.add(nKey);
-            areaBlocks.push(n);
-            boundaryBlocks.push(n);
-          }
-        }
-      }
-
-// Phase 3: Fill Gaps / Corners (Limited Expansion)
-      // Only fill blocks that are SURROUNDED by area blocks (corners/gaps)
-      // NOT linear extensions (shafts)
-      let addedInPass = true;
-      let passCount = 0;
-      const MAX_PASSES = 2; // Limit expansion to prevent over-growing
+    // If we have enough core blocks, use flood fill reconstruction
+    if (coreBlocks2D.size >= 1) {
+      // Flood fill from core to reconstruct full area
+      const areaBlocks2D = new Set(coreBlocks2D);
+      const queue = Array.from(coreBlocks2D).map(k => this.parse2DKey(k));
       
-      while (addedInPass && passCount < MAX_PASSES) {
-        addedInPass = false;
-        passCount++;
+      while (queue.length > 0) {
+        const {x, z} = queue.shift()!;
         
-        const currentAreaSet = new Set(areaBlocks.map(b => vectorToKey(b)));
-        const potentialCandidates = new Set<string>();
-        
-        // Collect candidates: all unvisited neighbors of current area
-        for (const b of areaBlocks) {
-           for (const n of this.getHorizontalNeighbors(b)) {
-             const nKey = vectorToKey(n);
-             if (this.blockSet.has(nKey) && !visitedInArea.has(nKey)) {
-               potentialCandidates.add(nKey);
-             }
-           }
+        for (const dir of this.DIRECTIONS_2D) {
+          const nx = x + dir.x;
+          const nz = z + dir.z;
+          const neighborKey = `${nx},${nz}`;
+          
+          if (grid2D.has(neighborKey) && !areaBlocks2D.has(neighborKey)) {
+            areaBlocks2D.add(neighborKey);
+            queue.push({x: nx, z: nz});
+          }
         }
+      }
+      
+      // Apply MIN_AREA_SIZE threshold
+      if (areaBlocks2D.size >= this.MIN_AREA_SIZE) {
+        // Convert back to Vector3 and group connected components
+        const areaBlocks3D: Vector3[] = [];
+        for (const key2D of areaBlocks2D) {
+          const {x, z} = this.parse2DKey(key2D);
+          areaBlocks3D.push({x, y: yLevel, z});
+          visitedInArea.add(vectorToKey({x, y: yLevel, z}));
+        }
+        
+        areas.push(this.createArea(`area_${areas.length}`, areaBlocks3D));
+      }
+    }
 
-        // Check candidates - must connect to 3+ area blocks (strict corner/gap filling)
-        for (const candKey of potentialCandidates) {
-           const candBlock = this.findBlockByKey(candKey)!;
-           const neighbors = this.getHorizontalNeighbors(candBlock);
-           const neighborKeys = neighbors.map(n => vectorToKey(n));
-           const connectedCount = neighborKeys.filter(k => currentAreaSet.has(k)).length;
-           
-           // Only add if connected to 3+ sides (true corner/gap)
-           // This excludes linear extensions (which only connect to 1-2 sides)
-           if (connectedCount >= 3) {
-             visitedInArea.add(candKey);
-             areaBlocks.push(candBlock);
-             boundaryBlocks.push(candBlock);
-             addedInPass = true;
-           }
+    // ========================================
+    // STRATEGY 2: Junction-based Fallback
+    // ========================================
+    // For shapes with junctions (degree >= 3) but no core blocks (e.g., T-shape top)
+    // Only if Strategy 1 didn't find anything
+    
+    if (areas.length === 0) {
+      const junctionBlocks = new Set<string>();
+      for (const block of this.blocks) {
+        if (this.countHorizontalNeighbors(block) >= 3) {
+          junctionBlocks.add(vectorToKey(block));
         }
       }
 
-      // Phase 4: Trace Spurs from Boundary
-      // If a boundary block leads to a short dead-end, include it (e.g. Tip 2nd block)
-      for (const boundary of boundaryBlocks) {
-        // Trace outward (using updated visitedInArea to avoid tracing back into filled gaps)
-        const traceResult = this.traceBranch(boundary, boundary, seedBlocks); 
-         if (traceResult.isShort && traceResult.isSpur && traceResult.blocks.length > 1) {
-            for (let i = 1; i < traceResult.blocks.length; i++) {
-              const b = traceResult.blocks[i];
-              const bKey = vectorToKey(b);
-              if (!visitedInArea.has(bKey)) {
-                visitedInArea.add(bKey);
-                areaBlocks.push(b);
-              }
+      // Cluster adjacent junctions
+      for (const junctionKey of junctionBlocks) {
+        if (visitedInArea.has(junctionKey)) continue;
+
+        const areaBlocks: Vector3[] = [];
+        const queue: Vector3[] = [this.findBlockByKey(junctionKey)!];
+        visitedInArea.add(junctionKey);
+        areaBlocks.push(queue[0]);
+
+        // Expand to adjacent junctions
+        let qIndex = 0;
+        while (qIndex < queue.length) {
+          const current = queue[qIndex++];
+          const neighbors = this.getHorizontalNeighbors(current);
+          
+          for (const n of neighbors) {
+            const nKey = vectorToKey(n);
+            if (junctionBlocks.has(nKey) && !visitedInArea.has(nKey) && this.blockSet.has(nKey)) {
+              visitedInArea.add(nKey);
+              areaBlocks.push(n);
+              queue.push(n);
             }
-         }
-      }
+          }
+        }
 
-      if (areaBlocks.length > 0) {
-        areas.push(this.createArea(`area_${areas.length}`, areaBlocks));
+        // Expand radius 1 from junction core
+        const coreBlocks = [...areaBlocks];
+        for (const core of coreBlocks) {
+          const neighbors = this.getHorizontalNeighbors(core);
+          for (const n of neighbors) {
+            const nKey = vectorToKey(n);
+            if (this.blockSet.has(nKey) && !visitedInArea.has(nKey)) {
+              visitedInArea.add(nKey);
+              areaBlocks.push(n);
+            }
+          }
+        }
+
+        // Apply MIN_AREA_SIZE threshold
+        if (areaBlocks.length >= this.MIN_AREA_SIZE) {
+          areas.push(this.createArea(`area_${areas.length}`, areaBlocks));
+        }
+      }
+    }
+
+    // ========================================
+    // STRATEGY 3: Expansion Zone Detection
+    // ========================================
+    // Detect areas where width suddenly increases (like arrow head)
+    // This catches shapes that don't have traditional cores or junctions
+    
+    const expansionZones = this.findExpansionZones(visitedInArea);
+    for (const zone of expansionZones) {
+      if (zone.length >= this.MIN_AREA_SIZE) {
+        areas.push(this.createArea(`area_${areas.length}`, zone));
       }
     }
 
     return areas;
+  }
+
+  /**
+   * Find "Expansion Zones" - areas where the map suddenly widens
+   * This detects arrow heads, T-bar tops, and other widening patterns.
+   * 
+   * Algorithm: Z-slice width profiling
+   * 1. Group blocks by Z coordinate
+   * 2. Find Z levels where width jumps significantly (ratio > 1.5x)
+   * 3. Collect all blocks from the widened zone
+   */
+  private findExpansionZones(alreadyInArea: Set<string>): Vector3[][] {
+    const zones: Vector3[][] = [];
+    
+    // Group blocks by Z coordinate (XZ plane analysis)
+    const blocksByZ = new Map<number, Vector3[]>();
+    for (const block of this.blocks) {
+      const z = block.z;
+      if (!blocksByZ.has(z)) {
+        blocksByZ.set(z, []);
+      }
+      blocksByZ.get(z)!.push(block);
+    }
+    
+    // Sort Z values
+    const zValues = Array.from(blocksByZ.keys()).sort((a, b) => a - b);
+    if (zValues.length < 2) return zones;
+    
+    // Calculate width at each Z level
+    const widthProfile: { z: number; width: number; minX: number; maxX: number; blocks: Vector3[] }[] = [];
+    for (const z of zValues) {
+      const blocksAtZ = blocksByZ.get(z)!;
+      const xValues = blocksAtZ.map(b => b.x);
+      const minX = Math.min(...xValues);
+      const maxX = Math.max(...xValues);
+      const width = maxX - minX + 1;
+      widthProfile.push({ z, width, minX, maxX, blocks: blocksAtZ });
+    }
+    
+    // Find expansion points (where width increases significantly)
+    const EXPANSION_RATIO = 1.5; // Width must increase by at least 50%
+    const MIN_EXPANSION_WIDTH = 3; // Widened section must be at least 3 blocks wide
+    
+    let expansionStartIdx = -1;
+    
+    for (let i = 1; i < widthProfile.length; i++) {
+      const prevWidth = widthProfile[i - 1].width;
+      const currWidth = widthProfile[i].width;
+      
+      // Detect start of expansion
+      if (expansionStartIdx === -1 && 
+          currWidth >= prevWidth * EXPANSION_RATIO && 
+          currWidth >= MIN_EXPANSION_WIDTH) {
+        expansionStartIdx = i;
+      }
+      
+      // Detect end of expansion (width decreases back or reaches end)
+      if (expansionStartIdx !== -1) {
+        const isEnd = i === widthProfile.length - 1 || 
+                      (widthProfile[i + 1]?.width ?? 0) < currWidth * 0.8;
+        
+        if (isEnd) {
+          // Collect all blocks in the expansion zone
+          const zoneBlocks: Vector3[] = [];
+          for (let j = expansionStartIdx; j <= i; j++) {
+            for (const block of widthProfile[j].blocks) {
+              const key = vectorToKey(block);
+              if (!alreadyInArea.has(key)) {
+                alreadyInArea.add(key);
+                zoneBlocks.push(block);
+              }
+            }
+          }
+          
+          if (zoneBlocks.length >= 3) { // MIN_AREA_SIZE
+            zones.push(zoneBlocks);
+          }
+          
+          expansionStartIdx = -1; // Reset for next potential zone
+        }
+      }
+    }
+    
+    return zones;
   }
 
   /**
@@ -564,6 +746,348 @@ class Tier1Analyzer {
       center,
       boundingBox: { min, max }
     };
+  }
+
+  // ============================================================================
+  // NEW: GEOMETRIC REASONING ENGINE METHODS
+  // ============================================================================
+
+  /**
+   * Detect holes inside an area using flood fill algorithm
+   * Algorithm: 
+   * 1. Find bounding box
+   * 2. Flood fill from outside corner
+   * 3. Any empty cell not reached by flood fill is a hole
+   */
+  private detectHoles(area: Area): Hole[] {
+    const holes: Hole[] = [];
+    const yLevel = area.blocks[0]?.y ?? 0;
+    
+    // Create 2D representation
+    const areaSet2D = new Set<string>();
+    for (const block of area.blocks) {
+      areaSet2D.add(this.vector2DKey(block));
+    }
+    
+    if (areaSet2D.size === 0) return holes;
+    
+    // Find bounding box (with 1-block padding)
+    const xs = area.blocks.map(b => b.x);
+    const zs = area.blocks.map(b => b.z);
+    const minX = Math.min(...xs) - 1;
+    const maxX = Math.max(...xs) + 1;
+    const minZ = Math.min(...zs) - 1;
+    const maxZ = Math.max(...zs) + 1;
+    
+    // Flood fill from outside corner
+    const outside = new Set<string>();
+    const queue: Array<{x: number, z: number}> = [{x: minX, z: minZ}];
+    
+    while (queue.length > 0) {
+      const {x, z} = queue.shift()!;
+      const key = `${x},${z}`;
+      
+      if (outside.has(key) || areaSet2D.has(key)) continue;
+      if (x < minX || x > maxX || z < minZ || z > maxZ) continue;
+      
+      outside.add(key);
+      
+      for (const dir of this.DIRECTIONS_2D) {
+        queue.push({x: x + dir.x, z: z + dir.z});
+      }
+    }
+    
+    // Find all empty cells within bounding box
+    const emptyCells = new Set<string>();
+    for (let x = minX; x <= maxX; x++) {
+      for (let z = minZ; z <= maxZ; z++) {
+        const key = `${x},${z}`;
+        if (!areaSet2D.has(key) && !outside.has(key)) {
+          emptyCells.add(key);
+        }
+      }
+    }
+    
+    // Group connected empty cells into holes
+    const visitedEmpty = new Set<string>();
+    let holeId = 0;
+    
+    for (const cellKey of emptyCells) {
+      if (visitedEmpty.has(cellKey)) continue;
+      
+      const holeCoords: Vector3[] = [];
+      const holeQueue = [this.parse2DKey(cellKey)];
+      
+      while (holeQueue.length > 0) {
+        const {x, z} = holeQueue.shift()!;
+        const key = `${x},${z}`;
+        
+        if (visitedEmpty.has(key) || !emptyCells.has(key)) continue;
+        
+        visitedEmpty.add(key);
+        holeCoords.push({x, y: yLevel, z});
+        
+        for (const dir of this.DIRECTIONS_2D) {
+          holeQueue.push({x: x + dir.x, z: z + dir.z});
+        }
+      }
+      
+      if (holeCoords.length > 0) {
+        // Check if hole is centered
+        const holeCentroid = {
+          x: holeCoords.reduce((s, c) => s + c.x, 0) / holeCoords.length,
+          z: holeCoords.reduce((s, c) => s + c.z, 0) / holeCoords.length
+        };
+        const areaCentroid = {x: area.center.x, z: area.center.z};
+        const distance = Math.sqrt(
+          Math.pow(holeCentroid.x - areaCentroid.x, 2) + 
+          Math.pow(holeCentroid.z - areaCentroid.z, 2)
+        );
+        const areaSize = Math.max(maxX - minX, maxZ - minZ);
+        const isCentered = distance < areaSize * 0.2;
+        
+        holes.push({
+          id: `hole_${area.id}_${holeId++}`,
+          coords: holeCoords,
+          size: holeCoords.length,
+          isCentered
+        });
+      }
+    }
+    
+    return holes;
+  }
+
+  /**
+   * Find gateways - connection points between paths and areas
+   * Gateway = where a path endpoint is adjacent to an area boundary
+   */
+  private findGateways(areas: Area[], segments: PathSegment[]): Gateway[] {
+    const gateways: Gateway[] = [];
+    let gatewayId = 0;
+    
+    for (const area of areas) {
+      const areaBoundarySet = new Set(area.boundary.map(b => vectorToKey(b)));
+      
+      for (const segment of segments) {
+        // Check both endpoints of the segment
+        const endpoints = [segment.points[0], segment.points[segment.points.length - 1]];
+        
+        for (const endpoint of endpoints) {
+          // Check if endpoint is adjacent to area boundary
+          const neighbors = this.getHorizontalNeighbors(endpoint);
+          
+          for (const neighbor of neighbors) {
+            const neighborKey = vectorToKey(neighbor);
+            
+            if (areaBoundarySet.has(neighborKey)) {
+              // Found a gateway!
+              // Calculate direction from path into area
+              const direction = vectorNormalize(vectorSub(neighbor, endpoint));
+              
+              // Check if we already have this gateway
+              const exists = gateways.some(g => 
+                vectorEquals(g.coord, endpoint) && 
+                g.connectedAreaId === area.id
+              );
+              
+              if (!exists) {
+                gateways.push({
+                  id: `gateway_${gatewayId++}`,
+                  coord: endpoint,
+                  connectedPathId: segment.id,
+                  connectedAreaId: area.id,
+                  direction
+                });
+              }
+              break; // Found gateway for this endpoint
+            }
+          }
+        }
+      }
+    }
+    
+    return gateways;
+  }
+
+  /**
+   * Analyze MetaPaths - chains of connected path segments with pattern detection
+   * Uses junction-aware chain building (DFS) and pattern classification
+   */
+  private analyzeMetaPaths(segments: PathSegment[]): MetaPath[] {
+    const metaPaths: MetaPath[] = [];
+    
+    if (segments.length === 0) return metaPaths;
+    
+    // Build adjacency graph based on shared endpoints
+    const endpointToSegments = new Map<string, string[]>();
+    
+    for (const segment of segments) {
+      const startKey = vectorToKey(segment.points[0]);
+      const endKey = vectorToKey(segment.points[segment.points.length - 1]);
+      
+      if (!endpointToSegments.has(startKey)) endpointToSegments.set(startKey, []);
+      if (!endpointToSegments.has(endKey)) endpointToSegments.set(endKey, []);
+      
+      endpointToSegments.get(startKey)!.push(segment.id);
+      endpointToSegments.get(endKey)!.push(segment.id);
+    }
+    
+    // Find connected chains
+    const visitedSegments = new Set<string>();
+    const segmentMap = new Map(segments.map(s => [s.id, s]));
+    let metaPathId = 0;
+    
+    for (const segment of segments) {
+      if (visitedSegments.has(segment.id)) continue;
+      
+      // DFS to find all connected segments
+      const chain: PathSegment[] = [];
+      const stack = [segment.id];
+      
+      while (stack.length > 0) {
+        const segId = stack.pop()!;
+        if (visitedSegments.has(segId)) continue;
+        
+        visitedSegments.add(segId);
+        const seg = segmentMap.get(segId)!;
+        chain.push(seg);
+        
+        // Find connected segments via shared endpoints
+        const startKey = vectorToKey(seg.points[0]);
+        const endKey = vectorToKey(seg.points[seg.points.length - 1]);
+        
+        for (const key of [startKey, endKey]) {
+          const connectedSegIds = endpointToSegments.get(key) || [];
+          for (const connectedId of connectedSegIds) {
+            if (!visitedSegments.has(connectedId)) {
+              stack.push(connectedId);
+            }
+          }
+        }
+      }
+      
+      if (chain.length > 0) {
+        // Classify the meta-path structure
+        const metaPath = this.classifyMetaPath(chain, metaPathId++);
+        metaPaths.push(metaPath);
+      }
+    }
+    
+    return metaPaths;
+  }
+
+  /**
+   * Classify a chain of segments into a MetaPath with structure type
+   */
+  private classifyMetaPath(chain: PathSegment[], id: number): MetaPath {
+    // Collect all points and find joints (direction changes)
+    const allPoints: Vector3[] = [];
+    const joints: Vector3[] = [];
+    
+    for (let i = 0; i < chain.length; i++) {
+      const seg = chain[i];
+      allPoints.push(...seg.points);
+      
+      // Joint = connection point between segments
+      if (i > 0) {
+        const prevEnd = chain[i-1].points[chain[i-1].points.length - 1];
+        const currStart = seg.points[0];
+        
+        // Check if they share a point (which is a joint)
+        if (vectorEquals(prevEnd, currStart)) {
+          joints.push(currStart);
+        } else {
+          const prevStart = chain[i-1].points[0];
+          if (vectorEquals(prevStart, currStart)) {
+            joints.push(currStart);
+          }
+        }
+      }
+    }
+    
+    // Calculate total length
+    const totalLength = chain.reduce((sum, s) => sum + s.length, 0);
+    
+    // Determine structure type based on directions
+    let structureType: MetaPath['structureType'] = 'random';
+    let isRegular = false;
+    
+    if (chain.length === 1) {
+      structureType = 'straight_chain';
+      isRegular = true;
+    } else {
+      // Check if all segments have same direction (straight chain)
+      const directions = chain.map(s => vectorToKey(s.direction));
+      const uniqueDirections = new Set(directions);
+      
+      if (uniqueDirections.size === 1) {
+        structureType = 'straight_chain';
+        isRegular = true;
+      } else if (uniqueDirections.size === 2) {
+        // Could be staircase or U-shape
+        const lengths = chain.map(s => s.length);
+        const lengthSet = new Set(lengths);
+        
+        if (lengthSet.size === 1) {
+          structureType = 'macro_staircase';
+          isRegular = true;
+        } else {
+          // Check for U-shape pattern (long-short-long)
+          if (chain.length >= 3 && 
+              chain[0].length === chain[chain.length-1].length &&
+              chain[0].length > chain[1].length) {
+            structureType = 'u_shape';
+            isRegular = true;
+          }
+        }
+      } else if (uniqueDirections.size >= 3) {
+        // Check for spiral (increasing lengths)
+        const lengths = chain.map(s => s.length);
+        const isIncreasing = lengths.every((len, i) => i === 0 || len >= lengths[i-1]);
+        
+        if (isIncreasing) {
+          structureType = 'spiral';
+          isRegular = true;
+        } else {
+          structureType = 'branching';
+        }
+      }
+    }
+    
+    return {
+      id: `metapath_${id}`,
+      segments: chain,
+      joints,
+      structureType,
+      isRegular,
+      totalLength
+    };
+  }
+
+  /**
+   * Enrich areas with holes and gateways information
+   */
+  private enrichAreasWithHolesAndGateways(areas: Area[], gateways: Gateway[]): void {
+    for (const area of areas) {
+      // Detect and attach holes
+      const holes = this.detectHoles(area);
+      area.holes = holes;
+      
+      // Attach relevant gateways
+      area.gateways = gateways.filter(g => g.connectedAreaId === area.id);
+      
+      // Calculate dimensions and shape type
+      const xs = area.blocks.map(b => b.x);
+      const zs = area.blocks.map(b => b.z);
+      const width = Math.max(...xs) - Math.min(...xs) + 1;
+      const depth = Math.max(...zs) - Math.min(...zs) + 1;
+      const ratio = width / depth;
+      
+      area.dimensions = { width, depth };
+      area.shapeType = (ratio >= 0.8 && ratio <= 1.2) ? 'square' : 
+                       (Math.abs(ratio - 1) < 0.5) ? 'rectangle' : 'irregular';
+    }
   }
 
   /**
@@ -1114,6 +1638,8 @@ class Tier4Analyzer {
       connectors: tier3Result.connectors,
       patterns: tier3Result.patterns,
       relations: tier3Result.relations,
+      metaPaths: tier3Result.metaPaths,
+      gateways: tier3Result.gateways,
       prioritizedCoords,
       metrics,
       constraints,
@@ -1715,6 +2241,8 @@ export class MapAnalyzer {
       connectors: [],
       patterns: [],
       relations: [],
+      metaPaths: [],
+      gateways: [],
       prioritizedCoords: [],
       metrics,
       constraints,

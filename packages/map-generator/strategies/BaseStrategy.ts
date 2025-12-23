@@ -5,7 +5,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { Coord, IPathInfo } from '../types';
-import { PlacedObject, BuildableAsset } from '../../types';
+import { PlacedObject, BuildableAsset } from '../../../apps/map-builder-app/src/types';
 import { StrategyContext, StrategyResult, DensityMode } from './types';
 
 export abstract class BaseStrategy {

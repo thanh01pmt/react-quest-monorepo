@@ -3,7 +3,7 @@
  * Ported from Python: core/validation/pre_solve_validator.py
  */
 
-import { PlacedObject } from '../../types';
+import { PlacedObject } from '../../../apps/map-builder-app/src/types';
 import { IPathInfo, Coord } from '../types';
 import { PedagogyStrategy } from '../strategies/types';
 

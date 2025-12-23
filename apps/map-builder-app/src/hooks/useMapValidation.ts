@@ -7,9 +7,9 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { PlacedObject } from '../types';
-import { IPathInfo } from '../map-generator/types';
-import { validateMap, ValidationReport, MapDataForValidation } from '../map-generator/validation';
-import { PedagogyStrategy } from '../map-generator/PlacementService';
+import { IPathInfo } from '../../../../packages/map-generator/types';
+import { validateMap, ValidationReport, MapDataForValidation } from '../../../../packages/map-generator/validation';
+import { PedagogyStrategy } from '../../../../packages/map-generator/PlacementService';
 import { usePathTracer, TracedPath } from './usePathTracer';
 import { BuilderMode } from '../store/builderModeContext';
 

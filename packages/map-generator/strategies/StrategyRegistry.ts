@@ -6,7 +6,7 @@
  */
 
 import { IPathInfo } from '../types';
-import { PlacedObject, BuildableAsset } from '../../types';
+import { PlacedObject, BuildableAsset } from '../../../apps/map-builder-app/src/types';
 import { BaseStrategy } from './BaseStrategy';
 import { 
     PedagogyStrategy, 

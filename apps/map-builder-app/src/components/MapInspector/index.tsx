@@ -10,12 +10,12 @@
 
 import React, { useMemo, useState } from 'react';
 import { PlacedObject } from '../../types';
-import { validateMap, ValidationReport } from '../../map-generator/validation';
-import { PedagogyStrategy } from '../../map-generator/PlacementService';
+import { validateMap, ValidationReport } from '../../../../../packages/map-generator/validation';
+import { PedagogyStrategy } from '../../../../../packages/map-generator/PlacementService';
 import { ValidationReportComponent } from '../ValidationReport';
 import { usePathTracer, TracedPath } from '../../hooks/usePathTracer';
 import { BuilderMode } from '../../store/builderModeContext';
-import { IPathInfo } from '../../map-generator/types';
+import { IPathInfo } from '../../../../../packages/map-generator/types';
 
 interface MapInspectorProps {
     placedObjects: PlacedObject[];

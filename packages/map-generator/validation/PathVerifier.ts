@@ -6,7 +6,7 @@
  */
 
 import { Coord, IPathInfo } from '../types';
-import { PlacedObject } from '../../types';
+import { PlacedObject } from '../../../apps/map-builder-app/src/types';
 
 export interface PathVerificationResult {
     isValid: boolean;
