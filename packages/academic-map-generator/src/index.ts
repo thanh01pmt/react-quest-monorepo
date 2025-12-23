@@ -264,6 +264,12 @@ export type {
   ExpectedSolution
 } from './analyzer';
 
+// Markdown reporter
+export {
+  MarkdownReporter,
+  MapAnalysisService
+} from './analyzer';
+
 // Coordinate prioritizer
 export {
   prioritizeCoordinates,

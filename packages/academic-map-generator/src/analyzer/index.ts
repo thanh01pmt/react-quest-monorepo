@@ -44,6 +44,9 @@ export type {
   ExpectedSolution
 } from './AcademicPlacementGenerator';
 
+// Markdown reporter
+export { MarkdownReporter, MapAnalysisService } from './MarkdownReporter';
+
 // Coordinate prioritizer
 export {
   prioritizeCoordinates,
