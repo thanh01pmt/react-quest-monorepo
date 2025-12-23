@@ -11,9 +11,9 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { TopologyRegistry } from '../../../../../packages/map-generator/TopologyRegistry';
+import { TopologyRegistry } from '@repo/academic-map-generator';
 import { PlacedObject, BuildableAsset } from '../../types';
-import { PlacementService, PedagogyStrategy } from '../../../../../packages/map-generator/PlacementService';
+import { PlacementService, PedagogyStrategy } from '@repo/academic-map-generator';
 import { useBuilderMode, GenerateConfig } from '../../store/builderModeContext';
 import { v4 as uuidv4 } from 'uuid';
 import { TopologyInspector, HighlightItem } from '../TopologyInspector';

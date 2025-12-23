@@ -9,7 +9,7 @@ import React, { useState, useMemo } from 'react';
 import type {
     SelectableElement,
     ElementCategory
-} from '@repo/academic-placer';
+} from '@repo/academic-map-generator';
 import './PlacementSelector.css';
 
 interface PlacementSelection {

@@ -9,11 +9,11 @@ import type {
     PlacementTemplate,
     TemplateItemPlacement,
     SelectableElement
-} from '@repo/academic-placer';
+} from '@repo/academic-map-generator';
 import {
     getTemplateRegistry,
     initializeDefaultTemplates
-} from '@repo/academic-placer';
+} from '@repo/academic-map-generator';
 import './TemplateManager.css';
 
 interface TemplateManagerProps {

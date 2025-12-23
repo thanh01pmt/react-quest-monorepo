@@ -1,7 +1,7 @@
 /**
  * PlacementVariants - Component for generating and selecting placement variants
  * 
- * Uses AcademicPlacementGenerator from @repo/academic-placer to generate
+ * Uses AcademicPlacementGenerator from @repo/academic-map-generator to generate
  * multiple item placement options for the user to choose from.
  */
 
@@ -13,7 +13,7 @@ import {
     type ItemPlacement,
     type PlacementContext,
     type AcademicConcept
-} from '@repo/academic-placer';
+} from '@repo/academic-map-generator';
 import './PlacementVariants.css';
 
 // Mapping from academic concept to recommended toolbox preset

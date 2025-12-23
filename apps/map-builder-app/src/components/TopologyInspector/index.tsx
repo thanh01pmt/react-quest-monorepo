@@ -18,7 +18,7 @@ import {
     type Connector,
     type PathRelation,
     type Pattern
-} from '@repo/academic-placer';
+} from '@repo/academic-map-generator';
 import './TopologyInspector.css';
 
 interface TopologyInspectorProps {

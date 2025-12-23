@@ -8,7 +8,7 @@
  */
 
 import React, { useState } from 'react';
-import { PlannedSolution } from '../../../../../packages/map-generator/handlers/SolutionFirstPlacer';
+import { PlannedSolution } from '@repo/academic-map-generator/generator';
 
 interface SolutionDebugPanelProps {
     plannedSolution?: PlannedSolution | null;

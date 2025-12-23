@@ -1,0 +1,40 @@
+{
+  "name": "@repo/academic-map-generator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./core": {
+      "import": "./src/core/index.ts",
+      "types": "./src/core/index.ts"
+    },
+    "./generator": {
+      "import": "./src/generator/index.ts",
+      "types": "./src/generator/index.ts"
+    },
+    "./analyzer": {
+      "import": "./src/analyzer/index.ts",
+      "types": "./src/analyzer/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "analyze": "tsx scripts/analyze.ts",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/uuid": "^11.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.2.2",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
+  }
+}

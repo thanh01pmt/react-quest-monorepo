@@ -12,8 +12,8 @@ import { JsonOutputPanel } from './components/JsonOutputPanel';
 import { buildableAssetGroups } from './config/gameAssets';
 import { WelcomeModal } from './components/WelcomeModal';
 import { type BuildableAsset, type PlacedObject, type BuilderMode, type BoxDimensions, type FillOptions, type SelectionBounds, type MapTheme } from './types';
-import { type Coord, type IPathInfo } from '../../../packages/map-generator/types';
-import { PlacementService, PedagogyStrategy } from '../../../packages/map-generator/PlacementService';
+import { type Coord, type IPathInfo } from '@repo/academic-map-generator';
+import { PlacementService, PedagogyStrategy } from '@repo/academic-map-generator';
 import { TopologyPanel } from './components/TopologyPanel';
 import type { HighlightItem } from './components/TopologyInspector';
 import { MapInspector } from './components/MapInspector';
@@ -30,7 +30,7 @@ import {
   type SelectableElement,
   type TemplateItemPlacement,
   type ItemPlacement
-} from '@repo/academic-placer';
+} from '@repo/academic-map-generator';
 import _ from 'lodash';
 import './App.css';
 
