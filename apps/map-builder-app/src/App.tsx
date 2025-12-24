@@ -670,6 +670,96 @@ function App() {
   const handleDimensionsChange = (axis: keyof BoxDimensions, value: number) => setBoxDimensions(prev => ({ ...prev, [axis]: Math.max(1, value) }));
   const handleSelectionBoundsChange = (newBounds: SelectionBounds) => { setSelectionStart(newBounds.min); setSelectionEnd(newBounds.max); };
 
+  // --- NEW LOGIC: TỰ ĐỘNG TÍNH LẠI ĐƯỜNG ĐI ---
+  const recalculatePathForObjects = (objects: PlacedObject[]) => {
+    // 1. Chuẩn bị dữ liệu cho solver
+    const blocks = objects.filter((o: PlacedObject) => o.asset.type === 'block').map((o: PlacedObject) => ({ modelKey: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
+    const collectibles = objects.filter((o: PlacedObject) => o.asset.type === 'collectible').map((o: PlacedObject, i: number) => ({ id: o.id, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
+    const interactibles = objects.filter((o: PlacedObject) => o.asset.type === 'interactible').map((o: PlacedObject) => ({ id: o.id, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] }, initialState: o.properties?.initialState }));
+
+    const finishObject = objects.find(o => o.asset.key === 'finish');
+    const startObject = objects.find(o => o.asset.key === 'player_start');
+
+    if (finishObject && startObject) {
+      const finish = { x: finishObject.position[0], y: finishObject.position[1], z: finishObject.position[2] };
+      // Parse direction safely
+      let dir = 0;
+      if (startObject.properties?.direction) {
+        const parsed = parseInt(String(startObject.properties.direction), 10);
+        if (!isNaN(parsed)) dir = parsed;
+      }
+      const players = [{ start: { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2], direction: dir } }];
+
+      const gameConfig = { blocks, players, finish, collectibles, interactibles };
+
+      // Cấu hình itemGoals cho solver
+      const itemGoals: Record<string, any> = {};
+      collectibles.forEach(c => {
+        itemGoals[c.type] = (itemGoals[c.type] || 0) + 1;
+      });
+      // Đối với switch, chúng ta đếm số lượng switch cần bật (mặc định là tất cả nếu có switch)
+      const switches = interactibles.filter(i => i.type === 'switch');
+      if (switches.length > 0) {
+        itemGoals['switch'] = switches.length;
+      }
+
+      const solveConfig = {
+        itemGoals,
+        rawActions: [],
+        structuredSolution: { main: [] }
+      };
+
+      // 2. Gọi hàm giải
+      console.log("Auto-calculating path...");
+      // @ts-ignore - solveMaze might have slight type mismatch with strict null checks
+      const result = solveMaze(gameConfig, solveConfig, { availableBlocks: [] });
+
+      if (result && result.pathCoordinates) {
+        console.log("Path recalculated!", result.pathCoordinates.length);
+        // 3. Cập nhật metadata
+        setQuestMetadata(prev => {
+          if (!prev) return null;
+          // Chuyển đổi Position {x,y,z} thành tuple [x,y,z]
+          const newPathCoords = result.pathCoordinates?.map(p => [p.x, p.y, p.z]);
+          return {
+            ...prev,
+            pathInfo: {
+              ...prev.pathInfo,
+              path_coords: newPathCoords
+            },
+            solution: result
+          };
+        });
+      } else {
+        console.warn("Could not find a path including the new item.");
+      }
+    }
+  };
+
+  // --- AUTO-RECALCULATE PATH WHEN ITEMS CHANGE ---
+  useEffect(() => {
+    // Only recalculate if we have questMetadata (meaning a map was generated or loaded)
+    if (!questMetadata?.pathInfo) return;
+
+    // Get current collectibles and interactibles
+    const collectibles = placedObjects.filter(o => o.asset.type === 'collectible');
+    const interactibles = placedObjects.filter(o => o.asset.type === 'interactible');
+
+    // If there are any items, recalculate the path
+    if (collectibles.length > 0 || interactibles.length > 0) {
+      console.log('[Auto-Recalc] Triggering path recalculation:', { collectibles: collectibles.length, interactibles: interactibles.length });
+      recalculatePathForObjects(placedObjects);
+    }
+  }, [
+    // Dependency: stringified list of collectible/interactible IDs and positions
+    JSON.stringify(
+      placedObjects
+        .filter(o => o.asset.type === 'collectible' || o.asset.type === 'interactible')
+        .map(o => ({ id: o.id, pos: o.position }))
+    )
+  ]);
+
+
   const handleAddObject = (gridPosition: [number, number, number], asset: BuildableAsset) => {
     const coordId = gridPosition.join(',');
     if (placedObjects.some(obj => obj.position.join(',') === coordId)) return;
@@ -769,73 +859,9 @@ function App() {
     // Fix: 'prev' is not available here. Use 'placedObjects' state directly.
     const newPlacedObjects = [...placedObjects.filter(o => !objectsToRemove.includes(o.id)), ...objectsToAdd];
 
-    // --- LOGIC MỚI: TỰ ĐỘNG TÍNH LẠI ĐƯỜNG ĐI ---
-    // Khi thêm vật phẩm (collectible/interactible), tự động tính lại đường đi tối ưu
-    if (finalAsset.type === 'collectible' || finalAsset.type === 'interactible') {
-      // 1. Chuẩn bị dữ liệu cho solver
-      const blocks = newPlacedObjects.filter((o: PlacedObject) => o.asset.type === 'block').map((o: PlacedObject) => ({ modelKey: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
-      const collectibles = newPlacedObjects.filter((o: PlacedObject) => o.asset.type === 'collectible').map((o: PlacedObject, i: number) => ({ id: o.id, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
-      const interactibles = newPlacedObjects.filter((o: PlacedObject) => o.asset.type === 'interactible').map((o: PlacedObject) => ({ id: o.id, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] }, initialState: o.properties?.initialState }));
-
-      const finishObject = newPlacedObjects.find(o => o.asset.key === 'finish');
-      const startObject = newPlacedObjects.find(o => o.asset.key === 'player_start');
-
-      if (finishObject && startObject) {
-        const finish = { x: finishObject.position[0], y: finishObject.position[1], z: finishObject.position[2] };
-        // Parse direction safely
-        let dir = 0;
-        if (startObject.properties?.direction) {
-          const parsed = parseInt(String(startObject.properties.direction), 10);
-          if (!isNaN(parsed)) dir = parsed;
-        }
-        const players = [{ start: { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2], direction: dir } }];
-
-        const gameConfig = { blocks, players, finish, collectibles, interactibles };
-
-        // Cấu hình itemGoals cho solver
-        const itemGoals: Record<string, any> = {};
-        collectibles.forEach(c => {
-          itemGoals[c.type] = (itemGoals[c.type] || 0) + 1;
-        });
-        // Đối với switch, chúng ta đếm số lượng switch cần bật (mặc định là tất cả nếu có switch)
-        const switches = interactibles.filter(i => i.type === 'switch');
-        if (switches.length > 0) {
-          itemGoals['switch'] = switches.length;
-        }
-
-        const solveConfig = {
-          itemGoals,
-          rawActions: [],
-          structuredSolution: { main: [] }
-        };
-
-        // 2. Gọi hàm giải
-        console.log("Auto-calculating path...");
-        // @ts-ignore - solveMaze might have slight type mismatch with strict null checks
-        const result = solveMaze(gameConfig, solveConfig, { availableBlocks: [] });
-
-        if (result && result.pathCoordinates) {
-          console.log("Path recalculated!", result.pathCoordinates.length);
-          // 3. Cập nhật metadata
-          setQuestMetadata(prev => {
-            if (!prev) return null;
-            // Chuyển đổi Position {x,y,z} thành tuple [x,y,z]
-            const newPathCoords = result.pathCoordinates?.map(p => [p.x, p.y, p.z]);
-            return {
-              ...prev,
-              pathInfo: {
-                ...prev.pathInfo,
-                path_coords: newPathCoords
-              },
-              solution: result
-            };
-          });
-        } else {
-          console.warn("Could not find a path including the new item.");
-        }
-      }
-    }
+    // Path will be auto-recalculated by useEffect when placedObjects changes
     // ---------------------------------------------
+
 
     setPlacedObjectsWithHistory(newPlacedObjects);
   };
@@ -846,22 +872,33 @@ function App() {
   };
 
   const handleRemoveObject = (id: string) => {
-    setPlacedObjectsWithHistory(prev => {
-      const objectToRemove = prev.find(o => o.id === id);
-      const newObjects = prev.filter(obj => obj.id !== id);
-      if (objectToRemove?.properties.type === 'portal' && objectToRemove.properties.targetId) {
-        const partner = newObjects.find(o => o.id === objectToRemove.properties.targetId);
-        if (partner) partner.properties.targetId = null;
-      }
-      return newObjects;
-    });
-    // SỬA LỖI: Cập nhật logic để xóa ID khỏi mảng lựa chọn
+    const objectToRemove = placedObjects.find(o => o.id === id);
+    if (!objectToRemove) return;
+
+    let newObjects = placedObjects.filter(obj => obj.id !== id);
+
+    // Handle portal logic
+    if (objectToRemove.properties.type === 'portal' && objectToRemove.properties.targetId) {
+      newObjects = newObjects.map(o => {
+        if (o.id === objectToRemove.properties.targetId) {
+          return { ...o, properties: { ...o.properties, targetId: null } };
+        }
+        return o;
+      });
+    }
+
+    setPlacedObjectsWithHistory(newObjects);
     setSelectedObjectIds(prevIds => prevIds.filter(prevId => prevId !== id));
+    // Path will be auto-recalculated by useEffect
   };
 
   const handleRemoveMultipleObjects = (ids: string[]) => {
-    setPlacedObjectsWithHistory(prev => prev.filter(obj => !ids.includes(obj.id)));
-    setSelectedObjectIds([]); // Xóa tất cả lựa chọn
+    const objectsToRemove = placedObjects.filter(o => ids.includes(o.id));
+    const newObjects = placedObjects.filter(obj => !ids.includes(obj.id));
+
+    setPlacedObjectsWithHistory(newObjects);
+    setSelectedObjectIds([]); // Clear selection
+    // Path will be auto-recalculated by useEffect
   };
 
   const handleUpdateObject = (updatedObject: PlacedObject) => {
