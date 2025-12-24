@@ -3,7 +3,7 @@
  */
 
 // Core analysis
-export { MapAnalyzer, testMapAnalyzer } from './MapAnalyzer';
+export { MapAnalyzer } from './MapAnalyzer';
 
 // Types from MapAnalyzer
 export type {

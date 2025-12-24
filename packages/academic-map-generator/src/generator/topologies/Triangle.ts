@@ -1,10 +1,12 @@
 /**
- * Triangle Topology
- * Creates a triangular path
+ * Triangle Topology (PORTED FROM PYTHON)
+ * Creates a filled right-angled triangle area with a path along 2 legs.
+ * Ideal for nested loops or coordinate lessons.
  */
 
 import { BaseTopology } from './BaseTopology';
 import { IPathInfo, Coord } from '../types';
+import { addVectors, FORWARD_X, FORWARD_Z, BACKWARD_X } from '../utils/geometry';
 
 export class TriangleTopology extends BaseTopology {
   *generatePathInfoVariants(
@@ -12,115 +14,155 @@ export class TriangleTopology extends BaseTopology {
     params: Record<string, any>,
     maxVariants: number
   ): Generator<IPathInfo> {
-    const baseSide = params.side_length || 4;
-    
-    for (let i = 0; i < maxVariants; i++) {
-      yield this.generatePathInfo(gridSize, {
-        ...params,
-        side_length: baseSide + i
-      });
+    let count = 0;
+    // Loop sizes 4..9
+    for (let size = 4; size < 10; size++) {
+        if (count >= maxVariants) return;
+        
+        const variantParams = { ...params };
+        variantParams.leg_a_length = size;
+        variantParams.leg_b_length = size;
+        yield this.generatePathInfo(gridSize, variantParams);
+        count++;
     }
   }
 
-  generatePathInfo(gridSize: [number, number, number], params: Record<string, any>): IPathInfo {
-    const sideLength = params.side_length || 4;
-    const startX = params.start_x || 2;
-    const startZ = params.start_z || 2;
+  generatePathInfo(
+    gridSize: [number, number, number],
+    params: Record<string, any>
+  ): IPathInfo {
+    console.log("    LOG: Generating 'triangle' topology...");
+
+    let width = params.leg_a_length || (Math.floor(Math.random() * 3) + 5); // 5-7
+    let depth = params.leg_b_length || (Math.floor(Math.random() * 3) + 5); // 5-7
+
+    // Min safety
+    width = Math.max(2, width);
+    depth = Math.max(2, depth);
+
+    // Base position (Bottom-Right corner reference for calculation, but path starts at C)
+    const baseX = Math.floor(Math.random() * (gridSize[0] - width - 2)) + 1;
+    const baseZ = Math.floor(Math.random() * (gridSize[2] - depth - 2)) + 1;
     const y = 0;
 
-    const startPos: Coord = [startX, y, startZ];
+    // --- PART 1: PLACEMENT (Filled Triangle) ---
+    const placementCoords = new Set<string>();
+    for (let zOffset = 0; zOffset <= depth; zOffset++) {
+        const rowWidth = Math.floor(width * (1 - zOffset / depth));
+        for (let xOffset = 0; xOffset <= rowWidth; xOffset++) {
+            const coord: Coord = [baseX + xOffset, y, baseZ + zOffset];
+            placementCoords.add(`${coord[0]},${coord[1]},${coord[2]}`);
+        }
+    }
+
+    // --- PART 2: PATH (Border 2 Legs) ---
+    // C(Right) -> A(Corner) -> B(Top)
+    // A = (baseX, baseZ)
+    // B = (baseX, baseZ + depth)
+    // C = (baseX + width, baseZ)
+
+    const startPos: Coord = [baseX + width, y, baseZ]; // Corner C
     const pathCoords: Coord[] = [startPos];
-    let current: Coord = [...startPos];
+    let currentPos: Coord = [...startPos];
 
-    // Side 1: Move right (+X)
-    for (let i = 0; i < sideLength; i++) {
-      current = [current[0] + 1, current[1], current[2]];
-      pathCoords.push([...current]);
+    // 1. Horizontal Leg (C -> A) (BACKWARD_X)
+    for (let i = 0; i < width; i++) {
+        currentPos = addVectors(currentPos, BACKWARD_X);
+        pathCoords.push(currentPos);
     }
+    const cornerA: Coord = [...currentPos]; // Should be (baseX, y, baseZ)
 
-    // Side 2: Move up-left (zigzag)
-    for (let i = 0; i < sideLength; i++) {
-      current = [current[0], current[1], current[2] + 1];
-      pathCoords.push([...current]);
-      if (i < sideLength - 1) {
-        current = [current[0] - 1, current[1], current[2]];
-        pathCoords.push([...current]);
-      }
+    // 2. Vertical Leg (A -> B) (FORWARD_Z)
+    for (let i = 0; i < depth; i++) {
+        currentPos = addVectors(currentPos, FORWARD_Z);
+        pathCoords.push(currentPos);
     }
+    
+    const targetPos = currentPos; // Corner B
 
-    // Side 3: Move down (-Z)
-    const stepsBack = Math.floor(sideLength * 1.5);
-    for (let i = 0; i < stepsBack && current[2] > startZ; i++) {
-      current = [current[0], current[1], current[2] - 1];
-      pathCoords.push([...current]);
-    }
+    // Metadata
+    const cornerB = targetPos;
+    const cornerC = startPos;
+    const corners = [cornerA, cornerB, cornerC];
 
-    const targetPos = pathCoords[pathCoords.length - 1];
+    // Segments
+    // Horizontal: C->A
+    const segHorizontal = pathCoords.slice(0, width + 1);
+    // Vertical: A->B
+    const segVertical = pathCoords.slice(width);
 
-    // Calculate corners based on triangle vertices
-    const corner1 = pathCoords[sideLength]; // End of side 1
-    const corner2 = pathCoords[sideLength + sideLength * 2 - 1] || pathCoords[Math.floor(pathCoords.length * 0.7)];
-
-    // Semantic positions
-    const semantic_positions = {
-        start: startPos,
-        end: targetPos,
-        corner1,
-        corner2,
-        optimal_start: 'start',
-        optimal_end: 'end',
-        valid_pairs: [
-            {
-                name: 'full_triangle_easy',
-                start: 'start',
-                end: 'end',
-                path_type: 'full_traversal',
-                strategies: ['segment_pattern_reuse', 'turning_patterns'],
-                difficulty: 'EASY',
-                teaching_goal: 'Navigate triangle perimeter'
-            },
-            {
-                name: 'corners_medium',
-                start: 'corner1',
-                end: 'corner2',
-                path_type: 'partial_traversal',
-                strategies: ['corner_logic'],
-                difficulty: 'MEDIUM',
-                teaching_goal: 'Navigate between corners'
-            }
-        ]
-    };
-
-    // Segment analysis (3 sides)
-    const seg1 = pathCoords.slice(0, sideLength + 1);
-    const seg2 = pathCoords.slice(sideLength, sideLength * 3);
-    const seg3 = pathCoords.slice(sideLength * 3 - 1);
-    const segments = [seg1, seg2, seg3].filter(s => s.length > 0);
+    const segments = [segHorizontal, segVertical];
     const lengths = segments.map(s => s.length);
 
-    const segment_analysis = {
-        num_segments: segments.length,
-        lengths,
-        types: ['horizontal', 'diagonal', 'vertical'],
-        min_length: Math.min(...lengths),
-        max_length: Math.max(...lengths),
-        avg_length: lengths.reduce((a,b) => a+b, 0) / lengths.length
+    const placementList: Coord[] = [];
+    placementCoords.forEach(str => {
+        placementList.push(str.split(',').map(Number) as Coord);
+    });
+
+    const metadata = {
+        topology_type: "triangle",
+        segments: segments,
+        corners: corners,
+        width: width,
+        depth: depth,
+        segment_analysis: {
+            count: len(segments),
+            lengths: lengths,
+            min_length: Math.min(...lengths),
+            max_length: Math.max(...lengths),
+            min_valid_range: Math.max(0, Math.min(...lengths) - 2),
+            total_valid_slots: lengths.reduce((sum, l) => sum + Math.max(0, l - 2), 0),
+        },
+        semantic_positions: {
+            start: startPos,
+            end: targetPos,
+            corner_a: cornerA,
+            corner_b: cornerB,
+            corner_c: cornerC,
+            optimal_start: 'start',
+            optimal_end: 'end',
+            valid_pairs: [
+                {
+                    name: 'side_based_easy',
+                    start: 'corner_c',
+                    end: 'corner_b',
+                    path_type: 'two_sides',
+                    strategies: ['segment_based', 'layer_based'],
+                    difficulty: 'EASY',
+                    teaching_goal: 'Items along two sides'
+                },
+                {
+                    name: 'corner_emphasis_medium',
+                    start: 'corner_c',
+                    end: 'corner_a',
+                    path_type: 'one_side',
+                    strategies: ['segment_based', 'corner_logic'],
+                    difficulty: 'MEDIUM',
+                    teaching_goal: 'Items with corner special'
+                },
+                {
+                    name: 'height_progression_hard',
+                    start: 'start',
+                    end: 'end',
+                    path_type: 'progressive_height',
+                    strategies: ['segment_based', 'layer_based'],
+                    difficulty: 'HARD',
+                    teaching_goal: 'Progressive pattern per level'
+                }
+            ]
+        }
     };
 
     return {
-      start_pos: startPos,
-      target_pos: targetPos,
-      path_coords: pathCoords,
-      placement_coords: pathCoords.slice(1, -1),
-      obstacles: [],
-      metadata: {
-        topology_type: 'triangle',
-        side_length: sideLength,
-        segments,
-        corners: [corner1, corner2],
-        segment_analysis,
-        semantic_positions
-      },
+        start_pos: startPos,
+        target_pos: targetPos,
+        path_coords: pathCoords,
+        placement_coords: placementList,
+        obstacles: [],
+        metadata: metadata
     };
   }
 }
+
+// Helper for len
+function len(arr: any[]) { return arr.length; }

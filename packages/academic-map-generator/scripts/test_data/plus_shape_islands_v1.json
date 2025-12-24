@@ -426,6 +426,47 @@
           }
         ]
       }
+    },
+    "metadata": {
+      "layout_pattern": "radial_4",
+      "center": [8, 0, 7],
+      "components": [
+        {
+          "id": "island_east",
+          "module_type": "square",
+          "center": [11, 0, 7],
+          "bounds": {"min_x": 10, "max_x": 12, "min_z": 6, "max_z": 8},
+          "landmarks": {"center": [11, 0, 7], "entrance": [10, 0, 7]}
+        },
+        {
+          "id": "island_west",
+          "module_type": "square",
+          "center": [5, 0, 7],
+          "bounds": {"min_x": 4, "max_x": 6, "min_z": 6, "max_z": 8},
+          "landmarks": {"center": [5, 0, 7], "entrance": [6, 0, 7]}
+        },
+        {
+          "id": "island_south",
+          "module_type": "square",
+          "center": [8, 0, 10],
+          "bounds": {"min_x": 7, "max_x": 9, "min_z": 9, "max_z": 11},
+          "landmarks": {"center": [8, 0, 10], "entrance": [8, 0, 9]}
+        },
+        {
+          "id": "island_north",
+          "module_type": "square",
+          "center": [8, 0, 4],
+          "bounds": {"min_x": 7, "max_x": 9, "min_z": 3, "max_z": 5},
+          "landmarks": {"center": [8, 0, 4], "entrance": [8, 0, 5]}
+        }
+      ],
+      "connectors": [
+        {"from": "hub", "to": "island_east", "path": [[8,0,7], [9,0,7]]},
+        {"from": "hub", "to": "island_west", "path": [[8,0,7], [7,0,7]]},
+        {"from": "hub", "to": "island_south", "path": [[8,0,7], [8,0,8]]},
+        {"from": "hub", "to": "island_north", "path": [[8,0,7], [8,0,6]]}
+      ],
+      "hub": [[8, 0, 7]]
     }
   }
 }

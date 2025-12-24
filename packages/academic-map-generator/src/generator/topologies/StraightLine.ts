@@ -1,70 +1,104 @@
 /**
- * StraightLine Topology
- * Creates a simple straight path - ideal for basic loop/variable lessons
+ * StraightLine Topology (PORTED FROM PYTHON)
+ * Creates a simple straight path on an axis.
  */
 
 import { BaseTopology } from './BaseTopology';
 import { IPathInfo, Coord } from '../types';
 
 export class StraightLineTopology extends BaseTopology {
-    *generatePathInfoVariants(
-        gridSize: [number, number, number],
-        params: Record<string, any>,
-        maxVariants: number
-    ): Generator<IPathInfo> {
-        const baseLength = params.path_length || 5;
+  *generatePathInfoVariants(
+    gridSize: [number, number, number],
+    params: Record<string, any>,
+    maxVariants: number
+  ): Generator<IPathInfo> {
+    const baseLength = params.path_length || 5;
+    const maxPossibleLength = Math.min(gridSize[0] - 4, gridSize[2] - 4);
+
+    // 1. Yield base variant
+    yield this.generatePathInfo(gridSize, params);
+
+    // 2. Variants increasing length
+    for (let i = 1; i < maxVariants; i++) {
+        const newLength = baseLength + i;
+        if (newLength > maxPossibleLength) break;
         
-        // First variant with original params
-        yield this.generatePathInfo(gridSize, params);
-        
-        // Generate variants with different lengths
-        for (let i = 1; i < maxVariants; i++) {
-            const newLength = baseLength + i * 2;
-            if (newLength >= gridSize[0] - 4) break;
-            
-            yield this.generatePathInfo(gridSize, { ...params, path_length: newLength });
+        const variantParams = { ...params };
+        variantParams.path_length = newLength;
+        yield this.generatePathInfo(gridSize, variantParams);
+    }
+  }
+
+  generatePathInfo(
+    gridSize: [number, number, number],
+    params: Record<string, any>
+  ): IPathInfo {
+    console.log("    LOG: Generating 'straight_line' topology...");
+
+    let pathLength = params.path_length || 5;
+    const maxDim = Math.max(gridSize[0], gridSize[2]);
+    if (pathLength >= maxDim - 2) pathLength = maxDim - 3;
+
+    // Random choice
+    const axis = Math.random() < 0.5 ? 'x' : 'z';
+    const direction = Math.random() < 0.5 ? 1 : -1;
+
+    // Start Pos
+    const totalCellsNeeded = pathLength + 2;
+    const y = 0;
+    const startPosList: [number, number, number] = [0, y, 0];
+
+    if (axis === 'x') {
+        if (direction === 1) {
+            startPosList[0] = Math.floor(Math.random() * (gridSize[0] - totalCellsNeeded + 1));
+        } else {
+            startPosList[0] = Math.floor(Math.random() * (gridSize[0] - totalCellsNeeded) + totalCellsNeeded - 1); // Python: randint(needed-1, size-1)
+            // Fix: randint(a, b) includes b. 
+            // Range: [total_cells_needed - 1, grid_size[0] - 1]
+            const min = totalCellsNeeded - 1;
+            const max = gridSize[0] - 1;
+            startPosList[0] = Math.floor(Math.random() * (max - min + 1)) + min;
         }
+        startPosList[2] = Math.floor(Math.random() * gridSize[2]);
+    } else { // z
+        if (direction === 1) {
+            startPosList[2] = Math.floor(Math.random() * (gridSize[2] - totalCellsNeeded + 1));
+        } else {
+            const min = totalCellsNeeded - 1;
+            const max = gridSize[2] - 1;
+            startPosList[2] = Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        startPosList[0] = Math.floor(Math.random() * gridSize[0]);
     }
 
-    generatePathInfo(gridSize: [number, number, number], params: Record<string, any>): IPathInfo {
-        const pathLength = params.path_length || 5;
-        const axis: 'x' | 'z' = params.axis || (Math.random() > 0.5 ? 'x' : 'z');
-        const direction = params.direction || (Math.random() > 0.5 ? 1 : -1);
-        
-        // Calculate safe starting position
-        const y = 0;
-        let startX = 1;
-        let startZ = 1;
-        
-        if (axis === 'x') {
-            startX = direction === 1 ? 1 : Math.min(gridSize[0] - 2, pathLength + 1);
-            startZ = Math.floor(gridSize[2] / 2);
-        } else {
-            startZ = direction === 1 ? 1 : Math.min(gridSize[2] - 2, pathLength + 1);
-            startX = Math.floor(gridSize[0] / 2);
-        }
-        
-        const startPos: Coord = [startX, y, startZ];
-        const pathCoords: Coord[] = [startPos];
-        
-        let currentPos: Coord = [...startPos];
-        
-        for (let i = 0; i < pathLength; i++) {
-            if (axis === 'x') {
-                currentPos = [currentPos[0] + direction, currentPos[1], currentPos[2]];
-            } else {
-                currentPos = [currentPos[0], currentPos[1], currentPos[2] + direction];
-            }
-            pathCoords.push(currentPos);
-        }
-        
-        const targetPos = pathCoords[pathCoords.length - 1];
-        
-        // Semantic positions for linear_repeat strategy
-        const semantic_positions = {
+    const startPos: Coord = [startPosList[0], startPosList[1], startPosList[2]];
+    const pathCoords: Coord[] = [startPos];
+    const currentPos: Coord = [...startPos];
+
+    // Create coords
+    for (let i = 0; i < pathLength; i++) {
+        if (axis === 'x') currentPos[0] += direction;
+        else currentPos[2] += direction;
+        pathCoords.push([...currentPos]);
+    }
+
+    const targetPos = pathCoords[pathCoords.length - 1];
+    const midpoint = pathCoords[Math.floor(pathCoords.length / 2)];
+
+    // Metadata
+    // Python has: "segment": path_coords (single list)
+    // NO "segments" key.
+    
+    const metadata = {
+        topology_type: "straight_line",
+        segment: pathCoords,
+        path_length: pathLength,
+        axis: axis,
+        direction: direction,
+        semantic_positions: {
             start: startPos,
             end: targetPos,
-            mid_point: pathCoords[Math.floor(pathCoords.length / 2)],
+            midpoint: midpoint,
             optimal_start: 'start',
             optimal_end: 'end',
             valid_pairs: [
@@ -73,53 +107,39 @@ export class StraightLineTopology extends BaseTopology {
                     start: 'start',
                     end: 'end',
                     path_type: 'full_traversal',
-                    strategies: ['linear_repeat', 'segment_based'],
+                    strategies: ['alternating_patterns', 'progressive_spacing'],
                     difficulty: 'EASY',
-                    teaching_goal: 'Simple straight line with repeat pattern'
+                    teaching_goal: 'Regular spacing along line'
                 },
                 {
-                    name: 'mid_to_end_medium',
-                    start: 'mid_point',
-                    end: 'end',
-                    path_type: 'half_segment',
-                    strategies: ['segment_based'],
+                    name: 'half_line_medium',
+                    start: 'start',
+                    end: 'midpoint',
+                    path_type: 'partial_traversal',
+                    strategies: ['alternating_patterns', 'grouped_items'],
                     difficulty: 'MEDIUM',
-                    teaching_goal: 'Half traversal with counting'
+                    teaching_goal: 'Grouped pattern in half'
                 },
                 {
-                    name: 'reversed_hard',
-                    start: 'end',
-                    end: 'start',
-                    path_type: 'reversed_traversal',
-                    strategies: ['linear_repeat'],
+                    name: 'variable_spacing_hard',
+                    start: 'start',
+                    end: 'end',
+                    path_type: 'variable_spacing',
+                    strategies: ['alternating_patterns', 'progressive_spacing'],
                     difficulty: 'HARD',
-                    teaching_goal: 'Reverse direction with pattern discovery'
+                    teaching_goal: 'Progressive item spacing'
                 }
             ]
-        };
-        
-        return {
-            start_pos: startPos,
-            target_pos: targetPos,
-            path_coords: pathCoords,
-            placement_coords: [...pathCoords],
-            obstacles: [],
-            metadata: {
-                topology_type: 'straight_line',
-                path_length: pathLength,
-                axis,
-                direction,
-                segments: [pathCoords],
-                segment_analysis: {
-                    count: 1,
-                    lengths: [pathCoords.length],
-                    min_length: pathCoords.length,
-                    max_length: pathCoords.length,
-                    avg_length: pathCoords.length,
-                    types: ['linear']
-                },
-                semantic_positions
-            }
-        };
-    }
+        }
+    };
+
+    return {
+        start_pos: startPos,
+        target_pos: targetPos,
+        path_coords: pathCoords,
+        placement_coords: pathCoords,
+        obstacles: [],
+        metadata: metadata
+    };
+  }
 }

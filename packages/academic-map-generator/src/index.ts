@@ -217,8 +217,7 @@ export type {
 
 // Core analysis
 export {
-  MapAnalyzer,
-  testMapAnalyzer
+  MapAnalyzer
 } from './analyzer';
 
 // Types from MapAnalyzer (needed by UI components)
