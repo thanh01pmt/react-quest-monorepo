@@ -181,9 +181,10 @@ export class HubWithSteppedIslandsTopology extends BaseTopology {
       ? branches[branches.length - 1][branches[branches.length - 1].length - 1]
       : startPos;
 
-    // Compute path_coords using BFS pathfinding
-    // This is the SHORTEST path from start to target through walkable tiles
-    const pathCoords = this.computePathCoords(startPos, targetPos, dedupedPlacement);
+    // Use manual branch path to ensure jumps are visualized correctly
+    // BFS fails on 3D diagonal jumps (stairs), so we use the constructed structural path
+    const manualPath = branches.length > 0 ? branches[branches.length - 1] : [startPos];
+    const pathCoords = this._deduplicateCoords(manualPath);
 
     // Semantic positions (matching Python)
     const semantic_positions: Record<string, any> = {

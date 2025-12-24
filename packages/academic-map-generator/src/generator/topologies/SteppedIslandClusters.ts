@@ -222,8 +222,15 @@ export class SteppedIslandClustersTopology extends BaseTopology {
     // Deduplicate placement coords
     const uniquePlacement = this._deduplicateCoords(placementCoords);
     
-    // Compute path_coords using BFS pathfinding (shortest path from start to target)
-    const computedPath = this.computePathCoords(startPos, targetPos, uniquePlacement);
+    // Use the manually built pathCoords which includes all valid steps and jumps
+    // BFS fails here because staircase "jumps" create gaps in the walkable grid
+    const uniquePath = this._deduplicateCoords(pathCoords);
+
+    // Use original Y coordinates as requested (aligning with block surface)
+    // The visualization engine handles the rendering offset if needed
+    const finalPath: Coord[] = uniquePath;
+    const finalStart: Coord = startPos;
+    const finalTarget: Coord = targetPos;
 
     // Segment analysis
     const segments = islandsList.map(island => [...island]);
@@ -238,9 +245,9 @@ export class SteppedIslandClustersTopology extends BaseTopology {
     };
 
     return {
-      start_pos: startPos,
-      target_pos: targetPos,
-      path_coords: computedPath,        // DYNAMIC: shortest path
+      start_pos: finalStart,
+      target_pos: finalTarget,
+      path_coords: finalPath,        // DYNAMIC: manually constructed path including jumps
       placement_coords: uniquePlacement, // STATIC: all walkable tiles
       obstacles: obstacles,
       metadata: {
