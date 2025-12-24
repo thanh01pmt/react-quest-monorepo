@@ -68,6 +68,66 @@
   font-size: 1.1rem;
 }
 
+/* Smart Selection Toggle */
+.selection-mode-toggle {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(74, 158, 255, 0.05);
+  border: 1px solid rgba(74, 158, 255, 0.2);
+  border-radius: 6px;
+}
+
+.selection-mode-toggle label {
+  display: block;
+  font-size: 0.75rem;
+  color: #4a9eff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 6px;
+  background: #1e1e22;
+  border-radius: 6px;
+  padding: 3px;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #888;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #bbb;
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, #4a9eff 0%, #357abd 100%);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(74, 158, 255, 0.3);
+}
+
+.toggle-btn span {
+  white-space: nowrap;
+}
+
+
 /* Selection Section */
 .selection-section {
   background: rgba(0, 123, 255, 0.05);

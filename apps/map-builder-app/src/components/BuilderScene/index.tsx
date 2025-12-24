@@ -40,6 +40,11 @@ interface BuilderSceneProps {
   solutionPath?: [number, number, number][] | null;
   highlights?: HighlightItem[]; // Topology Inspector highlights
   activeLayer: 'all' | 'ground' | 'items'; // NEW: Active layer for dimming
+  // Smart Selection Props
+  onSmartSelect?: (objectId: string) => void;
+  onObjectHover?: (objectId: string | null) => void;
+  hoverPreviewIds?: string[];
+  selectionMode?: 'box' | 'smart';
 }
 
 // Separate component for player_start to ensure proper re-rendering
@@ -138,12 +143,22 @@ const selectionOverlayMaterial = new THREE.MeshBasicMaterial({
   depthWrite: false // Render xuyên qua các vật thể khác để đảm bảo luôn thấy
 });
 
-function PlacedAsset({ object, isSelected, isHovered, onContextMenu, activeLayer }: {
+// Hover preview material (Yellow, semi-transparent)
+const hoverPreviewMaterial = new THREE.MeshBasicMaterial({
+  color: '#ffff00',
+  opacity: 0.4,
+  transparent: true,
+  depthTest: false,
+  depthWrite: false
+});
+
+function PlacedAsset({ object, isSelected, isHovered, onContextMenu, activeLayer, isPreview }: {
   object: PlacedObject;
   isSelected: boolean;
   isHovered: boolean;
   onContextMenu: (e: ThreeEvent<MouseEvent>) => void;
   activeLayer: 'all' | 'ground' | 'items';
+  isPreview?: boolean; // New prop for smart select preview
 }) {
   const worldPosition: [number, number, number] = [
     object.position[0] * TILE_SIZE + TILE_SIZE / 2,
@@ -177,15 +192,21 @@ function PlacedAsset({ object, isSelected, isHovered, onContextMenu, activeLayer
         )}
 
       {/* --- THAY ĐỔI: Logic hiển thị hiệu ứng chọn và hover --- */}
-      {isSelected ? (
-        // Khi được chọn, render thêm một AssetRenderer nữa với vật liệu phủ màu vàng.
-        // Chúng ta tăng nhẹ scale để tránh z-fighting (hiện tượng các bề mặt chồng lấn gây nhấp nháy).
+      {/* Selection Overlay */}
+      {isSelected && (
         <group scale={[1.02, 1.02, 1.02]}>
           <AssetRenderer asset={object.asset} material={selectionOverlayMaterial} properties={object.properties} />
         </group>
-      ) : (
-        // Khi không được chọn, chỉ hiển thị hiệu ứng hover (viền xanh) nếu có.
-        isHovered && <Outlines thickness={0.03} color="#66aaff" />
+      )}
+
+      {/* Hover Outlines (show only if not selected) */}
+      {!isSelected && isHovered && <Outlines thickness={0.03} color="#66aaff" />}
+
+      {/* Smart Select Preview Overlay */}
+      {isPreview && !isSelected && (
+        <group scale={[1.03, 1.03, 1.03]}>
+          <AssetRenderer asset={object.asset} material={hoverPreviewMaterial} properties={object.properties} />
+        </group>
       )}
     </group>
   );
@@ -376,7 +397,11 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     onAddObject, onRemoveObject, selectionBounds, onSetSelectionStart, onSetSelectionEnd, cameraControlsRef, selectedObjectIds, onSelectObject, onMoveObject, onMoveObjectByStep, onObjectContextMenu,
     solutionPath,
     highlights, // Destructure highlights prop
-    activeLayer // NEW: Destructure activeLayer for dimming feature
+    activeLayer, // NEW: Destructure activeLayer for dimming feature
+    onSmartSelect,
+    onObjectHover,
+    hoverPreviewIds,
+    selectionMode
   } = props;
 
 
@@ -520,6 +545,11 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
       if (newHoverId !== hoveredObjectId) {
         setHoveredObjectId(newHoverId);
       }
+
+      // Trigger Smart Select Hover
+      if (selectionMode === 'smart' && onObjectHover) {
+        onObjectHover(newHoverId);
+      }
     }
 
     // Luôn cập nhật vị trí con trỏ để useFrame có thể sử dụng
@@ -647,6 +677,15 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
       onSetSelectionStart(startPos);
       onSetSelectionEnd(startPos);
       // --- END: CẬP NHẬT LOGIC CHỌN ĐIỂM BẮT ĐẦU ---
+
+      // --- START: SMART SELECT LOGIC ---
+      if (selectionMode === 'smart' && onSmartSelect && clickedId) {
+        // Nếu đang ở mode Smart Select, click sẽ kích hoạt thuật toán chọn thông minh
+        onSmartSelect(clickedId);
+        // Trả về ngay để không bắt đầu drag box selection
+        return;
+      }
+      // --- END: SMART SELECT LOGIC ---
     }
   };
 
@@ -691,7 +730,9 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
           onContextMenu={(e) => {
             e.stopPropagation();
             onObjectContextMenu(e.nativeEvent, obj.id);
-          }} /></Suspense>)}
+          }}
+          isPreview={hoverPreviewIds?.includes(obj.id)}
+        /></Suspense>)}
       </group>
       <PortalConnections objects={placedObjects} />
       {solutionPath && <SolutionOverlay path={solutionPath} />}

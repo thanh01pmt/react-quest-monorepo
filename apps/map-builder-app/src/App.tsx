@@ -26,6 +26,9 @@ import { PlacementSelector } from './components/PlacementSelector';
 import { TemplateManager } from './components/TemplateManager';
 import { PlacementVariants } from './components/PlacementVariants';
 import { RightPanelTabs } from './components/RightPanelTabs';
+// Smart selection types
+export type SelectionMode = 'box' | 'smart';
+import { SelectionEngine } from './utils/SelectionEngine';
 import {
   MapAnalyzer,
   type SelectableElement,
@@ -97,7 +100,12 @@ function App() {
 
   const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
 
-  // State mới để lưu trữ siêu dữ liệu của quest
+  // --- NEW: Smart Selection States ---
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>('box'); // Box or Smart selection
+  const [hoverPreviewIds, setHoverPreviewIds] = useState<string[]>([]); // Preview of smart selection on hover
+  const selectionEngineRef = useRef(new SelectionEngine()); // Singleton instance
+
+  // State mới để lưư trữ siêu dữ liệu của quest
   const [questMetadata, setQuestMetadata] = useState<Record<string, any> | null>(null);
   // SỬA LỖI: State cho theme hiện tại, được khởi tạo với theme mặc định.
   const [mapTheme, setMapTheme] = useState<MapTheme>(Themes.COMPREHENSIVE_THEMES[0]);
@@ -245,6 +253,20 @@ function App() {
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
         e.preventDefault();
         handleRedo();
+      }
+
+      // --- NEW: TOOL SHORTCUTS ---
+      // S key: Toggle to Smart Select mode
+      else if (e.key.toLowerCase() === 's' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setSelectionMode('smart');
+      }
+
+      // Esc key: Clear selection
+      else if (e.key === 'Escape') {
+        e.preventDefault();
+        setSelectedObjectIds([]);
+        setHoverPreviewIds([]);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -659,6 +681,62 @@ function App() {
     }
   };
   // --- END: SỬA LỖI HIỆU ỨNG ---
+
+  // --- NEW: SMART SELECTION HANDLERS ---
+  /**
+   * Handle smart selection - select all connected objects
+   */
+  const handleSmartSelect = useCallback((objectId: string) => {
+    const engine = selectionEngineRef.current;
+    const connectedIds = engine.selectConnected(objectId, placedObjects);
+
+    // Filter by active layer
+    const filteredIds = connectedIds.filter(id => {
+      const obj = placedObjects.find(o => o.id === id);
+      if (!obj) return false;
+
+      if (activeLayer === 'ground') return obj.asset.key.includes('ground');
+      if (activeLayer === 'items') return !obj.asset.key.includes('ground');
+      return true; // 'all' layer
+    });
+
+    setSelectedObjectIds(filteredIds);
+    setHoverPreviewIds([]); // Clear preview after selection
+  }, [placedObjects, activeLayer]);
+
+  /**
+   * Handle hover over object for smart selection preview
+   */
+  const handleObjectHover = useCallback((objectId: string | null) => {
+    if (selectionMode !== 'smart' || !objectId) {
+      setHoverPreviewIds([]);
+      return;
+    }
+
+    const engine = selectionEngineRef.current;
+    const previewIds = engine.getSelectionPreview(objectId, placedObjects);
+
+    // Filter by layer
+    const filteredIds = previewIds.filter(id => {
+      const obj = placedObjects.find(o => o.id === id);
+      if (!obj) return false;
+
+      if (activeLayer === 'ground') return obj.asset.key.includes('ground');
+      if (activeLayer === 'items') return !obj.asset.key.includes('ground');
+      return true;
+    });
+
+    setHoverPreviewIds(filteredIds);
+  }, [selectionMode, placedObjects, activeLayer]);
+
+  /**
+   * Handle selection mode change (box vs smart)
+   */
+  const handleSelectionModeChange = useCallback((mode: SelectionMode) => {
+    setSelectionMode(mode);
+    setHoverPreviewIds([]); // Clear preview when switching modes
+  }, []);
+  // --- END: SMART SELECTION HANDLERS ---
 
 
 
@@ -2055,6 +2133,9 @@ function App() {
                 onShowTutorial={() => setIsWelcomeModalVisible(true)} // THÊM MỚI: Prop để mở lại modal
                 onCreateNewMap={handleCreateNewMap} // THÊM MỚI: Prop để tạo map mới
                 onImportMap={handleImportMap}
+                // Smart selection
+                selectionMode={selectionMode}
+                onSelectionModeChange={handleSelectionModeChange}
               />
             ) : activeSidePanel === 'topology' ? (
               <TopologyPanel
@@ -2208,6 +2289,7 @@ function App() {
           onThemeChange={handleThemeChange}
           availableThemes={Themes.COMPREHENSIVE_THEMES}
         />
+        {/* Smart Selection integrated into AssetPalette */}
         <button onClick={togglePalette} className={`toggle-palette-btn ${!isPaletteVisible ? 'closed' : ''}`}>
           {isPaletteVisible ? '‹' : '›'}
         </button>
@@ -2266,6 +2348,10 @@ function App() {
           solutionPath={solutionPath}
           highlights={topologyHighlights}
           activeLayer={activeLayer}
+          onSmartSelect={handleSmartSelect}
+          onObjectHover={handleObjectHover}
+          hoverPreviewIds={hoverPreviewIds}
+          selectionMode={selectionMode}
         />
       </div>
       {/* --- START: THÊM THANH RESIZER VÀ ÁP DỤNG WIDTH ĐỘNG --- */}

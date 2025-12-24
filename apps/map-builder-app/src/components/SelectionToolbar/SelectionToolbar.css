@@ -1,0 +1,231 @@
+/* SelectionToolbar Styles */
+
+.selection-toolbar {
+  position: fixed;
+  left: 370px; /* Position after left sidebar (320px width + 50px margin) */
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 150; /* Higher than other UI elements */
+  
+  background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+  border: 1px solid #444;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  min-width: 140px;
+  max-width: 180px;
+}
+
+
+.toolbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a9eff;
+  text-align: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #333;
+}
+
+/* Tool Groups */
+.tool-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tool-subgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.subgroup-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+/* Tool Buttons */
+.tool-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tool-button:hover:not(:disabled) {
+  background: #2a2a2a;
+  border-color: #4a9eff;
+  color: #fff;
+  transform: translateX(2px);
+}
+
+.tool-button.active {
+  background: linear-gradient(135deg, #4a9eff 0%, #357abd 100%);
+  border-color: #4a9eff;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(74, 158, 255, 0.3);
+}
+
+.tool-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Sub-buttons (smaller) */
+.tool-subbutton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #1e1e1e;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  color: #aaa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.tool-subbutton:hover {
+  background: #252525;
+  border-color: #4a9eff;
+  color: #fff;
+}
+
+.tool-subbutton.active {
+  background: #357abd;
+  border-color: #4a9eff;
+  color: #fff;
+}
+
+/* Icons & Labels */
+.tool-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.tool-subbutton .tool-icon {
+  font-size: 16px;
+}
+
+.tool-label {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tool-subbutton .tool-label {
+  font-size: 12px;
+}
+
+/* Selection Badge */
+.selection-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Keyboard Hints */
+.toolbar-hints {
+  padding: 12px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.hint-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.hint-item {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hint-item kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  background: #252525;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4a9eff;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Responsive Adjustments */
+@media (max-height: 700px) {
+  .selection-toolbar {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .toolbar-hints {
+    display: none; /* Hide hints on small screens */
+  }
+}
+
+/* Adjust position when sidebar is likely hidden/narrow */
+@media (max-width: 1200px) {
+  .selection-toolbar {
+    left: 20px; /* Move closer to edge when sidebar might be collapsed */
+  }
+}
+
+
+/* Animations */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.selection-toolbar {
+  animation: slideInLeft 0.3s ease-out;
+}

@@ -17,6 +17,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { buildableAssetGroups } from '../../config/gameAssets';
 import { type BuildableAsset, type BuilderMode, type BoxDimensions, type FillOptions, type SelectionBounds } from '../../types';
+import type { SelectionMode } from '../../App'; // Import from App
 import './AssetPalette.css';
 
 interface AssetPaletteProps {
@@ -31,6 +32,9 @@ interface AssetPaletteProps {
   onSelectionAction: (action: 'fill' | 'replace' | 'delete') => void;
   selectionBounds: SelectionBounds | null;
   onSelectionBoundsChange: (bounds: SelectionBounds) => void;
+  // Smart selection
+  selectionMode?: SelectionMode;
+  onSelectionModeChange?: (mode: SelectionMode) => void;
   onImportMap: (file: File) => void;
   onLoadMapFromUrl: (url: string) => void;
   onShowTutorial: () => void;
@@ -57,6 +61,8 @@ export function AssetPalette({
   onSelectionAction,
   selectionBounds,
   onSelectionBoundsChange,
+  selectionMode = 'box', // Default to box selection
+  onSelectionModeChange,
   onImportMap,
   onLoadMapFromUrl,
   onShowTutorial,
@@ -150,6 +156,29 @@ export function AssetPalette({
             <span>Select</span>
           </button>
         </div>
+
+        {/* Smart Select Toggle (when in Select mode) */}
+        {currentMode === 'navigate' && onSelectionModeChange && (
+          <div className="selection-mode-toggle">
+            <label>Selection Type:</label>
+            <div className="toggle-buttons">
+              <button
+                className={`toggle-btn ${selectionMode === 'box' ? 'active' : ''}`}
+                onClick={() => onSelectionModeChange('box')}
+                title="Box Selection - Drag to select area"
+              >
+                <span>⬜ Box</span>
+              </button>
+              <button
+                className={`toggle-btn ${selectionMode === 'smart' ? 'active' : ''}`}
+                onClick={() => onSelectionModeChange('smart')}
+                title="Smart Selection (S) - Click to select connected tiles"
+              >
+                <span>🎯 Smart</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Selection Controls */}
