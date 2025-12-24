@@ -41,8 +41,51 @@ interface BuilderSceneProps {
   highlights?: HighlightItem[]; // Topology Inspector highlights
 }
 
+// Separate component for player_start to ensure proper re-rendering
+function PlayerStartRenderer({ direction, material }: { direction: number, material?: THREE.Material }) {
+  // Rotation map
+  // Rotation map updated for User Coordinate System:
+  // North (90) = +Z (0 rot from base)
+  // East (0) = +X (-90 rot from base)
+  const rotationMap: Record<number, number> = {
+    0: -Math.PI / 2,  // East (+X)
+    1: 0,             // North (+Z)
+    2: Math.PI / 2,   // West (-X)
+    3: Math.PI        // South (-Z)
+  };
+
+  const baseRotation = -Math.PI / 2; // Tip forward (points to +Z by default)
+  const yRotation = rotationMap[direction] ?? 0;
+
+  // Use key to force complete remount when direction changes
+  // Fix rotation order: Yaw (Y) then Pitch (X)
+  return (
+    <group key={direction} rotation={[0, yRotation, 0]}>
+      <group rotation={[baseRotation, 0, 0]}>
+        {/* Main Cone Body */}
+        <mesh material={material} position={[0, 0, 0]}>
+          <coneGeometry args={[0.4, 0.8, 8]} />
+          {!material && <meshStandardMaterial color="#FFD700" roughness={0.3} metalness={0.6} />}
+        </mesh>
+
+        {/* Base Cylinder */}
+        <mesh position={[0, -0.4, 0]} material={material}>
+          <cylinderGeometry args={[0.5, 0.5, 0.1, 16]} />
+          {!material && <meshStandardMaterial color="#FFA500" roughness={0.5} metalness={0.3} />}
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 // --- COMPONENT MỚI ĐỂ RENDER ASSET ---
 const AssetRenderer = ({ asset, properties, material }: { asset: BuildableAsset, properties?: Record<string, any>, material?: THREE.Material }) => {
+  // Special rendering for player_start with directional indicator
+  if (asset.key === 'player_start') {
+    const direction = properties?.direction ?? 0; // 0=East, 1=North, 2=West, 3=South
+    return <PlayerStartRenderer direction={direction} material={material} />;
+  }
+
   // Render mô hình GLB nếu có đường dẫn
   if (asset.path) {
     const { scene } = useGLTF(asset.path);
@@ -109,14 +152,18 @@ function PlacedAsset({ object, isSelected, isHovered, onContextMenu }: { object:
       userData={{ isPlacedObject: true, id: object.id }}
       onContextMenu={onContextMenu}
     >
-      <AssetRenderer asset={object.asset} properties={object.properties} />
+      <AssetRenderer
+        key={object.asset.key === 'player_start' ? `${object.id}-${object.properties.direction}` : object.id}
+        asset={object.asset}
+        properties={object.properties}
+      />
 
       {/* --- THAY ĐỔI: Logic hiển thị hiệu ứng chọn và hover --- */}
       {isSelected ? (
         // Khi được chọn, render thêm một AssetRenderer nữa với vật liệu phủ màu vàng.
         // Chúng ta tăng nhẹ scale để tránh z-fighting (hiện tượng các bề mặt chồng lấn gây nhấp nháy).
         <group scale={[1.02, 1.02, 1.02]}>
-          <AssetRenderer asset={object.asset} material={selectionOverlayMaterial} />
+          <AssetRenderer asset={object.asset} material={selectionOverlayMaterial} properties={object.properties} />
         </group>
       ) : (
         // Khi không được chọn, chỉ hiển thị hiệu ứng hover (viền xanh) nếu có.

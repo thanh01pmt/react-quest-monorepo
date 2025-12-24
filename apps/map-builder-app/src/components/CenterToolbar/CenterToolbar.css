@@ -1,0 +1,111 @@
+/**
+ * CenterToolbar Styles
+ * Floating toolbar positioned over 3D scene
+ */
+
+.center-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  
+  background: rgba(42, 42, 46, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 20px;
+  
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Toolbar Groups */
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #ccc;
+  white-space: nowrap;
+}
+
+/* Select Inputs */
+.toolbar-select {
+  background: #3c3c41;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: #fff;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 100px;
+}
+
+.toolbar-select:hover {
+  background: #4a4a50;
+  border-color: #777;
+}
+
+.toolbar-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+/* Checkbox */
+.toolbar-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toolbar-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #007bff;
+}
+
+.checkbox-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #e0e0e0;
+  white-space: nowrap;
+}
+
+.toolbar-checkbox:hover .checkbox-label {
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .center-toolbar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 16px;
+    top: 8px;
+  }
+  
+  .toolbar-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .toolbar-select {
+    flex: 1;
+    min-width: auto;
+  }
+}

@@ -91,9 +91,9 @@ function createBuildableAssetGroups(): AssetGroup[] {
       key: 'player_start', // Key mới
       name: 'Player Start',  // Tên mới
       thumbnail: '/assets/ui/player_start.png', // Dùng một ảnh UI tùy chỉnh
-      primitiveShape: 'sphere', // Dùng hình cầu để đại diện
+      primitiveShape: 'sphere', // Dùng hình cầu để đại diện (will be overridden by custom rendering)
       type: 'special',
-      defaultProperties: {}
+      defaultProperties: { direction: 0 } // 0=East, 1=North, 2=West, 3=South
     },
     {
       key: 'finish',

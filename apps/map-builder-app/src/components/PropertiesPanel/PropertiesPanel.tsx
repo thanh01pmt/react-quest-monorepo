@@ -1,7 +1,6 @@
-import { PlacedObject, MapTheme, BuildableAsset } from '../../types'; // Thêm MapTheme từ types
+import { PlacedObject, BuildableAsset } from '../../types';
 import './PropertiesPanel.css';
-import { v4 as uuidv4 } from 'uuid'; // Giữ lại uuid
-import ThemeSelector from './ThemeSelector'; // SỬA ĐỔI: Đường dẫn import gọn hơn
+import { v4 as uuidv4 } from 'uuid';
 
 interface PropertiesPanelProps {
   selectedObjects: PlacedObject[];
@@ -12,13 +11,8 @@ interface PropertiesPanelProps {
   onFlipSelection: (axis: 'x' | 'z') => void;
   onAddObject: (newObject: PlacedObject) => void;
   onCopyAsset: (id: string) => void; // Prop mới để sao chép asset
-  // --- START: THÊM PROPS CHO THEME ---
-  currentMapItems: string[];
-  mapTheme: MapTheme;
-  onThemeChange: (newTheme: MapTheme) => void;
   // Thêm file css đã bị thiếu
   className?: string;
-  // --- END: THÊM PROPS CHO THEME ---
 }
 
 const renderPropertyInput = (key: string, value: any, onChange: (key: string, value: any) => void) => {
@@ -35,10 +29,10 @@ const renderPropertyInput = (key: string, value: any, onChange: (key: string, va
   if (key === 'direction') {
     return (
       <select className="custom-select" value={value} onChange={(e) => onChange(key, parseInt(e.target.value, 10))}>
-        <option value="0">0 (East, +X)</option>
-        <option value="1">1 (North, -Z)</option>
-        <option value="2">2 (West, -X)</option>
-        <option value="3">3 (South, +Z)</option>
+        <option value="0">→ East (0°)</option>
+        <option value="1">↑ North (90°)</option>
+        <option value="2">← West (180°)</option>
+        <option value="3">↓ South (270°)</option>
       </select>
     );
   }
@@ -47,7 +41,7 @@ const renderPropertyInput = (key: string, value: any, onChange: (key: string, va
   if (key === 'targetId' || key === 'type' || key === 'color') {
     return <input type="text" value={value ?? 'N/A'} readOnly />;
   }
-  
+
   // Generic text input for other properties
   return <input type="text" value={value} onChange={(e) => onChange(key, e.target.value)} />;
 };
@@ -100,18 +94,15 @@ const MultipleSelectionPanel = ({
   </>
 );
 
-export function PropertiesPanel({ 
-  selectedObjects, 
-  onUpdateObject, 
-  onClearSelection, 
+export function PropertiesPanel({
+  selectedObjects,
+  onUpdateObject,
+  onClearSelection,
   onDeleteSelection,
   onRotateSelection,
   onFlipSelection,
-  onAddObject, 
-  onCopyAsset,
-  currentMapItems,
-  mapTheme,
-  onThemeChange
+  onAddObject,
+  onCopyAsset
 }: PropertiesPanelProps) {
   const selectedObject = selectedObjects.length === 1 ? selectedObjects[0] : null;
 
@@ -149,10 +140,10 @@ export function PropertiesPanel({
     };
     onUpdateObject(updatedObject);
   };
-  
+
   return (
     <aside className="properties-panel"> {/* Giữ lại class này */}
-      <ThemeSelector currentMapItems={currentMapItems} selectedTheme={mapTheme} onSelectTheme={onThemeChange} /> 
+      {/* ThemeSelector has been moved to CenterToolbar */}
 
       {/* --- LOGIC MỚI: Hiển thị panel phù hợp --- */}
       {selectedObjects.length > 1 ? (
@@ -166,46 +157,46 @@ export function PropertiesPanel({
       ) : selectedObject ? (
         <>
           <div className="panel-header">
-              <h2>Properties</h2>
-              <button onClick={onClearSelection} className="clear-btn">✖</button>
+            <h2>Properties</h2>
+            <button onClick={onClearSelection} className="clear-btn">✖</button>
           </div>
 
           <div className="prop-group info-group">
-              <label>Asset</label>
-              <span>{selectedObject.asset.name}</span>
+            <label>Asset</label>
+            <span>{selectedObject.asset.name}</span>
           </div>
           <div className="prop-group info-group">
-              <label>ID</label>
-              <span className="object-id">{selectedObject.id}</span>
+            <label>ID</label>
+            <span className="object-id">{selectedObject.id}</span>
           </div>
 
           <h3 className="props-title">Custom Properties</h3>
           {Object.entries(selectedObject.properties).map(([key, value]) => (
-              <div key={key} className="prop-group">
+            <div key={key} className="prop-group">
               <label>{key}</label>
               {renderPropertyInput(key, value, handlePropertyChange)}
-              </div>
+            </div>
           ))}
 
           <div className="selection-controls single-object-controls">
-              <h3 className="props-title">Actions</h3>
-              <div className="action-description">
+            <h3 className="props-title">Actions</h3>
+            <div className="action-description">
               Click an asset in the palette to **replace** this object.
-              </div>
-              <div className="action-buttons" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            </div>
+            <div className="action-buttons" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               <button onClick={handleCopyAsset} className="action-btn copy-btn">
-                  <span className="icon">📋</span>
-                  Copy Asset
+                <span className="icon">📋</span>
+                Copy Asset
               </button>
               <button onClick={handleDuplicate} className="action-btn duplicate-btn">
-                  <span className="icon">🎨</span>
-                  Duplicate
+                <span className="icon">🎨</span>
+                Duplicate
               </button>
               <button onClick={onDeleteSelection} className="action-btn delete-btn">
-                  <span className="icon">🗑️</span>
-                  Delete
+                <span className="icon">🗑️</span>
+                Delete
               </button>
-              </div>
+            </div>
           </div>
         </>
       ) : (

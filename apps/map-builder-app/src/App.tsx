@@ -31,6 +31,7 @@ import {
   type TemplateItemPlacement,
   type ItemPlacement
 } from '@repo/academic-map-generator';
+import { CenterToolbar } from './components/CenterToolbar';
 import _ from 'lodash';
 import './App.css';
 
@@ -1985,23 +1986,6 @@ function App() {
           </div>
 
 
-          <div style={{ padding: '10px', background: '#333', borderBottom: '1px solid #3c3c41' }}>
-            {/* Hide Layer filter in Topology tab since it only handles Ground */}
-            {activeSidePanel !== 'topology' && (
-              <>
-                <label style={{ marginRight: '10px', fontWeight: 'bold', color: '#fff' }}>Layer:</label>
-                <select value={activeLayer} onChange={(e) => setActiveLayer(e.target.value as any)} style={{ background: '#3c3c41', color: '#fff', border: '1px solid #555', borderRadius: '4px', padding: '4px 8px' }}>
-                  <option value="all">All</option>
-                  <option value="ground">Ground</option>
-                  <option value="items">Items</option>
-                </select>
-              </>
-            )}
-            <label style={{ marginLeft: activeSidePanel === 'topology' ? '0' : '10px', color: '#ccc' }}>
-              <input type="checkbox" checked={smartSnapEnabled} onChange={e => setSmartSnapEnabled(e.target.checked)} style={{ accentColor: '#007bff' }} /> Smart Snap
-            </label>
-          </div>
-
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {activeSidePanel === 'assets' ? (
               <AssetPalette
@@ -2165,6 +2149,16 @@ function App() {
       )
       }
       <div className="builder-scene-wrapper">
+        {/* Center Toolbar - Floating controls over 3D scene */}
+        <CenterToolbar
+          activeLayer={activeLayer}
+          onLayerChange={setActiveLayer}
+          smartSnapEnabled={smartSnapEnabled}
+          onToggleSmartSnap={() => setSmartSnapEnabled(prev => !prev)}
+          mapTheme={mapTheme}
+          onThemeChange={handleThemeChange}
+          availableThemes={Themes.COMPREHENSIVE_THEMES}
+        />
         <button onClick={togglePalette} className={`toggle-palette-btn ${!isPaletteVisible ? 'closed' : ''}`}>
           {isPaletteVisible ? '‹' : '›'}
         </button>
@@ -2234,11 +2228,8 @@ function App() {
           selectedObjects={placedObjects.filter(obj => selectedObjectIds.includes(obj.id))}
           onUpdateObject={handleUpdateObject}
           onDeleteSelection={() => handleRemoveMultipleObjects(selectedObjectIds)}
-          onAddObject={handleAddNewObject} // Thêm prop onAddObject
-          onCopyAsset={handleCopyObject} // Thêm prop onCopyAsset
-          currentMapItems={currentMapItems} // Prop cho theme
-          mapTheme={mapTheme} // Prop cho theme
-          onThemeChange={handleThemeChange} // Prop cho theme
+          onAddObject={handleAddNewObject}
+          onCopyAsset={handleCopyObject}
           onRotateSelection={handleRotateSelection}
           onFlipSelection={handleFlipSelection}
           onClearSelection={() => { setSelectedObjectIds([]); setSelectionStart(null); setSelectionEnd(null); }}
