@@ -226,7 +226,7 @@ export function AssetPalette({
 
       {/* Asset Groups */}
       <div className="palette-section assets-section">
-        <h3 className="section-title">🎨 Assets</h3>
+        <h3 className="section-title">🎨 Manual</h3>
         {buildableAssetGroups.map(group => (
           <div key={group.name} className="asset-group">
             <button

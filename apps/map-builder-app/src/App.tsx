@@ -679,14 +679,21 @@ function App() {
     // Relaxed Check: Only enforce if pathInfo exists AND it's a collectible/interactible.
     // Also explicitly exclude 'block' type from smart snap (walls/ground).
     if (smartSnapEnabled && questMetadata?.pathInfo && asset.type !== 'block' && asset.key !== 'player_start' && asset.key !== 'finish' && !asset.key.includes('ground') && !asset.key.includes('wall')) {
-      const pathCoords = questMetadata.pathInfo.path_coords || [];
+      // Use placement_coords (all walkable tiles) instead of path_coords (shortest path)
+      // so users can place items anywhere on the map structure.
+      const validPlacementCoords = questMetadata.pathInfo.placement_coords || [];
       const [x, y, z] = gridPosition;
+
+      console.log(`Smart Snap Check: Pos [${x},${y},${z}] against ${validPlacementCoords.length} tiles`);
 
       // Additional safety for type 'special' which might slip through ?
       if (asset.type === 'collectible' || asset.type === 'interactible') {
-        const isOnPath = pathCoords.some((c: Coord) => c[0] === x && c[1] === y && c[2] === z);
-        if (!isOnPath) {
-          console.warn("Smart Snap: Invalid placement. Item must be on path.");
+        const isValidPlacement = validPlacementCoords.some((c: Coord) =>
+          (c[0] === x && c[1] === y && c[2] === z) ||
+          (c[0] === x && c[1] === y - 1 && c[2] === z)
+        );
+        if (!isValidPlacement) {
+          console.warn("Smart Snap: Invalid placement. Item must be on a valid ground tile.");
           // Visual Feedback could be added here (e.g. toast)
           return; // Strict Snap
         }
@@ -757,7 +764,79 @@ function App() {
       }
     }
 
-    setPlacedObjectsWithHistory(prev => [...prev.filter(o => !objectsToRemove.includes(o.id)), ...objectsToAdd]);
+    // Cập nhật lại danh sách đối tượng
+    // Fix: 'prev' is not available here. Use 'placedObjects' state directly.
+    const newPlacedObjects = [...placedObjects.filter(o => !objectsToRemove.includes(o.id)), ...objectsToAdd];
+
+    // --- LOGIC MỚI: TỰ ĐỘNG TÍNH LẠI ĐƯỜNG ĐI ---
+    // Khi thêm vật phẩm (collectible/interactible), tự động tính lại đường đi tối ưu
+    if (finalAsset.type === 'collectible' || finalAsset.type === 'interactible') {
+      // 1. Chuẩn bị dữ liệu cho solver
+      const blocks = newPlacedObjects.filter((o: PlacedObject) => o.asset.type === 'block').map((o: PlacedObject) => ({ modelKey: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
+      const collectibles = newPlacedObjects.filter((o: PlacedObject) => o.asset.type === 'collectible').map((o: PlacedObject, i: number) => ({ id: o.id, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
+      const interactibles = newPlacedObjects.filter((o: PlacedObject) => o.asset.type === 'interactible').map((o: PlacedObject) => ({ id: o.id, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] }, initialState: o.properties?.initialState }));
+
+      const finishObject = newPlacedObjects.find(o => o.asset.key === 'finish');
+      const startObject = newPlacedObjects.find(o => o.asset.key === 'player_start');
+
+      if (finishObject && startObject) {
+        const finish = { x: finishObject.position[0], y: finishObject.position[1], z: finishObject.position[2] };
+        // Parse direction safely
+        let dir = 0;
+        if (startObject.properties?.direction) {
+          const parsed = parseInt(String(startObject.properties.direction), 10);
+          if (!isNaN(parsed)) dir = parsed;
+        }
+        const players = [{ start: { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2], direction: dir } }];
+
+        const gameConfig = { blocks, players, finish, collectibles, interactibles };
+
+        // Cấu hình itemGoals cho solver
+        const itemGoals: Record<string, any> = {};
+        collectibles.forEach(c => {
+          itemGoals[c.type] = (itemGoals[c.type] || 0) + 1;
+        });
+        // Đối với switch, chúng ta đếm số lượng switch cần bật (mặc định là tất cả nếu có switch)
+        const switches = interactibles.filter(i => i.type === 'switch');
+        if (switches.length > 0) {
+          itemGoals['switch'] = switches.length;
+        }
+
+        const solveConfig = {
+          itemGoals,
+          rawActions: [],
+          structuredSolution: { main: [] }
+        };
+
+        // 2. Gọi hàm giải
+        console.log("Auto-calculating path...");
+        // @ts-ignore - solveMaze might have slight type mismatch with strict null checks
+        const result = solveMaze(gameConfig, solveConfig, { availableBlocks: [] });
+
+        if (result && result.pathCoordinates) {
+          console.log("Path recalculated!", result.pathCoordinates.length);
+          // 3. Cập nhật metadata
+          setQuestMetadata(prev => {
+            if (!prev) return null;
+            // Chuyển đổi Position {x,y,z} thành tuple [x,y,z]
+            const newPathCoords = result.pathCoordinates?.map(p => [p.x, p.y, p.z]);
+            return {
+              ...prev,
+              pathInfo: {
+                ...prev.pathInfo,
+                path_coords: newPathCoords
+              },
+              solution: result
+            };
+          });
+        } else {
+          console.warn("Could not find a path including the new item.");
+        }
+      }
+    }
+    // ---------------------------------------------
+
+    setPlacedObjectsWithHistory(newPlacedObjects);
   };
 
   // Hàm mới để thêm một đối tượng đã được tạo sẵn (dùng cho Duplicate)
@@ -1889,7 +1968,7 @@ function App() {
               style={{ flex: 1, padding: '10px', background: activeSidePanel === 'assets' ? '#3c3c41' : '#2a2a2e', color: activeSidePanel === 'assets' ? '#fff' : '#888', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'assets' ? 'bold' : 'normal', transition: 'all 0.2s' }}
               onClick={() => setActiveSidePanel('assets')}
             >
-              Assets
+              Manual
             </button>
             <button
               style={{ flex: 1, padding: '10px', background: activeSidePanel === 'topology' ? '#3c3c41' : '#2a2a2e', color: activeSidePanel === 'topology' ? '#fff' : '#888', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'topology' ? 'bold' : 'normal', transition: 'all 0.2s' }}

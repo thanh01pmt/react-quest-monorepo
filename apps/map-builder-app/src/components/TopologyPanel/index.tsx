@@ -913,7 +913,8 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                     params: params,
                     strategy: PedagogyStrategy.NONE
                 },
-                plannedSolution: null  // No planned solution for ground-only
+                plannedSolution: null,  // No planned solution for ground-only
+                solution: null          // Clear any previous solution/path
             };
 
             onGenerate(groundObjects, metadataUpdate);

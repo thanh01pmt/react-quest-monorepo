@@ -81,14 +81,6 @@
   left: -1px; /* Dịch qua trái để che đường viền của scene-wrapper */
 }
 
-.mode-switcher {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #444;
-}
-
 .mode-switcher button {
     flex: 1;
     padding: 10px;
