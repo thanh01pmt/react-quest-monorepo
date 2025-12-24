@@ -39,6 +39,7 @@ interface BuilderSceneProps {
   // --- END: SỬA LỖI HIỆU ỨNG ---
   solutionPath?: [number, number, number][] | null;
   highlights?: HighlightItem[]; // Topology Inspector highlights
+  activeLayer: 'all' | 'ground' | 'items'; // NEW: Active layer for dimming
 }
 
 // Separate component for player_start to ensure proper re-rendering
@@ -137,7 +138,13 @@ const selectionOverlayMaterial = new THREE.MeshBasicMaterial({
   depthWrite: false // Render xuyên qua các vật thể khác để đảm bảo luôn thấy
 });
 
-function PlacedAsset({ object, isSelected, isHovered, onContextMenu }: { object: PlacedObject; isSelected: boolean, isHovered: boolean, onContextMenu: (e: ThreeEvent<MouseEvent>) => void }) {
+function PlacedAsset({ object, isSelected, isHovered, onContextMenu, activeLayer }: {
+  object: PlacedObject;
+  isSelected: boolean;
+  isHovered: boolean;
+  onContextMenu: (e: ThreeEvent<MouseEvent>) => void;
+  activeLayer: 'all' | 'ground' | 'items';
+}) {
   const worldPosition: [number, number, number] = [
     object.position[0] * TILE_SIZE + TILE_SIZE / 2,
     object.position[1] * TILE_SIZE + TILE_SIZE / 2,
@@ -157,6 +164,17 @@ function PlacedAsset({ object, isSelected, isHovered, onContextMenu }: { object:
         asset={object.asset}
         properties={object.properties}
       />
+
+      {/* Dimming overlay for inactive layers */}
+      {activeLayer !== 'all' && (
+        (activeLayer === 'ground' && !object.asset.key.includes('ground')) ||
+        (activeLayer === 'items' && object.asset.key.includes('ground'))
+      ) && (
+          <mesh scale={[1.01, 1.01, 1.01]}>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial color="black" opacity={0.6} transparent depthWrite={false} />
+          </mesh>
+        )}
 
       {/* --- THAY ĐỔI: Logic hiển thị hiệu ứng chọn và hover --- */}
       {isSelected ? (
@@ -357,8 +375,10 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     isMovingObject, onSetIsMovingObject, selectionStart,
     onAddObject, onRemoveObject, selectionBounds, onSetSelectionStart, onSetSelectionEnd, cameraControlsRef, selectedObjectIds, onSelectObject, onMoveObject, onMoveObjectByStep, onObjectContextMenu,
     solutionPath,
-    highlights // Destructure highlights prop
+    highlights, // Destructure highlights prop
+    activeLayer // NEW: Destructure activeLayer for dimming feature
   } = props;
+
 
   const plane = useMemo(() => new THREE.Mesh(
     new THREE.PlaneGeometry(1000, 1000).rotateX(-Math.PI / 2),
@@ -667,6 +687,7 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
           object={obj}
           isSelected={selectedObjectIds.includes(obj.id)}
           isHovered={obj.id === hoveredObjectId}
+          activeLayer={activeLayer}
           onContextMenu={(e) => {
             e.stopPropagation();
             onObjectContextMenu(e.nativeEvent, obj.id);

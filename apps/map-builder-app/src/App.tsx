@@ -683,12 +683,25 @@ function App() {
     if (finishObject && startObject) {
       const finish = { x: finishObject.position[0], y: finishObject.position[1], z: finishObject.position[2] };
       // Parse direction safely
-      let dir = 0;
+      let uiDirection = 0;
       if (startObject.properties?.direction) {
         const parsed = parseInt(String(startObject.properties.direction), 10);
-        if (!isNaN(parsed)) dir = parsed;
+        if (!isNaN(parsed)) uiDirection = parsed;
       }
-      const players = [{ start: { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2], direction: dir } }];
+
+      // IMPORTANT: Convert UI direction mapping to Solver direction mapping
+      // UI:     0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
+      // Solver: 0=South(-Z), 1=East(+X), 2=North(+Z), 3=West(-X)
+      const uiToSolverMap: Record<number, number> = {
+        0: 1, // East (+X): UI=0 → Solver=1
+        1: 2, // North (+Z): UI=1 → Solver=2
+        2: 3, // West (-X): UI=2 → Solver=3
+        3: 0  // South (-Z): UI=3 → Solver=0
+      };
+      const solverDirection = uiToSolverMap[uiDirection] ?? 1; // Default to East in solver coords
+
+      const players = [{ start: { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2], direction: solverDirection } }];
+
 
       const gameConfig = { blocks, players, finish, collectibles, interactibles };
 
@@ -745,11 +758,9 @@ function App() {
     const collectibles = placedObjects.filter(o => o.asset.type === 'collectible');
     const interactibles = placedObjects.filter(o => o.asset.type === 'interactible');
 
-    // If there are any items, recalculate the path
-    if (collectibles.length > 0 || interactibles.length > 0) {
-      console.log('[Auto-Recalc] Triggering path recalculation:', { collectibles: collectibles.length, interactibles: interactibles.length });
-      recalculatePathForObjects(placedObjects);
-    }
+    // Always recalculate, even if items = 0 (to show direct path from Start to Finish)
+    console.log('[Auto-Recalc] Triggering path recalculation:', { collectibles: collectibles.length, interactibles: interactibles.length });
+    recalculatePathForObjects(placedObjects);
   }, [
     // Dependency: stringified list of collectible/interactible IDs and positions
     JSON.stringify(
@@ -2253,6 +2264,7 @@ function App() {
           onObjectContextMenu={handleObjectContextMenu}
           solutionPath={solutionPath}
           highlights={topologyHighlights}
+          activeLayer={activeLayer}
         />
       </div>
       {/* --- START: THÊM THANH RESIZER VÀ ÁP DỤNG WIDTH ĐỘNG --- */}
