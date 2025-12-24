@@ -2,10 +2,10 @@ import './JsonOutputPanel.css';
 
 interface JsonOutputPanelProps {
   editedJson: string;
-  questId: string; // Giữ lại để tương thích
+  questId: string;
   onJsonChange: (newJson: string) => void;
   onRender: () => void;
-  onSave: () => void;
+  onSave?: () => void; // Made optional
 }
 
 export function JsonOutputPanel({ editedJson, onJsonChange, onRender, onSave }: JsonOutputPanelProps) {
@@ -22,9 +22,11 @@ export function JsonOutputPanel({ editedJson, onJsonChange, onRender, onSave }: 
         <button className="json-action-button" onClick={onRender}>
           Render from JSON
         </button>
-        <button className="json-action-button save-button" onClick={onSave}>
-          Save to File
-        </button>
+        {onSave && (
+          <button className="json-action-button save-button" onClick={onSave}>
+            Save to File
+          </button>
+        )}
       </div>
     </div>
   );

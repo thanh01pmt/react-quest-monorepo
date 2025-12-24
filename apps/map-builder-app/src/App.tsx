@@ -25,6 +25,7 @@ import { SolutionDebugPanel } from './components/SolutionDebugPanel';
 import { PlacementSelector } from './components/PlacementSelector';
 import { TemplateManager } from './components/TemplateManager';
 import { PlacementVariants } from './components/PlacementVariants';
+import { RightPanelTabs } from './components/RightPanelTabs';
 import {
   MapAnalyzer,
   type SelectableElement,
@@ -2273,7 +2274,7 @@ function App() {
         onMouseDown={handleResizeMouseDown}
       />
       <div ref={sidebarRef} className="right-sidebar" style={{ width: `${sidebarWidth}px` }}>
-        <PropertiesPanel
+        <RightPanelTabs
           selectedObjects={placedObjects.filter(obj => selectedObjectIds.includes(obj.id))}
           onUpdateObject={handleUpdateObject}
           onDeleteSelection={() => handleRemoveMultipleObjects(selectedObjectIds)}
@@ -2282,19 +2283,14 @@ function App() {
           onRotateSelection={handleRotateSelection}
           onFlipSelection={handleFlipSelection}
           onClearSelection={() => { setSelectedObjectIds([]); setSelectionStart(null); setSelectionEnd(null); }}
-        />
-        {/* --- COMPONENT MỚI ĐƯỢC THÊM VÀO --- */}
-        <QuestDetailsPanel
           metadata={questMetadata}
           onMetadataChange={handleMetadataChange}
-          onSolveMaze={handleSolveMaze} // SỬA ĐỔI: Truyền hàm giải không cần tham số
-        />
-        <JsonOutputPanel
+          onSolveMaze={handleSolveMaze}
           questId={questMetadata?.id || 'untitled-quest'}
           editedJson={editedJson}
           onJsonChange={setEditedJson}
           onRender={handleRenderEditedJson}
-        //onSave={handleSaveMap} // Bỏ ghi chú dòng này để kích hoạt lại nút Save
+          onSave={handleSaveMap}
         />
       </div>
       {/* --- END: THÊM THANH RESIZER VÀ ÁP DỤNG WIDTH ĐỘNG --- */}
