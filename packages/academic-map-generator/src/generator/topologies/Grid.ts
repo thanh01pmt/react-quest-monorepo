@@ -124,11 +124,17 @@ export class GridTopology extends BaseTopology {
         }
     };
 
+    // Deduplicate placement coords (all walkable tiles)
+    const dedupedPlacement = this._deduplicateCoords(pathCoords);
+    
+    // Compute path_coords using BFS pathfinding
+    const computedPath = this.computePathCoords(startPos, targetPos, dedupedPlacement);
+
     return {
         start_pos: startPos,
         target_pos: targetPos,
-        path_coords: pathCoords,
-        placement_coords: pathCoords, // Grid: path is placement
+        path_coords: computedPath,          // DYNAMIC: shortest path
+        placement_coords: dedupedPlacement, // STATIC: all walkable tiles - Grid: full grid
         obstacles: [],
         metadata: metadata
     };

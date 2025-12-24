@@ -106,11 +106,17 @@ export class PlowingFieldTopology extends BaseTopology {
         avg_length: lengths.length > 0 ? lengths.reduce((a,b) => a+b, 0) / lengths.length : 0
     };
 
+    // Deduplicate placement coords (all walkable tiles)
+    const dedupedPlacement = this._deduplicateCoords(pathCoords);
+    
+    // Compute path_coords using BFS pathfinding
+    const computedPath = this.computePathCoords(startPos, targetPos, dedupedPlacement);
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
-      path_coords: pathCoords,
-      placement_coords: pathCoords.slice(1, -1),
+      path_coords: computedPath,          // DYNAMIC: shortest path
+      placement_coords: dedupedPlacement, // STATIC: all walkable tiles
       obstacles: [],
       metadata: {
         topology_type: 'plowing_field',

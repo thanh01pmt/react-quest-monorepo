@@ -123,11 +123,17 @@ export class ZShapeTopology extends BaseTopology {
       ]
     };
 
+    // Deduplicate placement coords (all walkable tiles)
+    const dedupedPlacement = this._deduplicateCoords(pathCoords);
+    
+    // Compute path_coords using BFS pathfinding
+    const computedPath = this.computePathCoords(startPos, targetPos, dedupedPlacement);
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
-      path_coords: pathCoords,
-      placement_coords: pathCoords.slice(1, -1),
+      path_coords: computedPath,          // DYNAMIC: shortest path
+      placement_coords: dedupedPlacement, // STATIC: all walkable tiles
       obstacles: [],
       metadata: {
         topology_type: 'z_shape',

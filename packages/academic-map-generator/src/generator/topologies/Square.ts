@@ -42,8 +42,9 @@ export class SquareTopology extends BaseTopology {
     if (sideLength > maxSize) sideLength = maxSize;
     if (sideLength < 2) sideLength = 2;
 
-    const startX = Math.floor(Math.random() * (gridSize[0] - sideLength - 2)) + 1;
-    const startZ = Math.floor(Math.random() * (gridSize[2] - sideLength - 2)) + 1;
+    // Centered position (instead of random)
+    const startX = params.start_x || Math.max(1, Math.floor((gridSize[0] - sideLength) / 2));
+    const startZ = params.start_z || Math.max(1, Math.floor((gridSize[2] - sideLength) / 2));
     const y = 0;
 
     // Open Loop Logic
@@ -188,12 +189,17 @@ export class SquareTopology extends BaseTopology {
             ]
         }
     };
+    // Deduplicate placement coords (all walkable tiles)
+    const dedupedPlacement = this._deduplicateCoords(pathCoords);
+    
+    // Compute path_coords using BFS pathfinding
+    const computedPath = this.computePathCoords(startPos, targetPos, dedupedPlacement);
 
     return {
         start_pos: startPos,
         target_pos: targetPos,
-        path_coords: Array.from(new Set(pathCoords.map(c => c.join(',')))).map(s => s.split(',').map(Number) as Coord),
-        placement_coords: Array.from(new Set(pathCoords.map(c => c.join(',')))).map(s => s.split(',').map(Number) as Coord),
+        path_coords: computedPath,          // DYNAMIC: shortest path
+        placement_coords: dedupedPlacement, // STATIC: all walkable tiles
         obstacles: [],
         metadata: metadata
     };

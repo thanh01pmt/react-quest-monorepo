@@ -16,5 +16,7 @@ export {
   coordsEqual,
   objectToCoord,
   coordToObject,
-  getHorizontalNeighbors
+  getHorizontalNeighbors,
+  findShortestPath,
+  deduplicateCoords
 } from '../core/geometry';

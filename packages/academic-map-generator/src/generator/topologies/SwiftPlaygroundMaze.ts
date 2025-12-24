@@ -34,7 +34,12 @@ export class SwiftPlaygroundMazeTopology extends BaseTopology {
     const numPlatforms = params.num_platforms || 5;
     const platformSize = Math.max(3, params.platform_size || 3);
     const heightIncrease = params.height_increase || 2;
-    const stepDistance = params.step_distance || platformSize + 2;
+    
+    // Use gridSize or params for maze dimensions (matching Python)
+    this.mazeWidth = params.maze_width || gridSize[0];
+    this.mazeDepth = params.maze_depth || gridSize[2];
+    
+    const stepDistance = params.step_distance || platformSize + (params.gap || 2);
     const y = 0;
 
     const platformRadius = Math.floor(platformSize / 2);

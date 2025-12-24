@@ -40,9 +40,9 @@ export class TriangleTopology extends BaseTopology {
     width = Math.max(2, width);
     depth = Math.max(2, depth);
 
-    // Base position (Bottom-Right corner reference for calculation, but path starts at C)
-    const baseX = Math.floor(Math.random() * (gridSize[0] - width - 2)) + 1;
-    const baseZ = Math.floor(Math.random() * (gridSize[2] - depth - 2)) + 1;
+    // Centered position (instead of random)
+    const baseX = params.start_x || Math.max(1, Math.floor((gridSize[0] - width) / 2));
+    const baseZ = params.start_z || Math.max(1, Math.floor((gridSize[2] - depth) / 2));
     const y = 0;
 
     // --- PART 1: PLACEMENT (Filled Triangle) ---

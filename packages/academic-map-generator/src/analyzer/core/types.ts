@@ -76,10 +76,21 @@ export interface Area {
 }
 
 export interface AreaSubStructure {
-  type: 'wing_mass' | 'body_mass';
+  /**
+   * Types of sub-structures within an Area:
+   * - wing_mass: Left/right symmetric mass (ArrowShape wings)
+   * - body_mass: Central body mass
+   * - parallel_row: Horizontal row of blocks (good for loops)
+   * - parallel_column: Vertical column of blocks (good for loops)
+   */
+  type: 'wing_mass' | 'body_mass' | 'parallel_row' | 'parallel_column';
   id: string;
   coords: Vector3[];
   description?: string;
+  /** For parallel_row/column: the axis index (z for rows, x for columns) */
+  axisIndex?: number;
+  /** For parallel_row/column: length of the row/column */
+  length?: number;
 }
 
 // NEW: Hole in an Area (empty space inside)
@@ -104,8 +115,50 @@ export interface MetaPath {
   id: string;
   segments: PathSegment[];   // Ordered list of connected segments
   joints: Vector3[];         // Corner points where direction changes
-  structureType: 'straight_chain' | 'macro_staircase' | 'spiral' | 'u_shape' | 'branching' | 'random';
+  /**
+   * Geometric structure classification:
+   * 
+   * BASIC:
+   * - straight_chain: Single direction (StraightLine, SimplePath)
+   * - macro_staircase: Alternating equal steps (Zigzag, Staircase)
+   * 
+   * ANGLE-BASED:
+   * - l_shape: 2 segments with 1 corner (LShape)
+   * - u_shape: 3 segments with 2 corners same turn direction (UShape)
+   * - s_z_shape: 3 segments with 2 corners opposite turn direction (SShape, ZShape)
+   * - v_shape: 2 arms converging to apex (VShape)
+   * 
+   * LOOPS:
+   * - closed_loop: Path returns to start point (Square, Triangle loop)
+   * - spiral: Segments with increasing/decreasing length pattern (Spiral)
+   * 
+   * BRANCHING:
+   * - spine_branch: Main spine with perpendicular branches (EFShape, TShape)
+   * - cross: 4-way intersection (PlusShape)
+   * - radial: Multiple branches from center (StarShape)
+   * - branching: Generic multi-branch structure
+   * 
+   * COMPLEX:
+   * - arrow: Shaft segment with triangular head area (ArrowShape)
+   * - random: Unclassified pattern
+   */
+  structureType: 
+    | 'straight_chain' 
+    | 'macro_staircase' 
+    | 'l_shape' 
+    | 'u_shape' 
+    | 's_z_shape' 
+    | 'v_shape' 
+    | 'closed_loop' 
+    | 'spiral' 
+    | 'spine_branch' 
+    | 'cross' 
+    | 'radial' 
+    | 'branching' 
+    | 'arrow' 
+    | 'random';
   isRegular: boolean;        // True if segments have equal/pattern lengths
+  isClosed: boolean;         // True if path forms a closed loop (start == end)
   totalLength: number;
 }
 

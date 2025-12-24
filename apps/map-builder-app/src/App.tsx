@@ -1950,6 +1950,7 @@ function App() {
                 assetMap={assetMap}
                 pathInfo={questMetadata?.pathInfo || null}
                 onHighlightChange={setTopologyHighlights}
+                boxDimensions={boxDimensions}
               />
             ) : (
               /* Placement Panel - Item Placement Controls */

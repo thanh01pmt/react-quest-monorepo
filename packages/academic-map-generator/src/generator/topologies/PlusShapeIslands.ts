@@ -143,7 +143,7 @@ export class PlusShapeIslandsTopology extends BaseTopology {
     const targetPos = shuffledStarts[1];
 
     // Combine all coords and de-duplicate
-    const fullPath = this.deduplicateCoords([...allPathCoords, ...islandPlacementCoords]);
+    const fullPath = this._deduplicateCoords([...allPathCoords, ...islandPlacementCoords]);
 
     // [PORTED] Semantic positions - FULL 3 pairs like Python
     const semantic_positions: Record<string, any> = {
@@ -242,11 +242,17 @@ export class PlusShapeIslandsTopology extends BaseTopology {
       avg_length: lengths.reduce((a, b) => a + b, 0) / lengths.length
     };
 
+    // Deduplicate placement coords (all walkable tiles)
+    const dedupedPlacement = this._deduplicateCoords(fullPath);
+    
+    // Compute path_coords using BFS pathfinding
+    const pathCoords = this.computePathCoords(startPos, targetPos, dedupedPlacement);
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
-      path_coords: fullPath,
-      placement_coords: fullPath,
+      path_coords: pathCoords,              // DYNAMIC: shortest path
+      placement_coords: dedupedPlacement,   // STATIC: all walkable tiles
       obstacles: [],
       metadata: {
         topology_type: 'plus_shape_islands',
@@ -262,24 +268,6 @@ export class PlusShapeIslandsTopology extends BaseTopology {
         semantic_positions
       }
     };
-  }
-
-  /**
-   * Remove duplicate coordinates preserving order
-   */
-  private deduplicateCoords(coords: Coord[]): Coord[] {
-    const seen = new Set<string>();
-    const result: Coord[] = [];
-    
-    for (const coord of coords) {
-      const key = `${coord[0]},${coord[1]},${coord[2]}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        result.push(coord);
-      }
-    }
-    
-    return result;
   }
 }
 

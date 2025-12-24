@@ -64,11 +64,17 @@ export class VShapeTopology extends BaseTopology {
     const segments = [segment1, segment2];
     const lengths = [segment1.length, segment2.length];
 
+    // Deduplicate placement coords (all walkable tiles)
+    const dedupedPlacement = this._deduplicateCoords(pathCoords);
+    
+    // Compute path_coords using BFS pathfinding
+    const computedPath = this.computePathCoords(startPos, targetPos, dedupedPlacement);
+
     return {
       start_pos: startPos,
       target_pos: targetPos,
-      path_coords: pathCoords,
-      placement_coords: [...pathCoords], // All coords need ground
+      path_coords: computedPath,          // DYNAMIC: shortest path
+      placement_coords: dedupedPlacement, // STATIC: all walkable tiles
       obstacles: [],
       metadata: {
         topology_type: 'v_shape',

@@ -33,8 +33,9 @@ export class UShapeTopology extends BaseTopology {
   ): IPathInfo {
     console.log("    LOG: Generating 'u_shape' topology...");
 
-    let sideLegsLen = params.side_legs_length || (Math.floor(Math.random() * 2) + 3); // 3-4
-    let baseLegLen = params.base_leg_length || (Math.floor(Math.random() * 2) + 3); // 3-4
+    // FIX: Accept both UI params (arm_length, base_length) and legacy params
+    let sideLegsLen = params.arm_length || params.side_legs_length || (Math.floor(Math.random() * 2) + 3); // 3-4
+    let baseLegLen = params.base_length || params.base_leg_length || (Math.floor(Math.random() * 2) + 3); // 3-4
 
     // Params for orientation check (assuming Z start, X turn)
     const requiredDepth = sideLegsLen + 1;
@@ -46,11 +47,12 @@ export class UShapeTopology extends BaseTopology {
         sideLegsLen = Math.min(sideLegsLen, gridSize[2] - 3);
     }
 
-    // Start Position
-    const maxX = Math.max(1, gridSize[0] - requiredWidth - 1);
-    const maxZ = Math.max(1, gridSize[2] - requiredDepth - 1);
-    const startX = Math.floor(Math.random() * maxX) + 1;
-    const startZ = Math.floor(Math.random() * maxZ) + 1;
+    // FIX: Use deterministic centered positioning instead of random
+    // This ensures the shape stays within visible bounds and is predictable
+    const centerX = Math.floor((gridSize[0] - requiredWidth) / 2);
+    const centerZ = Math.floor((gridSize[2] - requiredDepth) / 2);
+    const startX = params.start_x || Math.max(1, Math.min(gridSize[0] - requiredWidth - 1, centerX));
+    const startZ = params.start_z || Math.max(1, Math.min(gridSize[2] - requiredDepth - 1, centerZ));
     const y = 0;
     const startPos: Coord = [startX, y, startZ];
 
@@ -167,11 +169,17 @@ export class UShapeTopology extends BaseTopology {
         }
     };
 
+    // Deduplicate placement coords (all walkable tiles)
+    const dedupedPlacement = this._deduplicateCoords(pathCoords);
+    
+    // Compute path_coords using BFS pathfinding
+    const computedPath = this.computePathCoords(startPos, targetPos, dedupedPlacement);
+
     return {
         start_pos: startPos,
         target_pos: targetPos,
-        path_coords: pathCoords,
-        placement_coords: pathCoords,
+        path_coords: computedPath,          // DYNAMIC: shortest path
+        placement_coords: dedupedPlacement, // STATIC: all walkable tiles
         obstacles: [],
         metadata: metadata
     };

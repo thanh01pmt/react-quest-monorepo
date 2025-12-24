@@ -30,9 +30,11 @@ interface TopologyPanelProps {
         metadata?: Record<string, any>;
     } | null;
     onHighlightChange?: (highlights: HighlightItem[]) => void;
+    // Grid dimensions for topology generation - maps to bounding box in UI
+    boxDimensions?: { width: number; height: number; depth: number };
 }
 
-export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetMap, pathInfo, onHighlightChange }) => {
+export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetMap, pathInfo, onHighlightChange, boxDimensions }) => {
     const registry = useMemo(() => TopologyRegistry.getInstance(), []);
     const placementService = useMemo(() => new PlacementService(), []);
     const topologyGroups = useMemo(() => registry.getGrouped(), [registry]);
@@ -377,6 +379,28 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                     </>
                 );
             case 'triangle':
+                return (
+                    <>
+                        <div className="param-group">
+                            <label>Horizontal Leg (Width)</label>
+                            <input
+                                type="number"
+                                value={params.leg_a_length || 5}
+                                onChange={e => updateParam('leg_a_length', parseInt(e.target.value))}
+                                min={3} max={10}
+                            />
+                        </div>
+                        <div className="param-group">
+                            <label>Vertical Leg (Depth)</label>
+                            <input
+                                type="number"
+                                value={params.leg_b_length || 5}
+                                onChange={e => updateParam('leg_b_length', parseInt(e.target.value))}
+                                min={3} max={10}
+                            />
+                        </div>
+                    </>
+                );
             case 'square':
                 return (
                     <div className="param-group">
@@ -388,6 +412,70 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                             min={3} max={8}
                         />
                     </div>
+                );
+            case 'rectangle':
+                return (
+                    <>
+                        <div className="param-group">
+                            <label>Width</label>
+                            <input
+                                type="number"
+                                value={params.width || 4}
+                                onChange={e => updateParam('width', parseInt(e.target.value))}
+                                min={2} max={10}
+                            />
+                        </div>
+                        <div className="param-group">
+                            <label>Height</label>
+                            <input
+                                type="number"
+                                value={params.height || 6}
+                                onChange={e => updateParam('height', parseInt(e.target.value))}
+                                min={2} max={10}
+                            />
+                        </div>
+                    </>
+                );
+            case 'lake1':
+                return (
+                    <div className="param-group">
+                        <label>Side Length</label>
+                        <input
+                            type="number"
+                            value={params.side_length || 3}
+                            onChange={e => updateParam('side_length', parseInt(e.target.value))}
+                            min={2} max={6}
+                        />
+                        <small style={{ color: '#888', fontSize: '11px', display: 'block', marginTop: '4px' }}>
+                            Hexagonal lake shape with 6 sides
+                        </small>
+                    </div>
+                );
+            case 'lake2':
+                return (
+                    <>
+                        <div className="param-group">
+                            <label>Radius</label>
+                            <input
+                                type="number"
+                                value={params.radius || 4}
+                                onChange={e => updateParam('radius', parseInt(e.target.value))}
+                                min={2} max={8}
+                            />
+                        </div>
+                        <div className="param-group checkbox-group">
+                            <input
+                                type="checkbox"
+                                id="lake2_filled"
+                                checked={params.filled || false}
+                                onChange={e => updateParam('filled', e.target.checked)}
+                            />
+                            <label htmlFor="lake2_filled">Filled (Solid)</label>
+                        </div>
+                        <small style={{ color: '#888', fontSize: '11px', display: 'block', marginTop: '4px' }}>
+                            Circular lake shape
+                        </small>
+                    </>
                 );
             case 'simple_path':
                 return (
@@ -540,19 +628,20 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                             <label>Number of Turns</label>
                             <input
                                 type="number"
-                                value={params.num_turns || 3}
+                                value={params.num_turns || 12}
                                 onChange={e => updateParam('num_turns', parseInt(e.target.value))}
-                                min={2} max={6}
+                                min={4} max={20} step={4}
                             />
+                            <small style={{ color: '#888', fontSize: '11px' }}>Every 4 turns = 1 level</small>
                         </div>
-                        <div className="param-group">
-                            <label>Height Per Turn</label>
+                        <div className="param-group checkbox-group">
                             <input
-                                type="number"
-                                value={params.height_per_turn || 1}
-                                onChange={e => updateParam('height_per_turn', parseInt(e.target.value))}
-                                min={1} max={3}
+                                type="checkbox"
+                                id="reverse_spiral"
+                                checked={params.reverse || false}
+                                onChange={e => updateParam('reverse', e.target.checked)}
                             />
+                            <label htmlFor="reverse_spiral">Reverse (Top-Down)</label>
                         </div>
                     </>
                 );
@@ -560,21 +649,30 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                 return (
                     <>
                         <div className="param-group">
-                            <label>Number of Flights</label>
+                            <label>Number of Levels</label>
                             <input
                                 type="number"
-                                value={params.num_flights || 3}
-                                onChange={e => updateParam('num_flights', parseInt(e.target.value))}
-                                min={2} max={6}
+                                value={params.num_levels || 2}
+                                onChange={e => updateParam('num_levels', parseInt(e.target.value))}
+                                min={1} max={5}
                             />
                         </div>
                         <div className="param-group">
-                            <label>Steps Per Flight</label>
+                            <label>Initial Step Length</label>
                             <input
                                 type="number"
-                                value={params.steps_per_flight || 4}
-                                onChange={e => updateParam('steps_per_flight', parseInt(e.target.value))}
-                                min={3} max={8}
+                                value={params.initial_step_length || 1}
+                                onChange={e => updateParam('initial_step_length', parseInt(e.target.value))}
+                                min={1} max={4}
+                            />
+                        </div>
+                        <div className="param-group">
+                            <label>Step Increment Per Level</label>
+                            <input
+                                type="number"
+                                value={params.step_increment || 1}
+                                onChange={e => updateParam('step_increment', parseInt(e.target.value))}
+                                min={0} max={3}
                             />
                         </div>
                     </>
@@ -586,18 +684,30 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                             <label>Number of Islands</label>
                             <input
                                 type="number"
-                                value={params.num_islands || 4}
+                                value={params.num_islands || 2}
                                 onChange={e => updateParam('num_islands', parseInt(e.target.value))}
-                                min={2} max={9}
+                                min={2} max={5}
                             />
                         </div>
                         <div className="param-group">
-                            <label>Island Size</label>
+                            <label>Island Pattern</label>
+                            <select
+                                value={params.island_pattern || 'u_shape'}
+                                onChange={e => updateParam('island_pattern', e.target.value)}
+                            >
+                                <option value="u_shape">U-Shape</option>
+                                <option value="l_shape">L-Shape</option>
+                                <option value="plus_shape">Plus Shape</option>
+                                <option value="square_shape">Square (Hollow)</option>
+                            </select>
+                        </div>
+                        <div className="param-group">
+                            <label>Island Gap</label>
                             <input
                                 type="number"
-                                value={params.island_size || 2}
-                                onChange={e => updateParam('island_size', parseInt(e.target.value))}
-                                min={2} max={4}
+                                value={params.island_gap || 3}
+                                onChange={e => updateParam('island_gap', parseInt(e.target.value))}
+                                min={1} max={6}
                             />
                         </div>
                     </>
@@ -606,23 +716,35 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                 return (
                     <>
                         <div className="param-group">
-                            <label>Number of Spokes</label>
+                            <label>Hub Size</label>
                             <input
                                 type="number"
-                                value={params.num_spokes || 4}
-                                onChange={e => updateParam('num_spokes', parseInt(e.target.value))}
-                                min={3} max={8}
-                            />
-                        </div>
-                        <div className="param-group">
-                            <label>Spoke Length</label>
-                            <input
-                                type="number"
-                                value={params.spoke_length || 3}
-                                onChange={e => updateParam('spoke_length', parseInt(e.target.value))}
+                                value={params.hub_size || 3}
+                                onChange={e => updateParam('hub_size', parseInt(e.target.value))}
                                 min={2} max={5}
                             />
                         </div>
+                        <div className="param-group">
+                            <label>Island Size</label>
+                            <input
+                                type="number"
+                                value={params.island_size || 3}
+                                onChange={e => updateParam('island_size', parseInt(e.target.value))}
+                                min={2} max={5}
+                            />
+                        </div>
+                        <div className="param-group">
+                            <label>Gap Size (Staircase Length)</label>
+                            <input
+                                type="number"
+                                value={params.gap_size || 3}
+                                onChange={e => updateParam('gap_size', parseInt(e.target.value))}
+                                min={2} max={6}
+                            />
+                        </div>
+                        <small style={{ color: '#888', fontSize: '11px', display: 'block', marginTop: '6px' }}>
+                            Islands at different heights (up/down) connected by stairs
+                        </small>
                     </>
                 );
             case 'interspersed_path':
@@ -698,8 +820,18 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                                 type="number"
                                 value={params.islands_per_cluster || 2}
                                 onChange={e => updateParam('islands_per_cluster', parseInt(e.target.value))}
-                                min={2} max={4}
+                                min={1} max={4}
                             />
+                        </div>
+                        <div className="param-group">
+                            <label>Height Step</label>
+                            <input
+                                type="number"
+                                value={params.height_step || 2}
+                                onChange={e => updateParam('height_step', parseInt(e.target.value))}
+                                min={1} max={4}
+                            />
+                            <small style={{ color: '#888', fontSize: '11px' }}>Y increase between clusters</small>
                         </div>
                     </>
                 );
@@ -738,13 +870,20 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
         setIsGenerating(true);
 
         try {
+            // Convert boxDimensions to gridSize format [width, height, depth]
+            // Default to [20, 10, 20] if not provided
+            const gridSize: [number, number, number] = boxDimensions
+                ? [boxDimensions.width, boxDimensions.height, boxDimensions.depth]
+                : [20, 10, 20];
+
             // Generate only ground (no items) - strategy = NONE for ground-only
             const { objects, pathInfo, plannedSolution } = await placementService.generateMap({
                 topology,
                 params,
                 strategy: PedagogyStrategy.NONE, // No items, ground only
                 difficulty: 'simple',
-                assetMap
+                assetMap,
+                gridSize // Pass gridSize to control topology bounds
             });
 
             // Filter to keep only ground blocks (no collectibles/interactibles)

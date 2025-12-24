@@ -37,8 +37,14 @@ export class LShapeTopology extends BaseTopology {
     const leg1Len = Math.max(2, Math.min(leg1LenBase, maxDim - 1));
     const leg2Len = Math.max(2, Math.min(leg2LenBase, maxDim - 1));
 
-    const startX = Math.floor(Math.random() * (gridSize[0] - leg1Len - 2)) + 1;
-    const startZ = Math.floor(Math.random() * (gridSize[2] - leg2Len - 2)) + 1;
+    // FIX: Use deterministic centered positioning instead of random
+    // This ensures the shape stays within visible bounds and is predictable
+    const requiredWidth = leg1Len + leg2Len + 1;
+    const requiredDepth = leg1Len + leg2Len + 1;
+    const centerX = Math.floor((gridSize[0] - requiredWidth) / 2);
+    const centerZ = Math.floor((gridSize[2] - requiredDepth) / 2);
+    const startX = params.start_x || Math.max(1, Math.min(gridSize[0] - leg1Len - 2, centerX + 1));
+    const startZ = params.start_z || Math.max(1, Math.min(gridSize[2] - leg2Len - 2, centerZ + 1));
     const startPos: Coord = [startX, 0, startZ];
 
     const dirs = [FORWARD_X, BACKWARD_X, FORWARD_Z, BACKWARD_Z];
@@ -141,11 +147,17 @@ export class LShapeTopology extends BaseTopology {
         segment_analysis: segment_analysis
     };
 
+    // Deduplicate placement coords (all walkable tiles)
+    const dedupedPlacement = this._deduplicateCoords(pathCoords);
+    
+    // Compute path_coords using BFS pathfinding
+    const computedPath = this.computePathCoords(startPos, targetPos, dedupedPlacement);
+
     return {
         start_pos: startPos,
         target_pos: targetPos,
-        path_coords: pathCoords,
-        placement_coords: pathCoords,
+        path_coords: computedPath,          // DYNAMIC: shortest path
+        placement_coords: dedupedPlacement, // STATIC: all walkable tiles
         obstacles: [],
         metadata: metadata
     };

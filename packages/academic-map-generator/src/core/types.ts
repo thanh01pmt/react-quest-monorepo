@@ -49,12 +49,32 @@ export interface Segment {
 
 /**
  * Path information for a generated or analyzed map
+ * 
+ * IMPORTANT DISTINCTION:
+ * - placement_coords: STATIC - All walkable tiles created by the topology (the "ground")
+ * - path_coords: DYNAMIC - Computed by GameSolver after items are placed
+ *   If no items placed yet, this should be the shortest path from start to target.
  */
 export interface PathInfo {
   start_pos: Coord;
   target_pos: Coord;
+  
+  /**
+   * DYNAMIC: The actual walking path from start → collectibles → goal
+   * Computed by GameSolver's pathfinding algorithm after items are placed.
+   * Each step must be adjacent (Manhattan distance = 1).
+   * Initially (before items): shortest path from start_pos to target_pos.
+   */
   path_coords: Coord[];
-  placement_coords: Coord[];       // Valid positions for item placement
+  
+  /**
+   * STATIC: All walkable tiles created by the topology.
+   * This is the "ground" or "surface" that the character can walk on.
+   * Does NOT need to be in any particular order.
+   * Created once by the topology and doesn't change.
+   */
+  placement_coords: Coord[];
+  
   obstacles: Obstacle[];
   metadata: Record<string, any>;
 }

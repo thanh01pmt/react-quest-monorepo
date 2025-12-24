@@ -16,6 +16,9 @@ import { ZShapeTopology } from './topologies/ZShape';
 import { ArrowShapeTopology } from './topologies/ArrowShape';
 import { TriangleTopology } from './topologies/Triangle';
 import { SquareTopology } from './topologies/Square';
+import { RectangleTopology } from './topologies/Rectangle';
+import { Lake1Topology } from './topologies/Lake1';
+import { Lake2Topology } from './topologies/Lake2';
 import { SimplePathTopology } from './topologies/SimplePath';
 import { StaircaseTopology } from './topologies/Staircase';
 import { PlowingFieldTopology } from './topologies/PlowingField';
@@ -72,6 +75,9 @@ export class TopologyRegistry {
     // Geometric shapes
     this.register('triangle', new TriangleTopology());
     this.register('square', new SquareTopology());
+    this.register('rectangle', new RectangleTopology());
+    this.register('lake1', new Lake1Topology());
+    this.register('lake2', new Lake2Topology());
     
     // 2D Complex topologies
     this.register('spiral', new SpiralTopology());
@@ -124,7 +130,7 @@ export class TopologyRegistry {
       },
       {
         category: 'Geometric',
-        items: ['triangle', 'square']
+        items: ['triangle', 'square', 'rectangle', 'lake1', 'lake2']
       },
       { 
         category: 'Complex 2D', 
@@ -167,6 +173,9 @@ export class TopologyRegistry {
       // Geometric
       'triangle': 'Triangle △',
       'square': 'Square □',
+      'rectangle': 'Rectangle ▭',
+      'lake1': 'Lake 1 (Hexagon) 🌊',
+      'lake2': 'Lake 2 (Circle) 💧',
       // Complex 2D
       'spiral': 'Spiral 🌀',
       'grid': 'Grid',

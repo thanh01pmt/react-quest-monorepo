@@ -749,6 +749,22 @@ export class GeometricDecomposer {
 
   /**
    * Classify a chain of segments into a MetaPath with structure type
+   * 
+   * Detection logic for each structureType:
+   * - straight_chain: 1 segment or all same direction
+   * - macro_staircase: 2 alternating directions, equal lengths
+   * - l_shape: 2 segments, 1 corner (90°)
+   * - u_shape: 3 segments, 2 corners with same turn direction
+   * - s_z_shape: 3 segments, 2 corners with opposite turn directions
+   * - v_shape: 2 segments converging (directions point toward each other)
+   * - closed_loop: First point == Last point
+   * - spiral: 4+ directions, lengths progressively change
+   * - spine_branch: Has a main axis with perpendicular branches
+   * - cross: 4 branches from central point
+   * - radial: 5+ branches from central point
+   * - arrow: Main segment + expansion area at end
+   * - branching: Generic multi-branch
+   * - random: Unclassified
    */
   private classifyMetaPath(chain: PathSegment[], id: number): MetaPath {
     const joints: Vector3[] = [];
@@ -772,44 +788,173 @@ export class GeometricDecomposer {
     
     const totalLength = chain.reduce((sum, s) => sum + s.length, 0) - (chain.length - 1);
     
+    // Detect closed loop: first point of first segment == last point of last segment
+    let isClosed = false;
+    if (chain.length >= 2) {
+      const firstSegStart = chain[0].points[0];
+      const lastSegEnd = chain[chain.length - 1].points[chain[chain.length - 1].points.length - 1];
+      isClosed = vectorEquals(firstSegStart, lastSegEnd);
+      
+      // Also check if last segment end connects to first segment start via neighbor
+      if (!isClosed) {
+        const distance = vectorDistance(firstSegStart, lastSegEnd);
+        if (distance < 1.5) {
+          isClosed = true;
+        }
+      }
+    }
+    
     let structureType: MetaPath['structureType'] = 'random';
     let isRegular = false;
     
-    if (chain.length === 1) {
+    // Collect analysis data
+    const directions = chain.map(s => s.direction);
+    const directionKeys = chain.map(s => vectorToKey(s.direction));
+    const uniqueDirections = new Set(directionKeys);
+    const lengths = chain.map(s => s.length);
+    const lengthSet = new Set(lengths);
+    
+    // ===== CLOSED LOOP =====
+    if (isClosed) {
+      structureType = 'closed_loop';
+      isRegular = lengthSet.size === 1;
+    }
+    // ===== SINGLE SEGMENT =====
+    else if (chain.length === 1) {
       structureType = 'straight_chain';
       isRegular = true;
-    } else {
-      const directions = chain.map(s => vectorToKey(s.direction));
-      const uniqueDirections = new Set(directions);
+    }
+    // ===== 2 SEGMENTS =====
+    else if (chain.length === 2) {
+      // Check angle between segments
+      const d1 = directions[0];
+      const d2 = directions[1];
+      const dotProduct = Math.abs(vectorDot(d1, d2));
       
-      if (uniqueDirections.size === 1) {
+      if (dotProduct < 0.1) {
+        // Perpendicular (90°)
+        // Check if they converge (V-shape) or form L
+        const seg1End = chain[0].points[chain[0].points.length - 1];
+        const seg2Start = chain[1].points[0];
+        
+        if (vectorEquals(seg1End, seg2Start)) {
+          // Connected at corner -> L-shape
+          structureType = 'l_shape';
+          isRegular = lengths[0] === lengths[1];
+        } else {
+          // V-shape: two arms meeting at apex
+          structureType = 'v_shape';
+          isRegular = lengths[0] === lengths[1];
+        }
+      } else if (dotProduct > 0.9) {
+        // Same or opposite direction
         structureType = 'straight_chain';
         isRegular = true;
-      } else if (uniqueDirections.size === 2) {
-        const lengths = chain.map(s => s.length);
-        const lengthSet = new Set(lengths);
+      } else {
+        // Diagonal angle
+        structureType = 'l_shape';
+        isRegular = false;
+      }
+    }
+    // ===== 3 SEGMENTS =====
+    else if (chain.length === 3) {
+      // Analyze turn directions
+      const turn1 = this.getTurnDirection(directions[0], directions[1]);
+      const turn2 = this.getTurnDirection(directions[1], directions[2]);
+      
+      if (turn1 === turn2 && turn1 !== 'straight') {
+        // Same turn direction both times -> U-shape
+        structureType = 'u_shape';
+        isRegular = lengths[0] === lengths[2];
+      } else if (turn1 !== 'straight' && turn2 !== 'straight' && turn1 !== turn2) {
+        // Opposite turn directions -> S/Z shape
+        structureType = 's_z_shape';
+        isRegular = lengths[0] === lengths[2];
+      } else if (uniqueDirections.size === 2 && lengthSet.size === 1) {
+        // Zigzag pattern
+        structureType = 'macro_staircase';
+        isRegular = true;
+      } else {
+        // Check for spine_branch: middle segment perpendicular to first and last
+        const dotFirst = Math.abs(vectorDot(directions[0], directions[1]));
+        const dotLast = Math.abs(vectorDot(directions[1], directions[2]));
         
-        if (lengthSet.size === 1) {
-          structureType = 'macro_staircase';
-          isRegular = true;
+        if (dotFirst < 0.1 && dotLast < 0.1) {
+          structureType = 'spine_branch';
+          isRegular = false;
         } else {
-          if (chain.length >= 3 && 
-              chain[0].length === chain[chain.length-1].length &&
-              chain[0].length > chain[1].length) {
-            structureType = 'u_shape';
-            isRegular = true;
-          }
+          structureType = 'branching';
         }
-      } else if (uniqueDirections.size >= 3) {
-        const lengths = chain.map(s => s.length);
-        const isIncreasing = lengths.every((len, i) => i === 0 || len >= lengths[i-1]);
+      }
+    }
+    // ===== 4+ SEGMENTS =====
+    else if (chain.length >= 4) {
+      // Check for cross pattern (4 branches from center)
+      if (chain.length === 4 && uniqueDirections.size === 4) {
+        // Check if all segments meet at a common point
+        const allEndpoints: Vector3[] = [];
+        for (const seg of chain) {
+          allEndpoints.push(seg.points[0]);
+          allEndpoints.push(seg.points[seg.points.length - 1]);
+        }
         
-        if (isIncreasing) {
+        // Find the most common point (center of cross)
+        const pointCounts = new Map<string, number>();
+        for (const p of allEndpoints) {
+          const key = vectorToKey(p);
+          pointCounts.set(key, (pointCounts.get(key) || 0) + 1);
+        }
+        
+        const maxCount = Math.max(...pointCounts.values());
+        if (maxCount >= 4) {
+          structureType = 'cross';
+          isRegular = lengthSet.size === 1;
+        } else {
+          structureType = 'branching';
+        }
+      }
+      // Check for radial pattern (5+ branches)
+      else if (chain.length >= 5 && uniqueDirections.size >= 4) {
+        // Similar center detection
+        const allEndpoints: Vector3[] = [];
+        for (const seg of chain) {
+          allEndpoints.push(seg.points[0]);
+          allEndpoints.push(seg.points[seg.points.length - 1]);
+        }
+        
+        const pointCounts = new Map<string, number>();
+        for (const p of allEndpoints) {
+          const key = vectorToKey(p);
+          pointCounts.set(key, (pointCounts.get(key) || 0) + 1);
+        }
+        
+        const maxCount = Math.max(...pointCounts.values());
+        if (maxCount >= chain.length) {
+          structureType = 'radial';
+          isRegular = lengthSet.size === 1;
+        } else {
+          structureType = 'branching';
+        }
+      }
+      // Check for spiral pattern
+      else if (uniqueDirections.size >= 3) {
+        const isIncreasing = lengths.every((len, i) => i === 0 || len >= lengths[i-1]);
+        const isDecreasing = lengths.every((len, i) => i === 0 || len <= lengths[i-1]);
+        
+        if (isIncreasing || isDecreasing) {
           structureType = 'spiral';
           isRegular = true;
         } else {
           structureType = 'branching';
         }
+      }
+      // Check for macro_staircase (alternating 2 directions)
+      else if (uniqueDirections.size === 2 && lengthSet.size === 1) {
+        structureType = 'macro_staircase';
+        isRegular = true;
+      }
+      else {
+        structureType = 'branching';
       }
     }
     
@@ -819,8 +964,26 @@ export class GeometricDecomposer {
       joints,
       structureType,
       isRegular,
+      isClosed,
       totalLength
     };
+  }
+
+  /**
+   * Helper: Determine turn direction between two vectors
+   * Returns 'left', 'right', or 'straight'
+   */
+  private getTurnDirection(from: Vector3, to: Vector3): 'left' | 'right' | 'straight' {
+    // 2D cross product (using x and z for horizontal plane)
+    const cross = from.x * to.z - from.z * to.x;
+    
+    if (Math.abs(cross) < 0.1) {
+      return 'straight';
+    } else if (cross > 0) {
+      return 'left';
+    } else {
+      return 'right';
+    }
   }
 
   /**
@@ -1120,7 +1283,11 @@ export class GeometricDecomposer {
         area.subStructures.push({ type: 'wing_mass', id: `${area.id}_right_mass`, coords: rightBlocks, description: "Right Wing Volume" });
       }
 
-      // 2. Generic Contour Tracing (New Engine)
+      // 2. [NEW] Detect Parallel Rows and Columns
+      const parallelStructures = this.detectParallelRowsInArea(area);
+      area.subStructures.push(...parallelStructures);
+
+      // 3. Generic Contour Tracing (New Engine)
       const tracer = new AreaBoundaryAnalyzer();
       const boundaryPaths = tracer.analyzeBoundary(blocks);
       
@@ -1145,6 +1312,105 @@ export class GeometricDecomposer {
        
       area.internalPaths = boundaryPaths;
     }
+  }
+
+  /**
+   * [NEW] Detect parallel rows (horizontal, same Z) and columns (vertical, same X) within an Area
+   * 
+   * This is useful for:
+   * - Grid topologies: each row/column can be a loop target
+   * - Square islands: rows parallel to gateway are ideal for repeat algorithms
+   * - Triangle areas: rows of decreasing width
+   * 
+   * @returns Array of AreaSubStructure with type 'parallel_row' or 'parallel_column'
+   */
+  private detectParallelRowsInArea(area: Area): AreaSubStructure[] {
+    const structures: AreaSubStructure[] = [];
+    const blocks = area.blocks;
+    
+    if (blocks.length < 2) return structures;
+
+    const yLevel = blocks[0]?.y ?? 0;
+
+    // Group blocks by Z coordinate (horizontal rows)
+    const rowsByZ = new Map<number, Vector3[]>();
+    for (const block of blocks) {
+      const z = block.z;
+      if (!rowsByZ.has(z)) rowsByZ.set(z, []);
+      rowsByZ.get(z)!.push(block);
+    }
+
+    // Group blocks by X coordinate (vertical columns)
+    const columnsByX = new Map<number, Vector3[]>();
+    for (const block of blocks) {
+      const x = block.x;
+      if (!columnsByX.has(x)) columnsByX.set(x, []);
+      columnsByX.get(x)!.push(block);
+    }
+
+    // Only create parallel structures if there are multiple rows/columns
+    // and they have at least 2 blocks each (meaningful for loops)
+    const minRowsForPattern = 2;
+    const minBlocksPerRow = 2;
+
+    // Create parallel_row structures
+    const sortedZs = [...rowsByZ.keys()].sort((a, b) => a - b);
+    if (sortedZs.length >= minRowsForPattern) {
+      for (let i = 0; i < sortedZs.length; i++) {
+        const z = sortedZs[i];
+        const rowBlocks = rowsByZ.get(z)!;
+        
+        if (rowBlocks.length >= minBlocksPerRow) {
+          // Sort by X for consistent ordering
+          rowBlocks.sort((a, b) => a.x - b.x);
+          
+          const isFirst = i === 0;
+          const isLast = i === sortedZs.length - 1;
+          const isMiddle = !isFirst && !isLast;
+          
+          structures.push({
+            type: 'parallel_row',
+            id: `${area.id}_row_z${z}`,
+            coords: rowBlocks,
+            axisIndex: z,
+            length: rowBlocks.length,
+            description: isFirst ? 'First row (edge)' : 
+                         isLast ? 'Last row (edge)' :
+                         `Row ${i + 1} (inner)`
+          });
+        }
+      }
+    }
+
+    // Create parallel_column structures
+    const sortedXs = [...columnsByX.keys()].sort((a, b) => a - b);
+    if (sortedXs.length >= minRowsForPattern) {
+      for (let i = 0; i < sortedXs.length; i++) {
+        const x = sortedXs[i];
+        const colBlocks = columnsByX.get(x)!;
+        
+        if (colBlocks.length >= minBlocksPerRow) {
+          // Sort by Z for consistent ordering
+          colBlocks.sort((a, b) => a.z - b.z);
+          
+          const isFirst = i === 0;
+          const isLast = i === sortedXs.length - 1;
+          
+          structures.push({
+            type: 'parallel_column',
+            id: `${area.id}_col_x${x}`,
+            coords: colBlocks,
+            axisIndex: x,
+            length: colBlocks.length,
+            description: isFirst ? 'First column (edge)' : 
+                         isLast ? 'Last column (edge)' :
+                         `Column ${i + 1} (inner)`
+          });
+        }
+      }
+    }
+
+    return structures;
   }
 
   /**

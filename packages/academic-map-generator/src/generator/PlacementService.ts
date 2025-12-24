@@ -27,6 +27,8 @@ export interface PlacementConfig {
     strategy: PedagogyStrategy;
     difficulty: 'intro' | 'simple' | 'complex';
     assetMap: Map<string, BuildableAsset>;
+    // Grid dimensions [width, height, depth] - controls the boundary for topology generation
+    gridSize?: [number, number, number];
     // New fields
     densityMode?: DensityMode;
     academicParams?: AcademicParams;
@@ -70,7 +72,9 @@ export class PlacementService {
         console.log(`[PlacementService] Asset Lookup -> Ground: ${groundKey} (Found: ${assetMap.has(groundKey)}), Wall: ${wallKey} (Found: ${assetMap.has(wallKey)})`);
 
         // 1. Generate Base Geometry (Ground & Walls) from Topology
-        const gridSize: [number, number, number] = [20, 10, 20]; // Default grid size, maybe pass in config?
+        // Use gridSize from config or default to [20, 10, 20]
+        const gridSize: [number, number, number] = config.gridSize || [20, 10, 20];
+        console.log(`[PlacementService] Using gridSize: [${gridSize.join(', ')}]`);
         const pathInfo = topology.generatePathInfo(gridSize, params); 
         
         // DEBUG: Log pathInfo

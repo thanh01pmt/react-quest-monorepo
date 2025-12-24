@@ -263,3 +263,94 @@ export const areVectorsEqual = coordsEqual;
 export function vectorToString(v: Coord): string {
   return v.join(',');
 }
+
+// ============================================================================
+// PATHFINDING
+// ============================================================================
+
+/**
+ * Find the shortest path from start to goal using BFS algorithm.
+ * Only moves through walkable tiles (placement_coords).
+ * Returns empty array if no path exists.
+ * 
+ * @param start - Starting coordinate
+ * @param goal - Goal coordinate
+ * @param walkableTiles - Set of walkable tile keys (use coordToKey)
+ * @param allow3D - If true, allows vertical movement (Y axis)
+ * @returns Array of coordinates representing the path (including start and goal)
+ */
+export function findShortestPath(
+  start: Coord,
+  goal: Coord,
+  walkableTiles: Set<string>,
+  allow3D: boolean = true
+): Coord[] {
+  const startKey = coordToKey(start);
+  const goalKey = coordToKey(goal);
+  
+  // If start or goal not in walkable tiles, return empty
+  if (!walkableTiles.has(startKey) || !walkableTiles.has(goalKey)) {
+    return [];
+  }
+  
+  // If start === goal, return just the start
+  if (coordsEqual(start, goal)) {
+    return [start];
+  }
+  
+  // BFS
+  const queue: Coord[] = [start];
+  const visited = new Set<string>([startKey]);
+  const parent = new Map<string, Coord>();
+  
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const currentKey = coordToKey(current);
+    
+    // Get neighbors
+    const neighbors = allow3D ? getNeighbors(current) : getHorizontalNeighbors(current);
+    
+    for (const neighbor of neighbors) {
+      const neighborKey = coordToKey(neighbor);
+      
+      if (visited.has(neighborKey) || !walkableTiles.has(neighborKey)) {
+        continue;
+      }
+      
+      visited.add(neighborKey);
+      parent.set(neighborKey, current);
+      
+      // Found goal
+      if (neighborKey === goalKey) {
+        // Reconstruct path
+        const path: Coord[] = [neighbor];
+        let node = current;
+        while (!coordsEqual(node, start)) {
+          path.unshift(node);
+          node = parent.get(coordToKey(node))!;
+        }
+        path.unshift(start);
+        return path;
+      }
+      
+      queue.push(neighbor);
+    }
+  }
+  
+  // No path found
+  return [];
+}
+
+/**
+ * Deduplicate coordinates while preserving order
+ */
+export function deduplicateCoords(coords: Coord[]): Coord[] {
+  const seen = new Set<string>();
+  return coords.filter(coord => {
+    const key = coordToKey(coord);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+

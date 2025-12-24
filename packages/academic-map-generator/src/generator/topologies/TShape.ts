@@ -44,15 +44,12 @@ export class TShapeTopology extends BaseTopology {
     const y = 0;
 
     // Start Position (Bottom of stem)
-    // Python: start_x = random.randint(bar_side_len + 1, grid_size[0] - bar_side_len - 2)
-    //         start_z = random.randint(1, grid_size[2] - stem_len - 2)
-    
-    const minX = barSideLen + 1;
-    const maxX = gridSize[0] - barSideLen - 2;
-    const startX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
-    
-    const maxZ = gridSize[2] - stemLen - 2;
-    const startZ = Math.floor(Math.random() * maxZ) + 1;
+    // FIX: Use deterministic centered positioning instead of random
+    // This ensures the shape stays within visible bounds and is predictable
+    const centerX = Math.floor(gridSize[0] / 2);
+    const centerZ = Math.floor((gridSize[2] - stemLen - 2) / 2);
+    const startX = params.start_x || Math.max(barSideLen + 1, Math.min(gridSize[0] - barSideLen - 2, centerX));
+    const startZ = params.start_z || Math.max(1, Math.min(gridSize[2] - stemLen - 2, centerZ));
     
     const startPos: Coord = [startX, y, startZ];
 

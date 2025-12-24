@@ -36,19 +36,23 @@ export class ArrowShapeTopology extends BaseTopology {
     console.log("    LOG: Generating 'arrow_shape' topology...");
 
     const shaftLen = params.shaft_length || 5; 
-    const headSize = params.head_size || 3;
+    // FIX: Accept both 'wing_length' (from UI) and 'head_size' (legacy) 
+    // wing_length maps to the triangular head size
+    const headSize = params.wing_length || params.head_size || 3;
     
     // Calculate required space
     const requiredWidth = headSize * 2 + 1;
     const requiredDepth = shaftLen + headSize;
     
-    // Random start position logic (Ported from Python)
-    // Python: random.randint(head_size + 1, grid_size[0] - head_size - 2)
-    // We use a deterministic approach based on grid center to be safe and consistent.
+    // FIX: Use deterministic centered positioning instead of random
+    // This ensures the shape stays within visible bounds and is predictable
+    // Center the arrow in the grid, accounting for required space
+    const gridCenterX = Math.floor(gridSize[0] / 2);
+    const gridCenterZ = Math.floor(gridSize[2] / 2);
     
-    const startX = Math.max(headSize + 1, Math.min(gridSize[0] - headSize - 2, 
-                   Math.floor(gridSize[0] / 2)));
-    const startZ = params.start_z || Math.max(1, Math.floor((gridSize[2] - requiredDepth) / 2));
+    // Start position: center X, and Z positioned so arrow fits from startZ to startZ + requiredDepth
+    const startX = params.start_x || Math.max(headSize + 1, Math.min(gridSize[0] - headSize - 2, gridCenterX));
+    const startZ = params.start_z || Math.max(1, Math.min(gridSize[2] - requiredDepth - 1, Math.floor((gridSize[2] - requiredDepth) / 2)));
     const y = 0;
 
     const startPos: Coord = [startX, y, startZ];
