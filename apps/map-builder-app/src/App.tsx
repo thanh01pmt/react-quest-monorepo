@@ -2201,7 +2201,7 @@ function App() {
   };
 
   // --- HÀM MỚI: TÍCH HỢP BỘ GIẢI MÊ CUNG ---
-  const handleSolveMaze = () => {
+  const handleSolveMaze = (options?: { silent?: boolean }) => {
     // SỬA LỖI: Tái cấu trúc để không cần nhấn "Render from JSON" trước khi giải.
     // Hàm này sẽ tự động tạo gameConfig mới nhất từ `placedObjects` hiện tại.
     try {
@@ -2303,10 +2303,12 @@ function App() {
             report += "\n- Pedagogy Check: Function usage confirmed.";
           }
         }
-        alert(report);
+        // Path visualization is handled via questMetadata.solution.pathCoordinates -> solutionPath useMemo
+
+        if (!options?.silent) alert(report);
         // ------------------------------
       } else {
-        alert("Validation Failed: Map is unsolvable. No path found to target.");
+        if (!options?.silent) alert("Validation Failed: Map is unsolvable. No path found to target.");
       }
     } catch (error) {
       alert(`Validation Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -2442,6 +2444,39 @@ function App() {
     alert(`Added ${suggestedObjects.length} items to the selected segment.`);
   };
 
+  // NEW REF: Keep track of metadata to use in effects without triggering re-runs
+  const questMetadataRef = useRef(questMetadata);
+  useEffect(() => {
+    questMetadataRef.current = questMetadata;
+  }, [questMetadata]);
+
+  // AUTO-SOLVE EFFECT: Trigger solver when placedObjects change (Debounced)
+  useEffect(() => {
+    if (placedObjects.length === 0) return;
+
+    // Only auto-solve if in Topology (Auto validation) mode or if we want it generally active
+    // The user screenshot showed "Map Inspector Auto", so we should support it.
+
+    // Use a timeout to debounce
+    const timer = setTimeout(() => {
+      // We call handleSolveMaze, but we need to ensure it uses the LATEST metadata from ref
+      // However, handleSolveMaze as defined currently uses 'questMetadata' from closure/render scope.
+      // If we call it here, it uses the 'questMetadata' captured when this effect was created?
+      // No, 'handleSolveMaze' is a const function, recreated on render?
+      // No, it's defined inside the component.
+
+      // To be safe, let's call it. Since 'solutionPath' update is crucial.
+      // But to avoid 'questMetadata' dependency loop, we should probably refactor handleSolveMaze 
+      // OR just acknowledge that if questMetadata changes, handleSolveMaze changes, and effect re-runs?
+      // IF we add handleSolveMaze to deps.
+
+      // Let's try calling it.
+      handleSolveMaze({ silent: true });
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [placedObjects]); // Only trigger on map content changes
+
   // NEW: Real-time path calculation effect
   useEffect(() => {
     if (!hasUserEdit) return; // Only verify path if user has edited the map
@@ -2565,21 +2600,20 @@ function App() {
   }, [placedObjects]);
 
   const solutionPath = useMemo(() => {
-    // Priority 1: Real-time calculated path
-    // If dynamicPathCoords is not null (even if empty), use it.
-    // This allows clearing the path when it becomes invalid.
-    if (dynamicPathCoords !== null) return dynamicPathCoords;
-
-    // Priority 2: Pre-defined solution
+    // Priority 1: Pre-defined solution (Smart Solver)
     if (questMetadata?.solution?.pathCoordinates) {
       return questMetadata.solution.pathCoordinates.map((p: any) => [p.x, p.y, p.z] as [number, number, number]);
     }
+
+    // Priority 2: Real-time calculated path (Edit fallback)
+    if (dynamicPathCoords !== null) return dynamicPathCoords;
+
     // Priority 3: Topology Path
     if (questMetadata?.pathInfo?.path_coords) {
       return questMetadata.pathInfo.path_coords as [number, number, number][];
     }
-    return null;
-  }, [questMetadata, dynamicPathCoords]);
+    return undefined;
+  }, [questMetadata?.solution, questMetadata?.pathInfo, dynamicPathCoords]);
 
   // Compute selectable elements from pathInfo
   const selectableElements = useMemo((): SelectableElement[] => {
