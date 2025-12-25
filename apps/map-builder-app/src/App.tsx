@@ -1235,16 +1235,10 @@ function App() {
         if (!isNaN(parsed)) uiDirection = parsed;
       }
 
-      // IMPORTANT: Convert UI direction mapping to Solver direction mapping
-      // UI:     0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
-      // Solver: 0=South(-Z), 1=East(+X), 2=North(+Z), 3=West(-X)
-      const uiToSolverMap: Record<number, number> = {
-        0: 1, // East (+X): UI=0 → Solver=1
-        1: 2, // North (+Z): UI=1 → Solver=2
-        2: 3, // West (-X): UI=2 → Solver=3
-        3: 0  // South (-Z): UI=3 → Solver=0
-      };
-      const solverDirection = uiToSolverMap[uiDirection] ?? 1; // Default to East in solver coords
+      // IMPORTANT: UI and Solver now use the SAME direction convention:
+      // 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
+      // No conversion needed anymore (the old mapping was for Python solver)
+      const solverDirection = uiDirection;
 
       const players = [{ start: { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2], direction: solverDirection } }];
 
@@ -2224,7 +2218,28 @@ function App() {
       const interactibles = placedObjects.filter(o => o.asset.type === 'interactible').map(o => ({ id: o.id, type: o.asset.key, ...o.properties, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
       const finishObject = placedObjects.find(o => o.asset.key === 'finish');
       const startObject = placedObjects.find(o => o.asset.key === 'player_start');
-      const players = startObject ? [{ id: "player1", start: { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2], direction: parseFloat(startObject.properties?.direction) || 0 } }] : [];
+
+      // FIX: For player_start, direction is stored in properties.direction (not rotation!)
+      // The visual cone uses properties.direction to determine its Y rotation
+      // Direction convention: 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
+      const getStartDirection = (): number => {
+        if (!startObject) return 1; // Default: North (+Z)
+        const dir = startObject.properties?.direction;
+        if (typeof dir === 'number') return Math.round(dir) % 4;
+        if (typeof dir === 'string') return Math.round(parseFloat(dir)) % 4;
+        return 1; // Default: North
+      };
+
+      const players = startObject ? [{
+        id: "player1",
+        start: {
+          x: startObject.position[0],
+          y: startObject.position[1],
+          z: startObject.position[2],
+          // Use properties.direction directly - this matches the visual cone direction
+          direction: getStartDirection()
+        }
+      }] : [];
 
       if (!finishObject) {
         alert("Lỗi: Không tìm thấy đối tượng 'Finish' trên bản đồ. Vui lòng đặt một điểm kết thúc để có thể tự động giải.");

@@ -223,10 +223,14 @@ const countActions = (solution: any): number => {
 // ============================================================
 export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onImportMap, onLoadMapFromUrl }: QuestDetailsPanelProps) {
   const [isBlocklyModalOpen, setBlocklyModalOpen] = useState(false);
-  const [showRawSolution, setShowRawSolution] = useState(false);
   const [showTranslations, setShowTranslations] = useState(false);
   const [isSolving, setIsSolving] = useState(false);
   const [mapList, setMapList] = useState<Record<string, unknown> | null>(null);
+
+  // Solution tabs: 'raw' | 'basic' | 'optimal'
+  const [solutionTab, setSolutionTab] = useState<'raw' | 'basic' | 'optimal'>('raw');
+  // Cache hash to avoid re-solving when path/placement haven't changed
+  const [lastSolveHash, setLastSolveHash] = useState<string>('');
 
   // Local state for editable fields
   const [localRawActions, setLocalRawActions] = useState('');
@@ -250,13 +254,34 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
     onMetadataChange('__OVERWRITE__', newMetadata);
   };
 
-  // Wrap onSolveMaze with loading state
-  const handleSolve = async () => {
+  // Compute hash for path/placement coords to detect changes
+  const computePathHash = (): string => {
+    const pathInfo = metadata?.pathInfo;
+    if (!pathInfo) return '';
+    const pathCoords = pathInfo.path_coords || [];
+    const placementCoords = pathInfo.placement_coords || [];
+    const startPos = pathInfo.start_pos || [];
+    const targetPos = pathInfo.target_pos || [];
+    return JSON.stringify({ pathCoords, placementCoords, startPos, targetPos });
+  };
+
+  // Wrap onSolveMaze with loading state and cache check
+  const handleSolve = async (forceResolve = false) => {
+    const currentHash = computePathHash();
+
+    // Check cache - skip if no changes
+    if (!forceResolve && currentHash && currentHash === lastSolveHash) {
+      console.log('Path unchanged - using cached solution');
+      return;
+    }
+
     setIsSolving(true);
     try {
       // Use setTimeout to allow UI to update before blocking operation
       await new Promise(resolve => setTimeout(resolve, 50));
       onSolveMaze();
+      // Update cache hash after successful solve
+      setLastSolveHash(currentHash);
     } finally {
       setIsSolving(false);
     }
@@ -478,19 +503,19 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
         badge={hasSolution ? '✅ Solved' : '⚠️ Not solved'}
         badgeColor={hasSolution ? 'green' : 'orange'}
       >
-        {/* Auto-solve button - prominent */}
+        {/* Gen Raw Action button - primary action */}
         <button
           className={`action-btn primary full-width ${isSolving ? 'loading' : ''}`}
-          onClick={handleSolve}
+          onClick={() => handleSolve(false)}
           disabled={isSolving}
         >
           {isSolving ? (
             <>
               <span className="spinner"></span>
-              Solving...
+              Generating...
             </>
           ) : (
-            '🔄 Auto-Solve Maze'
+            '🔄 Gen Raw Action'
           )}
         </button>
 
@@ -508,25 +533,25 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
           </div>
         )}
 
-        {/* Create blocks buttons */}
+        {/* Gen Basic/Optimal Solution buttons */}
         <div className="button-group">
           <button
             className="action-btn secondary"
             onClick={() => handleCompileToXml(localBasicSolution, 'Basic Solution')}
             disabled={!localBasicSolution || localBasicSolution === '{}'}
           >
-            Create from Basic
+            Gen Basic Solution
           </button>
           <button
             className="action-btn secondary"
             onClick={() => handleCompileToXml(localStructuredSolution, 'Structured Solution')}
             disabled={!localStructuredSolution || localStructuredSolution === '{}'}
           >
-            Create from Optimal
+            Gen Optimal Solution
           </button>
         </div>
 
-        {/* Edit Start Blocks - moved here from Blockly Config for better UX flow */}
+        {/* Edit Start Blocks */}
         <div className="action-row" style={{ marginTop: '8px' }}>
           <button
             className="action-btn primary"
@@ -539,18 +564,62 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
           )}
         </div>
 
-        {/* Toggle raw solution view */}
-        <button
-          className="toggle-btn"
-          onClick={() => setShowRawSolution(!showRawSolution)}
-        >
-          📝 {showRawSolution ? 'Hide' : 'Show'} Raw Solution Data
-        </button>
+        {/* Solution Tabs */}
+        <div className="solution-tabs" style={{ marginTop: '12px' }}>
+          <div className="tab-buttons" style={{ display: 'flex', borderBottom: '1px solid #444' }}>
+            <button
+              className={`tab-btn ${solutionTab === 'raw' ? 'active' : ''}`}
+              onClick={() => setSolutionTab('raw')}
+              style={{
+                flex: 1,
+                padding: '8px',
+                background: solutionTab === 'raw' ? '#3c3c41' : 'transparent',
+                border: 'none',
+                color: solutionTab === 'raw' ? '#fff' : '#888',
+                cursor: 'pointer',
+                fontSize: '12px',
+                borderBottom: solutionTab === 'raw' ? '2px solid #6366f1' : 'none'
+              }}
+            >
+              Raw Action
+            </button>
+            <button
+              className={`tab-btn ${solutionTab === 'basic' ? 'active' : ''}`}
+              onClick={() => setSolutionTab('basic')}
+              style={{
+                flex: 1,
+                padding: '8px',
+                background: solutionTab === 'basic' ? '#3c3c41' : 'transparent',
+                border: 'none',
+                color: solutionTab === 'basic' ? '#fff' : '#888',
+                cursor: 'pointer',
+                fontSize: '12px',
+                borderBottom: solutionTab === 'basic' ? '2px solid #6366f1' : 'none'
+              }}
+            >
+              Basic
+            </button>
+            <button
+              className={`tab-btn ${solutionTab === 'optimal' ? 'active' : ''}`}
+              onClick={() => setSolutionTab('optimal')}
+              style={{
+                flex: 1,
+                padding: '8px',
+                background: solutionTab === 'optimal' ? '#3c3c41' : 'transparent',
+                border: 'none',
+                color: solutionTab === 'optimal' ? '#fff' : '#888',
+                cursor: 'pointer',
+                fontSize: '12px',
+                borderBottom: solutionTab === 'optimal' ? '2px solid #6366f1' : 'none'
+              }}
+            >
+              Optimal
+            </button>
+          </div>
 
-        {showRawSolution && (
-          <div className="raw-solution-editors">
-            <div className="editor-group">
-              <label>Raw Actions</label>
+          {/* Tab Content */}
+          <div className="tab-content" style={{ marginTop: '8px' }}>
+            {solutionTab === 'raw' && (
               <textarea
                 className="json-editor"
                 value={localRawActions}
@@ -565,12 +634,12 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
                     }
                   }
                 }}
-                rows={4}
+                rows={8}
+                style={{ width: '100%', resize: 'vertical' }}
               />
-            </div>
+            )}
 
-            <div className="editor-group">
-              <label>Basic Solution</label>
+            {solutionTab === 'basic' && (
               <textarea
                 className="json-editor"
                 value={localBasicSolution}
@@ -585,12 +654,12 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
                     }
                   }
                 }}
-                rows={6}
+                rows={8}
+                style={{ width: '100%', resize: 'vertical' }}
               />
-            </div>
+            )}
 
-            <div className="editor-group">
-              <label>Structured Solution</label>
+            {solutionTab === 'optimal' && (
               <textarea
                 className="json-editor"
                 value={localStructuredSolution}
@@ -605,11 +674,12 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
                     }
                   }
                 }}
-                rows={6}
+                rows={8}
+                style={{ width: '100%', resize: 'vertical' }}
               />
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </CollapsibleSection>
 
       {/* ============================================================ */}

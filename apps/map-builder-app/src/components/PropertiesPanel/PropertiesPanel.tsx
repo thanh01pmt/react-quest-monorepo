@@ -170,6 +170,56 @@ export function PropertiesPanel({
             <span className="object-id">{selectedObject.id}</span>
           </div>
 
+          {/* Position Section */}
+          <h3 className="props-title">Position</h3>
+          <div className="position-inputs" style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+            <div className="position-field" style={{ flex: 1 }}>
+              <label style={{ fontSize: '11px', color: '#888', marginBottom: '2px', display: 'block' }}>X</label>
+              <input
+                type="number"
+                value={selectedObject.position[0]}
+                onChange={(e) => {
+                  const newValue = parseFloat(e.target.value) || 0;
+                  onUpdateObject({
+                    ...selectedObject,
+                    position: [newValue, selectedObject.position[1], selectedObject.position[2]]
+                  });
+                }}
+                style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #444', background: '#2a2a2d', color: '#fff' }}
+              />
+            </div>
+            <div className="position-field" style={{ flex: 1 }}>
+              <label style={{ fontSize: '11px', color: '#888', marginBottom: '2px', display: 'block' }}>Y</label>
+              <input
+                type="number"
+                value={selectedObject.position[1]}
+                onChange={(e) => {
+                  const newValue = parseFloat(e.target.value) || 0;
+                  onUpdateObject({
+                    ...selectedObject,
+                    position: [selectedObject.position[0], newValue, selectedObject.position[2]]
+                  });
+                }}
+                style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #444', background: '#2a2a2d', color: '#fff' }}
+              />
+            </div>
+            <div className="position-field" style={{ flex: 1 }}>
+              <label style={{ fontSize: '11px', color: '#888', marginBottom: '2px', display: 'block' }}>Z</label>
+              <input
+                type="number"
+                value={selectedObject.position[2]}
+                onChange={(e) => {
+                  const newValue = parseFloat(e.target.value) || 0;
+                  onUpdateObject({
+                    ...selectedObject,
+                    position: [selectedObject.position[0], selectedObject.position[1], newValue]
+                  });
+                }}
+                style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #444', background: '#2a2a2d', color: '#fff' }}
+              />
+            </div>
+          </div>
+
           <h3 className="props-title">Custom Properties</h3>
           {Object.entries(selectedObject.properties).map(([key, value]) => (
             <div key={key} className="prop-group">

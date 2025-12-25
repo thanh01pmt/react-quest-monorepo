@@ -20,15 +20,17 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
           <button onClick={handleClose} className="welcome-modal-close-btn">&times;</button>
         </div>
         <div className="welcome-modal-body">
-          <p>Đây là công cụ giúp bạn tạo và chỉnh sửa các màn chơi (map) cho game một cách trực quan.</p>
+          <p>Đây là công cụ giúp bạn tạo và chỉnh sửa các màn chơi (map) học thuật cho game một cách trực quan.</p>
 
           <div className="wm-highlight-box">
-            <h3>✨ Tính năng mới</h3>
+            <h3>✨ Tính năng chính</h3>
             <ul>
-              <li><strong>30+ Topologies:</strong> Tự động tạo map với 30 kiểu hình dạng khác nhau (L, T, U, Spiral, Maze, Islands...)</li>
+              <li><strong>34+ Topologies:</strong> Tự động tạo map với 34 kiểu hình dạng khác nhau (L, T, U, V, H, S, Z, Spiral, Maze, Islands, 3D Staircase...)</li>
+              <li><strong>9 Pedagogy Strategies:</strong> Chiến lược đặt item theo mức độ học thuật (Loop Logic, Function Logic, Conditional, While Loop, Nested Loops...)</li>
               <li><strong>Validation Badge:</strong> Kiểm tra tính hợp lệ của map theo thời gian thực</li>
-              <li><strong>Keyboard Shortcuts:</strong> Nhấn <kbd>?</kbd> để xem danh sách phím tắt</li>
-              <li><strong>30 Pedagogy Strategies:</strong> Chiến lược đặt item theo mức độ học thuật</li>
+              <li><strong>Auto Solver:</strong> Tự động tạo lời giải với Raw Action, Basic và Optimal solutions</li>
+              <li><strong>Area Clone:</strong> Copy/Paste và nhân bản các vùng chọn</li>
+              <li><strong>Keyboard Shortcuts:</strong> Nhấn <kbd>?</kbd> để xem danh sách đầy đủ phím tắt</li>
             </ul>
           </div>
 
@@ -42,7 +44,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
                 <li>Chọn asset từ palette bên trái</li>
                 <li>Click vào grid 3D để đặt đối tượng</li>
                 <li>Đặt <code>Player Start</code> và <code>Finish</code></li>
-                <li>Nhấn "Tự động giải" để tạo lời giải</li>
+                <li>Nhấn "Gen Raw Action" để tạo lời giải</li>
               </ol>
             </div>
             <div className="wm-mode-card">
@@ -50,7 +52,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
               <p><em>Tab "Topology" - Tự động tạo map</em></p>
               <ol>
                 <li>Chọn topology (hình dạng map)</li>
-                <li>Điều chỉnh tham số</li>
+                <li>Điều chỉnh tham số (size, complexity...)</li>
                 <li>Chọn Pedagogy Strategy</li>
                 <li>Nhấn "Generate Map"</li>
               </ol>
@@ -64,16 +66,17 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
             <div className="wm-shortcut"><kbd>⌘⇧Z</kbd> <span>Redo</span></div>
             <div className="wm-shortcut"><kbd>Delete</kbd> <span>Xóa</span></div>
             <div className="wm-shortcut"><kbd>⌘A</kbd> <span>Chọn tất cả</span></div>
-            <div className="wm-shortcut"><kbd>R</kbd> <span>Xoay</span></div>
-            <div className="wm-shortcut"><kbd>C</kbd> <span>Copy</span></div>
-            <div className="wm-shortcut"><kbd>Space+Drag</kbd> <span>Pan camera</span></div>
+            <div className="wm-shortcut"><kbd>Esc</kbd> <span>Bỏ chọn</span></div>
+            <div className="wm-shortcut"><kbd>⌘S</kbd> <span>Export JSON</span></div>
+            <div className="wm-shortcut"><kbd>⌘O</kbd> <span>Import JSON</span></div>
           </div>
 
           <h3>📋 Lưu ý quan trọng</h3>
           <ul>
-            <li><strong>Đối tượng bắt buộc:</strong> Mỗi map cần có <code>Player Start</code> và <code>Finish Point</code></li>
-            <li><strong>Validation Badge:</strong> Xem góc trên bên phải để kiểm tra tính hợp lệ</li>
+            <li><strong>Đối tượng bắt buộc:</strong> Mỗi map cần có <code>Player Start</code> (có thể xoay để chọn hướng) và <code>Finish Point</code></li>
+            <li><strong>Validation Badge:</strong> Xem góc trên bên phải để kiểm tra tính hợp lệ (✓ Valid / ⚠️ Invalid)</li>
             <li><strong>Smart Snap:</strong> Bật để item chỉ đặt được trên đường đi hợp lệ</li>
+            <li><strong>Topology Inspector:</strong> Phân tích cấu trúc map để debug và tối ưu</li>
           </ul>
         </div>
         <div className="welcome-modal-footer">

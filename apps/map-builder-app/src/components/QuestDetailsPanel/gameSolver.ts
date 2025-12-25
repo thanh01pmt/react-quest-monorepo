@@ -98,9 +98,10 @@ class GameState {
 // 2: -X (West)  - cone points to -X
 // 3: -Z (South) - cone points to -Z
 //
-// When calculating turns: clockwise order: 0(East) -> 1(North) -> 2(West) -> 3(South) -> 0(East)
-// turnRight = (direction + 3) % 4 (counterclockwise in this order)
-// turnLeft = (direction + 1) % 4 (clockwise in this order)
+// Direction order 0->1->2->3 is COUNTERCLOCKWISE when viewed from above (+Y)
+// From PLAYER'S PERSPECTIVE (looking in facing direction):
+// - turnRight = (direction + 1) % 4 (counterclockwise from above = right hand)
+// - turnLeft = (direction + 3) % 4 (clockwise from above = left hand)
 const directions = [
   { x: 1, z: 0 },  // 0: +X (East) - FIX: was -Z
   { x: 0, z: 1 },  // 1: +Z (North) - FIX: was +X
@@ -1571,16 +1572,17 @@ function calculateTurnActions(currentState: GameState, nextPos: Position, lastAc
     else targetDir = currentState.direction;
 
     if (targetDir !== currentState.direction) {
-        // Direction array order: 0(E)->1(N)->2(W)->3(S) is COUNTERCLOCKWISE when viewed from above
-        // So: +1 step in array = counterclockwise = turnLeft
-        //     -1 step in array = clockwise = turnRight
+        // Direction array order: 0(E)->1(N)->2(W)->3(S) is COUNTERCLOCKWISE when viewed from above (+Y)
+        // But from PLAYER'S PERSPECTIVE (looking in their facing direction):
+        // - Counterclockwise from above = turn RIGHT (player's right hand)
+        // - Clockwise from above = turn LEFT (player's left hand)
         const diff = (targetDir - currentState.direction + 4) % 4;
-        if (diff === 1) { // +1 step = counterclockwise = turnLeft
-            actions.push('turnLeft');
-            cost += (lastAction === 'turnLeft' ? 0.1 - REPETITION_DISCOUNT : 0.1);
-        } else if (diff === 3) { // -1 step = clockwise = turnRight
+        if (diff === 1) { // +1 step in array = counterclockwise from above = turnRight from player POV
             actions.push('turnRight');
             cost += (lastAction === 'turnRight' ? 0.1 - REPETITION_DISCOUNT : 0.1);
+        } else if (diff === 3) { // -1 step in array = clockwise from above = turnLeft from player POV
+            actions.push('turnLeft');
+            cost += (lastAction === 'turnLeft' ? 0.1 - REPETITION_DISCOUNT : 0.1);
         } else if (diff === 2) {
             actions.push('turnRight', 'turnRight');
             cost += 0.2; // 180 degree turn
