@@ -1,0 +1,197 @@
+/* ViewportToolbar Styles - Compact Version
+ * Minimalist icon bar that expands on hover
+ */
+
+.viewport-toolbar {
+    position: fixed;
+    left: 320px; /* After left sidebar */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 150;
+
+    /* Glass Effect */
+    background: rgba(40, 40, 45, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+
+    /* Shadow */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+    /* Layout */
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+    gap: 2px;
+
+    /* Transition for expand/collapse */
+    transition: all 0.2s ease;
+
+    /* Animation */
+    animation: slideInToolbar 0.25s ease-out;
+}
+
+@keyframes slideInToolbar {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+}
+
+/* Compact Mode */
+.viewport-toolbar.compact {
+    padding: 4px;
+}
+
+/* Expanded Mode */
+.viewport-toolbar.expanded {
+    padding: 6px;
+    gap: 4px;
+}
+
+/* Toolbar Buttons */
+.toolbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 6px 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.toolbar-btn.active {
+    background: linear-gradient(135deg, rgba(74, 158, 255, 0.25) 0%, rgba(53, 122, 189, 0.25) 100%);
+    border-color: rgba(74, 158, 255, 0.5);
+    color: #4a9eff;
+}
+
+/* Compact: Just shortcut letter */
+.compact .toolbar-btn {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 4px;
+}
+
+.compact .btn-icon {
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+}
+
+/* Expanded: Icon + Label */
+.expanded .toolbar-btn {
+    justify-content: flex-start;
+    padding: 8px 12px;
+}
+
+.expanded .btn-icon {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.btn-label {
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Selection Badge */
+.selection-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ff6b6b;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 8px;
+    min-width: 14px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(255, 107, 107, 0.4);
+}
+
+/* Divider */
+.toolbar-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 4px 0;
+}
+
+/* Selection Toggle */
+.selection-toggle {
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.toggle-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 14px;
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.toggle-btn.active {
+    background: rgba(74, 158, 255, 0.3);
+    color: #4a9eff;
+}
+
+/* Hint text */
+.toolbar-hint {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+    padding: 2px 4px;
+    white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+    .viewport-toolbar {
+        left: 16px;
+    }
+}
+
+/* When Left Panel is hidden, move toolbar to left edge */
+.left-sidebar-hidden .viewport-toolbar,
+.viewport-toolbar.sidebar-collapsed {
+    left: 16px;
+}

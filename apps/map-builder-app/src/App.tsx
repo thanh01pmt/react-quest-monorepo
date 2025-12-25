@@ -39,6 +39,7 @@ import {
   type ItemPlacement
 } from '@repo/academic-map-generator';
 import { CenterToolbar } from './components/CenterToolbar';
+import { ViewportToolbar } from './components/ViewportToolbar';
 import { SymmetryPanel } from './components/SymmetryPanel';
 import _ from 'lodash';
 import './App.css';
@@ -339,6 +340,8 @@ function App() {
         e.preventDefault();
         setSelectedObjectIds([]);
         setHoverPreviewIds([]);
+        setSelectionStart(null); // Clear area selection
+        setSelectionEnd(null);
         setIsRotating(false);
         setIsFillMode(false);
         setFillPreviewPositions([]);
@@ -358,6 +361,29 @@ function App() {
       max: [Math.max(selectionStart[0], selectionEnd[0]), Math.max(selectionStart[1], selectionEnd[1]), Math.max(selectionStart[2], selectionEnd[2]),],
     };
   }, [selectionStart, selectionEnd]);
+
+  // --- NEW: Highlight objects inside selection bounds (real-time preview) ---
+  useEffect(() => {
+    if (!selectionBounds) {
+      // Don't clear hoverPreviewIds here - let Smart Select handle its own previews
+      return;
+    }
+
+    // Find all objects inside the selection bounds
+    const { min, max } = selectionBounds;
+    const objectsInBounds = placedObjects.filter(obj => {
+      const [x, y, z] = obj.position;
+      return (
+        x >= min[0] && x <= max[0] &&
+        y >= min[1] && y <= max[1] &&
+        z >= min[2] && z <= max[2]
+      );
+    });
+
+    // Update hover preview IDs with objects inside bounds
+    const idsInBounds = objectsInBounds.map(o => o.id);
+    setHoverPreviewIds(idsInBounds);
+  }, [selectionBounds, placedObjects]);
 
   // --- HÀM MỚI: Xoay một hoặc nhiều đối tượng ---
   const handleRotateObject = useCallback((objectIds: string[]) => {
@@ -754,6 +780,13 @@ function App() {
         // Nếu không, chỉ chọn đối tượng đó (hoặc bỏ chọn tất cả nếu click ra ngoài)
         setSelectedObjectIds(id ? [id] : []);
         setIsMovingObject(false);
+
+        // --- NEW: Clear area selection when clicking on empty space ---
+        if (!id) {
+          setSelectionStart(null);
+          setSelectionEnd(null);
+          setHoverPreviewIds([]); // Also clear highlight preview
+        }
       }
     }
   };
@@ -785,6 +818,11 @@ function App() {
    * Handle hover over object for smart selection preview
    */
   const handleObjectHover = useCallback((objectId: string | null) => {
+    // If we have an active area selection (Box Select), don't interfere with its highlight
+    if (selectionStart && selectionEnd) {
+      return; // Let the useEffect for selectionBounds handle highlighting
+    }
+
     if (selectionMode !== 'smart' || !objectId) {
       setHoverPreviewIds([]);
       return;
@@ -804,7 +842,7 @@ function App() {
     });
 
     setHoverPreviewIds(filteredIds);
-  }, [selectionMode, placedObjects, activeLayer]);
+  }, [selectionMode, placedObjects, activeLayer, selectionStart, selectionEnd]);
 
   /**
    * Handle selection mode change (box vs smart)
@@ -2559,6 +2597,16 @@ function App() {
             gridDepth={boxDimensions.depth}
           />
         </div>
+
+        {/* Viewport Toolbar - Mode & Tool switching */}
+        <ViewportToolbar
+          activeMode={builderMode}
+          onModeChange={handleModeChange}
+          selectionMode={selectionMode}
+          onSelectionModeChange={handleSelectionModeChange}
+          hasSelection={selectedObjectIds.length > 0}
+          selectionCount={selectedObjectIds.length}
+        />
 
         {/* Smart Selection integrated into AssetPalette */}
         <button onClick={togglePalette} className={`toggle-palette-btn ${!isPaletteVisible ? 'closed' : ''}`}>

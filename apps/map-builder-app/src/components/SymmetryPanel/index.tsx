@@ -65,21 +65,21 @@ export function SymmetryPanel({
                             <button
                                 className={`axis-btn ${axis === 'x' ? 'active' : ''}`}
                                 onClick={() => onAxisChange('x')}
-                                title="Mirror across X axis (horizontal)"
+                                title="Horizontal line - objects mirror top/bottom"
                             >
-                                ↔ X
+                                ─ Horizontal
                             </button>
                             <button
                                 className={`axis-btn ${axis === 'z' ? 'active' : ''}`}
                                 onClick={() => onAxisChange('z')}
-                                title="Mirror across Z axis (vertical)"
+                                title="Vertical line - objects mirror left/right"
                             >
-                                ↕ Z
+                                │ Vertical
                             </button>
                             <button
                                 className={`axis-btn ${axis === 'both' ? 'active' : ''}`}
                                 onClick={() => onAxisChange('both')}
-                                title="Mirror across both axes (point reflection)"
+                                title="Both axes - objects mirror in 4 quadrants"
                             >
                                 ✛ Both
                             </button>
@@ -143,7 +143,11 @@ export function SymmetryPanel({
                     {/* Info */}
                     <div className="symmetry-info">
                         <span className="info-icon">ℹ️</span>
-                        <span>Objects placed will auto-mirror across the {axis === 'both' ? 'center point' : `${axis.toUpperCase()} axis`}.</span>
+                        <span>Objects placed will auto-mirror {
+                            axis === 'x' ? 'top/bottom (across horizontal line)' :
+                                axis === 'z' ? 'left/right (across vertical line)' :
+                                    'in all 4 quadrants'
+                        }.</span>
                     </div>
                 </div>
             )}

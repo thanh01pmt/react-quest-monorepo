@@ -474,9 +474,9 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
       const NO_ACTION = 0;
 
       // --- LOGIC ĐIỀU HƯỚNG THEO NGỮ CẢNH (CẬP NHẬT) ---
-      if (builderMode === 'build-area' || selectedObjectIds.length > 0) {
-        // KHI Ở CHẾ ĐỘ CHỌN VÙNG hoặc KHI CÓ ĐỐI TƯỢNG ĐƯỢC CHỌN:
-        // Dành chuột trái cho tương tác (chọn vùng, di chuyển đối tượng).
+      if (builderMode === 'build-area' || selectedObjectIds.length > 0 || isShiftDown) {
+        // KHI Ở CHẾ ĐỘ CHỌN VÙNG, KHI CÓ ĐỐI TƯỢNG ĐƯỢC CHỌN, hoặc KHI GIỮ SHIFT:
+        // Dành chuột trái cho tương tác (chọn vùng, di chuyển đối tượng, Shift+Drag area).
         controls.mouseButtons.left = NO_ACTION;
         // Dùng chuột phải để điều hướng.
       } else if (builderMode === 'build-single') {
@@ -492,7 +492,7 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
       // Giữ nguyên các nút khác nếu cần
       controls.mouseButtons.middle = THREE.MOUSE.DOLLY;
     }
-  }, [builderMode, cameraControlsRef, isSpaceDown, selectedObjectIds]); // Thêm selectedObjectIds vào dependencies
+  }, [builderMode, cameraControlsRef, isSpaceDown, isShiftDown, selectedObjectIds]); // Thêm isShiftDown vào dependencies
 
   const boundingBoxPosition = useMemo((): [number, number, number] => [
     (boxDimensions.width * TILE_SIZE) / 2,
@@ -533,8 +533,8 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
       if (event.code === 'Space') setIsSpaceDown(true); // <-- THAY ĐỔI: Lắng nghe phím Space
       if (event.key === 'Alt') setIsAltDown(true); // Bắt sự kiện nhấn Alt
       if (event.key.toLowerCase() === 'b') onModeChange('build-single');
-      if (event.key.toLowerCase() === 'v') onModeChange('navigate');
-      if (event.key.toLowerCase() === 's') onModeChange('build-area');
+      // S = Select mode (navigate with selection capabilities)
+      if (event.key.toLowerCase() === 's') onModeChange('navigate');
       if (event.key === 'Escape') {
         // Nếu đang có đối tượng được chọn, Esc sẽ bỏ chọn.
         // Nếu không, Esc sẽ chuyển về chế độ Navigate.
@@ -644,32 +644,18 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     setPointer(event.pointer);
 
     // --- Logic kéo chọn vùng ---
-    if (builderMode === 'build-area' && isDragging && selectionStart) {
-      if (isShiftDown) {
-        // KHI GIỮ SHIFT: Chỉ điều chỉnh chiều cao (trục Y) của vùng chọn.
-        const deltaY = (dragStartRef.current?.mousePos.y ?? 0) - event.clientY;
-        const PIXELS_PER_UNIT = 30; // Độ nhạy: cần kéo 30px để di chuyển 1 ô.
-        const unitsToMove = Math.round(deltaY / PIXELS_PER_UNIT);
-
-        // Lấy vị trí Y ban đầu của điểm cuối (khi bắt đầu giữ Shift)
-        // và cộng thêm khoảng di chuyển.
-        const startY = dragStartRef.current?.objectPos[1] ?? selectionStart[1];
-        let newY = startY + unitsToMove;
-        if (newY < 0) newY = 0; // Đảm bảo không chọn dưới mặt đất.
-
-        // Cập nhật điểm cuối với tọa độ Y mới, giữ nguyên X và Z.
-        onSetSelectionEnd(prev => prev ? [prev[0], newY, prev[2]] : null);
-      } else {
-        // KHI KHÔNG GIỮ SHIFT: Kéo trên mặt phẳng XZ như bình thường.
-        raycaster.setFromCamera(event.pointer, camera);
-        const intersects = raycaster.intersectObjects([plane, ...placedObjectsGroupRef.current.children], true);
-        const intersect = intersects.find(i => i.object.name !== 'RollOverMesh');
-        if (intersect) {
-          let gridPos = getGridPositionForSelection(intersect);
-          if (gridPos && gridPos[1] < 0) gridPos[1] = 0;
-          // Cập nhật điểm cuối với tọa độ X và Z mới, giữ nguyên Y.
-          if (gridPos) onSetSelectionEnd(prev => prev ? [gridPos![0], prev[1], gridPos![2]] : gridPos);
-        }
+    // UPDATED: Support Shift+Drag area selection in BOTH navigate and build-area modes
+    const canAreaSelect = (builderMode === 'build-area' || (builderMode === 'navigate' && isShiftDown));
+    if (canAreaSelect && isDragging && selectionStart) {
+      // KHI KHÔNG GIỮ ALT: Kéo trên mặt phẳng XZ như bình thường.
+      raycaster.setFromCamera(event.pointer, camera);
+      const intersects = raycaster.intersectObjects([plane, ...placedObjectsGroupRef.current.children], true);
+      const intersect = intersects.find(i => i.object.name !== 'RollOverMesh');
+      if (intersect) {
+        let gridPos = getGridPositionForSelection(intersect);
+        if (gridPos && gridPos[1] < 0) gridPos[1] = 0;
+        // Cập nhật điểm cuối với tọa độ X và Z mới, giữ nguyên Y.
+        if (gridPos) onSetSelectionEnd(prev => prev ? [gridPos![0], prev[1], gridPos![2]] : gridPos);
       }
     }
     // --- Logic di chuyển đối tượng ---
@@ -768,8 +754,8 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
           onAddObject(gridPosition, selectedAsset);
         }
       }
-    } else if (builderMode === 'build-area') {
-      // --- START: CẬP NHẬT LOGIC CHỌN ĐIỂM BẮT ĐẦU ---
+    } else if (builderMode === 'build-area' || (builderMode === 'navigate' && isShiftDown)) {
+      // --- UPDATED: Support Shift+Drag area selection in navigate mode ---
       let startPos: [number, number, number] | null = null;
 
       // Ưu tiên 1: Nếu click trúng một đối tượng, lấy vị trí của đối tượng đó làm điểm bắt đầu.
@@ -786,16 +772,17 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
       setIsDragging(true);
       onSetSelectionStart(startPos);
       onSetSelectionEnd(startPos);
-      // --- END: CẬP NHẬT LOGIC CHỌN ĐIỂM BẮT ĐẦU ---
 
-      // --- START: SMART SELECT LOGIC ---
-      if (selectionMode === 'smart' && onSmartSelect && clickedId) {
-        // Nếu đang ở mode Smart Select, click sẽ kích hoạt thuật toán chọn thông minh
+      // --- SMART SELECT LOGIC (only when not area selecting) ---
+      if (selectionMode === 'smart' && onSmartSelect && clickedId && !isShiftDown) {
         onSmartSelect(clickedId);
-        // Trả về ngay để không bắt đầu drag box selection
         return;
       }
-      // --- END: SMART SELECT LOGIC ---
+    } else if (builderMode === 'navigate') {
+      // --- Normal navigate mode: Smart select on click ---
+      if (selectionMode === 'smart' && onSmartSelect && clickedId) {
+        onSmartSelect(clickedId);
+      }
     }
   };
 

@@ -127,59 +127,7 @@ export function AssetPalette({
 
   return (
     <aside className="asset-palette">
-      {/* Placement Mode Switcher */}
-      <div className="palette-section">
-        <h3 className="section-title">🛠️ Placement Mode</h3>
-        <div className="mode-switcher">
-          <button
-            className={`mode-btn ${currentMode === 'navigate' ? 'active' : ''}`}
-            onClick={() => onModeChange('navigate')}
-            title="Navigate & Select (V)"
-          >
-            <span className="mode-icon">👆</span>
-            <span>Navigate</span>
-          </button>
-          <button
-            className={`mode-btn ${currentMode === 'build-single' ? 'active' : ''}`}
-            onClick={() => onModeChange('build-single')}
-            title="Build Single Object (B)"
-          >
-            <span className="mode-icon">🧱</span>
-            <span>Build</span>
-          </button>
-          <button
-            className={`mode-btn ${currentMode === 'build-area' ? 'active' : ''}`}
-            onClick={() => onModeChange('build-area')}
-            title="Select Area (S)"
-          >
-            <span className="mode-icon">☐</span>
-            <span>Select</span>
-          </button>
-        </div>
-
-        {/* Smart Select Toggle (when in Select mode) */}
-        {currentMode === 'navigate' && onSelectionModeChange && (
-          <div className="selection-mode-toggle">
-            <label>Selection Type:</label>
-            <div className="toggle-buttons">
-              <button
-                className={`toggle-btn ${selectionMode === 'box' ? 'active' : ''}`}
-                onClick={() => onSelectionModeChange('box')}
-                title="Box Selection - Drag to select area"
-              >
-                <span>⬜ Box</span>
-              </button>
-              <button
-                className={`toggle-btn ${selectionMode === 'smart' ? 'active' : ''}`}
-                onClick={() => onSelectionModeChange('smart')}
-                title="Smart Selection (S) - Click to select connected tiles"
-              >
-                <span>🎯 Smart</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* NOTE: Placement Mode moved to ViewportToolbar for better accessibility */}
 
       {/* Selection Controls */}
       {selectionBounds && (

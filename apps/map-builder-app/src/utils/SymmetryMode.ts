@@ -101,18 +101,26 @@ export class SymmetryMode {
     let mirroredPos: [number, number, number];
     let mirroredRot: [number, number, number];
     
+    // Block positions are corner-based, but we want to mirror the CENTER of the block
+    // For a 1x1 block, center = corner + 0.5
+    // To mirror center: mirrorCenter = 2*axis - center
+    // Convert back to corner: mirrorCorner = mirrorCenter - 0.5
+    // Simplified: mirrorPos = 2*axis - pos - 1 (when axis is at integer position)
+    // But when axis is between tiles (e.g., 6.5), we use floor/round
+    
     switch (this.config.axis) {
       case 'x':
-        // Mirror across X axis (flip Z coordinate)
-        const mirroredZ = 2 * this.config.centerZ - z;
+        // Mirror across horizontal axis (flip Z coordinate, keep X)
+        // To properly mirror block center: 2*centerZ - (z + 0.5) - 0.5 = 2*centerZ - z - 1
+        const mirroredZ = 2 * this.config.centerZ - z - 1;
         mirroredPos = [x, y, Math.round(mirroredZ)];
         // Mirror Y rotation (flip direction)
         mirroredRot = [rx, -ry, rz];
         break;
         
       case 'z':
-        // Mirror across Z axis (flip X coordinate)
-        const mirroredX = 2 * this.config.centerX - x;
+        // Mirror across vertical axis (flip X coordinate, keep Z)
+        const mirroredX = 2 * this.config.centerX - x - 1;
         mirroredPos = [Math.round(mirroredX), y, z];
         // Mirror Y rotation (flip direction)
         mirroredRot = [rx, Math.PI - ry, rz];
@@ -120,8 +128,8 @@ export class SymmetryMode {
         
       case 'both':
         // Mirror across both axes (point reflection through center)
-        const mirX = 2 * this.config.centerX - x;
-        const mirZ = 2 * this.config.centerZ - z;
+        const mirX = 2 * this.config.centerX - x - 1;
+        const mirZ = 2 * this.config.centerZ - z - 1;
         mirroredPos = [Math.round(mirX), y, Math.round(mirZ)];
         // Rotate 180 degrees
         mirroredRot = [rx, ry + Math.PI, rz];
@@ -199,9 +207,44 @@ export class SymmetryMode {
     // Don't duplicate if on the axis
     if (this.isOnAxis(position)) return positions;
     
-    const mirrored = this.getMirroredPosition(position, rotation);
-    if (mirrored) {
-      positions.push(mirrored);
+    const [x, y, z] = position;
+    const [rx, ry, rz] = rotation;
+    
+    if (this.config.axis === 'both') {
+      // For 'both' mode: Create 3 mirrors for true 4-quadrant symmetry
+      // Apply -1 offset to mirror block CENTER instead of corner
+      
+      // 1. Mirror across X (flip Z, keep X)
+      const mirZ1 = Math.round(2 * this.config.centerZ - z - 1);
+      if (Math.abs(z - this.config.centerZ) >= 0.5) {
+        positions.push({
+          position: [x, y, mirZ1],
+          rotation: [rx, -ry, rz]
+        });
+      }
+      
+      // 2. Mirror across Z (flip X, keep Z)
+      const mirX2 = Math.round(2 * this.config.centerX - x - 1);
+      if (Math.abs(x - this.config.centerX) >= 0.5) {
+        positions.push({
+          position: [mirX2, y, z],
+          rotation: [rx, Math.PI - ry, rz]
+        });
+      }
+      
+      // 3. Mirror across both (diagonal - flip both X and Z)
+      if (Math.abs(z - this.config.centerZ) >= 0.5 && Math.abs(x - this.config.centerX) >= 0.5) {
+        positions.push({
+          position: [mirX2, y, mirZ1],
+          rotation: [rx, ry + Math.PI, rz]
+        });
+      }
+    } else {
+      // Single axis: just one mirror
+      const mirrored = this.getMirroredPosition(position, rotation);
+      if (mirrored) {
+        positions.push(mirrored);
+      }
     }
     
     return positions;
