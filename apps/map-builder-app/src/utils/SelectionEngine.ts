@@ -1,4 +1,4 @@
-simport { PlacedObject } from '../types';
+import { PlacedObject } from '../types';
 
 /**
  * Coordinate tuple [x, y, z]
