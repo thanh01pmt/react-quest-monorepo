@@ -159,6 +159,7 @@ function App() {
   const [topologyHighlights, setTopologyHighlights] = useState<HighlightItem[]>([]);
   // NEW: State for realtime calculated path
   const [dynamicPathCoords, setDynamicPathCoords] = useState<[number, number, number][] | null>(null);
+  const [hasUserEdit, setHasUserEdit] = useState(false); // Track if user has modified the map since load
   const sceneRef = useRef<SceneController>(null);
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<HTMLDivElement>(null); // Ref cho right-sidebar
@@ -1156,6 +1157,7 @@ function App() {
 
 
   const handleAddObject = (gridPosition: [number, number, number], asset: BuildableAsset) => {
+    setHasUserEdit(true); // User action -> Enable realtime path
     const coordId = gridPosition.join(',');
     if (placedObjects.some(obj => obj.position.join(',') === coordId)) return;
 
@@ -1303,6 +1305,7 @@ function App() {
   };
 
   const handleRemoveObject = (id: string) => {
+    setHasUserEdit(true);
     const objectToRemove = placedObjects.find(o => o.id === id);
     if (!objectToRemove) return;
 
@@ -1324,6 +1327,7 @@ function App() {
   };
 
   const handleRemoveMultipleObjects = (ids: string[]) => {
+    setHasUserEdit(true);
     const objectsToRemove = placedObjects.filter(o => ids.includes(o.id));
     const newObjects = placedObjects.filter(obj => !ids.includes(obj.id));
 
@@ -1337,6 +1341,7 @@ function App() {
   };
 
   const handleMoveObjectToPosition = (objectId: string, newPosition: [number, number, number]) => {
+    setHasUserEdit(true);
     setPlacedObjectsWithHistory(prev => {
       const objectToMove = prev.find(o => o.id === objectId);
       if (!objectToMove) return prev;
@@ -1364,6 +1369,7 @@ function App() {
   // This prevents race conditions by updating all positions in a single state update
   // ENHANCED: When moving ground blocks, also move items sitting on top of them
   const handleMoveObjectsBatch = useCallback((moves: Array<{ id: string; position: [number, number, number] }>) => {
+    setHasUserEdit(true);
     if (moves.length === 0) return;
 
     setPlacedObjectsWithHistory(prev => {
@@ -1466,6 +1472,7 @@ function App() {
   // NÂNG CẤP: Di chuyển một hoặc nhiều đối tượng theo bước
   // ENHANCED: Also move items sitting on top of ground blocks
   const handleMoveObject = (objectIds: string[], direction: 'x' | 'y' | 'z', amount: 1 | -1) => {
+    setHasUserEdit(true);
     setPlacedObjectsWithHistory(prev => {
       const objectsToMove = prev.filter(o => objectIds.includes(o.id));
       if (objectsToMove.length === 0) return prev;
@@ -1685,6 +1692,10 @@ function App() {
   const handleImportMap = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
+      // RESET state when importing new map
+      setHasUserEdit(false);
+      setDynamicPathCoords(null);
+
       try {
         const text = e.target?.result as string;
         const json = JSON.parse(text);
@@ -1766,6 +1777,11 @@ function App() {
       if (!response.ok) {
         throw new Error(`Failed to fetch map: ${response.statusText}`);
       }
+
+      // RESET state when loading new map
+      setHasUserEdit(false);
+      setDynamicPathCoords(null);
+
       const json = await response.json();
 
       let configToLoad;
@@ -2170,6 +2186,9 @@ function App() {
       setMapTheme(Themes.COMPREHENSIVE_THEMES[0]); // Reset theme về mặc định
       setSelectionStart(null);
       setSelectionEnd(null);
+      // RESET user edit state
+      setHasUserEdit(false);
+      setDynamicPathCoords(null);
     }
   }, []); // Không có dependencies vì chỉ reset state
   const handleGenerateMap = (newObjects: PlacedObject[], metadataUpdate?: Record<string, any>) => {
@@ -2177,6 +2196,10 @@ function App() {
     if (placedObjects.length > 0 && !window.confirm("Generating a new map will replace current objects. Continue?")) {
       return;
     }
+
+    // RESET user edit state for generated map
+    setHasUserEdit(false);
+    setDynamicPathCoords(null);
 
     // FIX: Reset history to start fresh with ONLY the new generated objects
     // Previously, we pushed to history then set index to 0, which caused the scene to show empty state
@@ -2273,6 +2296,8 @@ function App() {
 
   // NEW: Real-time path calculation effect
   useEffect(() => {
+    if (!hasUserEdit) return; // Only verify path if user has edited the map
+
     // Debounce slightly to avoid too many calcs during drag
     const timer = setTimeout(() => {
       // Find start and target
@@ -2280,7 +2305,8 @@ function App() {
       const targetObj = placedObjects.find(o => o.asset.key === 'finish');
 
       if (!startObj || !targetObj) {
-        setDynamicPathCoords(null);
+        // If start/finish are missing, we explicitly return empty path to clear any stale solution
+        setDynamicPathCoords([]);
         return;
       }
 
@@ -2318,8 +2344,20 @@ function App() {
       };
 
       // BFS
-      const startNode = { x: startObj.position[0], y: startObj.position[1], z: startObj.position[2], parent: null as any };
-      const targetPosString = `${targetObj.position[0]},${targetObj.position[1]},${targetObj.position[2]}`;
+      // Adjust start/target to ground level if needed (Player/Finish often sit ON TOP of ground)
+      let sx = startObj.position[0], sy = startObj.position[1], sz = startObj.position[2];
+      // If start pos is not a ground block, but the block below it is, shift down.
+      if (!groundMap.has(`${sx},${sy},${sz}`) && groundMap.has(`${sx},${sy - 1},${sz}`)) {
+        sy -= 1;
+      }
+
+      let tx = targetObj.position[0], ty = targetObj.position[1], tz = targetObj.position[2];
+      if (!groundMap.has(`${tx},${ty},${tz}`) && groundMap.has(`${tx},${ty - 1},${tz}`)) {
+        ty -= 1;
+      }
+
+      const startNode = { x: sx, y: sy, z: sz, parent: null as any };
+      const targetPosString = `${tx},${ty},${tz}`;
 
       const queue = [startNode];
       const visited = new Set<string>();
@@ -2370,7 +2408,8 @@ function App() {
         // Start/End are usually raised? No, usually placed objects have integer coords if snapped.
         setDynamicPathCoords(path);
       } else {
-        setDynamicPathCoords(null);
+        // Path not found -> clear path
+        setDynamicPathCoords([]);
       }
     }, 500); // 500ms debounce
 
@@ -2379,7 +2418,9 @@ function App() {
 
   const solutionPath = useMemo(() => {
     // Priority 1: Real-time calculated path
-    if (dynamicPathCoords) return dynamicPathCoords;
+    // If dynamicPathCoords is not null (even if empty), use it.
+    // This allows clearing the path when it becomes invalid.
+    if (dynamicPathCoords !== null) return dynamicPathCoords;
 
     // Priority 2: Pre-defined solution
     if (questMetadata?.solution?.pathCoordinates) {
