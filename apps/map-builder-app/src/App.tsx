@@ -678,6 +678,19 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedObjectIds, selectionBounds, placedObjects, handleRotateSelection, handleFlipSelection]); // Added missing dependencies
 
+  // Handler to clear only items (collectibles/interactibles)
+  const handleClearItems = useCallback(() => {
+    if (window.confirm('WARNING: Remove ALL collectibles and interactibles from the map?')) {
+      setPlacedObjectsWithHistory((prev: PlacedObject[]) => {
+        const newObjects = prev.filter((obj: PlacedObject) =>
+          obj.asset.type !== 'collectible' && obj.asset.type !== 'interactible'
+        );
+        return newObjects;
+      });
+      setHasUserEdit(true);
+    }
+  }, [setPlacedObjectsWithHistory]);
+
   // --- HÀM MỚI: Clean Map (Remove Identical Duplicates) ---
   const handleCleanMap = useCallback(() => {
     if (placedObjects.length === 0) return;
@@ -3097,6 +3110,7 @@ function App() {
           hasSelection={selectedObjectIds.length > 0}
           selectionCount={selectedObjectIds.length}
           onCleanMap={handleCleanMap}
+          onClearItems={handleClearItems}
           assetGroups={buildableAssetGroups}
           selectedAssetKey={selectedAsset?.key || null}
           onSelectAsset={handleSelectAsset}

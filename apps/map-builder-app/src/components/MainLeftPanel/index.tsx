@@ -24,6 +24,7 @@ interface MainLeftPanelProps {
     hasSelection: boolean;
     selectionCount?: number;
     onCleanMap?: () => void;
+    onClearItems?: () => void;
     onShowShortcuts?: () => void;
 
     // Assets
@@ -40,6 +41,7 @@ export function MainLeftPanel({
     hasSelection,
     selectionCount = 0,
     onCleanMap,
+    onClearItems,
     onShowShortcuts,
     assetGroups,
     selectedAssetKey,
@@ -162,6 +164,13 @@ export function MainLeftPanel({
                     {onCleanMap && (
                         <button className="icon-btn" onClick={onCleanMap} title="Clean Map (Remove overlapping duplicates)">
                             🧹
+                        </button>
+                    )}
+
+                    {/* Clear Items */}
+                    {onClearItems && (
+                        <button className="icon-btn" onClick={onClearItems} title="Clear Items (Remove all collectibles/interactibles)">
+                            🗑️
                         </button>
                     )}
 
