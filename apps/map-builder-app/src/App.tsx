@@ -167,7 +167,19 @@ function App() {
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<HTMLDivElement>(null); // Ref cho right-sidebar
 
-  // --- START: LOGIC CUỘN SIDEBAR LÊN KHI CHỌN ĐỐI TƯỢNG ---
+  // --- END: LOGIC CUỘN SIDEBAR LÊN KHI CHỌN ĐỐI TƯỢNG ---
+
+  // MOVED UP: Asset Map Helper
+  const assetMap = useMemo(() => {
+    const map = new Map<string, BuildableAsset>();
+    buildableAssetGroups.forEach(group => {
+      group.items.forEach(item => {
+        map.set(item.key, item);
+      });
+    });
+    return map;
+  }, []);
+
   useEffect(() => {
     // Kiểm tra localStorage để xem có nên hiển thị modal không
     const shouldShowWelcome = localStorage.getItem('showWelcomeModal') !== 'false';
@@ -303,6 +315,51 @@ function App() {
           setIsPasteMode(true);
           setBuilderMode('navigate');
           console.log('Paste mode activated. Click to place.');
+        }
+      }
+
+
+      // --- ASSET SHORTCUTS (1-4) ---
+      else if (e.key === '1' && !e.ctrlKey && !e.metaKey) {
+        const asset = assetMap.get('crystal');
+        if (asset) {
+          setSelectedAsset(asset);
+          setBuilderMode('build-single');
+        }
+      }
+      else if (e.key === '2' && !e.ctrlKey && !e.metaKey) {
+        const asset = assetMap.get('switch');
+        if (asset) {
+          setSelectedAsset(asset);
+          setBuilderMode('build-single');
+        }
+      }
+      else if (e.key === '3' && !e.ctrlKey && !e.metaKey) {
+        const asset = assetMap.get('key');
+        if (asset) {
+          setSelectedAsset(asset);
+          setBuilderMode('build-single');
+        }
+      }
+      else if (e.key === '4' && !e.ctrlKey && !e.metaKey) {
+        const asset = assetMap.get('portal_blue');
+        if (asset) {
+          setSelectedAsset(asset);
+          setBuilderMode('build-single');
+        }
+      }
+      else if (e.key === '5' && !e.ctrlKey && !e.metaKey) {
+        const asset = assetMap.get('player_start');
+        if (asset) {
+          setSelectedAsset(asset);
+          setBuilderMode('build-single');
+        }
+      }
+      else if (e.key === '6' && !e.ctrlKey && !e.metaKey) {
+        const asset = assetMap.get('finish');
+        if (asset) {
+          setSelectedAsset(asset);
+          setBuilderMode('build-single');
         }
       }
 
@@ -739,15 +796,7 @@ function App() {
 
   // --- END: THAY ĐỔI ĐỂ QUẢN LÝ LỊCH SỬ UNDO/REDO ---
 
-  const assetMap = useMemo(() => {
-    const map = new Map<string, BuildableAsset>();
-    buildableAssetGroups.forEach(group => {
-      group.items.forEach(item => {
-        map.set(item.key, item);
-      });
-    });
-    return map;
-  }, []);
+
 
   // Placement service instance for item generation
   const placementService = useMemo(() => new PlacementService(), []);
