@@ -1,4 +1,4 @@
-/**
+11/**
  * @file gameSolver.ts (Ported from gameSolver.py)
  * @description Một bộ giải mê cung sử dụng thuật toán A* để tìm đường đi tối ưu, có xử lý các mục tiêu phụ.
  * Hiện tại hỗ trợ di chuyển cơ bản, nhận diện tường và tìm đến điểm kết thúc.
@@ -91,17 +91,21 @@ class GameState {
   }
 }
 
-// SỬA LỖI: Hoán đổi hướng Tới (+Z) và Lùi (-Z) để khớp với thực tế game.
-// Quy ước đã sửa (theo chiều kim đồng hồ):
-// 0: -Z (Lùi / Backward)
-// 1: +X (Phải / Right)
-// 2: +Z (Tới / Forward)
-// 3: -X (Trái / Left)
+// DIRECTION CONVENTION (matches BuilderScene visual):
+// Direction index maps to visual cone rotation:
+// 0: +X (East)  - cone points to +X
+// 1: +Z (North) - cone points to +Z (default visual direction)
+// 2: -X (West)  - cone points to -X
+// 3: -Z (South) - cone points to -Z
+//
+// When calculating turns: clockwise order: 0(East) -> 1(North) -> 2(West) -> 3(South) -> 0(East)
+// turnRight = (direction + 3) % 4 (counterclockwise in this order)
+// turnLeft = (direction + 1) % 4 (clockwise in this order)
 const directions = [
-  { x: 0, z: -1 }, // 0: -Z
-  { x: 1, z: 0 },  // 1: +X
-  { x: 0, z: 1 },  // 2: +Z
-  { x: -1, z: 0 }, // 3: -X
+  { x: 1, z: 0 },  // 0: +X (East) - FIX: was -Z
+  { x: 0, z: 1 },  // 1: +Z (North) - FIX: was +X
+  { x: -1, z: 0 }, // 2: -X (West) - FIX: was +Z
+  { x: 0, z: -1 }, // 3: -Z (South) - FIX: was -X
 ];
 
 /**
@@ -1391,8 +1395,10 @@ const hasPathRelative = (state: GameState, relativeDir: 'ahead' | 'left' | 'righ
     if (relativeDir === 'ahead') {
         targetDir = currentDir;
     } else if (relativeDir === 'left') {
+        // Left (counterclockwise visual from camera): decrement direction index
         targetDir = (currentDir - 1 + 4) % 4;
     } else { // right
+        // Right (clockwise visual from camera): increment direction index
         targetDir = (currentDir + 1) % 4;
     }
 
@@ -1429,7 +1435,7 @@ const simulateWallFollower = (world: GameWorld, startState: GameState): string[]
         }
 
         if (hasPathRelative(currentState, 'right', world)) {
-            // Quay phải
+            // Turn right (clockwise visual from camera)
             currentState.direction = (currentState.direction + 1) % 4;
             rawActions.push('turnRight');
             // Đi tới
@@ -1444,7 +1450,7 @@ const simulateWallFollower = (world: GameWorld, startState: GameState): string[]
             currentState.position.z += dirVector.z;
             rawActions.push('moveForward');
         } else {
-            // Quay trái
+            // Turn left (counterclockwise visual from camera)
             currentState.direction = (currentState.direction - 1 + 4) % 4;
             rawActions.push('turnLeft');
         }
@@ -1552,29 +1558,27 @@ function calculateTurnActions(currentState: GameState, nextPos: Position, lastAc
     const dx = nextPos.x - currentState.position.x;
     const dz = nextPos.z - currentState.position.z;
     
-    // SỬA LỖI VÀ TÁI CẤU TRÚC: Logic ánh xạ dx, dz sang targetDir đã được sửa lại cho chính xác và dễ đọc hơn.
-    // Quy ước hướng: 0: -Z, 1: +X, 2: +Z, 3: -X
+    // FIX: Updated mapping for new convention: 0=+X(East), 1=+Z(North), 2=-X(West), 3=-Z(South)
     let targetDir: number;
-    if (dx === 1 && dz === 0) targetDir = 1;      // +X -> Phải
-    else if (dx === -1 && dz === 0) targetDir = 3; // -X -> Trái
-    else if (dx === 0 && dz === 1) targetDir = 2;   // +Z -> Tới
-    else if (dx === 0 && dz === -1) targetDir = 0;  // -Z -> Lùi
+    if (dx === 1 && dz === 0) targetDir = 0;       // +X -> East (was 1)
+    else if (dx === -1 && dz === 0) targetDir = 2; // -X -> West (was 3)
+    else if (dx === 0 && dz === 1) targetDir = 1;  // +Z -> North (was 2)
+    else if (dx === 0 && dz === -1) targetDir = 3; // -Z -> South (was 0)
     else targetDir = currentState.direction;
 
     if (targetDir !== currentState.direction) {
-        // SỬA LỖI DỨT ĐIỂM: Logic quay đang bị ngược. Hoán đổi lại turnLeft và turnRight.
-        // diff = 1 (theo chiều kim đồng hồ) phải là turnRight.
-        // diff = 3 (ngược chiều kim đồng hồ) phải là turnLeft.
+        // Direction order: 0(E)->1(N)->2(W)->3(S), so +1 is counterclockwise, -1 is clockwise
+        // But visually from camera: +1 appears as RIGHT, -1 appears as LEFT
         const diff = (targetDir - currentState.direction + 4) % 4;
-        if (diff === 1) { // Quay phải
+        if (diff === 1) { // +1 step = visual RIGHT
             actions.push('turnRight');
             cost += (lastAction === 'turnRight' ? 0.1 - REPETITION_DISCOUNT : 0.1);
-        } else if (diff === 3) { // Quay trái
+        } else if (diff === 3) { // -1 step = visual LEFT
             actions.push('turnLeft');
-            cost += (lastAction === 'turnLeft' ? 0.1 - REPETITION_DISCOUNT : 0.1);
+            cost += (lastAction === 'turnRight' ? 0.1 - REPETITION_DISCOUNT : 0.1);
         } else if (diff === 2) {
             actions.push('turnRight', 'turnRight');
-            cost += 0.2; // Khó áp dụng chiết khấu cho quay 180 độ, tạm giữ nguyên
+            cost += 0.2; // 180 degree turn
         }
     }
 

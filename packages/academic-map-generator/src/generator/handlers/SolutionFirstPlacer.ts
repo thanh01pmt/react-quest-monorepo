@@ -101,12 +101,18 @@ export interface PlacementResult {
 
 /**
  * Direction utilities
+ * 
+ * CONVENTION (matches BuilderScene visual):
+ * - North (+Z) = direction 1 = yRotation 0 = points toward increasing Z
+ * - East  (+X) = direction 0 = yRotation -90° = points toward increasing X  
+ * - South (-Z) = direction 3 = yRotation 180° = points toward decreasing Z
+ * - West  (-X) = direction 2 = yRotation 90° = points toward decreasing X
  */
 const DIRECTION_DELTAS: Record<string, { dx: number; dz: number }> = {
-    'north': { dx: 0, dz: -1 },
-    'east': { dx: 1, dz: 0 },
-    'south': { dx: 0, dz: 1 },
-    'west': { dx: -1, dz: 0 }
+    'north': { dx: 0, dz: 1 },   // +Z (FIX: was -1)
+    'east': { dx: 1, dz: 0 },    // +X
+    'south': { dx: 0, dz: -1 },  // -Z (FIX: was +1)
+    'west': { dx: -1, dz: 0 }    // -X
 };
 
 const DIRECTION_ORDER = ['north', 'east', 'south', 'west'];
@@ -114,10 +120,11 @@ const DIRECTION_ORDER = ['north', 'east', 'south', 'west'];
 function getDirection(from: Coord, to: Coord): string {
     const dx = Math.sign(to[0] - from[0]);
     const dz = Math.sign(to[2] - from[2]);
-    if (dz < 0) return 'north';
-    if (dz > 0) return 'south';
-    if (dx > 0) return 'east';
-    if (dx < 0) return 'west';
+    // FIX: Match BuilderScene convention: North = +Z, South = -Z
+    if (dz > 0) return 'north';  // Moving toward +Z (was: dz < 0)
+    if (dz < 0) return 'south';  // Moving toward -Z (was: dz > 0)
+    if (dx > 0) return 'east';   // Moving toward +X
+    if (dx < 0) return 'west';   // Moving toward -X
     return 'none';
 }
 

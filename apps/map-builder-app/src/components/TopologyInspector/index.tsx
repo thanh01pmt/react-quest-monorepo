@@ -75,9 +75,34 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                 const playerStart = placedObjects.find(o => o.asset.key === 'player_start');
                 const finishPoint = placedObjects.find(o => o.asset.key === 'finish');
 
+                // Extract direction from player_start rotation (Y-axis rotation)
+                // BuilderScene rotationMap convention:
+                // 0=+X(East): yRotation = -Math.PI/2
+                // 1=+Z(North): yRotation = 0
+                // 2=-X(West): yRotation = Math.PI/2
+                // 3=-Z(South): yRotation = Math.PI
+                const getDirectionFromRotation = (rotation?: [number, number, number]): number => {
+                    if (!rotation) return 1; // Default: North (+Z)
+                    const yRotation = rotation[1]; // Y-axis rotation in radians
+                    // Normalize to 0-2π range
+                    const normalized = ((yRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                    // Convert radians to direction: 
+                    // ~0 → North(1), ~π/2 → West(2), ~π → South(3), ~3π/2 (or -π/2) → East(0)
+                    const rotStep = Math.round(normalized / (Math.PI / 2)) % 4;
+                    // rotStep: 0=0°, 1=90°, 2=180°, 3=270°
+                    // Map: 0°→1(North), 90°→2(West), 180°→3(South), 270°→0(East)
+                    const directionMap: Record<number, number> = { 0: 1, 1: 2, 2: 3, 3: 0 };
+                    return directionMap[rotStep] ?? 1;
+                };
+
                 // Defaults if missing
                 const start = playerStart?.position
-                    ? { x: playerStart.position[0], y: playerStart.position[1], z: playerStart.position[2], direction: 0 }
+                    ? {
+                        x: playerStart.position[0],
+                        y: playerStart.position[1],
+                        z: playerStart.position[2],
+                        direction: getDirectionFromRotation(playerStart.rotation)
+                    }
                     : (pathInfo ? { x: pathInfo.start_pos[0], y: pathInfo.start_pos[1], z: pathInfo.start_pos[2], direction: 0 } : { x: 0, y: 0, z: 0, direction: 0 });
 
                 const finish = finishPoint?.position
