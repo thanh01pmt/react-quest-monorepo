@@ -981,8 +981,12 @@ const aStarPathSolver = (gameConfig: GameConfig, solutionConfig: Solution, block
 
     const world = new GameWorld(gameConfig, solutionConfig);
     const startPos = gameConfig.players[0].start;
-    const startDir = gameConfig.players[0].start.direction !== undefined ? gameConfig.players[0].start.direction : 2; // Sửa mặc định thành 2 (+Z)
-    const startState = new GameState(startPos, startDir, world); // world đã có solutionConfig
+    // DIRECTION CONVENTION: 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
+    // Default to 1 (North/+Z) if direction not specified
+    const rawDir = gameConfig.players[0].start.direction;
+    const startDir = rawDir !== undefined ? Math.round(rawDir) % 4 : 1;
+    console.log(`Solver: Start direction from config: ${rawDir}, using: ${startDir} (0=E, 1=N, 2=W, 3=S)`);
+    const startState = new GameState(startPos, startDir, world);
     const startNode = new PathNode(startState);
 
     const openList: PathNode[] = [];
@@ -1567,14 +1571,15 @@ function calculateTurnActions(currentState: GameState, nextPos: Position, lastAc
     else targetDir = currentState.direction;
 
     if (targetDir !== currentState.direction) {
-        // Direction order: 0(E)->1(N)->2(W)->3(S), so +1 is counterclockwise, -1 is clockwise
-        // But visually from camera: +1 appears as RIGHT, -1 appears as LEFT
+        // Direction array order: 0(E)->1(N)->2(W)->3(S) is COUNTERCLOCKWISE when viewed from above
+        // So: +1 step in array = counterclockwise = turnLeft
+        //     -1 step in array = clockwise = turnRight
         const diff = (targetDir - currentState.direction + 4) % 4;
-        if (diff === 1) { // +1 step = visual RIGHT
-            actions.push('turnRight');
-            cost += (lastAction === 'turnRight' ? 0.1 - REPETITION_DISCOUNT : 0.1);
-        } else if (diff === 3) { // -1 step = visual LEFT
+        if (diff === 1) { // +1 step = counterclockwise = turnLeft
             actions.push('turnLeft');
+            cost += (lastAction === 'turnLeft' ? 0.1 - REPETITION_DISCOUNT : 0.1);
+        } else if (diff === 3) { // -1 step = clockwise = turnRight
+            actions.push('turnRight');
             cost += (lastAction === 'turnRight' ? 0.1 - REPETITION_DISCOUNT : 0.1);
         } else if (diff === 2) {
             actions.push('turnRight', 'turnRight');

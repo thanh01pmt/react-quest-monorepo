@@ -1,42 +1,75 @@
 import { useState, useEffect } from 'react';
-import _ from 'lodash'; // Import lodash để xử lý object an toàn
+import _ from 'lodash';
 import './QuestDetailsPanel.css';
-import { BlocklyModal } from '../PropertiesPanel/BlocklyModal'; // Import modal mới
-import '../PropertiesPanel/BlocklyModal.css'; // Import CSS cho modal
+import { BlocklyModal } from '../PropertiesPanel/BlocklyModal';
+import '../PropertiesPanel/BlocklyModal.css';
+import { toolboxPresets } from '../../config/toolboxPresets';
 
-import { toolboxPresets } from '../../config/toolboxPresets'; // THÊM MỚI: Import danh sách toolbox
 interface QuestDetailsPanelProps {
   metadata: Record<string, any> | null;
   onMetadataChange: (path: string, value: any) => void;
-  onSolveMaze: () => void; // SỬA ĐỔI: Hàm giải không cần tham số nữa
+  onSolveMaze: () => void;
   onImportMap: (file: File) => void;
+  onLoadMapFromUrl?: (url: string) => void;
 }
 
 // Helper để lấy giá trị lồng sâu trong object
-// Cập nhật: Hàm này giờ sẽ nhận một mảng các key để tránh xung đột khi key chứa dấu chấm.
 const getDeepValue = (obj: any, path: string) => {
-  // Tách đường dẫn chỉ ở những dấu chấm không nằm trong key của translation
-  // Cách tiếp cận đơn giản và an toàn hơn là truy cập từng cấp
   return path.split('.').reduce((o, k) => (o || {})[k], obj);
 };
 
-/**
- * [REWRITTEN] Biên dịch một đối tượng structuredSolution (JSON) thành chuỗi XML của Blockly.
- * Hàm này sử dụng DOM API để xây dựng cây XML một cách an toàn và chính xác,
- * thay vì ghép chuỗi thủ công.
- * @param structuredSolution Đối tượng chứa `main` và `procedures`.
- * @returns Một chuỗi XML hoàn chỉnh.
- */
+// ============================================================
+// COLLAPSIBLE SECTION COMPONENT
+// ============================================================
+interface CollapsibleSectionProps {
+  title: string;
+  icon: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  badge?: string | number;
+  badgeColor?: 'green' | 'orange' | 'red' | 'blue';
+}
+
+function CollapsibleSection({
+  title,
+  icon,
+  defaultOpen = true,
+  children,
+  badge,
+  badgeColor = 'blue'
+}: CollapsibleSectionProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className={`collapsible-section ${isOpen ? 'open' : 'closed'}`}>
+      <button
+        className="section-header"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="section-icon">{icon}</span>
+        <span className="section-title">{title}</span>
+        {badge !== undefined && (
+          <span className={`section-badge badge-${badgeColor}`}>{badge}</span>
+        )}
+        <span className="section-toggle">{isOpen ? '▼' : '▶'}</span>
+      </button>
+      {isOpen && <div className="section-content">{children}</div>}
+    </div>
+  );
+}
+
+// ============================================================
+// JSON TO XML CONVERTER (giữ nguyên logic cũ)
+// ============================================================
 const jsonToXml = (structuredSolution: any): string => {
   const doc = document.implementation.createDocument(null, 'xml', null);
 
-  // Hàm đệ quy để chuyển đổi một mảng hành động thành các khối XML và nối chúng
   const jsonToXmlRecursive = (actions: any[], parent: Element): Element | null => {
     let lastBlock: Element | null = null;
 
     actions.forEach(action => {
       const block = doc.createElement('block');
-      // SỬA LỖI: Xử lý khối gọi hàm tạm thời 'CALL' và chuyển nó thành 'procedures_callnoreturn'
+
       if (action.type === 'CALL' && action.name) {
         block.setAttribute('type', 'procedures_callnoreturn');
         const mutation = doc.createElement('mutation');
@@ -46,46 +79,19 @@ const jsonToXml = (structuredSolution: any): string => {
         block.setAttribute('type', action.type);
       }
 
-      // Xử lý các loại khối khác nhau
+      // Handle different block types
       if (action.type === 'maze_turn') {
         const field = doc.createElement('field');
         field.setAttribute('name', 'DIR');
         field.textContent = action.direction;
         block.appendChild(field);
-      } else if (action.type === 'maze_is_path') {
-        // SỬA LỖI: Thêm logic để xử lý hướng cho khối 'maze_is_path'.
-        const field = doc.createElement('field');
-        field.setAttribute('name', 'DIR');
-        field.textContent = action.direction; // Lấy hướng từ JSON
-        block.appendChild(field);
-      } else if (action.type === 'maze_is_item_present') {
-        // THÊM MỚI: Xử lý loại vật phẩm cho khối 'maze_is_item_present'.
-        if (action.item_type) {
-          const field = doc.createElement('field');
-          field.setAttribute('name', 'TYPE');
-          field.textContent = action.item_type;
-          block.appendChild(field);
-        }
-      } else if (action.type === 'maze_is_switch_state') {
-        // THÊM MỚI: Xử lý trạng thái cho khối 'maze_is_switch_state'.
-        if (action.state) {
-          const field = doc.createElement('field');
-          field.setAttribute('name', 'STATE');
-          field.textContent = action.state;
-          block.appendChild(field);
-        }
       } else if (action.type === 'maze_repeat' || action.type === 'maze_for') {
-        // SỬA LỖI & NÂNG CẤP: Xử lý cả hai trường hợp cho 'TIMES':
-        // 1. Một giá trị số (tạo shadow block).
-        // 2. Một khối lồng nhau như 'variables_get' (đệ quy để tạo block).
         const value = doc.createElement('value');
         value.setAttribute('name', 'TIMES');
 
         if (typeof action.times === 'object' && action.times !== null && action.times.type) {
-          // Trường hợp 2: 'times' là một khối lồng nhau (ví dụ: variables_get)
           jsonToXmlRecursive([action.times], value);
         } else {
-          // Trường hợp 1: 'times' là một giá trị số (hành vi mặc định)
           const shadow = doc.createElement('shadow');
           shadow.setAttribute('type', 'math_number');
           const field = doc.createElement('field');
@@ -103,31 +109,6 @@ const jsonToXml = (structuredSolution: any): string => {
           block.appendChild(statement);
         }
       } else if (action.type === 'maze_forever') {
-        // THÊM MỚI: Xử lý khối 'maze_forever'
-        // Khối này không cần điều kiện, chỉ cần một statement 'DO'
-        const statement = doc.createElement('statement');
-        statement.setAttribute('name', 'DO');
-        jsonToXmlRecursive(action.actions || [], statement);
-        block.appendChild(statement);
-      } else if (action.type === 'maze_repeat_until') {
-        // THÊM MỚI: Xử lý khối 'maze_repeat_until' để tạo ra XML cho 'controls_whileUntil'
-        block.setAttribute('type', 'controls_whileUntil');
-
-        const modeField = doc.createElement('field');
-        modeField.setAttribute('name', 'MODE');
-        modeField.textContent = 'UNTIL'; // Luôn là UNTIL cho 'repeat_until'
-        block.appendChild(modeField);
-
-        const value = doc.createElement('value');
-        value.setAttribute('name', 'BOOL');
-        const conditionBlock = doc.createElement('block');
-        // SỬA LỖI: Đảm bảo rằng tên điều kiện từ solver (ví dụ: 'at_finish') được chuyển đổi chính xác
-        // thành tên loại khối lệnh trong Blockly (ví dụ: 'maze_at_finish').
-        // Logic `maze_${action.condition}` sẽ tự động tạo ra 'maze_at_finish' một cách chính xác.
-        conditionBlock.setAttribute('type', `maze_${action.condition}`);
-        value.appendChild(conditionBlock);
-        block.appendChild(value);
-
         const statement = doc.createElement('statement');
         statement.setAttribute('name', 'DO');
         jsonToXmlRecursive(action.actions || [], statement);
@@ -136,111 +117,6 @@ const jsonToXml = (structuredSolution: any): string => {
         const mutation = doc.createElement('mutation');
         mutation.setAttribute('name', action.mutation.name);
         block.appendChild(mutation);
-      } else if (action.type === 'controls_if') {
-        // THÊM MỚI: Xử lý khối 'controls_if' phức tạp
-        const elseIfCount = action.else_if_actions?.length || 0;
-        const elseCount = (action.else_actions && action.else_actions.length > 0) ? 1 : 0;
-
-        if (elseIfCount > 0 || elseCount > 0) {
-          const mutation = doc.createElement('mutation');
-          if (elseIfCount > 0) {
-            mutation.setAttribute('elseif', elseIfCount.toString());
-          }
-          if (elseCount > 0) {
-            mutation.setAttribute('else', '1');
-          }
-          block.appendChild(mutation);
-        }
-
-        // Xử lý nhánh IF chính (IF0)
-        if (action.condition) {
-          const value0 = doc.createElement('value');
-          value0.setAttribute('name', 'IF0');
-          // Giả định điều kiện là một khối duy nhất
-          jsonToXmlRecursive([action.condition], value0);
-          block.appendChild(value0);
-        }
-        if (action.if_actions) {
-          const statement0 = doc.createElement('statement');
-          statement0.setAttribute('name', 'DO0');
-          jsonToXmlRecursive(action.if_actions, statement0);
-          block.appendChild(statement0);
-        }
-
-        // Xử lý các nhánh ELSEIF (IF1, IF2, ...)
-        (action.else_if_actions || []).forEach((elseIfAction: any, index: number) => {
-          if (elseIfAction.condition) {
-            const valueN = doc.createElement('value');
-            valueN.setAttribute('name', `IF${index + 1}`);
-            jsonToXmlRecursive([elseIfAction.condition], valueN);
-            block.appendChild(valueN);
-          }
-          if (elseIfAction.actions) {
-            const statementN = doc.createElement('statement');
-            statementN.setAttribute('name', `DO${index + 1}`);
-            jsonToXmlRecursive(elseIfAction.actions, statementN);
-            block.appendChild(statementN);
-          }
-        });
-
-        // Xử lý nhánh ELSE
-        if (action.else_actions) {
-          const elseStatement = doc.createElement('statement');
-          elseStatement.setAttribute('name', 'ELSE');
-          jsonToXmlRecursive(action.else_actions, elseStatement);
-          block.appendChild(elseStatement);
-        }
-      } else if (action.type === 'variables_set') {
-        // THÊM MỚI: Xử lý khối gán giá trị cho biến
-        const field = doc.createElement('field');
-        field.setAttribute('name', 'VAR');
-        field.textContent = action.variable || 'variable'; // Tên biến
-        block.appendChild(field);
-
-        if (action.value) {
-          const value = doc.createElement('value');
-          value.setAttribute('name', 'VALUE');
-          // Giả định giá trị là một khối đơn giản như math_number
-          // Có thể mở rộng để xử lý các khối giá trị phức tạp hơn
-          const valueBlock = doc.createElement('block');
-          valueBlock.setAttribute('type', action.value.type || 'math_number');
-          const valueField = doc.createElement('field');
-          valueField.setAttribute('name', 'NUM');
-          valueField.textContent = action.value.value?.toString() || '0';
-          valueBlock.appendChild(valueField);
-          value.appendChild(valueBlock);
-          block.appendChild(value);
-        }
-      } else if (action.type === 'variables_get') {
-        // THÊM MỚI: Xử lý khối lấy giá trị của biến (dùng trong các khối khác)
-        const field = doc.createElement('field');
-        field.setAttribute('name', 'VAR');
-        field.textContent = action.variable || 'variable'; // Tên biến
-        block.appendChild(field);
-
-      } else if (action.type === 'math_change') {
-        // THÊM MỚI: Xử lý khối thay đổi giá trị của biến (tăng/giảm)
-        const field = doc.createElement('field');
-        field.setAttribute('name', 'VAR');
-        field.textContent = action.variable || 'variable'; // Tên biến
-        block.appendChild(field);
-
-        // SỬA LỖI: Bộ giải đang tạo thuộc tính 'value' thay vì 'delta'.
-        // Cập nhật logic để đọc từ 'value' và tạo cấu trúc XML chính xác.
-        if (action.value) {
-          const value = doc.createElement('value');
-          value.setAttribute('name', 'DELTA');
-          // Giả định giá trị là một khối math_number lồng nhau.
-          const valueBlock = doc.createElement('block');
-          valueBlock.setAttribute('type', action.value.type || 'math_number');
-          const valueField = doc.createElement('field');
-          valueField.setAttribute('name', 'NUM');
-          // Lấy giá trị từ action.value.value
-          valueField.textContent = action.value.value?.toString() || '1';
-          valueBlock.appendChild(valueField);
-          value.appendChild(valueBlock);
-          block.appendChild(value);
-        }
       }
 
       if (lastBlock) {
@@ -256,7 +132,6 @@ const jsonToXml = (structuredSolution: any): string => {
     return lastBlock;
   };
 
-  // 1. Tạo khối bắt đầu (maze_start)
   const startBlock = doc.createElement('block');
   startBlock.setAttribute('type', 'maze_start');
   startBlock.setAttribute('deletable', 'false');
@@ -270,7 +145,6 @@ const jsonToXml = (structuredSolution: any): string => {
   }
   doc.documentElement.appendChild(startBlock);
 
-  // 2. Tạo các khối định nghĩa hàm (procedures)
   if (structuredSolution.procedures) {
     let yOffset = 100;
     for (const procName in structuredSolution.procedures) {
@@ -293,7 +167,7 @@ const jsonToXml = (structuredSolution: any): string => {
       }
 
       doc.documentElement.appendChild(procBlock);
-      yOffset += 150; // Tăng khoảng cách cho hàm tiếp theo
+      yOffset += 150;
     }
   }
 
@@ -301,34 +175,23 @@ const jsonToXml = (structuredSolution: any): string => {
   return serializer.serializeToString(doc);
 };
 
-/**
- * HÀM MỚI: Chuẩn hóa các hành động trong một lời giải (basic hoặc structured).
- * Đảm bảo các hành động như rẽ trái/phải luôn có định dạng { type: 'maze_turn', direction: '...' }.
- * @param actions Mảng các hành động cần chuẩn hóa.
- * @returns Mảng các hành động đã được chuẩn hóa.
- */
+// Normalize actions
 const normalizeActions = (actions: any[]): any[] => {
   if (!Array.isArray(actions)) return [];
   return actions.map(action => {
     if (!action || typeof action !== 'object') return action;
-
-    // Chuẩn hóa các hành động rẽ
     if (action.type === 'maze_turnLeft' || action.type === 'turnLeft') {
       return { type: 'maze_turn', direction: 'turnLeft' };
     }
     if (action.type === 'maze_turnRight' || action.type === 'turnRight') {
       return { type: 'maze_turn', direction: 'turnRight' };
     }
-    // Chuẩn hóa toggleSwitch
     if (action.type === 'maze_toggleSwitch') {
       return { type: 'maze_toggle_switch' };
     }
-
-    // Đệ quy cho các khối lồng nhau
     if (action.actions && Array.isArray(action.actions)) {
       return { ...action, actions: normalizeActions(action.actions) };
     }
-
     return action;
   });
 };
@@ -339,339 +202,466 @@ const normalizeSolution = (solution: any) => {
   if (newSolution.basicSolution && newSolution.basicSolution.main) {
     newSolution.basicSolution.main = normalizeActions(newSolution.basicSolution.main);
   }
-  // Có thể mở rộng để chuẩn hóa cả structuredSolution nếu cần
   return newSolution;
 };
 
-export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onImportMap }: QuestDetailsPanelProps) {
-  // SỬA LỖI: Tái cấu trúc hàm để có thể xử lý nhiều thay đổi cùng lúc,
-  // tránh việc gọi nhiều lần gây ghi đè state.
+// Count blocks in XML
+const countBlocksInXml = (xml: string): number => {
+  if (!xml) return 0;
+  const matches = xml.match(/<block /g);
+  return matches ? matches.length : 0;
+};
+
+// Count actions in solution
+const countActions = (solution: any): number => {
+  if (!solution?.rawActions) return 0;
+  return Array.isArray(solution.rawActions) ? solution.rawActions.length : 0;
+};
+
+// ============================================================
+// MAIN COMPONENT
+// ============================================================
+export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onImportMap, onLoadMapFromUrl }: QuestDetailsPanelProps) {
+  const [isBlocklyModalOpen, setBlocklyModalOpen] = useState(false);
+  const [showRawSolution, setShowRawSolution] = useState(false);
+  const [showTranslations, setShowTranslations] = useState(false);
+  const [isSolving, setIsSolving] = useState(false);
+  const [mapList, setMapList] = useState<Record<string, unknown> | null>(null);
+
+  // Local state for editable fields
+  const [localRawActions, setLocalRawActions] = useState('');
+  const [localBasicSolution, setLocalBasicSolution] = useState('');
+  const [localStructuredSolution, setLocalStructuredSolution] = useState('');
+
+  // Load map list from project on mount
+  useEffect(() => {
+    // Use ** to match JSON files in all subdirectories
+    const mapFiles = import.meta.glob('/public/maps/**/*.json', { eager: true });
+    setMapList(mapFiles);
+  }, []);
+
+  // Handle complex changes
   const handleComplexChange = (...updates: { path: string; value: any }[]) => {
     if (!metadata) return;
-
-    // Tạo một bản sao sâu của metadata để tránh thay đổi trực tiếp state
     const newMetadata = _.cloneDeep(metadata);
-
-    // Áp dụng tất cả các cập nhật vào bản sao
     updates.forEach(({ path, value }) => {
       _.set(newMetadata, path, value);
     });
-
-    // Gọi onMetadataChange một lần duy nhất với toàn bộ object đã được cập nhật
     onMetadataChange('__OVERWRITE__', newMetadata);
   };
 
-  // State cục bộ cho các editor để cập nhật UI ngay lập tức khi gõ
-  const [localSolution, setLocalSolution] = useState('');
-  const [localRawActions, setLocalRawActions] = useState('');
-  const [localBasicSolution, setLocalBasicSolution] = useState(''); // THÊM MỚI: State cho lời giải cơ bản
-  const [localStructuredSolution, setLocalStructuredSolution] = useState('');
-  const [isBlocklyModalOpen, setBlocklyModalOpen] = useState(false); // State để quản lý modal
+  // Wrap onSolveMaze with loading state
+  const handleSolve = async () => {
+    setIsSolving(true);
+    try {
+      // Use setTimeout to allow UI to update before blocking operation
+      await new Promise(resolve => setTimeout(resolve, 50));
+      onSolveMaze();
+    } finally {
+      setIsSolving(false);
+    }
+  };
 
+  // Sync local state with metadata
   useEffect(() => {
-    // Cập nhật state cục bộ khi metadata từ bên ngoài thay đổi (ví dụ: import file mới)
     if (metadata) {
-      // THAY ĐỔI: Chuẩn hóa solution trước khi đưa vào state cục bộ.
-      // Điều này đảm bảo dữ liệu đọc từ file JSON (có thể ở định dạng cũ)
-      // được chuyển đổi sang định dạng chuẩn trước khi hiển thị và sử dụng.
       const normalizedSolution = normalizeSolution(metadata.solution);
       const solution = normalizedSolution || { rawActions: [], structuredSolution: {}, basicSolution: {} };
-      setLocalSolution(JSON.stringify(solution, null, 2));
       setLocalBasicSolution(JSON.stringify(solution.basicSolution || {}, null, 2));
       setLocalRawActions(JSON.stringify(solution.rawActions || [], null, 2));
       setLocalStructuredSolution(JSON.stringify(solution.structuredSolution || {}, null, 2));
     } else {
-      setLocalSolution('');
       setLocalBasicSolution('');
       setLocalRawActions('');
       setLocalStructuredSolution('');
     }
   }, [metadata]);
 
-  // --- START: HÀM XỬ LÝ SỰ KIỆN CLICK NÚT BIÊN DỊCH ---
+  // Compile JSON to XML
   const handleCompileToXml = (jsonSource: string, sourceName: string) => {
     try {
-      // B1: Kiểm tra xem chuỗi JSON có rỗng hay không
       if (!jsonSource || jsonSource.trim() === '') {
-        alert(`Error: ${sourceName} (JSON) is empty. Please enter data.`);
+        alert(`Error: ${sourceName} (JSON) is empty.`);
         return;
       }
-
       const structuredSolution = JSON.parse(jsonSource);
-
-      // B2: Kiểm tra xem dữ liệu đã parse có thuộc tính 'main' là một mảng không
       if (!structuredSolution || !Array.isArray(structuredSolution.main)) {
-        alert('Error: Data in Structured Solution must be a JSON object with a "main" property that is an array of actions.');
+        alert('Error: Data must have a "main" array.');
         return;
       }
-
-      // Sử dụng hàm jsonToXml đã được tái cấu trúc
       const finalXml = jsonToXml(structuredSolution);
-
-      handleComplexChange({ path: 'blocklyConfig.startBlocks', value: finalXml }); // Lưu chuỗi "sạch"
-      alert('Successfully created Start Blocks XML!');
+      handleComplexChange({ path: 'blocklyConfig.startBlocks', value: finalXml });
+      alert('✅ Start Blocks created successfully!');
     } catch (error) {
-      console.error("Lỗi khi biên dịch JSON sang XML:", error);
-      alert(`Error: Could not parse ${sourceName}. Please check the JSON format.\n\n${error}`);
+      console.error("Error compiling JSON to XML:", error);
+      alert(`Error: Could not parse ${sourceName}.\n\n${error}`);
     }
   };
-  // --- END: HÀM XỬ LÝ SỰ KIỆN ---
 
-  if (!metadata) {
-    return (
-      <aside className="quest-details-panel empty-state">
-        <p>Import a Quest file to edit details.</p>
-      </aside>
-    );
-  }
-
-  const titleKey = metadata.titleKey || '';
-  const descriptionKey = metadata.questTitleKey || metadata.descriptionKey || '';
-
+  // File import handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       onImportMap(e.target.files[0]);
     }
   };
 
-  return (
-    <aside className="quest-details-panel" key={metadata.id}>
-      {/* Actions Section */}
-      <div className="quest-prop-group" style={{ borderBottom: '1px solid #444', paddingBottom: '16px', marginBottom: '16px' }}>
-        <h3 className="props-title" style={{ marginTop: 0 }}>Actions</h3>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <label className="json-action-btn" style={{ textAlign: 'center', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#3c3c41', color: '#fff' }}>
+  // Empty state
+  if (!metadata) {
+    return (
+      <aside className="quest-details-panel empty-state">
+        <div className="empty-state-content">
+          <span className="empty-icon">📋</span>
+          <p>Import a Quest file to edit details.</p>
+          <label className="import-btn primary">
             📂 Import JSON Map
             <input type="file" accept=".json" onChange={handleFileChange} hidden />
           </label>
-        </div>
-      </div>
 
-      {/* Render Modal nếu isBlocklyModalOpen là true */}
-      {isBlocklyModalOpen && metadata.blocklyConfig && (
+          {/* Load from Project */}
+          {onLoadMapFromUrl && mapList && Object.keys(mapList).length > 0 && (
+            <div className="field-row" style={{ marginTop: '16px', width: '100%' }}>
+              <label style={{ marginBottom: '8px', display: 'block' }}>Or load from Project:</label>
+              <select
+                className="custom-select"
+                onChange={(e) => {
+                  const mapPath = e.target.value;
+                  if (mapPath) {
+                    // Remove /public prefix - Vite serves public folder at root
+                    const correctedPath = mapPath.replace(/^\/public/, '');
+                    onLoadMapFromUrl(correctedPath);
+                    e.target.value = "";
+                  }
+                }}
+                defaultValue=""
+                style={{ width: '100%' }}
+              >
+                <option value="" disabled>-- Choose a map --</option>
+                {Object.keys(mapList).map(path => (
+                  <option key={path} value={path}>{path.split('/').pop()}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      </aside>
+    );
+  }
+
+  // Computed values
+  const titleKey = metadata.titleKey || '';
+  const descriptionKey = metadata.questTitleKey || metadata.descriptionKey || '';
+  const blockCount = countBlocksInXml(getDeepValue(metadata, 'blocklyConfig.startBlocks') || '');
+  const actionCount = countActions(metadata.solution);
+  const hasSolution = actionCount > 0;
+  const toolboxPresetKey = getDeepValue(metadata, 'blocklyConfig.toolboxPresetKey') || '';
+
+  return (
+    <aside className="quest-details-panel" key={metadata.id}>
+      {/* Blockly Modal */}
+      {isBlocklyModalOpen && (
         <BlocklyModal
-          // SỬA LỖI: Lấy XML trực tiếp từ metadata để đảm bảo luôn là dữ liệu mới nhất
           initialXml={getDeepValue(metadata, 'blocklyConfig.startBlocks') || ''}
           onClose={() => setBlocklyModalOpen(false)}
           onSave={(newXml) => {
-            // Cập nhật ngay lập tức vào state cha để thay đổi được lưu.
-            // Không cần state cục bộ `localStartBlocks` nữa.
-            handleComplexChange({ path: 'blocklyConfig.startBlocks', value: newXml }); // Lưu chuỗi "sạch" vào metadata
+            handleComplexChange({ path: 'blocklyConfig.startBlocks', value: newXml });
             setBlocklyModalOpen(false);
           }}
         />
       )}
-      <h2>Quest Details</h2>
 
-      <div className="quest-prop-group">
-        <label>ID</label>
-        <input
-          type="text"
-          defaultValue={metadata.id || ''}
-          onBlur={(e) => handleComplexChange({ path: 'id', value: e.target.value })}
-        />
-      </div>
-
-      <div className="quest-prop-group">
-        <label>Level</label>
-        <input
-          type="number"
-          defaultValue={metadata.level || 0}
-          onBlur={(e) => handleComplexChange({ path: 'level', value: parseInt(e.target.value, 10) })}
-        />
-      </div>
-
-      <h3 className="props-title">Translations</h3>
-      {/* Chỉ render các trường translations khi các key tồn tại để đảm bảo getDeepValue hoạt động đúng */}
-      {titleKey && descriptionKey && (
-        <>
-          <div className="quest-prop-group">
-            <label>Title (VI)</label>
-            <input
-              type="text"
-              defaultValue={metadata?.translations?.vi?.[titleKey] || ''}
-              onBlur={(e) => handleComplexChange({ path: `translations.vi['${titleKey}']`, value: e.target.value })}
-            />
-          </div>
-          <div className="quest-prop-group">
-            <label>Description (VI)</label>
-            <textarea
-              defaultValue={metadata?.translations?.vi?.[descriptionKey] || ''}
-              onBlur={(e) => handleComplexChange({ path: `translations.vi['${descriptionKey}']`, value: e.target.value })}
-            />
-          </div>
-
-          <div className="quest-prop-group">
-            <label>Title (EN)</label>
-            <input
-              type="text"
-              defaultValue={metadata?.translations?.en?.[titleKey] || ''}
-              onBlur={(e) => handleComplexChange({ path: `translations.en['${titleKey}']`, value: e.target.value })}
-            />
-          </div>
-          <div className="quest-prop-group">
-            <label>Description (EN)</label>
-            <textarea
-              defaultValue={metadata?.translations?.en?.[descriptionKey] || ''}
-              onBlur={(e) => handleComplexChange({ path: `translations.en['${descriptionKey}']`, value: e.target.value })}
-            />
-          </div>
-        </>
-      )}
-
-      <h3 className="props-title">Blockly Config</h3>
-      {/* --- THÊM MỚI: Dropdown chọn Toolbox --- */}
-      <div className="quest-prop-group">
-        <label>Toolbox Preset</label>
-        <select
-          className="custom-select"
-          // SỬA ĐỔI: Chuyển thành controlled component bằng `value` để đảm bảo UI luôn đồng bộ.
-          value={getDeepValue(metadata, 'blocklyConfig.toolboxPresetKey') || ''}
-          onChange={(e) => {
-            const presetKey = e.target.value;
-            const selectedToolbox = toolboxPresets[presetKey];
-            if (selectedToolbox) {
-              // SỬA LỖI: Gọi handleComplexChange một lần với cả hai cập nhật
-              handleComplexChange(
-                { path: 'blocklyConfig.toolboxPresetKey', value: presetKey },
-                { path: 'blocklyConfig.toolbox', value: selectedToolbox }
-              );
-            }
-          }}
-        >
-          <option value="" disabled>-- Select a toolbox --</option>
-          {Object.keys(toolboxPresets).map(key => (
-            <option key={key} value={key}>
-              {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="quest-prop-group">
-        <label>Max Blocks</label>
-        <input
-          type="number"
-          // SỬA LỖI: Sử dụng `value` thay vì `defaultValue` để biến nó thành một "controlled component".
-          // Điều này đảm bảo input luôn hiển thị giá trị mới nhất từ prop `metadata`.
-          value={getDeepValue(metadata, 'blocklyConfig.maxBlocks') || ''}
-          onChange={(e) => handleComplexChange({ path: 'blocklyConfig.maxBlocks', value: parseInt(e.target.value, 10) || 0 })}
-        />
-      </div>
-      <div className="quest-prop-group">
-        <div className="label-with-button">
-          <label>Start Blocks (XML)</label>
-          <button className="json-action-btn" onClick={() => setBlocklyModalOpen(true)}>
-            Show Blocks
-          </button>
+      {/* ============================================================ */}
+      {/* QUEST INFO SECTION */}
+      {/* ============================================================ */}
+      <CollapsibleSection title="Quest Info" icon="📋" defaultOpen={true}>
+        <div className="field-row">
+          <label>ID</label>
+          <input
+            type="text"
+            value={metadata.id || ''}
+            onChange={(e) => handleComplexChange({ path: 'id', value: e.target.value })}
+          />
         </div>
-        <textarea
-          // SỬA LỖI: Hiển thị giá trị trực tiếp từ metadata và cho phép chỉnh sửa
-          value={getDeepValue(metadata, 'blocklyConfig.startBlocks') || ''}
-          onChange={(e) => handleComplexChange({ path: 'blocklyConfig.startBlocks', value: e.target.value })}
-          rows={26} // Tăng chiều cao của textarea từ 4 lên 8 dòng
-        />
-      </div>
+        <div className="field-row">
+          <label>Level</label>
+          <input
+            type="number"
+            value={metadata.level || 0}
+            onChange={(e) => handleComplexChange({ path: 'level', value: parseInt(e.target.value, 10) || 0 })}
+          />
+        </div>
 
-      <div className="label-with-button">
-        <h3 className="props-title" style={{ marginBottom: 0 }}>Solution</h3>
+        {/* Translations Toggle */}
+        {(titleKey || descriptionKey) && (
+          <div className="sub-section">
+            <button
+              className="toggle-btn"
+              onClick={() => setShowTranslations(!showTranslations)}
+            >
+              🌐 Translations {showTranslations ? '▼' : '▶'}
+            </button>
+            {showTranslations && (
+              <div className="translations-grid">
+                <div className="field-row">
+                  <label>Title (VI)</label>
+                  <input
+                    type="text"
+                    value={metadata?.translations?.vi?.[titleKey] || ''}
+                    onChange={(e) => handleComplexChange({ path: `translations.vi.${titleKey}`, value: e.target.value })}
+                  />
+                </div>
+                <div className="field-row">
+                  <label>Title (EN)</label>
+                  <input
+                    type="text"
+                    value={metadata?.translations?.en?.[titleKey] || ''}
+                    onChange={(e) => handleComplexChange({ path: `translations.en.${titleKey}`, value: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </CollapsibleSection>
+
+      {/* ============================================================ */}
+      {/* BLOCKLY CONFIG SECTION */}
+      {/* ============================================================ */}
+      <CollapsibleSection
+        title="Blockly Config"
+        icon="🧩"
+        defaultOpen={true}
+        badge={blockCount > 0 ? `${blockCount} blocks` : undefined}
+        badgeColor="blue"
+      >
+        <div className="field-row">
+          <label>Toolbox Preset</label>
+          <select
+            className="custom-select"
+            value={toolboxPresetKey}
+            onChange={(e) => {
+              const presetKey = e.target.value;
+              const selectedToolbox = toolboxPresets[presetKey];
+              if (selectedToolbox) {
+                handleComplexChange(
+                  { path: 'blocklyConfig.toolboxPresetKey', value: presetKey },
+                  { path: 'blocklyConfig.toolbox', value: selectedToolbox }
+                );
+              }
+            }}
+          >
+            <option value="" disabled>-- Select toolbox --</option>
+            {Object.keys(toolboxPresets).map(key => (
+              <option key={key} value={key}>
+                {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="field-row">
+          <label>Max Blocks</label>
+          <input
+            type="number"
+            value={getDeepValue(metadata, 'blocklyConfig.maxBlocks') || ''}
+            onChange={(e) => handleComplexChange({ path: 'blocklyConfig.maxBlocks', value: parseInt(e.target.value, 10) || 0 })}
+          />
+        </div>
+      </CollapsibleSection>
+
+      {/* ============================================================ */}
+      {/* SOLUTION SECTION */}
+      {/* ============================================================ */}
+      <CollapsibleSection
+        title="Solution"
+        icon="🎯"
+        defaultOpen={true}
+        badge={hasSolution ? '✅ Solved' : '⚠️ Not solved'}
+        badgeColor={hasSolution ? 'green' : 'orange'}
+      >
+        {/* Auto-solve button - prominent */}
         <button
-          className="json-action-btn"
-          onClick={onSolveMaze} // SỬA ĐỔI: Gọi trực tiếp hàm onSolveMaze
+          className={`action-btn primary full-width ${isSolving ? 'loading' : ''}`}
+          onClick={handleSolve}
+          disabled={isSolving}
         >
-          Auto-solve
+          {isSolving ? (
+            <>
+              <span className="spinner"></span>
+              Solving...
+            </>
+          ) : (
+            '🔄 Auto-Solve Maze'
+          )}
         </button>
-      </div>
-      <div className="quest-prop-group">
-        <label>Raw Actions (JSON)</label>
-        <textarea
-          className="json-editor-small"
-          value={localRawActions}
-          onChange={(e) => setLocalRawActions(e.target.value)}
-          onBlur={() => {
-            if (localRawActions.trim()) { // Chỉ parse nếu chuỗi không rỗng
-              try {
-                const parsed = JSON.parse(localRawActions);
-                handleComplexChange({ path: 'solution.rawActions', value: parsed });
-              } catch (error) {
-                console.warn("Invalid JSON in rawActions field", error);
-              }
-            }
-          }}
-          rows={6}
-        />
-      </div>
-      <div className="quest-prop-group">
-        <div className="label-with-button">
-          <label>Basic Solution (JSON)</label>
-          {/* THÊM MỚI: Nút để tạo start blocks từ lời giải cơ bản */}
-          <button className="json-action-btn" onClick={() => handleCompileToXml(localBasicSolution, 'Basic Solution')}>
-            Create Start Blocks from Basic Solution
+
+        {/* Solution summary */}
+        {hasSolution && (
+          <div className="solution-summary">
+            <div className="summary-item">
+              <span className="label">Steps:</span>
+              <span className="value">{actionCount}</span>
+            </div>
+            <div className="summary-item">
+              <span className="label">Type:</span>
+              <span className="value">{metadata.solution?.type || 'standard'}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Create blocks buttons */}
+        <div className="button-group">
+          <button
+            className="action-btn secondary"
+            onClick={() => handleCompileToXml(localBasicSolution, 'Basic Solution')}
+            disabled={!localBasicSolution || localBasicSolution === '{}'}
+          >
+            Create from Basic
+          </button>
+          <button
+            className="action-btn secondary"
+            onClick={() => handleCompileToXml(localStructuredSolution, 'Structured Solution')}
+            disabled={!localStructuredSolution || localStructuredSolution === '{}'}
+          >
+            Create from Optimal
           </button>
         </div>
-        <textarea
-          className="json-editor-small"
-          value={localBasicSolution}
-          onChange={(e) => setLocalBasicSolution(e.target.value)}
-          onBlur={() => {
-            if (localBasicSolution.trim()) {
-              try {
-                const parsed = JSON.parse(localBasicSolution);
-                handleComplexChange({ path: 'solution.basicSolution', value: parsed });
-              } catch (error) {
-                console.warn("Invalid JSON in basicSolution field", error);
-              }
-            }
-          }}
-          rows={10}
-        />
-      </div>
-      <div className="quest-prop-group">
-        <div className="label-with-button">
-          <label>Structured Solution (JSON)</label>
-          {/* THAY ĐỔI: Đổi tên nút và gọi hàm dùng chung */}
-          <button className="json-action-btn" onClick={() => handleCompileToXml(localStructuredSolution, 'Structured Solution')}>
-            Create Start Blocks from Optimal Solution
+
+        {/* Edit Start Blocks - moved here from Blockly Config for better UX flow */}
+        <div className="action-row" style={{ marginTop: '8px' }}>
+          <button
+            className="action-btn primary"
+            onClick={() => setBlocklyModalOpen(true)}
+          >
+            ✏️ Edit Start Blocks
+          </button>
+          {blockCount > 0 && (
+            <span className="info-text">{blockCount} blocks</span>
+          )}
+        </div>
+
+        {/* Toggle raw solution view */}
+        <button
+          className="toggle-btn"
+          onClick={() => setShowRawSolution(!showRawSolution)}
+        >
+          📝 {showRawSolution ? 'Hide' : 'Show'} Raw Solution Data
+        </button>
+
+        {showRawSolution && (
+          <div className="raw-solution-editors">
+            <div className="editor-group">
+              <label>Raw Actions</label>
+              <textarea
+                className="json-editor"
+                value={localRawActions}
+                onChange={(e) => setLocalRawActions(e.target.value)}
+                onBlur={() => {
+                  if (localRawActions.trim()) {
+                    try {
+                      const parsed = JSON.parse(localRawActions);
+                      handleComplexChange({ path: 'solution.rawActions', value: parsed });
+                    } catch (error) {
+                      console.warn("Invalid JSON", error);
+                    }
+                  }
+                }}
+                rows={4}
+              />
+            </div>
+
+            <div className="editor-group">
+              <label>Basic Solution</label>
+              <textarea
+                className="json-editor"
+                value={localBasicSolution}
+                onChange={(e) => setLocalBasicSolution(e.target.value)}
+                onBlur={() => {
+                  if (localBasicSolution.trim()) {
+                    try {
+                      const parsed = JSON.parse(localBasicSolution);
+                      handleComplexChange({ path: 'solution.basicSolution', value: parsed });
+                    } catch (error) {
+                      console.warn("Invalid JSON", error);
+                    }
+                  }
+                }}
+                rows={6}
+              />
+            </div>
+
+            <div className="editor-group">
+              <label>Structured Solution</label>
+              <textarea
+                className="json-editor"
+                value={localStructuredSolution}
+                onChange={(e) => setLocalStructuredSolution(e.target.value)}
+                onBlur={() => {
+                  if (localStructuredSolution.trim()) {
+                    try {
+                      const parsed = JSON.parse(localStructuredSolution);
+                      handleComplexChange({ path: 'solution.structuredSolution', value: parsed });
+                    } catch (error) {
+                      console.warn("Invalid JSON", error);
+                    }
+                  }
+                }}
+                rows={6}
+              />
+            </div>
+          </div>
+        )}
+      </CollapsibleSection>
+
+      {/* ============================================================ */}
+      {/* IMPORT/EXPORT SECTION */}
+      {/* ============================================================ */}
+      <CollapsibleSection title="Import / Export" icon="📁" defaultOpen={false}>
+        <div className="button-group vertical">
+          <label className="action-btn secondary full-width">
+            📂 Import JSON Map
+            <input type="file" accept=".json" onChange={handleFileChange} hidden />
+          </label>
+          <button
+            className="action-btn secondary full-width"
+            onClick={() => {
+              const blob = new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${metadata.id || 'quest'}.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            💾 Export Quest JSON
           </button>
         </div>
-        <textarea
-          className="json-editor-small"
-          value={localStructuredSolution}
-          onChange={(e) => setLocalStructuredSolution(e.target.value)}
-          onBlur={() => {
-            if (localStructuredSolution.trim()) { // Chỉ parse nếu chuỗi không rỗng
-              try {
-                const parsed = JSON.parse(localStructuredSolution);
-                handleComplexChange({ path: 'solution.structuredSolution', value: parsed });
-              } catch (error) {
-                console.warn("Invalid JSON in structuredSolution field", error);
-              }
-            }
-          }}
-          rows={10}
-        />
-      </div>
-      {/* Giữ lại trình soạn thảo solution tổng thể để tham khảo */}
-      <div className="quest-prop-group">
-        <label style={{ color: '#888' }}>Full Solution Object (Reference)</label>
-        <textarea
-          className="json-editor-small"
-          value={localSolution}
-          onChange={(e) => setLocalSolution(e.target.value)}
-          // Cập nhật state cha khi người dùng click ra ngoài, đồng thời validate JSON
-          onBlur={() => {
-            if (localSolution.trim()) { // Chỉ parse nếu chuỗi không rỗng
-              try {
-                const parsed = JSON.parse(localSolution);
-                handleComplexChange({ path: 'solution', value: parsed });
-              } catch (error) {
-                console.warn("Invalid JSON in solution field", error);
-              } // Nếu JSON không hợp lệ, không cập nhật state cha nhưng giữ nguyên text đã nhập
-            }
-          }}
-          rows={10}
-        />
-      </div>
+
+        {/* Load from Project */}
+        {onLoadMapFromUrl && mapList && Object.keys(mapList).length > 0 && (
+          <div className="field-row" style={{ marginTop: '12px' }}>
+            <label>Load from Project:</label>
+            <select
+              className="custom-select"
+              onChange={(e) => {
+                const mapPath = e.target.value;
+                if (mapPath) {
+                  // Remove /public prefix - Vite serves public folder at root
+                  const correctedPath = mapPath.replace(/^\/public/, '');
+                  onLoadMapFromUrl(correctedPath);
+                  e.target.value = "";
+                }
+              }}
+              defaultValue=""
+            >
+              <option value="" disabled>-- Choose a map --</option>
+              {Object.keys(mapList).map(path => (
+                <option key={path} value={path}>{path.split('/').pop()}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </CollapsibleSection>
     </aside>
   );
 }

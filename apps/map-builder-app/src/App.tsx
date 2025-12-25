@@ -3224,6 +3224,7 @@ function App() {
               onRender={handleRenderEditedJson}
               onSave={handleSaveMap}
               onImportMap={handleImportMap}
+              onLoadMapFromUrl={handleLoadMapFromUrl}
             />
           </div>
         </>
