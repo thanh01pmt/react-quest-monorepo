@@ -61,12 +61,23 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
 
           <h3>⌨️ Phím tắt quan trọng</h3>
           <div className="wm-shortcuts-grid">
+            {/* Editing */}
             <div className="wm-shortcut"><kbd>?</kbd> <span>Xem phím tắt</span></div>
             <div className="wm-shortcut"><kbd>⌘Z</kbd> <span>Undo</span></div>
             <div className="wm-shortcut"><kbd>⌘⇧Z</kbd> <span>Redo</span></div>
-            <div className="wm-shortcut"><kbd>Delete</kbd> <span>Xóa</span></div>
+            <div className="wm-shortcut"><kbd>⌘C</kbd> <span>Copy</span></div>
+            <div className="wm-shortcut"><kbd>⌘V</kbd> <span>Paste</span></div>
+            <div className="wm-shortcut"><kbd>⌘D</kbd> <span>Duplicate</span></div>
             <div className="wm-shortcut"><kbd>⌘A</kbd> <span>Chọn tất cả</span></div>
-            <div className="wm-shortcut"><kbd>Esc</kbd> <span>Bỏ chọn</span></div>
+            <div className="wm-shortcut"><kbd>Esc</kbd> <span>Bỏ chọn/Hủy</span></div>
+            {/* Tools/Modes */}
+            <div className="wm-shortcut"><kbd>S</kbd> <span>Smart Select</span></div>
+            <div className="wm-shortcut"><kbd>G</kbd> <span>Grab/Move</span></div>
+            <div className="wm-shortcut"><kbd>R</kbd> <span>Rotate</span></div>
+            <div className="wm-shortcut"><kbd>F</kbd> <span>Fill mode</span></div>
+            {/* Assets */}
+            <div className="wm-shortcut"><kbd>1-6</kbd> <span>Đặt items nhanh</span></div>
+            {/* File */}
             <div className="wm-shortcut"><kbd>⌘S</kbd> <span>Export JSON</span></div>
             <div className="wm-shortcut"><kbd>⌘O</kbd> <span>Import JSON</span></div>
           </div>

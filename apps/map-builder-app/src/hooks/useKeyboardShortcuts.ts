@@ -53,35 +53,52 @@ export function useKeyboardShortcuts({ shortcuts, enabled = true }: UseKeyboardS
   return shortcuts;
 }
 
-// Default shortcuts for Map Builder
+// Default shortcuts for Map Builder - matches actual implementation in App.tsx
 export const defaultShortcuts = {
-  undo: { key: 'z', ctrl: true, description: 'Undo', category: 'edit' as const },
-  redo: { key: 'z', ctrl: true, shift: true, description: 'Redo', category: 'edit' as const },
-  redoAlt: { key: 'y', ctrl: true, description: 'Redo (Alt)', category: 'edit' as const },
+  // ============================================================
+  // EDITING SHORTCUTS
+  // ============================================================
+  undo: { key: 'Z', ctrl: true, description: 'Undo', category: 'edit' as const },
+  redo: { key: 'Z', ctrl: true, shift: true, description: 'Redo', category: 'edit' as const },
+  redoAlt: { key: 'Y', ctrl: true, description: 'Redo (Alt)', category: 'edit' as const },
+  copy: { key: 'C', ctrl: true, description: 'Copy selection', category: 'edit' as const },
+  paste: { key: 'V', ctrl: true, description: 'Paste', category: 'edit' as const },
+  duplicate: { key: 'D', ctrl: true, description: 'Duplicate selection', category: 'edit' as const },
   delete: { key: 'Delete', description: 'Delete selected', category: 'edit' as const },
   deleteAlt: { key: 'Backspace', description: 'Delete selected (Alt)', category: 'edit' as const },
-  selectAll: { key: 'a', ctrl: true, description: 'Select all', category: 'edit' as const },
-  deselect: { key: 'Escape', description: 'Deselect / Cancel', category: 'edit' as const },
+  selectAll: { key: 'A', ctrl: true, description: 'Select all', category: 'edit' as const },
+  deselect: { key: 'Escape', description: 'Deselect / Cancel modes', category: 'edit' as const },
   
-  // View shortcuts
+  // ============================================================
+  // VIEW SHORTCUTS
+  // ============================================================
   zoomIn: { key: '+', ctrl: true, description: 'Zoom in', category: 'view' as const },
   zoomOut: { key: '-', ctrl: true, description: 'Zoom out', category: 'view' as const },
-  resetView: { key: '0', ctrl: true, description: 'Reset view', category: 'view' as const },
+  showHelp: { key: '?', description: 'Show shortcuts panel', category: 'view' as const },
   
-  // Tool shortcuts
-  pointer: { key: 'v', description: 'Pointer tool', category: 'tools' as const },
-  brush: { key: 'b', description: 'Brush tool', category: 'tools' as const },
-  eraser: { key: 'e', description: 'Eraser tool', category: 'tools' as const },
-  fill: { key: 'g', description: 'Fill tool', category: 'tools' as const },
+  // ============================================================
+  // TOOL/MODE SHORTCUTS  
+  // ============================================================
+  smartSelect: { key: 'S', description: 'Smart Select mode', category: 'tools' as const },
+  grab: { key: 'G', description: 'Grab/Move mode', category: 'tools' as const },
+  rotate: { key: 'R', description: 'Rotate selection', category: 'tools' as const },
+  fill: { key: 'F', description: 'Fill mode / Fill selection', category: 'tools' as const },
   
-  // File shortcuts
-  save: { key: 's', ctrl: true, description: 'Export JSON', category: 'file' as const },
-  open: { key: 'o', ctrl: true, description: 'Import JSON', category: 'file' as const },
+  // ============================================================
+  // ASSET SHORTCUTS (Quick place items)
+  // ============================================================
+  placeCrystal: { key: '1', description: 'Place Crystal', category: 'tools' as const },
+  placeSwitch: { key: '2', description: 'Place Switch', category: 'tools' as const },
+  placeKey: { key: '3', description: 'Place Key', category: 'tools' as const },
+  placePortal: { key: '4', description: 'Place Portal', category: 'tools' as const },
+  placeStart: { key: '5', description: 'Place Player Start', category: 'tools' as const },
+  placeFinish: { key: '6', description: 'Place Finish', category: 'tools' as const },
   
-  // Special
-  generateMap: { key: 'Enter', ctrl: true, description: 'Generate Map', category: 'tools' as const },
-  validate: { key: 'Enter', shift: true, description: 'Validate Map', category: 'tools' as const },
-  solve: { key: 'p', ctrl: true, description: 'Solve & Preview', category: 'tools' as const },
+  // ============================================================
+  // FILE SHORTCUTS
+  // ============================================================
+  save: { key: 'S', ctrl: true, description: 'Export JSON', category: 'file' as const },
+  open: { key: 'O', ctrl: true, description: 'Import JSON', category: 'file' as const },
 };
 
 export type ShortcutKey = keyof typeof defaultShortcuts;
