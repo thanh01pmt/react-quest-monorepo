@@ -157,6 +157,8 @@ function App() {
   const [isMovingObject, setIsMovingObject] = useState(false);
   // --- END: SỬA LỖI HIỆU ỨNG ---
   const [topologyHighlights, setTopologyHighlights] = useState<HighlightItem[]>([]);
+  // NEW: State for realtime calculated path
+  const [dynamicPathCoords, setDynamicPathCoords] = useState<[number, number, number][] | null>(null);
   const sceneRef = useRef<SceneController>(null);
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<HTMLDivElement>(null); // Ref cho right-sidebar
@@ -2269,17 +2271,126 @@ function App() {
     alert(`Added ${suggestedObjects.length} items to the selected segment.`);
   };
 
+  // NEW: Real-time path calculation effect
+  useEffect(() => {
+    // Debounce slightly to avoid too many calcs during drag
+    const timer = setTimeout(() => {
+      // Find start and target
+      const startObj = placedObjects.find(o => o.asset.key === 'player_start');
+      const targetObj = placedObjects.find(o => o.asset.key === 'finish');
+
+      if (!startObj || !targetObj) {
+        setDynamicPathCoords(null);
+        return;
+      }
+
+      // Build Graph
+      // Map: "x,y,z" -> boolean (isWalkable)
+      // "Walkable" means: Has a block at (x,y,z) AND no obstacle at (x,y+1,z)
+      const groundMap = new Set<string>();
+      const obstacleMap = new Set<string>();
+
+      placedObjects.forEach(obj => {
+        const key = `${obj.position[0]},${obj.position[1]},${obj.position[2]}`;
+        if (obj.asset.type === 'block' || obj.asset.key.includes('ground')) {
+          groundMap.add(key);
+        } else {
+          // Items/obstacles usually sit ON TOP of ground.
+          // If an item is solid/obstacle, it blocks the position ABOVE the ground?
+          // For simplicity, let's assume walls block, but collectibles don't.
+          if (obj.asset.key.includes('wall') || obj.asset.key.includes('obstacle')) {
+            obstacleMap.add(key);
+          }
+        }
+      });
+
+      const isWalkable = (x: number, y: number, z: number) => {
+        const groundKey = `${x},${y},${z}`;
+        const aboveKey = `${x},${y + 1},${z}`;
+        // Must have ground below
+        if (!groundMap.has(groundKey)) return false;
+        // Must not have obstacle at head level (simplified)
+        // Note: Player moves ON TOP of ground, so player Y = ground Y + 1
+        // But the path_coords usually represent the ground block coordinates.
+        // Let's assume path nodes are the ground blocks themselves.
+        if (obstacleMap.has(aboveKey)) return false;
+        return true;
+      };
+
+      // BFS
+      const startNode = { x: startObj.position[0], y: startObj.position[1], z: startObj.position[2], parent: null as any };
+      const targetPosString = `${targetObj.position[0]},${targetObj.position[1]},${targetObj.position[2]}`;
+
+      const queue = [startNode];
+      const visited = new Set<string>();
+      visited.add(`${startNode.x},${startNode.y},${startNode.z}`);
+
+      let foundPath = null;
+
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        const currentKey = `${current.x},${current.y},${current.z}`;
+
+        // Check target (allow proximity? strictly same block for now)
+        // Usually Finish point is ON a block.
+        if (currentKey === targetPosString) {
+          foundPath = current;
+          break;
+        }
+
+        // Neighbors (4-connected on same Y, or basic steps up/down?)
+        // For now, flat 4-connected + optional small steps (ramp) logic if needed. 
+        // Let's stick to flat 4-connected for basic path.
+        const moves = [
+          [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]
+        ];
+
+        for (const [dx, dy, dz] of moves) {
+          const nx = current.x + dx;
+          const ny = current.y + dy;
+          const nz = current.z + dz;
+          const nextKey = `${nx},${ny},${nz}`;
+
+          if (!visited.has(nextKey) && isWalkable(nx, ny, nz)) {
+            visited.add(nextKey);
+            queue.push({ x: nx, y: ny, z: nz, parent: current });
+          }
+        }
+      }
+
+      if (foundPath) {
+        // Reconstruct path
+        const path: [number, number, number][] = [];
+        let curr = foundPath;
+        while (curr) {
+          path.unshift([curr.x, curr.y, curr.z]);
+          curr = curr.parent;
+        }
+        // Path coords are ground positions.
+        // Start/End are usually raised? No, usually placed objects have integer coords if snapped.
+        setDynamicPathCoords(path);
+      } else {
+        setDynamicPathCoords(null);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [placedObjects]);
+
   const solutionPath = useMemo(() => {
-    // Priority 1: Solver Path
+    // Priority 1: Real-time calculated path
+    if (dynamicPathCoords) return dynamicPathCoords;
+
+    // Priority 2: Pre-defined solution
     if (questMetadata?.solution?.pathCoordinates) {
       return questMetadata.solution.pathCoordinates.map((p: any) => [p.x, p.y, p.z] as [number, number, number]);
     }
-    // Priority 2: Topology Path
+    // Priority 3: Topology Path
     if (questMetadata?.pathInfo?.path_coords) {
       return questMetadata.pathInfo.path_coords as [number, number, number][];
     }
     return null;
-  }, [questMetadata]);
+  }, [questMetadata, dynamicPathCoords]);
 
   // Compute selectable elements from pathInfo
   const selectableElements = useMemo((): SelectableElement[] => {
