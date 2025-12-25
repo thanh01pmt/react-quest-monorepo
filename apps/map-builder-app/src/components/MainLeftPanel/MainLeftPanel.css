@@ -281,3 +281,238 @@
     background: linear-gradient(135deg, rgba(99, 102, 241, 1) 0%, rgba(139, 92, 246, 1) 100%);
     box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
 }
+
+/* --- Compact Mode Styles --- */
+
+.main-left-panel.compact {
+    width: 80px;
+}
+
+/* Toggle Button */
+.compact-toggle-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 14px;
+    z-index: 10;
+    border-radius: 4px;
+}
+.compact-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* Header Adjustments */
+.compact .mlp-tools-header {
+    padding-top: 24px; /* Space for toggle button */
+}
+
+.compact .tool-label {
+    display: none;
+}
+
+.compact .tool-btn {
+    height: auto;
+    aspect-ratio: 1; /* Square buttons */
+    padding: 6px;
+}
+
+.compact .tool-badge {
+    top: -4px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+    line-height: 16px;
+}
+
+/* Stack ALL tool rows vertical in compact */
+.compact .tool-row {
+    flex-direction: column;
+    gap: 8px;
+    height: auto; /* Reset fixed height from .secondary */
+}
+
+.compact .toggle-pill {
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.2);
+    padding: 2px;
+}
+
+.compact .toggle-pill button {
+    width: 100%;
+    padding: 6px 0;
+    border-radius: 6px;
+    font-size: 9px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compact .icon-btn {
+    width: 100%;
+    height: 32px;
+}
+
+/* Asset Grid: 1 Column */
+.compact .group-content {
+    grid-template-columns: 1fr;
+    padding-right: 6px; /* Balance padding */
+}
+
+/* Hide Group Name text in compact? Or keep it? 
+   User said "Show categories... hover to display details".
+   If we keep 1 column, showing "GROUND" text is fine.
+   But if width is 80px, "GROUND" fits.
+*/
+.compact .group-header {
+    justify-content: center;
+}
+.compact .group-name {
+    display: none; /* Maybe hide name to save vertical space if icon is used? 
+                     But header has no icon, just text.
+                     Let's show text but small.
+                  */
+    display: block;
+    font-size: 0.6rem;
+}
+.compact .group-arrow {
+    display: none;
+}
+
+.asset-text-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.55rem;
+    color: #ccc;
+    padding: 0;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: 1.1;
+    font-weight: 500;
+    overflow: hidden;
+}
+
+/* --- New Compact Group & Popover Styles --- */
+
+.compact .mlp-assets-container {
+    overflow-y: auto; /* Re-enable scroll */
+    gap: 4px;
+    padding: 8px;
+}
+
+.asset-group-compact {
+    position: relative;
+    margin-bottom: 0;
+}
+
+.group-trigger-icon {
+    width: 100%;
+    aspect-ratio: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.group-trigger-icon:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.rep-thumb-wrapper {
+    width: 60%;
+    height: 60%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rep-thumb {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.compact-group-label {
+    font-size: 0.5rem;
+    color: #aaa;
+    text-transform: uppercase;
+    margin-top: 4px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1;
+}
+
+/* Popover - Fixed Position */
+.group-popover {
+    position: fixed; /* Fixed to viewport to avoid clipping */
+    left: 120px; /* 28px (left panel margin) + 80px (panel width) + 12px (gap) */
+    width: 220px;
+    background: rgba(30, 30, 36, 0.98);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px;
+    z-index: 300;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.15s ease-out;
+    display: block; /* Rendered conditionally in React */
+}
+
+/* Arrow indicator? Optional */
+.group-popover::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 16px; /* Align with top mostly */
+    width: 12px;
+    height: 12px;
+    background: rgba(30, 30, 36, 0.98);
+    transform: rotate(45deg);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-left: 1px solid rgba(255,255,255,0.1);
+    border-bottom-left-radius: 2px;
+}
+
+.popover-header-text {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 4px;
+}
+
+.popover-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
