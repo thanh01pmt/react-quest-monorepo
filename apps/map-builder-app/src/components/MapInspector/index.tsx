@@ -33,6 +33,7 @@ export const MapInspector: React.FC<MapInspectorProps> = ({
     mode = 'manual'
 }) => {
     const [showValidation, setShowValidation] = useState(false);
+    const [isMinimized, setIsMinimized] = useState(false);
 
     // Use path tracer for manual mode
     const tracedPath = usePathTracer(placedObjects);
@@ -142,6 +143,47 @@ export const MapInspector: React.FC<MapInspectorProps> = ({
     // Mode indicator
     const modeLabel = mode === 'auto' ? '⚡ Auto' : '🔧 Manual';
 
+    if (isMinimized) {
+        return (
+            <div style={{
+                position: 'absolute',
+                bottom: '20px',
+                left: '20px',
+                background: 'rgba(30, 30, 30, 0.95)',
+                color: '#eee',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                zIndex: 900,
+                boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+                border: '1px solid #444',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+            }} onClick={() => setIsMinimized(false)} title="Click to expand inspector">
+
+                {/* Steps */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ color: '#888' }}>👣</span>
+                    <strong style={{ color: stats.pathLength > 0 ? '#4caf50' : '#888' }}>{stats.pathLength}</strong>
+                </div>
+
+                {/* Items */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', borderLeft: '1px solid #444', paddingLeft: '12px' }}>
+                    <span style={{ color: '#2196f3' }}>💎</span>
+                    <strong>{stats.itemCount}</strong>
+                </div>
+
+                {/* Validation */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', borderLeft: '1px solid #444', paddingLeft: '12px' }}>
+                    <span>{validationStatus.icon}</span>
+                    <span style={{ color: validationStatus.color }}>{validationStatus.label}</span>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <>
             <div style={{
@@ -167,15 +209,34 @@ export const MapInspector: React.FC<MapInspectorProps> = ({
                     paddingBottom: '4px'
                 }}>
                     <h4 style={{ margin: 0, color: '#fff' }}>Map Inspector</h4>
-                    <span style={{
-                        fontSize: '11px',
-                        color: mode === 'auto' ? '#22c55e' : '#3b82f6',
-                        background: mode === 'auto' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                        padding: '2px 6px',
-                        borderRadius: '4px'
-                    }}>
-                        {modeLabel}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{
+                            fontSize: '11px',
+                            color: mode === 'auto' ? '#22c55e' : '#3b82f6',
+                            background: mode === 'auto' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                            padding: '2px 6px',
+                            borderRadius: '4px'
+                        }}>
+                            {modeLabel}
+                        </span>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setIsMinimized(true); }}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#888',
+                                cursor: 'pointer',
+                                padding: '0 4px',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            title="Minimize"
+                        >
+                            －
+                        </button>
+                    </div>
                 </div>
 
                 {/* Stats */}

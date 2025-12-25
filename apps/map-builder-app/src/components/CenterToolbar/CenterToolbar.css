@@ -40,27 +40,28 @@
 }
 
 /* Select Inputs */
+/* Select Inputs */
 .toolbar-select {
-  background: #3c3c41;
-  border: 1px solid #555;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid transparent;
   border-radius: 6px;
-  color: #fff;
+  color: #eee;
   padding: 6px 12px;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
   min-width: 100px;
+  font-weight: 500;
 }
 
 .toolbar-select:hover {
-  background: #4a4a50;
-  border-color: #777;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .toolbar-select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
 
 /* Checkbox */

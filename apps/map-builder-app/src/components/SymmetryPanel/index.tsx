@@ -41,11 +41,31 @@ export function SymmetryPanel({
     gridWidth = 14,
     gridDepth = 14,
 }: SymmetryPanelProps) {
+    const [isCollapsed, setIsCollapsed] = React.useState(false);
+
+    // Auto-expand when enabled
+    React.useEffect(() => {
+        if (enabled) {
+            setIsCollapsed(false);
+        }
+    }, [enabled]);
+
     return (
-        <div className={`symmetry-panel ${enabled ? 'enabled' : ''}`}>
+        <div className={`symmetry-panel ${enabled ? 'enabled' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
             <div className="symmetry-header">
                 <span className="symmetry-icon">⚡</span>
                 <span className="symmetry-title">Symmetry Mode</span>
+
+                {enabled && (
+                    <button
+                        className="collapse-btn"
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        title={isCollapsed ? "Show Options" : "Hide Options"}
+                    >
+                        {isCollapsed ? "⚙️" : "▲"}
+                    </button>
+                )}
+
                 <label className="symmetry-toggle">
                     <input
                         type="checkbox"
@@ -56,7 +76,7 @@ export function SymmetryPanel({
                 </label>
             </div>
 
-            {enabled && (
+            {enabled && !isCollapsed && (
                 <div className="symmetry-options">
                     {/* Axis Selector */}
                     <div className="option-group">

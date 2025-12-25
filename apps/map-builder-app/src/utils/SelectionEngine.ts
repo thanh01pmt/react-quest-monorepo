@@ -1,4 +1,4 @@
-import { PlacedObject } from '../types';
+simport { PlacedObject } from '../types';
 
 /**
  * Coordinate tuple [x, y, z]
@@ -79,6 +79,19 @@ export class SelectionEngine {
    * - +Y (up), -Y (down)
    * - +Z (forward), -Z (back)
    */
+  /**
+   * Find all objects adjacent to given object (including diagonals)
+   * 
+   * @param obj - Object to find neighbors for
+   * @param allObjects - All objects in scene
+   * @param positionMap - Pre-built position lookup map
+   * @returns Array of adjacent objects
+   * 
+   * @description
+   * Checks neighbors in 3D space, including:
+   * - 6 Face-connected neighbors (Up, Down, Left, Right, Forward, Back)
+   * - 4 Diagonal neighbors on the same horizontal plane (X-Z plane) for better corner selection
+   */
   private findAdjacent(
     obj: PlacedObject,
     allObjects: PlacedObject[],
@@ -86,19 +99,27 @@ export class SelectionEngine {
   ): PlacedObject[] {
     const [x, y, z] = obj.position;
     
-    // 6 adjacent positions in 3D grid
-    const adjacentPositions: Coord[] = [
+    // Neighbors check positions
+    const checkPositions: Coord[] = [
+      // 6 Face-connected (Standard Von Neumann neighborhood)
       [x + 1, y, z],  // Right (+X)
       [x - 1, y, z],  // Left (-X)
       [x, y + 1, z],  // Up (+Y)
       [x, y - 1, z],  // Down (-Y)
       [x, y, z + 1],  // Forward (+Z)
       [x, y, z - 1],  // Back (-Z)
+
+      // 4 Edge-connected Diagonals on X-Z Plane (Moore neighborhood subset)
+      // Allow selecting objects touching by corners on the ground
+      [x + 1, y, z + 1],
+      [x - 1, y, z + 1],
+      [x + 1, y, z - 1],
+      [x - 1, y, z - 1],
     ];
     
     const neighbors: PlacedObject[] = [];
     
-    for (const pos of adjacentPositions) {
+    for (const pos of checkPositions) {
       const key = this.posToKey(pos);
       const neighbor = positionMap.get(key);
       

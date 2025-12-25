@@ -3001,28 +3001,17 @@ function App() {
           mapTheme={mapTheme}
           onThemeChange={handleThemeChange}
           availableThemes={Themes.COMPREHENSIVE_THEMES}
+          symmetryEnabled={symmetryEnabled}
+          onSymmetryToggle={setSymmetryEnabled}
+          symmetryAxis={symmetryAxis}
+          onSymmetryAxisChange={setSymmetryAxis}
+          symmetryCenter={symmetryCenter}
+          onSymmetryCenterChange={setSymmetryCenter}
+          gridWidth={boxDimensions.width}
+          gridDepth={boxDimensions.depth}
         />
 
-        {/* Symmetry Panel - Floating control for symmetry mode */}
-        <div className="symmetry-panel-container" style={{
-          position: 'absolute',
-          top: 70,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 100,
-          minWidth: 280
-        }}>
-          <SymmetryPanel
-            enabled={symmetryEnabled}
-            onToggle={setSymmetryEnabled}
-            axis={symmetryAxis}
-            onAxisChange={setSymmetryAxis}
-            center={symmetryCenter}
-            onCenterChange={setSymmetryCenter}
-            gridWidth={boxDimensions.width}
-            gridDepth={boxDimensions.depth}
-          />
-        </div>
+
 
         {/* Viewport Toolbar - Mode & Tool switching */}
         <ViewportToolbar
