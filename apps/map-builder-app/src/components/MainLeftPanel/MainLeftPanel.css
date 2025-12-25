@@ -269,17 +269,71 @@
   background: #666;
 }
 
-/* Special styling for Help/Shortcut button */
-.icon-btn.help-btn {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    font-weight: bold;
+/* Special styling for Keyboard Shortcuts button */
+.shortcuts-row {
+    margin-top: 4px;
 }
 
-.icon-btn.help-btn:hover {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 1) 0%, rgba(139, 92, 246, 1) 100%);
-    box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+.shortcuts-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    border-radius: 8px;
+    color: #e0e0ff;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.shortcuts-btn:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.5) 0%, rgba(139, 92, 246, 0.5) 100%);
+    border-color: rgba(99, 102, 241, 0.6);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+.shortcut-icon {
+    font-size: 1rem;
+}
+
+.shortcut-text {
+    flex: 1;
+    text-align: left;
+}
+
+.shortcut-key {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: #fff;
+}
+
+/* Compact mode: Hide text, show icon only */
+.compact .shortcuts-btn {
+    padding: 8px;
+    gap: 0;
+    justify-content: center;
+}
+
+.compact .shortcut-text {
+    display: none;
+}
+
+.compact .shortcut-icon {
+    font-size: 1.2rem;
+}
+
+.compact .shortcut-key {
+    display: none;
 }
 
 /* --- Compact Mode Styles --- */

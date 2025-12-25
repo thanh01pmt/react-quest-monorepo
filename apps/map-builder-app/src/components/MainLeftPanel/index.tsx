@@ -173,14 +173,17 @@ export function MainLeftPanel({
                             🗑️
                         </button>
                     )}
-
-                    {/* Keyboard Shortcuts */}
-                    {onShowShortcuts && (
-                        <button className="icon-btn help-btn" onClick={onShowShortcuts} title="Keyboard Shortcuts (?)">
-                            ?
-                        </button>
-                    )}
                 </div>
+
+                {/* Keyboard Shortcuts - Separate Row */}
+                {onShowShortcuts && (
+                    <div className="tool-row shortcuts-row">
+                        <button className="shortcuts-btn" onClick={onShowShortcuts} title="Keyboard Shortcuts (?)">
+                            <span className="shortcut-icon">⌨️</span>
+                            <span className="shortcut-text">Keyboard Shortcuts</span>
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* --- Asset Library (Scrollable) --- */}
