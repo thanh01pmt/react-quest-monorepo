@@ -835,6 +835,13 @@ function App() {
       }
     }
   };
+
+  // --- HÀM MỚI: Chọn nhiều đối tượng cùng lúc (cho Select Volume) ---
+  const handleSelectMultipleObjects = useCallback((ids: string[]) => {
+    setSelectedObjectIds(ids);
+    setIsMovingObject(false);
+  }, []);
+
   // --- END: SỬA LỖI HIỆU ỨNG ---
 
   // --- NEW: SMART SELECTION HANDLERS ---
@@ -2831,6 +2838,7 @@ function App() {
           onMoveObjectsBatch={handleMoveObjectsBatch}
           onMoveObjectByStep={(objectId, dir, amt) => handleMoveObject([objectId], dir, amt)}
           onSelectObject={handleSelectObject} // THAY ĐỔI: Sử dụng hàm xử lý mới
+          onSelectMultipleObjects={handleSelectMultipleObjects}
           isMovingObject={isMovingObject} // THÊM MỚI: Truyền trạng thái di chuyển xuống
           onSetIsMovingObject={setIsMovingObject} // THÊM MỚI: Cho phép Scene cập nhật trạng thái này
           onObjectContextMenu={handleObjectContextMenu}

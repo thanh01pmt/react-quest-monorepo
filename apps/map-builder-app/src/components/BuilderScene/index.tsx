@@ -34,6 +34,7 @@ interface BuilderSceneProps {
   onSelectObject: (id: string | null, isShiftDown: boolean) => void;
   onMoveObject: (objectId: string, newPosition: [number, number, number]) => void;
   onMoveObjectsBatch?: (moves: Array<{ id: string; position: [number, number, number] }>) => void;
+  onSelectMultipleObjects?: (ids: string[]) => void;
   onMoveObjectByStep: (objectId: string, direction: 'x' | 'y' | 'z', amount: 1 | -1) => void;
   onObjectContextMenu: (event: { clientX: number, clientY: number, preventDefault: () => void }, objectId: string) => void;
   // --- START: SỬA LỖI HIỆU ỨNG ---
@@ -432,9 +433,10 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
   const dragStartRef = useRef<{ objectPos: [number, number, number], mousePos: { x: number, y: number }, originalPositions?: Array<{ id: string, pos: [number, number, number] }> } | null>(null);
 
   const {
+
     builderMode, selectedAsset, placedObjects, boxDimensions, onModeChange,
     isMovingObject, onSetIsMovingObject, selectionStart,
-    onAddObject, onRemoveObject, selectionBounds, onSetSelectionStart, onSetSelectionEnd, cameraControlsRef, selectedObjectIds, onSelectObject, onMoveObject, onMoveObjectsBatch, onMoveObjectByStep, onObjectContextMenu,
+    onAddObject, onRemoveObject, selectionBounds, onSetSelectionStart, onSetSelectionEnd, cameraControlsRef, selectedObjectIds, onSelectObject, onMoveObject, onMoveObjectsBatch, onSelectMultipleObjects, onMoveObjectByStep, onObjectContextMenu,
     solutionPath,
     highlights, // Destructure highlights prop
     activeLayer, // NEW: Destructure activeLayer for dimming feature
@@ -788,7 +790,25 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
   };
 
   const handlePointerUp = (event: ThreeEvent<PointerEvent>) => {
-    if (isDragging) setIsDragging(false);
+    if (isDragging) {
+      setIsDragging(false);
+      // ENHANCED: Commit area selection on drag end
+      // If we are in 'navigate' (Shift+Drag) or 'build-area', and we have a selection box,
+      // we should select the objects inside it.
+      if ((builderMode === 'build-area' || (builderMode === 'navigate' && isShiftDown)) && selectionStart) {
+        // Update valid selection
+        if (onSelectMultipleObjects) {
+          onSelectMultipleObjects(hoverPreviewIds || []);
+        }
+
+        // Only clear the box if in 'navigate' mode (Marquee Tool behavior)
+        // In 'build-area' mode, we keep the box for Fill/Edit operations
+        if (builderMode === 'navigate') {
+          onSetSelectionStart(null);
+          onSetSelectionEnd(null);
+        }
+      }
+    }
     if (isMovingObject) {
       onSetIsMovingObject(false); // Cập nhật state ở App.tsx
       dragStartRef.current = null; // Xóa trạng thái khi nhả chuột
