@@ -45,7 +45,7 @@ export function MainLeftPanel({
     selectedAssetKey,
     onSelectAsset
 }: MainLeftPanelProps) {
-    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(assetGroups.map(g => g.name))); // Open all by default
+    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set()); // Closed all by default
     const [isCompact, setIsCompact] = useState(false); // New Compact State
     const [failedImages, setFailedImages] = useState<Set<string>>(new Set()); // Track broken images
 
