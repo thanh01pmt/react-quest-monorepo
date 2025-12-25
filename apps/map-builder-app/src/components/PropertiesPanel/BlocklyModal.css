@@ -12,26 +12,26 @@
 }
 
 .blockly-modal-content {
-    background-color: #2a2a2e;
+    background-color: var(--bg-elevated);
     padding: 20px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     width: 80vw;
     height: 80vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: var(--shadow-lg);
 }
 
 .blockly-modal-header {
     display: flex;
     align-items: center;
     margin-bottom: 15px;
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid var(--border-solid);
     padding-bottom: 10px;
 }
 
 .blockly-modal-header h2 {
-    color: #f0f0f0;
+    color: var(--text-primary);
     margin: 0;
     flex-grow: 1;
 }
@@ -39,28 +39,28 @@
 .modal-btn {
     padding: 8px 16px;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     cursor: pointer;
     font-weight: bold;
     margin-left: 10px;
 }
 
 .save-btn {
-    background-color: #28a745;
+    background-color: var(--accent-success);
     color: white;
 }
 
 .save-btn:hover {
-    background-color: #218838;
+    background-color: var(--accent-success-hover);
 }
 
 .close-btn {
-    background-color: #dc3545;
+    background-color: var(--accent-danger);
     color: white;
 }
 
 .close-btn:hover {
-    background-color: #c82333;
+    background-color: #bd2130;
 }
 
 .blockly-container {

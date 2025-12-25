@@ -7,8 +7,8 @@
   flex-direction: column;
   gap: 12px;
   padding: 12px;
-  background: #2a2a2e;
-  border-bottom: 1px solid #3c3c41;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-solid);
 }
 
 /* Control Sections */
@@ -32,8 +32,8 @@
 .mode-buttons {
   display: flex;
   gap: 0;
-  background: #1e1e22;
-  border-radius: 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
   padding: 3px;
 }
 
@@ -46,23 +46,23 @@
   padding: 10px 12px;
   border: none;
   background: transparent;
-  color: #888;
+  color: var(--text-label);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .mode-btn:hover {
-  color: #bbb;
+  color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.05);
 }
 
 .mode-btn.active {
-  background: linear-gradient(135deg, #3c3c41 0%, #444448 100%);
-  color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-hover) 100%);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .mode-icon {
@@ -114,7 +114,7 @@
 .control-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #888;
+  color: var(--text-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -122,22 +122,22 @@
 /* Control Inputs */
 .control-select {
   padding: 8px 10px;
-  background: #3c3c41;
-  border: 1px solid #555;
-  border-radius: 6px;
-  color: #fff;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
   font-size: 0.85rem;
   cursor: pointer;
   transition: border-color 0.2s;
 }
 
 .control-select:hover {
-  border-color: #666;
+  border-color: var(--border-emphasis);
 }
 
 .control-select:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: var(--accent-primary);
 }
 
 /* Checkbox */
@@ -152,11 +152,11 @@
 .control-checkbox input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #007bff;
+  accent-color: var(--accent-primary);
   cursor: pointer;
 }
 
 .checkbox-label {
   font-size: 0.85rem;
-  color: #ccc;
+  color: var(--text-secondary);
 }

@@ -7,12 +7,12 @@
 
 
 .properties-panel {
-    background-color: #2a2a2e;
+    background-color: var(--bg-elevated);
     padding: 15px;
     box-sizing: border-box;
-    color: #f0f0f0;
+    color: var(--text-primary);
     flex-shrink: 0; /* Quan trọng: Ngăn panel này bị co lại */
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid var(--border-solid);
   }
 
   .properties-panel.empty-state {
@@ -21,7 +21,7 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    color: #888;
+    color: var(--text-label);
   }
   .properties-panel.empty-state p {
     margin: 5px 0;
@@ -31,7 +31,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid var(--border-solid);
     padding-bottom: 10px;
     margin-bottom: 15px;
   }
@@ -44,7 +44,7 @@
   .clear-btn {
     background: none;
     border: none;
-    color: #999;
+    color: var(--text-tertiary);
     font-size: 20px;
     cursor: pointer;
     padding: 0 5px;
@@ -52,7 +52,7 @@
   }
   
   .clear-btn:hover {
-    color: #ff4d4d;
+    color: var(--accent-danger-hover);
   }
   
   .props-title {
@@ -60,9 +60,9 @@
     margin-bottom: 15px;
     font-size: 0.9em;
     text-transform: uppercase;
-    color: #999;
+    color: var(--text-tertiary);
     font-weight: 600;
-    border-top: 1px solid #444;
+    border-top: 1px solid var(--border-solid);
     padding-top: 15px;
   }
   
@@ -75,13 +75,13 @@
   }
   
   .prop-group label {
-    color: #ccc;
+    color: var(--text-secondary);
     text-transform: capitalize;
   }
   
   .prop-group.info-group span {
-    color: #fff;
-    background-color: #3c3c41;
+    color: var(--text-primary);
+    background-color: var(--bg-tertiary);
     padding: 4px 8px;
     border-radius: 4px;
     font-family: monospace;
@@ -100,17 +100,17 @@
   .prop-group input,
   .prop-group select {
     width: 150px;
-    background-color: #1e1e1e;
-    color: #f0f0f0;
-    border: 1px solid #555;
-    border-radius: 4px;
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-solid);
+    border-radius: var(--radius-xs);
     padding: 6px 8px;
     box-sizing: border-box; /* Thêm để padding không làm thay đổi width */
   }
   
   .prop-group input:read-only {
-    background-color: #333;
-    color: #aaa;
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
     cursor: not-allowed;
   }
 
@@ -120,7 +120,7 @@
 .selection-controls {
   margin-top: 20px;
   padding-top: 15px;
-  border-top: 1px solid #444;
+  border-top: 1px solid var(--border-solid);
 }
 
 .selection-controls h3 {
@@ -128,15 +128,15 @@
   margin-bottom: 10px;
   font-size: 0.9em;
   text-transform: uppercase;
-  color: #999;
+  color: var(--text-tertiary);
   font-weight: 600;
 }
 
 .action-description {
   font-size: 13px;
-  color: #aaa;
+  color: var(--text-secondary);
   margin-bottom: 15px;
-  background-color: #333;
+  background-color: var(--bg-tertiary);
   padding: 8px;
   border-radius: 4px;
   text-align: center;

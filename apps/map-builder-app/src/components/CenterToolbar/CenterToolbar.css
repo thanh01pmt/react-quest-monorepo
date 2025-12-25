@@ -77,7 +77,7 @@
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: #007bff;
+  accent-color: var(--accent-primary);
 }
 
 .checkbox-label {

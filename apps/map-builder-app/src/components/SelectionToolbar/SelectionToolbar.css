@@ -7,11 +7,11 @@
   transform: translateY(-50%);
   z-index: 150; /* Higher than other UI elements */
   
-  background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-  border: 1px solid #444;
-  border-radius: 12px;
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-lg);
   padding: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
   
   display: flex;
   flex-direction: column;
@@ -25,10 +25,10 @@
 .toolbar-title {
   font-size: 14px;
   font-weight: 600;
-  color: #4a9eff;
+  color: var(--accent-primary);
   text-align: center;
   padding-bottom: 8px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-solid);
 }
 
 /* Tool Groups */
@@ -43,15 +43,15 @@
   flex-direction: column;
   gap: 6px;
   padding: 12px;
-  background: #1a1a1a;
-  border-radius: 8px;
-  border: 1px solid #333;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-solid);
 }
 
 .subgroup-title {
   font-size: 11px;
   font-weight: 500;
-  color: #888;
+  color: var(--text-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
@@ -63,27 +63,27 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: #252525;
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: #ccc;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
 }
 
 .tool-button:hover:not(:disabled) {
-  background: #2a2a2a;
-  border-color: #4a9eff;
-  color: #fff;
+  background: var(--bg-hover);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
   transform: translateX(2px);
 }
 
 .tool-button.active {
-  background: linear-gradient(135deg, #4a9eff 0%, #357abd 100%);
-  border-color: #4a9eff;
-  color: #fff;
-  box-shadow: 0 0 12px rgba(74, 158, 255, 0.3);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-active) 100%);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+  box-shadow: 0 0 12px var(--accent-primary-glow, rgba(99, 102, 241, 0.3));
 }
 
 .tool-button:disabled {
@@ -97,25 +97,25 @@
   align-items: center;
   gap: 6px;
   padding: 8px 10px;
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
-  border-radius: 6px;
-  color: #aaa;
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 13px;
 }
 
 .tool-subbutton:hover {
-  background: #252525;
-  border-color: #4a9eff;
-  color: #fff;
+  background: var(--bg-tertiary);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .tool-subbutton.active {
-  background: #357abd;
-  border-color: #4a9eff;
-  color: #fff;
+  background: var(--accent-primary-active);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 /* Icons & Labels */
@@ -157,15 +157,15 @@
 /* Keyboard Hints */
 .toolbar-hints {
   padding: 12px;
-  background: #1a1a1a;
-  border-radius: 8px;
-  border: 1px solid #333;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-solid);
 }
 
 .hint-title {
   font-size: 11px;
   font-weight: 500;
-  color: #888;
+  color: var(--text-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -173,7 +173,7 @@
 
 .hint-item {
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-secondary);
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -183,13 +183,13 @@
 .hint-item kbd {
   display: inline-block;
   padding: 2px 6px;
-  background: #252525;
-  border: 1px solid #444;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono, 'Courier New', monospace);
   font-size: 11px;
   font-weight: 600;
-  color: #4a9eff;
+  color: var(--accent-primary);
   min-width: 20px;
   text-align: center;
 }

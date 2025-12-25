@@ -1,7 +1,7 @@
 .json-output-panel {
   padding: 16px;
-  background-color: #2c303a;
-  border-top: 1px solid #444;
+  background-color: var(--bg-elevated);
+  border-top: 1px solid var(--border-solid);
 }
 
 .json-output-panel .panel-header {
@@ -15,7 +15,7 @@
 .json-output-panel h3 {
   margin: 0;
   font-size: 16px;
-  color: #e0e0e0;
+  color: var(--text-primary);
 }
 
 .json-output-panel .header-buttons {
@@ -24,21 +24,21 @@
 }
 
 .json-output-panel .start-blocks-btn {
-  background-color: #007bff; /* Màu xanh dương nổi bật */
+  background-color: var(--accent-primary); /* Màu xanh dương nổi bật */
   color: white;
   border: none;
 }
 
 .json-output-panel .start-blocks-btn:hover {
-  background-color: #0056b3; /* Màu xanh dương đậm hơn khi hover */
+  background-color: var(--accent-primary-active); /* Màu xanh dương đậm hơn khi hover */
 }
 
 .json-output-panel .header-buttons .render-btn,
 .json-output-panel .header-buttons .action-button,
 .json-output-panel .header-buttons .json-action-btn {
-  background-color: #4a4f5a !important; /* Thêm !important để ghi đè style khác */
-  color: #e0e0e0;
-  border: 1px solid #6c757d;
+  background-color: var(--bg-hover) !important; /* Thêm !important để ghi đè style khác */
+  color: var(--text-primary);
+  border: 1px solid var(--border-solid);
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -50,18 +50,18 @@
 .json-output-panel .header-buttons .render-btn:hover,
 .json-output-panel .header-buttons .action-button:hover,
 .json-output-panel .header-buttons .json-action-btn:hover {
-  background-color: #5a5f6a !important; /* Thêm !important cho trạng thái hover */
+  background-color: var(--bg-tertiary) !important; /* Thêm !important cho trạng thái hover */
 }
 
 .json-textarea {
   width: 100%;
   height: 1000px;
-  background-color: #1e1e1e;
-  color: #d4d4d4;
-  border: 1px solid #444;
-  border-radius: 4px;
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-xs);
   padding: 10px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: var(--font-mono, 'Courier New', Courier, monospace);
   font-size: 14px;
   resize: vertical;
   box-sizing: border-box;

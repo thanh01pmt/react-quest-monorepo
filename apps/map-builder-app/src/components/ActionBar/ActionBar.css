@@ -7,8 +7,8 @@
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: #1e1e22;
-  border-top: 1px solid #3c3c41;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-solid);
 }
 
 /* Action Groups */
@@ -37,10 +37,10 @@
   justify-content: center;
   gap: 6px;
   padding: 10px 14px;
-  background: #3c3c41;
-  border: 1px solid #555;
-  border-radius: 6px;
-  color: #fff;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
@@ -49,8 +49,8 @@
 }
 
 .action-btn:hover:not(:disabled) {
-  background: #4a4a50;
-  border-color: #666;
+  background: var(--bg-hover);
+  border-color: var(--border-emphasis);
   transform: translateY(-1px);
 }
 
@@ -83,7 +83,7 @@
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  background: #007bff;
+  background: var(--accent-primary);
   border-radius: 8px;
   font-size: 0.65rem;
   font-weight: 600;
@@ -94,22 +94,22 @@
 
 /* Primary Button */
 .action-btn.primary {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-  border-color: #0056b3;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-active) 100%);
+  border-color: var(--accent-primary-active);
 }
 
 .action-btn.primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0069d9 0%, #004494 100%);
+  background: linear-gradient(135deg, var(--accent-primary-hover) 0%, var(--accent-primary) 100%);
 }
 
 .action-btn.primary.loading {
-  background: linear-gradient(135deg, #555 0%, #444 100%);
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-elevated) 100%);
   cursor: wait;
 }
 
 /* Danger Button */
 .action-btn.danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, var(--accent-danger) 0%, #c82333 100%);
   border-color: #c82333;
 }
 

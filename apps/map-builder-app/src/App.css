@@ -19,39 +19,39 @@
   flex-direction: column;
   overflow-y: auto; /* Thêm thanh cuộn dọc khi nội dung bị tràn */
   flex-shrink: 0;
-  border-left: 1px solid #444;
+  border-left: 1px solid var(--border-solid);
 }
 
 /* Style cho thanh kéo */
 .resizer {
   width: 5px;
   height: 100%;
-  background-color: #111;
+  background-color: var(--bg-primary);
   cursor: col-resize;
   flex-shrink: 0;
-  border-left: 1px solid #444;
-  border-right: 1px solid #444;
+  border-left: 1px solid var(--border-solid);
+  border-right: 1px solid var(--border-solid);
   transition: background-color 0.2s;
 }
 
 .resizer:hover {
-  background-color: #007bff;
+  background-color: var(--accent-primary);
 }
 
 /* Style cho thanh kéo */
 .resizer {
   width: 5px;
   height: 100%;
-  background-color: #111;
+  background-color: var(--bg-primary);
   cursor: col-resize;
   flex-shrink: 0;
-  border-left: 1px solid #444;
-  border-right: 1px solid #444;
+  border-left: 1px solid var(--border-solid);
+  border-right: 1px solid var(--border-solid);
   transition: background-color 0.2s;
 }
 
 .resizer:hover {
-  background-color: #007bff;
+  background-color: var(--accent-primary);
 }
 
 /* Style cho nút ẩn/hiện palette */
@@ -61,9 +61,9 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 90;
-  background-color: #2a2a2e;
-  color: #c0c0c0;
-  border: 1px solid #444;
+  background-color: var(--bg-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-solid);
   padding: 12px 4px;
   cursor: pointer;
   transition: all 0.2s;
@@ -75,9 +75,9 @@
 }
 
 .toggle-sidebar-btn:hover {
-  background-color: #007bff;
+  background-color: var(--accent-primary);
   color: white;
-  border-color: #007bff;
+  border-color: var(--accent-primary);
 }
 
 .toggle-sidebar-btn.left {
@@ -100,17 +100,17 @@
     flex: 1;
     padding: 10px;
     font-size: 14px;
-    background-color: #3c3c41;
-    color: #f0f0f0;
-    border: 1px solid #555;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-solid);
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s, border-color 0.2s;
 }
 
 .mode-switcher button.active {
-    background-color: #007bff;
-    border-color: #0056b3;
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary-active);
     color: white;
     font-weight: bold;
 }
@@ -119,10 +119,10 @@
 .context-menu {
   position: fixed;
   z-index: 1000;
-  background-color: #2a2a2e;
-  border: 1px solid #444;
-  border-radius: 5px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
   min-width: 150px;
   padding: 5px 0;
 }
@@ -158,7 +158,7 @@
   overflow-y: auto;
   /* Thêm thanh cuộn tùy chỉnh cho đẹp hơn */
   scrollbar-width: thin;
-  scrollbar-color: #555 #2a2a2e;
+  scrollbar-color: var(--border-solid) var(--bg-elevated);
 }
 
 .context-menu .sub-menu::-webkit-scrollbar {
@@ -166,13 +166,13 @@
 }
 
 .context-menu .sub-menu::-webkit-scrollbar-track {
-  background: #2a2a2e;
+  background: var(--bg-elevated);
 }
 
 .context-menu .sub-menu::-webkit-scrollbar-thumb {
-  background-color: #555;
-  border-radius: 4px;
-  border: 2px solid #2a2a2e;
+  background-color: var(--border-solid);
+  border-radius: var(--radius-xs);
+  border: 2px solid var(--bg-elevated);
 }
 
 /* --- END: STYLE CHO SUB-MENU --- */
@@ -182,23 +182,23 @@
   width: 24px;
   height: 24px;
   object-fit: contain;
-  background-color: #4f4f52;
+  background-color: var(--bg-hover);
   border-radius: 3px;
   flex-shrink: 0; /* Ngăn thumbnail bị co lại */
 }
 
 .context-menu li:hover {
-  background-color: #007bff;
+  background-color: var(--accent-primary);
   color: white;
 }
 
 .context-menu li.delete:hover {
-  background-color: #dc3545;
+  background-color: var(--accent-danger);
 }
 
 .context-menu li.separator {
   height: 1px;
-  background-color: #444;
+  background-color: var(--border-solid);
   margin: 5px 0;
   padding: 0;
   cursor: default;

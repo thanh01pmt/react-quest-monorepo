@@ -3,8 +3,8 @@
  */
 
 .collapsible-section {
-  border-bottom: 1px solid #3c3c41;
-  background: #2a2a2e;
+  border-bottom: 1px solid var(--border-solid);
+  background: var(--bg-elevated);
 }
 
 .collapsible-section:last-child {
@@ -18,9 +18,9 @@
   align-items: center;
   width: 100%;
   padding: 12px 14px;
-  background: linear-gradient(135deg, #333 0%, #2a2a2e 100%);
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-elevated) 100%);
   border: none;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -28,11 +28,11 @@
 }
 
 .collapsible-header:hover {
-  background: linear-gradient(135deg, #3c3c41 0%, #333 100%);
+  background: linear-gradient(135deg, var(--bg-hover) 0%, var(--bg-tertiary) 100%);
 }
 
 .collapsible-section.collapsed .collapsible-header {
-  background: #2a2a2e;
+  background: var(--bg-elevated);
 }
 
 .header-content {
@@ -63,7 +63,7 @@
 
 .toggle-icon {
   font-size: 0.65rem;
-  color: #888;
+  color: var(--text-label);
   transition: transform 0.3s ease;
 }
 
@@ -94,13 +94,13 @@
 
 /* Section variants */
 .collapsible-section.properties .collapsible-header {
-  background: linear-gradient(135deg, #1e293b 0%, #2a2a2e 100%);
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
 }
 
 .collapsible-section.quest .collapsible-header {
-  background: linear-gradient(135deg, #1e3a29 0%, #2a2a2e 100%);
+  background: linear-gradient(135deg, #1e3a29 0%, var(--bg-elevated) 100%);
 }
 
 .collapsible-section.json .collapsible-header {
-  background: linear-gradient(135deg, #2d1f3d 0%, #2a2a2e 100%);
+  background: linear-gradient(135deg, #2d1f3d 0%, var(--bg-elevated) 100%);
 }

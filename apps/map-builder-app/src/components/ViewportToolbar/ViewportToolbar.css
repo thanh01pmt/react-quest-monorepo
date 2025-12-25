@@ -10,11 +10,11 @@
     z-index: 150;
 
     /* Glass Effect */
-    background: rgba(40, 40, 45, 0.95);
+    background: var(--surface-glass);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
 
     /* Shadow */
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -76,14 +76,14 @@
 }
 
 .toolbar-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    background: var(--surface-hover);
+    color: var(--text-primary);
 }
 
 .toolbar-btn.active {
-    background: linear-gradient(135deg, rgba(74, 158, 255, 0.25) 0%, rgba(53, 122, 189, 0.25) 100%);
-    border-color: rgba(74, 158, 255, 0.5);
-    color: #4a9eff;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(79, 70, 229, 0.25) 100%);
+    border-color: rgba(99, 102, 241, 0.5);
+    color: var(--accent-primary);
 }
 
 /* Compact: Just shortcut letter */
@@ -170,8 +170,8 @@
 }
 
 .toggle-btn.active {
-    background: rgba(74, 158, 255, 0.3);
-    color: #4a9eff;
+    background: rgba(99, 102, 241, 0.3);
+    color: var(--accent-primary);
 }
 
 /* Hint text */
