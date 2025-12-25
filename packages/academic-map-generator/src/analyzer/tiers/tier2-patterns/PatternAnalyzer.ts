@@ -21,21 +21,42 @@ export class PatternAnalyzer {
   private findPatterns(tier1: Tier1Result): Pattern[] {
     const patterns: Pattern[] = [];
     
-    // 1. Internal Staircase/Zigzag Detection in Areas
-    // Analyze both Main Segments and Area Internal Paths
+    // 1. Staircase/Zigzag Detection
+    // FIX: Only detect staircase for segments that are part of macro_staircase MetaPaths
+    // or segments explicitly named as staircase/zigzag (from area internals)
+    // This prevents false positives from diagonal wings or spiral sections
+    
+    // Collect segment IDs that belong to macro_staircase MetaPaths
+    const staircaseSegmentIds = new Set<string>();
+    if (tier1.metaPaths) {
+      for (const mp of tier1.metaPaths) {
+        if (mp.structureType === 'macro_staircase') {
+          for (const seg of mp.segments) {
+            staircaseSegmentIds.add(seg.id);
+          }
+        }
+      }
+    }
+    
     let allSegmentsToAnalyze = [...tier1.segments];
     tier1.areas.forEach(a => {
         if (a.internalPaths) allSegmentsToAnalyze.push(...a.internalPaths);
     });
 
     for (const seg of allSegmentsToAnalyze) {
-        // If diagonal direction (e.g. x=1, z=1)
-        if (Math.abs(seg.direction.x) > 0 && Math.abs(seg.direction.z) > 0) {
+        // Only mark as staircase if:
+        // 1. Segment belongs to a macro_staircase MetaPath, OR
+        // 2. Segment ID contains 'staircase' or 'zigzag' (explicit naming from area internals)
+        const isFromStaircaseMetaPath = staircaseSegmentIds.has(seg.id);
+        const hasStaircaseName = seg.id.toLowerCase().includes('staircase') || 
+                                  seg.id.toLowerCase().includes('zigzag');
+        
+        if (isFromStaircaseMetaPath || hasStaircaseName) {
             patterns.push({
                 id: `pattern_staircase_${seg.id}`,
                 type: 'repeat', 
                 unitElements: [seg.id],
-                repetitions: seg.length,
+                repetitions: Math.max(1, seg.length - 1),  // FIX: repetitions = steps, not points
                 transform: { translate: seg.direction }
             });
         }

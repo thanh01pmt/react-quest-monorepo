@@ -413,10 +413,10 @@ export class GeometricDecomposer {
    */
   private findAreasFallback(grid2D: Set<string>): Area[] {
     const areas: Area[] = [];
-    const visitedInArea = new Set<string>();
     const yLevel = this.blocks[0]?.y ?? 0;
 
     // Strategy: Junction-based
+    // FIX: Junction blocks can belong to MULTIPLE areas (shared ownership)
     const junctionBlocks = new Set<string>();
     for (const block of this.blocks) {
       if (this.countHorizontalNeighbors(block) >= 3) {
@@ -424,16 +424,21 @@ export class GeometricDecomposer {
       }
     }
 
+    // Track which non-junction blocks have been assigned (junctions can be shared)
+    const assignedNonJunction = new Set<string>();
+    // Track which junction blocks have been "seeded" (to avoid duplicate area creation)
+    const seededJunctions = new Set<string>();
+
     // Cluster adjacent junctions
     for (const junctionKey of junctionBlocks) {
-      if (visitedInArea.has(junctionKey)) continue;
+      if (seededJunctions.has(junctionKey)) continue;
 
       const areaBlocks: Vector3[] = [];
       const block = this.findBlockByKey(junctionKey);
       if (!block) continue;
       
       const queue: Vector3[] = [block];
-      visitedInArea.add(junctionKey);
+      seededJunctions.add(junctionKey);
       areaBlocks.push(block);
 
       // Expand to adjacent junctions and radius 1
@@ -444,11 +449,26 @@ export class GeometricDecomposer {
         
         for (const n of neighbors) {
           const nKey = vectorToKey(n);
-          if (!visitedInArea.has(nKey) && this.blockSet.has(nKey)) {
-            visitedInArea.add(nKey);
-            areaBlocks.push(n);
-            if (junctionBlocks.has(nKey)) {
+          if (!this.blockSet.has(nKey)) continue;
+          
+          const isJunction = junctionBlocks.has(nKey);
+          
+          if (isJunction) {
+            // Junction blocks: can be added to multiple areas
+            // Only add to queue if not yet seeded (to prevent infinite loop)
+            if (!seededJunctions.has(nKey)) {
+              seededJunctions.add(nKey);
               queue.push(n);
+            }
+            // Always add junction to this area's blocks (shared ownership)
+            if (!areaBlocks.some(b => vectorToKey(b) === nKey)) {
+              areaBlocks.push(n);
+            }
+          } else {
+            // Non-junction blocks: can only belong to one area
+            if (!assignedNonJunction.has(nKey)) {
+              assignedNonJunction.add(nKey);
+              areaBlocks.push(n);
             }
           }
         }
@@ -660,15 +680,17 @@ export class GeometricDecomposer {
             const neighborKey = vectorToKey(neighbor);
             if (areaBoundarySet.has(neighborKey)) {
               const direction = vectorNormalize(vectorSub(neighbor, endpoint));
+              // FIX: Gateway coord should be the boundary block (neighbor), not segment endpoint
+              // This allows placing switches at gateway to trigger function/loop when entering area
               const exists = gateways.some(g => 
-                vectorEquals(g.coord, endpoint) && 
+                vectorEquals(g.coord, neighbor) && 
                 g.connectedAreaId === area.id
               );
               
               if (!exists) {
                 gateways.push({
                   id: `gateway_${gatewayId++}`,
-                  coord: endpoint,
+                  coord: neighbor,  // FIX: Use boundary block, not endpoint
                   connectedPathId: segment.id,
                   connectedAreaId: area.id,
                   direction
@@ -1138,6 +1160,12 @@ export class GeometricDecomposer {
     if (allPoints.length < 2) return null;
 
     const segmentDir = vectorNormalize(vectorSub(allPoints[allPoints.length - 1], allPoints[0]));
+    
+    // FIX: Return null if direction is zero vector (all points are identical)
+    if (segmentDir.x === 0 && segmentDir.y === 0 && segmentDir.z === 0) {
+      return null;
+    }
+    
     const plane = this.determinePlane(segmentDir);
 
     return {
@@ -1161,6 +1189,11 @@ export class GeometricDecomposer {
 
     for (let i = 1; i < path.length; i++) {
         const dir = vectorNormalize(vectorSub(path[i], path[i - 1]));
+        
+        // FIX: Skip if direction is zero vector (consecutive identical points)
+        if (dir.x === 0 && dir.y === 0 && dir.z === 0) {
+          continue;
+        }
         
         if (currentDir === null) {
             currentDir = dir;

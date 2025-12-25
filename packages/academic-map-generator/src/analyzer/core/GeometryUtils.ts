@@ -42,6 +42,24 @@ export function vectorNormalize(v: Vector3): Vector3 {
   return { x: v.x / mag, y: v.y / mag, z: v.z / mag };
 }
 
+/**
+ * Check if a vector is zero vector (all components are 0)
+ * Useful for validating direction vectors after normalization
+ */
+export function isZeroVector(v: Vector3): boolean {
+  return v.x === 0 && v.y === 0 && v.z === 0;
+}
+
+/**
+ * Safely normalize a vector, returning null if the input is a zero vector.
+ * Use this when you need to validate that the direction is valid.
+ */
+export function vectorNormalizeSafe(v: Vector3): Vector3 | null {
+  const mag = vectorMagnitude(v);
+  if (mag === 0) return null;
+  return { x: v.x / mag, y: v.y / mag, z: v.z / mag };
+}
+
 export function vectorDistance(a: Vector3, b: Vector3): number {
   return vectorMagnitude(vectorSub(b, a));
 }
