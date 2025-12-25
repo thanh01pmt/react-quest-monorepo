@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback, MouseEvent } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { AssetPalette } from './components/AssetPalette';
+import { MainLeftPanel } from './components/MainLeftPanel';
 import { BuilderScene, type SceneController } from './components/BuilderScene';
 import { ViewControls } from './components/ViewControls';
 import { PropertiesPanel } from './components/PropertiesPanel';
@@ -20,7 +20,7 @@ import { MapInspector } from './components/MapInspector';
 import { ValidationBadge } from './components/ValidationBadge';
 import { BuilderModeProvider } from './store/builderModeContext';
 import { useMapValidation } from './hooks/useMapValidation';
-import { HelpButton } from './components/HelpButton';
+import { KeyboardShortcutsPanel } from './components/KeyboardShortcutsPanel';
 import { SolutionDebugPanel } from './components/SolutionDebugPanel';
 import { PlacementSelector } from './components/PlacementSelector';
 import { TemplateManager } from './components/TemplateManager';
@@ -39,8 +39,7 @@ import {
   type ItemPlacement
 } from '@repo/academic-map-generator';
 import { CenterToolbar } from './components/CenterToolbar';
-import { ViewportToolbar } from './components/ViewportToolbar';
-import { SymmetryPanel } from './components/SymmetryPanel';
+
 import _ from 'lodash';
 import './App.css';
 
@@ -78,9 +77,13 @@ function ValidationBadgeWrapper({ placedObjects, pathInfo, mode, strategy }: Val
 
 function App() {
   const [selectedAsset, setSelectedAsset] = useState<BuildableAsset | null>(defaultAsset);
+  // Keyboard Shortcuts State (Moved from HelpButton)
+  const [showShortcuts, setShowShortcuts] = useState(false);
   // --- START: THAY ĐỔI ĐỂ QUẢN LÝ LỊCH SỬ UNDO/REDO ---
-  const [isPaletteVisible, setIsPaletteVisible] = useState(true); // State để quản lý hiển thị palette
-  const [activeSidePanel, setActiveSidePanel] = useState<'assets' | 'topology' | 'placement'>('assets'); // State chọn panel
+  const [activeSidePanel, setActiveSidePanel] = useState<'topology' | 'placement'>('topology'); // State chọn panel
+  // Sidebar Visibility State
+  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
+  const [showRightSidebar, setShowRightSidebar] = useState(true);
   // Placement selector state
   const [placementSelections, setPlacementSelections] = useState<Array<{ elementId: string; itemType: 'crystal' | 'switch' | 'gem'; symmetric?: boolean }>>([]);
   // Strategy and item goals for placement
@@ -251,9 +254,7 @@ function App() {
     setHistoryIndex(newHistory.length - 1);
   }, [history, historyIndex]);
 
-  const togglePalette = () => {
-    setIsPaletteVisible(!isPaletteVisible);
-  };
+
 
   const handleUndo = useCallback(() => {
     if (historyIndex > 0) {
@@ -1150,7 +1151,7 @@ function App() {
     setSelectionEnd(null);
   };
 
-  const handleDimensionsChange = (axis: keyof BoxDimensions, value: number) => setBoxDimensions(prev => ({ ...prev, [axis]: Math.max(1, value) }));
+  const handleDimensionsChange = (newDims: BoxDimensions) => setBoxDimensions(newDims);
   const handleSelectionBoundsChange = (newBounds: SelectionBounds) => { setSelectionStart(newBounds.min); setSelectionEnd(newBounds.max); };
 
   // --- NEW LOGIC: TỰ ĐỘNG TÍNH LẠI ĐƯỜNG ĐI ---
@@ -2802,15 +2803,11 @@ function App() {
 
   return (
     <div className="app-container">
-      {isPaletteVisible && (
+
+      {showLeftSidebar && (
         <div className="left-sidebar-container" style={{ width: '300px', display: 'flex', flexDirection: 'column', background: '#2a2a2e', borderRight: '1px solid #3c3c41' }}>
           <div className="sidebar-tabs" style={{ display: 'flex', borderBottom: '1px solid #3c3c41' }}>
-            <button
-              style={{ flex: 1, padding: '10px', background: activeSidePanel === 'assets' ? '#3c3c41' : '#2a2a2e', color: activeSidePanel === 'assets' ? '#fff' : '#888', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'assets' ? 'bold' : 'normal', transition: 'all 0.2s' }}
-              onClick={() => setActiveSidePanel('assets')}
-            >
-              Manual
-            </button>
+
             <button
               style={{ flex: 1, padding: '10px', background: activeSidePanel === 'topology' ? '#3c3c41' : '#2a2a2e', color: activeSidePanel === 'topology' ? '#fff' : '#888', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'topology' ? 'bold' : 'normal', transition: 'all 0.2s' }}
               onClick={() => setActiveSidePanel('topology')}
@@ -2827,30 +2824,7 @@ function App() {
 
 
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {activeSidePanel === 'assets' ? (
-              <AssetPalette
-                selectedAssetKey={selectedAsset?.key || null}
-                onSelectAsset={handleSelectAsset}
-                currentMode={builderMode}
-                onModeChange={handleModeChange}
-                boxDimensions={boxDimensions}
-                onDimensionsChange={handleDimensionsChange}
-                fillOptions={fillOptions}
-                onFillOptionsChange={setFillOptions}
-                onSelectionAction={handleSelectionAction}
-                selectionBounds={selectionBounds}
-                onSelectionBoundsChange={handleSelectionBoundsChange}
-                // SỬa LỖI: Truyền hàm tiện ích mới vào AssetPalette
-                getCorrectedAssetUrl={getCorrectedAssetUrl}
-                onLoadMapFromUrl={handleLoadMapFromUrl} // Truyền hàm mới vào
-                onShowTutorial={() => setIsWelcomeModalVisible(true)} // THÊM MỚI: Prop để mở lại modal
-                onCreateNewMap={handleCreateNewMap} // THÊM MỚI: Prop để tạo map mới
-                onImportMap={handleImportMap}
-                // Smart selection
-                selectionMode={selectionMode}
-                onSelectionModeChange={handleSelectionModeChange}
-              />
-            ) : activeSidePanel === 'topology' ? (
+            {activeSidePanel === 'topology' ? (
               <TopologyPanel
                 onGenerate={handleGenerateMap}
                 assetMap={assetMap}
@@ -2989,9 +2963,25 @@ function App() {
             )}
           </div>
         </div>
-      )
-      }
+      )}
+
       <div className="builder-scene-wrapper">
+        {/* Sidebar Toggles */}
+        <button
+          className="toggle-sidebar-btn left"
+          onClick={() => setShowLeftSidebar(!showLeftSidebar)}
+          title={showLeftSidebar ? "Collapse Sidebar" : "Expand Sidebar"}
+        >
+          {showLeftSidebar ? '‹' : '›'}
+        </button>
+        <button
+          className="toggle-sidebar-btn right"
+          onClick={() => setShowRightSidebar(!showRightSidebar)}
+          title={showRightSidebar ? "Collapse Sidebar" : "Expand Sidebar"}
+        >
+          {showRightSidebar ? '›' : '‹'}
+        </button>
+
         {/* Center Toolbar - Floating controls over 3D scene */}
         <CenterToolbar
           activeLayer={activeLayer}
@@ -3014,20 +3004,20 @@ function App() {
 
 
         {/* Viewport Toolbar - Mode & Tool switching */}
-        <ViewportToolbar
+        {/* Viewport Toolbar - Mode & Tool switching */}
+        <MainLeftPanel
           activeMode={builderMode}
           onModeChange={handleModeChange}
           selectionMode={selectionMode}
           onSelectionModeChange={handleSelectionModeChange}
           hasSelection={selectedObjectIds.length > 0}
           selectionCount={selectedObjectIds.length}
-          onCleanMap={handleCleanMap} // Pass clean function
+          onCleanMap={handleCleanMap}
+          assetGroups={buildableAssetGroups}
+          selectedAssetKey={selectedAsset?.key || null}
+          onSelectAsset={handleSelectAsset}
+          onShowShortcuts={() => setShowShortcuts(true)}
         />
-
-        {/* Smart Selection integrated into AssetPalette */}
-        <button onClick={togglePalette} className={`toggle-palette-btn ${!isPaletteVisible ? 'closed' : ''}`}>
-          {isPaletteVisible ? '‹' : '›'}
-        </button>
         <MapInspector
           placedObjects={placedObjects}
           pathInfo={questMetadata?.pathInfo}
@@ -3044,7 +3034,7 @@ function App() {
             style={{
               position: 'absolute',
               bottom: '20px',
-              left: '200px', // Next to Inspector
+              left: '220px', // Next to Inspector (Adjusted for MainLeftPanel width)
               zIndex: 1000,
               padding: '10px 20px',
               background: '#2196f3',
@@ -3059,7 +3049,11 @@ function App() {
             Suggest Placement
           </button>
         )}
-        <ViewControls onViewChange={handleViewChange} />
+        <ViewControls
+          onViewChange={handleViewChange}
+          boxDimensions={boxDimensions}
+          onDimensionsChange={handleDimensionsChange}
+        />
         <BuilderScene
           ref={sceneRef}
           builderMode={builderMode}
@@ -3107,30 +3101,35 @@ function App() {
         />
       </div>
       {/* --- START: THÊM THANH RESIZER VÀ ÁP DỤNG WIDTH ĐỘNG --- */}
-      <div
-        className="resizer"
-        onMouseDown={handleResizeMouseDown}
-      />
-      <div ref={sidebarRef} className="right-sidebar" style={{ width: `${sidebarWidth}px` }}>
-        <RightPanelTabs
-          selectedObjects={placedObjects.filter(obj => selectedObjectIds.includes(obj.id))}
-          onUpdateObject={handleUpdateObject}
-          onDeleteSelection={() => handleRemoveMultipleObjects(selectedObjectIds)}
-          onAddObject={handleAddNewObject}
-          onCopyAsset={handleCopyObject}
-          onRotateSelection={handleRotateSelection}
-          onFlipSelection={handleFlipSelection}
-          onClearSelection={() => { setSelectedObjectIds([]); setSelectionStart(null); setSelectionEnd(null); }}
-          metadata={questMetadata}
-          onMetadataChange={handleMetadataChange}
-          onSolveMaze={handleSolveMaze}
-          questId={questMetadata?.id || 'untitled-quest'}
-          editedJson={editedJson}
-          onJsonChange={setEditedJson}
-          onRender={handleRenderEditedJson}
-          onSave={handleSaveMap}
-        />
-      </div>
+      {showRightSidebar && (
+        <>
+          <div
+            className="resizer"
+            onMouseDown={handleResizeMouseDown}
+          />
+          <div ref={sidebarRef} className="right-sidebar" style={{ width: `${sidebarWidth}px` }}>
+            <RightPanelTabs
+              selectedObjects={placedObjects.filter(obj => selectedObjectIds.includes(obj.id))}
+              onUpdateObject={handleUpdateObject}
+              onDeleteSelection={() => handleRemoveMultipleObjects(selectedObjectIds)}
+              onAddObject={handleAddNewObject}
+              onCopyAsset={handleCopyObject}
+              onRotateSelection={handleRotateSelection}
+              onFlipSelection={handleFlipSelection}
+              onClearSelection={() => { setSelectedObjectIds([]); setSelectionStart(null); setSelectionEnd(null); }}
+              metadata={questMetadata}
+              onMetadataChange={handleMetadataChange}
+              onSolveMaze={handleSolveMaze}
+              questId={questMetadata?.id || 'untitled-quest'}
+              editedJson={editedJson}
+              onJsonChange={setEditedJson}
+              onRender={handleRenderEditedJson}
+              onSave={handleSaveMap}
+              onImportMap={handleImportMap}
+            />
+          </div>
+        </>
+      )}
       {/* --- END: THÊM THANH RESIZER VÀ ÁP DỤNG WIDTH ĐỘNG --- */}
       {
         contextMenu.visible && (
@@ -3185,7 +3184,10 @@ function App() {
         )
       }
       {/* Help Button for Keyboard Shortcuts */}
-      <HelpButton />
+      <KeyboardShortcutsPanel
+        isOpen={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+      />
     </div >
   );
 }

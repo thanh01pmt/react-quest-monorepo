@@ -9,6 +9,7 @@ interface QuestDetailsPanelProps {
   metadata: Record<string, any> | null;
   onMetadataChange: (path: string, value: any) => void;
   onSolveMaze: () => void; // SỬA ĐỔI: Hàm giải không cần tham số nữa
+  onImportMap: (file: File) => void;
 }
 
 // Helper để lấy giá trị lồng sâu trong object
@@ -108,7 +109,7 @@ const jsonToXml = (structuredSolution: any): string => {
         statement.setAttribute('name', 'DO');
         jsonToXmlRecursive(action.actions || [], statement);
         block.appendChild(statement);
-      }else if (action.type === 'maze_repeat_until') {
+      } else if (action.type === 'maze_repeat_until') {
         // THÊM MỚI: Xử lý khối 'maze_repeat_until' để tạo ra XML cho 'controls_whileUntil'
         block.setAttribute('type', 'controls_whileUntil');
 
@@ -260,7 +261,7 @@ const jsonToXml = (structuredSolution: any): string => {
   startBlock.setAttribute('type', 'maze_start');
   startBlock.setAttribute('deletable', 'false');
   startBlock.setAttribute('movable', 'false');
-  
+
   if (structuredSolution.main && structuredSolution.main.length > 0) {
     const mainStatement = doc.createElement('statement');
     mainStatement.setAttribute('name', 'DO');
@@ -290,7 +291,7 @@ const jsonToXml = (structuredSolution: any): string => {
         jsonToXmlRecursive(procActions, procStatement);
         procBlock.appendChild(procStatement);
       }
-      
+
       doc.documentElement.appendChild(procBlock);
       yOffset += 150; // Tăng khoảng cách cho hàm tiếp theo
     }
@@ -342,7 +343,7 @@ const normalizeSolution = (solution: any) => {
   return newSolution;
 };
 
-export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze }: QuestDetailsPanelProps) {
+export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onImportMap }: QuestDetailsPanelProps) {
   // SỬA LỖI: Tái cấu trúc hàm để có thể xử lý nhiều thay đổi cùng lúc,
   // tránh việc gọi nhiều lần gây ghi đè state.
   const handleComplexChange = (...updates: { path: string; value: any }[]) => {
@@ -427,8 +428,25 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze }: Q
   const titleKey = metadata.titleKey || '';
   const descriptionKey = metadata.questTitleKey || metadata.descriptionKey || '';
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      onImportMap(e.target.files[0]);
+    }
+  };
+
   return (
     <aside className="quest-details-panel" key={metadata.id}>
+      {/* Actions Section */}
+      <div className="quest-prop-group" style={{ borderBottom: '1px solid #444', paddingBottom: '16px', marginBottom: '16px' }}>
+        <h3 className="props-title" style={{ marginTop: 0 }}>Actions</h3>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <label className="json-action-btn" style={{ textAlign: 'center', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#3c3c41', color: '#fff' }}>
+            📂 Import JSON Map
+            <input type="file" accept=".json" onChange={handleFileChange} hidden />
+          </label>
+        </div>
+      </div>
+
       {/* Render Modal nếu isBlocklyModalOpen là true */}
       {isBlocklyModalOpen && metadata.blocklyConfig && (
         <BlocklyModal
@@ -652,7 +670,7 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze }: Q
             }
           }}
           rows={10}
-        />  
+        />
       </div>
     </aside>
   );

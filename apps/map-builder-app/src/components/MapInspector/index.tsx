@@ -147,38 +147,42 @@ export const MapInspector: React.FC<MapInspectorProps> = ({
         return (
             <div style={{
                 position: 'absolute',
-                bottom: '20px',
-                left: '20px',
+                top: '260px',
+                right: '16px',
                 background: 'rgba(30, 30, 30, 0.95)',
                 color: '#eee',
-                padding: '6px 12px',
+                padding: '8px 0', // Vertical padding, horizontal centered
                 borderRadius: '8px',
-                fontSize: '12px',
+                fontSize: '11px', // Smaller font
                 zIndex: 900,
                 boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
                 border: '1px solid #444',
                 cursor: 'pointer',
                 display: 'flex',
+                flexDirection: 'column', // Vertical layout
                 alignItems: 'center',
-                gap: '12px'
+                gap: '8px',
+                width: '40px', // Exact width
+                boxSizing: 'border-box'
             }} onClick={() => setIsMinimized(false)} title="Click to expand inspector">
 
                 {/* Steps */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ color: '#888' }}>👣</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                    <span style={{ color: '#888', fontSize: '14px' }}>👣</span>
                     <strong style={{ color: stats.pathLength > 0 ? '#4caf50' : '#888' }}>{stats.pathLength}</strong>
                 </div>
 
                 {/* Items */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', borderLeft: '1px solid #444', paddingLeft: '12px' }}>
-                    <span style={{ color: '#2196f3' }}>💎</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', borderTop: '1px solid #444', paddingTop: '8px', width: '100%' }}>
+                    <span style={{ color: '#2196f3', fontSize: '14px' }}>💎</span>
                     <strong>{stats.itemCount}</strong>
                 </div>
 
                 {/* Validation */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', borderLeft: '1px solid #444', paddingLeft: '12px' }}>
-                    <span>{validationStatus.icon}</span>
-                    <span style={{ color: validationStatus.color }}>{validationStatus.label}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', borderTop: '1px solid #444', paddingTop: '8px', width: '100%' }}>
+                    <span style={{ fontSize: '14px' }}>{validationStatus.icon}</span>
+                    {/* Hide label in vertical minimized to save space, or show small? */}
+                    {/* User didn't specify, but vertical strip is narrow. Icon is enough usually. */}
                 </div>
             </div>
         );
@@ -188,8 +192,8 @@ export const MapInspector: React.FC<MapInspectorProps> = ({
         <>
             <div style={{
                 position: 'absolute',
-                bottom: '20px',
-                left: '20px',
+                top: '260px',
+                right: '16px',
                 background: 'rgba(30, 30, 30, 0.95)',
                 color: '#eee',
                 padding: '12px',
@@ -303,8 +307,12 @@ export const MapInspector: React.FC<MapInspectorProps> = ({
             {showValidation && validationReport && (
                 <div style={{
                     position: 'absolute',
-                    bottom: '20px',
-                    left: '220px',
+                    top: '260px', // Align with Inspector
+                    right: '220px',
+                    // If modal width is 400px, right: 220px puts it to the left of inspector?
+                    // Inspector width ~200px. 
+                    // So right: 220px starts 220px from right edge.
+                    // This is correct.
                     maxWidth: '400px',
                     maxHeight: '500px',
                     overflowY: 'auto',

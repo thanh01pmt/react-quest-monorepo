@@ -22,6 +22,7 @@ interface RightPanelTabsProps {
     metadata: Record<string, any> | null;
     onMetadataChange: (path: string, value: any) => void;
     onSolveMaze: () => void;
+    onImportMap: (file: File) => void;
 
     // JSON Output Panel props
     questId: string;
@@ -109,6 +110,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
                         metadata={props.metadata}
                         onMetadataChange={props.onMetadataChange}
                         onSolveMaze={props.onSolveMaze}
+                        onImportMap={props.onImportMap} // Pass the import handler
                     />
                 )}
 
