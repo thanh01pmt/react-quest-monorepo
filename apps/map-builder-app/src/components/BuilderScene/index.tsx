@@ -33,6 +33,7 @@ interface BuilderSceneProps {
   selectedObjectIds: string[];
   onSelectObject: (id: string | null, isShiftDown: boolean) => void;
   onMoveObject: (objectId: string, newPosition: [number, number, number]) => void;
+  onMoveObjectsBatch?: (moves: Array<{ id: string; position: [number, number, number] }>) => void;
   onMoveObjectByStep: (objectId: string, direction: 'x' | 'y' | 'z', amount: 1 | -1) => void;
   onObjectContextMenu: (event: { clientX: number, clientY: number, preventDefault: () => void }, objectId: string) => void;
   // --- START: SỬA LỖI HIỆU ỨNG ---
@@ -433,7 +434,7 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
   const {
     builderMode, selectedAsset, placedObjects, boxDimensions, onModeChange,
     isMovingObject, onSetIsMovingObject, selectionStart,
-    onAddObject, onRemoveObject, selectionBounds, onSetSelectionStart, onSetSelectionEnd, cameraControlsRef, selectedObjectIds, onSelectObject, onMoveObject, onMoveObjectByStep, onObjectContextMenu,
+    onAddObject, onRemoveObject, selectionBounds, onSetSelectionStart, onSetSelectionEnd, cameraControlsRef, selectedObjectIds, onSelectObject, onMoveObject, onMoveObjectsBatch, onMoveObjectByStep, onObjectContextMenu,
     solutionPath,
     highlights, // Destructure highlights prop
     activeLayer, // NEW: Destructure activeLayer for dimming feature
@@ -909,17 +910,27 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
               if (!axis || !dragStartRef.current?.originalPositions) return;
 
               // Calculate grid delta from original position
+              // Note: delta is already snapped by TransformGizmo
               const gridDelta = Math.round(delta / TILE_SIZE);
 
-              // Move ALL selected objects relative to their ORIGINAL positions
+              // Build batch of all moves at once
+              const moves: Array<{ id: string; position: [number, number, number] }> = [];
+
               dragStartRef.current.originalPositions.forEach(({ id, pos }) => {
                 const newPos: [number, number, number] = [...pos];
                 if (axis === 'x') newPos[0] = pos[0] + gridDelta;
                 if (axis === 'y') newPos[1] = pos[1] + gridDelta;
                 if (axis === 'z') newPos[2] = pos[2] + gridDelta;
-
-                onMoveObject(id, newPos);
+                moves.push({ id, position: newPos });
               });
+
+              // Move ALL objects in a single batch update
+              if (onMoveObjectsBatch) {
+                onMoveObjectsBatch(moves);
+              } else {
+                // Fallback to individual moves if batch not available
+                moves.forEach(m => onMoveObject(m.id, m.position));
+              }
             }}
             onDragEnd={() => {
               onSetIsMovingObject(false);

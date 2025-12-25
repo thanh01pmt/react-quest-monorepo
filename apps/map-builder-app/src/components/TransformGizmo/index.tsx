@@ -137,8 +137,11 @@ export function TransformGizmo({
     const { camera, raycaster } = useThree();
     const [hoveredAxis, setHoveredAxis] = useState<GizmoAxis>(null);
     const [draggingAxis, setDraggingAxis] = useState<GizmoAxis>(null);
-    const dragStartRef = useRef<{ mousePos: THREE.Vector2; worldPos: THREE.Vector3 } | null>(null);
+    const dragStartRef = useRef<{ mousePos: THREE.Vector2; worldPos: THREE.Vector3; lastSnapDelta: number } | null>(null);
     const planeRef = useRef<THREE.Plane>(new THREE.Plane());
+
+    // Snap threshold - half a tile size (objects move when dragged past half way)
+    const SNAP_SIZE = 2; // TILE_SIZE = 2, so snap at 1 unit (half tile)
 
     // Handle pointer down on axis
     const handlePointerDown = (axis: 'x' | 'y' | 'z', e: ThreeEvent<PointerEvent>) => {
@@ -149,6 +152,7 @@ export function TransformGizmo({
         dragStartRef.current = {
             mousePos: new THREE.Vector2(e.pointer.x, e.pointer.y),
             worldPos: new THREE.Vector3(...position),
+            lastSnapDelta: 0, // Track last snapped delta to avoid redundant updates
         };
 
         // Create a plane perpendicular to camera but containing the axis
@@ -182,9 +186,16 @@ export function TransformGizmo({
 
             // Calculate movement along axis
             const toIntersect = intersectPoint.clone().sub(startPos);
-            const delta = toIntersect.dot(axisDir);
+            const rawDelta = toIntersect.dot(axisDir);
 
-            onDrag?.(draggingAxis, delta);
+            // Snap to grid - only emit when crossing grid boundary
+            const snapDelta = Math.round(rawDelta / SNAP_SIZE) * SNAP_SIZE;
+
+            // Only call onDrag if the snapped delta has changed
+            if (snapDelta !== dragStartRef.current.lastSnapDelta) {
+                dragStartRef.current.lastSnapDelta = snapDelta;
+                onDrag?.(draggingAxis, snapDelta);
+            }
         }
     });
 

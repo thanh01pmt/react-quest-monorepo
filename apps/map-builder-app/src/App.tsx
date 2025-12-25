@@ -401,17 +401,40 @@ function App() {
   }, [setPlacedObjectsWithHistory]);
 
   // --- HÀM MỚI: Xoay/Lật nhóm đối tượng đã chọn ---
+  // ENHANCED: Also pick up items sitting on top of ground blocks
   const handleRotateSelection = useCallback(() => {
     if (selectedObjectIds.length === 0) return;
 
     setPlacedObjectsWithHistory(prev => {
+      // Get selected objects
       const selectedObjects = prev.filter(obj => selectedObjectIds.includes(obj.id));
       if (selectedObjects.length === 0) return prev;
+
+      // Find ground blocks and items on top of them
+      const groundBlocks = selectedObjects.filter(o =>
+        o.asset.type === 'block' || o.asset.key.includes('ground')
+      );
+
+      const additionalItemIds: string[] = [];
+      for (const ground of groundBlocks) {
+        const [gx, gy, gz] = ground.position;
+        const itemsOnTop = prev.filter(o => {
+          if (selectedObjectIds.includes(o.id)) return false;
+          if (o.asset.type === 'block' || o.asset.key.includes('ground')) return false;
+          const [ix, iy, iz] = o.position;
+          return ix === gx && iz === gz && iy > gy && iy < boxDimensions.height;
+        });
+        additionalItemIds.push(...itemsOnTop.map(i => i.id));
+      }
+
+      // Combine all objects to rotate
+      const allIdsToRotate = new Set([...selectedObjectIds, ...additionalItemIds]);
+      const allObjectsToRotate = prev.filter(obj => allIdsToRotate.has(obj.id));
 
       // 1. Tìm tâm của nhóm
       const minPos = [Infinity, Infinity, Infinity];
       const maxPos = [-Infinity, -Infinity, -Infinity];
-      selectedObjects.forEach(obj => {
+      allObjectsToRotate.forEach(obj => {
         minPos[0] = Math.min(minPos[0], obj.position[0]);
         minPos[1] = Math.min(minPos[1], obj.position[1]);
         minPos[2] = Math.min(minPos[2], obj.position[2]);
@@ -426,7 +449,7 @@ function App() {
       ];
 
       // 2. Xoay từng đối tượng quanh tâm
-      const rotatedObjects = selectedObjects.map(obj => {
+      const rotatedObjects = allObjectsToRotate.map(obj => {
         const relPos = [
           obj.position[0] - center[0],
           obj.position[1] - center[1],
@@ -449,9 +472,10 @@ function App() {
       const newPlacedObjects = prev.map(obj => rotatedObjects.find(ro => ro.id === obj.id) || obj);
       return newPlacedObjects;
     });
-  }, [selectedObjectIds, setPlacedObjectsWithHistory]);
+  }, [selectedObjectIds, boxDimensions, setPlacedObjectsWithHistory]);
 
   // --- HÀM MỚI: Lật nhóm đối tượng đã chọn ---
+  // ENHANCED: Also pick up items sitting on top of ground blocks
   const handleFlipSelection = useCallback((axis: 'x' | 'z') => {
     if (selectedObjectIds.length === 0) return;
 
@@ -459,10 +483,31 @@ function App() {
       const selectedObjects = prev.filter(obj => selectedObjectIds.includes(obj.id));
       if (selectedObjects.length === 0) return prev;
 
+      // Find ground blocks and items on top of them
+      const groundBlocks = selectedObjects.filter(o =>
+        o.asset.type === 'block' || o.asset.key.includes('ground')
+      );
+
+      const additionalItemIds: string[] = [];
+      for (const ground of groundBlocks) {
+        const [gx, gy, gz] = ground.position;
+        const itemsOnTop = prev.filter(o => {
+          if (selectedObjectIds.includes(o.id)) return false;
+          if (o.asset.type === 'block' || o.asset.key.includes('ground')) return false;
+          const [ix, iy, iz] = o.position;
+          return ix === gx && iz === gz && iy > gy && iy < boxDimensions.height;
+        });
+        additionalItemIds.push(...itemsOnTop.map(i => i.id));
+      }
+
+      // Combine all objects to flip
+      const allIdsToFlip = new Set([...selectedObjectIds, ...additionalItemIds]);
+      const allObjectsToFlip = prev.filter(obj => allIdsToFlip.has(obj.id));
+
       // 1. Tìm tâm của nhóm
       const minPos = [Infinity, Infinity];
       const maxPos = [-Infinity, -Infinity];
-      selectedObjects.forEach(obj => {
+      allObjectsToFlip.forEach(obj => {
         minPos[0] = Math.min(minPos[0], obj.position[0]);
         minPos[1] = Math.min(minPos[1], obj.position[2]);
         maxPos[0] = Math.max(maxPos[0], obj.position[0]);
@@ -471,7 +516,7 @@ function App() {
       const center = { x: (minPos[0] + maxPos[0]) / 2, z: (minPos[1] + maxPos[1]) / 2 };
 
       // 2. Lật từng đối tượng qua tâm
-      const flippedObjects = selectedObjects.map(obj => {
+      const flippedObjects = allObjectsToFlip.map(obj => {
         let newPosition: [number, number, number] = [...obj.position];
         if (axis === 'x') {
           newPosition[0] = Math.round(center.x - (obj.position[0] - center.x));
@@ -485,7 +530,7 @@ function App() {
       const newPlacedObjects = prev.map(obj => flippedObjects.find(fo => fo.id === obj.id) || obj);
       return newPlacedObjects;
     });
-  }, [selectedObjectIds, setPlacedObjectsWithHistory]);
+  }, [selectedObjectIds, boxDimensions, setPlacedObjectsWithHistory]);
 
   // Thêm phím tắt Delete/Backspace để xóa đối tượng được chọn
   useEffect(() => {
@@ -1306,28 +1351,152 @@ function App() {
     });
   };
 
+  // NEW: Batch move multiple objects at once (for gizmo drag)
+  // This prevents race conditions by updating all positions in a single state update
+  // ENHANCED: When moving ground blocks, also move items sitting on top of them
+  const handleMoveObjectsBatch = useCallback((moves: Array<{ id: string; position: [number, number, number] }>) => {
+    if (moves.length === 0) return;
+
+    setPlacedObjectsWithHistory(prev => {
+      // Find all ground blocks being moved
+      const groundMoves = moves.filter(m => {
+        const obj = prev.find(o => o.id === m.id);
+        return obj && (obj.asset.type === 'block' || obj.asset.key.includes('ground'));
+      });
+
+      // Calculate delta for each ground block
+      const deltaMap = new Map<string, [number, number, number]>();
+      for (const groundMove of groundMoves) {
+        const obj = prev.find(o => o.id === groundMove.id);
+        if (obj) {
+          deltaMap.set(groundMove.id, [
+            groundMove.position[0] - obj.position[0],
+            groundMove.position[1] - obj.position[1],
+            groundMove.position[2] - obj.position[2]
+          ]);
+        }
+      }
+
+      // Find items sitting on top of ground blocks being moved
+      const additionalMoves: Array<{ id: string; position: [number, number, number] }> = [];
+      const alreadyMovingIds = new Set(moves.map(m => m.id));
+
+      for (const groundMove of groundMoves) {
+        const groundObj = prev.find(o => o.id === groundMove.id);
+        if (!groundObj) continue;
+
+        const delta = deltaMap.get(groundMove.id);
+        if (!delta) continue;
+
+        // Find all items above this ground block (same X, Z, Y > ground.Y)
+        const itemsOnTop = prev.filter(o => {
+          if (alreadyMovingIds.has(o.id)) return false;
+          if (o.asset.type === 'block' || o.asset.key.includes('ground')) return false;
+
+          // Check if item is on top of this ground block
+          const [gx, gy, gz] = groundObj.position;
+          const [ix, iy, iz] = o.position;
+
+          return ix === gx && iz === gz && iy > gy && iy < boxDimensions.height;
+        });
+
+        // Add these items to the moves with the same delta
+        for (const item of itemsOnTop) {
+          if (!alreadyMovingIds.has(item.id)) {
+            alreadyMovingIds.add(item.id);
+            additionalMoves.push({
+              id: item.id,
+              position: [
+                item.position[0] + delta[0],
+                item.position[1] + delta[1],
+                item.position[2] + delta[2]
+              ]
+            });
+          }
+        }
+      }
+
+      // Combine original moves with additional item moves
+      const allMoves = [...moves, ...additionalMoves];
+
+      // Create a map of new positions
+      const moveMap = new Map(allMoves.map(m => [m.id, m.position]));
+      const movingIds = new Set(allMoves.map(m => m.id));
+
+      // Validate all moves first
+      for (const move of allMoves) {
+        const [nx, ny, nz] = move.position;
+        // Check bounds
+        if (nx < 0 || nx >= boxDimensions.width || ny < 0 || ny >= boxDimensions.height || nz < 0 || nz >= boxDimensions.depth) {
+          return prev; // One object would go out of bounds, cancel entire batch
+        }
+        // Check collision with non-moving objects only
+        const newPosString = move.position.join(',');
+        if (prev.some(o => !movingIds.has(o.id) && o.position.join(',') === newPosString)) {
+          return prev; // Collision with stationary object, cancel entire batch
+        }
+      }
+
+      // Check for internal collisions (two moving objects going to same position)
+      const newPositions = new Set(allMoves.map(m => m.position.join(',')));
+      if (newPositions.size !== allMoves.length) {
+        return prev; // Two objects trying to move to same position
+      }
+
+      // All validations passed, apply all moves at once
+      return prev.map(o => {
+        const newPos = moveMap.get(o.id);
+        if (newPos) {
+          return { ...o, position: newPos };
+        }
+        return o;
+      });
+    });
+  }, [boxDimensions, setPlacedObjectsWithHistory]);
+
   // NÂNG CẤP: Di chuyển một hoặc nhiều đối tượng theo bước
+  // ENHANCED: Also move items sitting on top of ground blocks
   const handleMoveObject = (objectIds: string[], direction: 'x' | 'y' | 'z', amount: 1 | -1) => {
     setPlacedObjectsWithHistory(prev => {
       const objectsToMove = prev.filter(o => objectIds.includes(o.id));
       if (objectsToMove.length === 0) return prev;
 
       const axisIndex = { x: 0, y: 1, z: 2 }[direction];
-      const objectIdsSet = new Set(objectIds);
 
-      // --- THAY ĐỔI: Loại bỏ kiểm tra giới hạn bản đồ khi di chuyển bằng phím tắt ---
-      // Logic mới sẽ chỉ kiểm tra va chạm với các đối tượng khác không nằm trong vùng chọn.
-      // Điều này cho phép di chuyển tự do các đối tượng ra ngoài ranh giới.
-      const canMove = objectsToMove.every(obj => {
+      // Find ground blocks being moved and items on top of them
+      const groundBlocks = objectsToMove.filter(o =>
+        o.asset.type === 'block' || o.asset.key.includes('ground')
+      );
+
+      // Find items sitting on top of ground blocks
+      const additionalItemIds: string[] = [];
+      for (const ground of groundBlocks) {
+        const [gx, gy, gz] = ground.position;
+        const itemsOnTop = prev.filter(o => {
+          if (objectIds.includes(o.id)) return false; // Already selected
+          if (o.asset.type === 'block' || o.asset.key.includes('ground')) return false;
+          const [ix, iy, iz] = o.position;
+          return ix === gx && iz === gz && iy > gy && iy < boxDimensions.height;
+        });
+        additionalItemIds.push(...itemsOnTop.map(i => i.id));
+      }
+
+      // Combine all IDs
+      const allIdsToMove = new Set([...objectIds, ...additionalItemIds]);
+
+      // Check collision với các đối tượng khác không nằm trong vùng chọn
+      const canMove = [...allIdsToMove].every(id => {
+        const obj = prev.find(o => o.id === id);
+        if (!obj) return true;
         const newPos: [number, number, number] = [...obj.position];
         newPos[axisIndex] += amount;
-        return !prev.some(other => !objectIdsSet.has(other.id) && other.position.join(',') === newPos.join(','));
+        return !prev.some(other => !allIdsToMove.has(other.id) && other.position.join(',') === newPos.join(','));
       });
 
       if (!canMove) return prev; // Nếu có va chạm với đối tượng khác, hủy di chuyển.
 
       return prev.map(obj => {
-        if (objectIdsSet.has(obj.id)) {
+        if (allIdsToMove.has(obj.id)) {
           const newPosition: [number, number, number] = [...obj.position];
           newPosition[axisIndex] += amount;
           return { ...obj, position: newPosition };
@@ -2659,6 +2828,7 @@ function App() {
           onSetSelectionEnd={setSelectionEnd}
           selectedObjectIds={selectedObjectIds}
           onMoveObject={handleMoveObjectToPosition}
+          onMoveObjectsBatch={handleMoveObjectsBatch}
           onMoveObjectByStep={(objectId, dir, amt) => handleMoveObject([objectId], dir, amt)}
           onSelectObject={handleSelectObject} // THAY ĐỔI: Sử dụng hàm xử lý mới
           isMovingObject={isMovingObject} // THÊM MỚI: Truyền trạng thái di chuyển xuống
