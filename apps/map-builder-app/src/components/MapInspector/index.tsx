@@ -16,6 +16,7 @@ import { ValidationReportComponent } from '../ValidationReport';
 import { usePathTracer, TracedPath } from '../../hooks/usePathTracer';
 import { BuilderMode } from '../../store/builderModeContext';
 import { IPathInfo } from '@repo/academic-map-generator';
+import { AlertTriangle, XCircle, CheckCircle, HelpCircle, Footprints, Diamond, Minus, Zap, Wrench } from 'lucide-react';
 
 interface MapInspectorProps {
     placedObjects: PlacedObject[];
@@ -116,32 +117,32 @@ export const MapInspector: React.FC<MapInspectorProps> = ({
     const validationStatus = useMemo(() => {
         // Check for missing elements first
         if (!stats.hasStart) {
-            return { icon: '⚠️', label: 'No Start', color: '#f59e0b' };
+            return { icon: <AlertTriangle size={14} />, label: 'No Start', color: '#f59e0b' };
         }
         if (!stats.hasFinish) {
-            return { icon: '⚠️', label: 'No Finish', color: '#f59e0b' };
+            return { icon: <AlertTriangle size={14} />, label: 'No Finish', color: '#f59e0b' };
         }
         if (!stats.isReachable) {
-            return { icon: '❌', label: 'No Path', color: '#ef4444' };
+            return { icon: <XCircle size={14} />, label: 'No Path', color: '#ef4444' };
         }
 
         if (!validationReport) {
-            return { icon: '⚪', label: 'Unknown', color: '#666' };
+            return { icon: <HelpCircle size={14} />, label: 'Unknown', color: '#666' };
         }
         if (validationReport.isValid) {
-            return { icon: '✅', label: 'Valid', color: '#22c55e' };
+            return { icon: <CheckCircle size={14} />, label: 'Valid', color: '#22c55e' };
         }
         if (validationReport.tier1.passed && validationReport.tier2.passed) {
-            return { icon: '⚠️', label: 'Minor Issues', color: '#f59e0b' };
+            return { icon: <AlertTriangle size={14} />, label: 'Minor Issues', color: '#f59e0b' };
         }
         if (validationReport.tier1.passed) {
-            return { icon: '⚠️', label: 'Strategy Issue', color: '#f59e0b' };
+            return { icon: <AlertTriangle size={14} />, label: 'Strategy Issue', color: '#f59e0b' };
         }
-        return { icon: '❌', label: 'Invalid', color: '#ef4444' };
+        return { icon: <XCircle size={14} />, label: 'Invalid', color: '#ef4444' };
     }, [validationReport, stats]);
 
     // Mode indicator
-    const modeLabel = mode === 'auto' ? '⚡ Auto' : '🔧 Manual';
+    const modeLabel = mode === 'auto' ? <><Zap size={12} /> Auto</> : <><Wrench size={12} /> Manual</>;
 
     if (isMinimized) {
         return (
@@ -168,13 +169,13 @@ export const MapInspector: React.FC<MapInspectorProps> = ({
 
                 {/* Steps */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                    <span style={{ color: '#888', fontSize: '14px' }}>👣</span>
+                    <span style={{ color: '#888', display: 'flex' }}><Footprints size={14} /></span>
                     <strong style={{ color: stats.pathLength > 0 ? '#4caf50' : '#888' }}>{stats.pathLength}</strong>
                 </div>
 
                 {/* Items */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', borderTop: '1px solid #444', paddingTop: '8px', width: '100%' }}>
-                    <span style={{ color: '#2196f3', fontSize: '14px' }}>💎</span>
+                    <span style={{ color: '#2196f3', display: 'flex' }}><Diamond size={14} /></span>
                     <strong>{stats.itemCount}</strong>
                 </div>
 
@@ -238,7 +239,7 @@ export const MapInspector: React.FC<MapInspectorProps> = ({
                             }}
                             title="Minimize"
                         >
-                            －
+                            <Minus size={14} />
                         </button>
                     </div>
                 </div>

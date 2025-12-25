@@ -14,6 +14,7 @@ import {
     type PlacementContext,
     type AcademicConcept
 } from '@repo/academic-map-generator';
+import { Dices, Loader2, AlertTriangle, Package, Puzzle, Diamond, Hexagon, CircleDot, Lightbulb, Wrench, Check } from 'lucide-react';
 import './PlacementVariants.css';
 
 // Mapping from academic concept to recommended toolbox preset
@@ -257,11 +258,11 @@ export function PlacementVariants({
                 onClick={handleGenerate}
                 disabled={!context || isGenerating}
             >
-                {isGenerating ? '⏳ Generating...' : '🎲 Generate All Variants'}
+                {isGenerating ? <><Loader2 className="spin" size={16} /> Generating...</> : <><Dices size={16} /> Generate All Variants</>}
             </button>
 
             {error && (
-                <div className="error-message">⚠️ {error}</div>
+                <div className="error-message"><AlertTriangle size={16} /> {error}</div>
             )}
 
             {/* Category Filter */}
@@ -302,8 +303,8 @@ export function PlacementVariants({
                             </div>
                             <div className="placement-name">{placement.name}</div>
                             <div className="placement-meta">
-                                <span>📦 {placement.items.length} items</span>
-                                <span>🧩 {placement.requiredBlocks.length} blocks</span>
+                                <span><Package size={14} /> {placement.items.length} items</span>
+                                <span><Puzzle size={14} /> {placement.requiredBlocks.length} blocks</span>
                             </div>
                             {selectedId === placement.id && (
                                 <div className="placement-details">
@@ -317,7 +318,7 @@ export function PlacementVariants({
                                             <ul>
                                                 {placement.items.slice(0, 5).map((item, i) => (
                                                     <li key={i}>
-                                                        {item.type === 'crystal' ? '💎' : item.type === 'switch' ? '🔘' : '💠'}
+                                                        {item.type === 'crystal' ? <Diamond size={12} /> : item.type === 'switch' ? <CircleDot size={12} /> : <Hexagon size={12} />}
                                                         {' '}at ({item.position.x}, {item.position.y}, {item.position.z})
                                                     </li>
                                                 ))}
@@ -340,11 +341,11 @@ export function PlacementVariants({
                     {/* Toolbox Mismatch Warning */}
                     {isToolboxMismatch && (
                         <div className="toolbox-warning">
-                            ⚠️ <strong>Toolbox Mismatch:</strong> The selected variant requires blocks for "{selectedPlacement.primaryConcept.replace(/_/g, ' ')}"
+                            <AlertTriangle size={16} /> <strong>Toolbox Mismatch:</strong> The selected variant requires blocks for "{selectedPlacement.primaryConcept.replace(/_/g, ' ')}"
                             that may not be in the current toolbox.
                             {onSuggestToolbox && (
                                 <button className="suggest-toolbox-btn" onClick={handleSuggestToolbox}>
-                                    🔧 Suggest Toolbox
+                                    <Wrench size={14} /> Suggest Toolbox
                                 </button>
                             )}
                         </div>
@@ -353,7 +354,7 @@ export function PlacementVariants({
                     {/* Suggested Toolbox Info */}
                     {getSuggestedToolbox(selectedPlacement) && (
                         <div className="toolbox-suggestion">
-                            💡 <strong>Recommended:</strong> {getSuggestedToolbox(selectedPlacement)?.replace(/_/g, ' ')}
+                            <Lightbulb size={16} /> <strong>Recommended:</strong> {getSuggestedToolbox(selectedPlacement)?.replace(/_/g, ' ')}
                             {onSuggestToolbox && !isToolboxMismatch && (
                                 <button className="suggest-toolbox-btn small" onClick={handleSuggestToolbox}>
                                     Apply
@@ -363,7 +364,7 @@ export function PlacementVariants({
                     )}
 
                     <button className="apply-variant-btn" onClick={handleApply}>
-                        ✅ Apply "{selectedPlacement.name}"
+                        <Check size={16} /> Apply "{selectedPlacement.name}"
                     </button>
                 </div>
             )}

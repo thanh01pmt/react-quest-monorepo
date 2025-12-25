@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Themes } from './theme';
+import { ChevronDown } from 'lucide-react';
 
 /**
  * Định nghĩa một đối tượng theme từ file config.
@@ -29,7 +30,7 @@ interface ThemeSelectorProps {
 const ThemeSelector: React.FC<ThemeSelectorProps> = ({
     currentMapItems = [], // Cung cấp giá trị mặc định là một mảng rỗng
     selectedTheme = Themes.COMPREHENSIVE_THEMES[0], // Cung cấp theme mặc định
-    onSelectTheme = () => {}, // Cung cấp hàm rỗng làm giá trị mặc định
+    onSelectTheme = () => { }, // Cung cấp hàm rỗng làm giá trị mặc định
 }) => {
     const [isListOpen, setIsListOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -78,7 +79,7 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({
                 }}
             >
                 <span>{selectedThemeName}</span>
-                <span style={{ transform: isListOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
+                <span style={{ transform: isListOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', display: 'flex' }}><ChevronDown size={14} /></span>
             </button>
             {isListOpen && (
                 <div style={{

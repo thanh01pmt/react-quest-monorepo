@@ -13,6 +13,27 @@
   overflow-y: auto;
 }
 
+/* Icon Styles */
+.section-icon {
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.hint-icon {
+  vertical-align: middle;
+  margin-right: 4px;
+  color: var(--accent-primary);
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* Post-Generate Section */
 .post-generate-section {
   padding: 12px;
@@ -241,36 +262,61 @@
   border-color: var(--accent-primary);
 }
 
+/* Generate Section */
+.generate-section {
+  margin: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+}
+
 /* Generate Button */
 .generate-btn {
-  margin: 12px;
-  padding: 12px;
+  width: 100%;
+  padding: 14px 20px;
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-active) 100%);
   color: white;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
   transition: all 0.2s;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .generate-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--accent-primary-active) 0%, #4338ca 100%);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 .generate-btn:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-sm);
 }
 
 .generate-btn:disabled {
   opacity: 0.6;
   cursor: wait;
   background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-elevated) 100%);
+}
+
+.hint-text {
+  font-size: 12px;
+  color: var(--text-label);
+  text-align: center;
+  margin-top: 12px;
+  line-height: 1.4;
+}
+
+.hint-text strong {
+  color: var(--accent-primary);
 }
 
 /* Scrollbar */

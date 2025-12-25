@@ -20,6 +20,7 @@ import {
     type Pattern
 } from '@repo/academic-map-generator';
 import { PlacedObject } from '../../types';
+import { Search, ChevronDown, ChevronRight, RefreshCw, BarChart2, Map as MapIcon, MapPin, BoxSelect, Link, Scale, Cpu, Ruler, ArrowLeftRight } from 'lucide-react';
 import './TopologyInspector.css';
 
 interface TopologyInspectorProps {
@@ -340,15 +341,15 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                 className="inspector-toggle"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-                <span>🔍 Topology Inspector</span>
-                <span className="toggle-icon">{isExpanded ? '▼' : '▶'}</span>
+                <span><Search size={14} /> Topology Inspector</span>
+                <span className="toggle-icon">{isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
             </button>
 
             {isExpanded && (
                 <div className="inspector-content">
                     {/* Refresh button */}
                     <button className="refresh-btn" onClick={analyze}>
-                        🔄 Analyze
+                        <RefreshCw size={14} /> Analyze
                     </button>
 
                     {error && (
@@ -359,7 +360,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                         <>
                             {/* Metrics Summary */}
                             <div className="metrics-section">
-                                <h4>📊 Summary</h4>
+                                <h4><BarChart2 size={16} /> Summary</h4>
                                 <div className="metrics-grid">
                                     <div className="metric-item">
                                         <span className="metric-label">Blocks</span>
@@ -388,7 +389,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                                 </div>
                                 {context.metrics.detectedTopology && (
                                     <div className="detected-topology">
-                                        🗺️ Detected: <strong>{context.metrics.detectedTopology}</strong>
+                                        <MapIcon size={14} /> Detected: <strong>{context.metrics.detectedTopology}</strong>
                                     </div>
                                 )}
                             </div>
@@ -399,7 +400,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
 
                                 {/* Points */}
                                 <div className="points-section">
-                                    <h4>📍 Special Points ({context.points.length})</h4>
+                                    <h4><MapPin size={16} /> Special Points ({context.points.length})</h4>
                                     <div className="items-list">
                                         {context.points.slice(0, 10).map((point, i) => {
                                             const id = `point_${i}`;
@@ -430,7 +431,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                                 {/* Areas */}
                                 {context.areas.length > 0 && (
                                     <div className="areas-section">
-                                        <h4>🔲 Areas ({context.areas.length})</h4>
+                                        <h4><BoxSelect size={16} /> Areas ({context.areas.length})</h4>
                                         <div className="items-list">
                                             {context.areas.map((area, i) => (
                                                 <label key={area.id} className="item-row">
@@ -463,7 +464,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                                 {/* Connectors */}
                                 {context.connectors.length > 0 && (
                                     <div className="connectors-section">
-                                        <h4>🔗 Connectors ({context.connectors.length})</h4>
+                                        <h4><Link size={16} /> Connectors ({context.connectors.length})</h4>
                                         <div className="items-list">
                                             {context.connectors.map(conn => (
                                                 <div key={conn.id} className="item-row compact">
@@ -478,7 +479,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                                 {/* Relations */}
                                 {context.relations.length > 0 && (
                                     <div className="relations-section">
-                                        <h4>⚖️ Relations ({context.relations.length})</h4>
+                                        <h4><Scale size={16} /> Relations ({context.relations.length})</h4>
                                         <div className="items-list">
                                             {context.relations.slice(0, 8).map((rel, i) => {
                                                 const id = `rel_${i}`;
@@ -496,7 +497,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                                                         />
                                                         <span className="item-info">
                                                             <span className={`relation-type type-${rel.type}`}>{rel.type}</span>
-                                                            <span className="item-meta">{rel.path1Id} ↔ {rel.path2Id}</span>
+                                                            <span className="item-meta">{rel.path1Id} <ArrowLeftRight size={10} style={{ display: 'inline', verticalAlign: 'middle' }} /> {rel.path2Id}</span>
                                                         </span>
                                                         {selectedItems.has(id) && (
                                                             <span
@@ -520,7 +521,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                                 <div className="tier-section">
                                     <h3 className="tier-header">Tier 2: Pattern Extrapolation</h3>
                                     <div className="patterns-section">
-                                        <h4>🔄 Patterns ({context.patterns.length})</h4>
+                                        <h4><Cpu size={16} /> Patterns ({context.patterns.length})</h4>
                                         <div className="items-list">
                                             {context.patterns.map((pattern) => (
                                                 <div key={pattern.id} className="pattern-item">
@@ -541,7 +542,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                             <div className="tier-section">
                                 <h3 className="tier-header">Tier 3: Length Filtering</h3>
                                 <div className="segments-section">
-                                    <h4>📏 Merged Segments ({context.segments.length})</h4>
+                                    <h4><Ruler size={16} /> Merged Segments ({context.segments.length})</h4>
                                     <div className="items-list">
                                         {context.segments.map((seg, i) => (
                                             <label key={seg.id} className="item-row">
@@ -574,7 +575,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
 
                                 {/* Priority Positions */}
                                 <div className="positions-section">
-                                    <h4>📍 Priority Positions ({context.prioritizedCoords.length}) <span className="tier-label">(Tier 4)</span></h4>
+                                    <h4><MapPin size={16} /> Priority Positions ({context.prioritizedCoords.length}) <span className="tier-label">(Tier 4)</span></h4>
                                     <div className="items-list">
                                         {context.prioritizedCoords.slice(0, 15).map((coord, i) => {
                                             const id = `coord_${i}`;

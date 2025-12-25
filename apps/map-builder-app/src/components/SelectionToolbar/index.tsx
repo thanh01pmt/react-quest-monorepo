@@ -11,6 +11,7 @@
  */
 
 import React from 'react';
+import { Compass, Hammer, MousePointer, BoxSelect, Target, Move, RotateCw } from 'lucide-react';
 import './SelectionToolbar.css';
 
 export type SelectionMode = 'box' | 'smart';
@@ -50,7 +51,7 @@ export function SelectionToolbar({
                     onClick={() => onModeChange('navigate')}
                     title="Navigate mode (Pan/Orbit camera)"
                 >
-                    <span className="tool-icon">🧭</span>
+                    <span className="tool-icon"><Compass size={18} /></span>
                     <span className="tool-label">Navigate</span>
                 </button>
 
@@ -59,7 +60,7 @@ export function SelectionToolbar({
                     onClick={() => onModeChange('build')}
                     title="Build mode (Place objects)"
                 >
-                    <span className="tool-icon">🔨</span>
+                    <span className="tool-icon"><Hammer size={18} /></span>
                     <span className="tool-label">Build</span>
                 </button>
 
@@ -68,7 +69,7 @@ export function SelectionToolbar({
                     onClick={() => onModeChange('select')}
                     title="Select mode (S) - Select objects"
                 >
-                    <span className="tool-icon">👆</span>
+                    <span className="tool-icon"><MousePointer size={18} /></span>
                     <span className="tool-label">Select</span>
                     {hasSelection && selectionCount > 0 && (
                         <span className="selection-badge">{selectionCount}</span>
@@ -85,7 +86,7 @@ export function SelectionToolbar({
                         onClick={() => onSelectionModeChange('box')}
                         title="Box Select - Drag to select area"
                     >
-                        <span className="tool-icon">⬜</span>
+                        <span className="tool-icon"><BoxSelect size={16} /></span>
                         <span className="tool-label">Box</span>
                     </button>
 
@@ -94,7 +95,7 @@ export function SelectionToolbar({
                         onClick={() => onSelectionModeChange('smart')}
                         title="Smart Select (S) - Click to select connected"
                     >
-                        <span className="tool-icon">🎯</span>
+                        <span className="tool-icon"><Target size={16} /></span>
                         <span className="tool-label">Smart</span>
                     </button>
                 </div>
@@ -110,7 +111,7 @@ export function SelectionToolbar({
                         title="Move tool (G) - Move selected objects"
                         disabled={!hasSelection}
                     >
-                        <span className="tool-icon">↔️</span>
+                        <span className="tool-icon"><Move size={18} /></span>
                         <span className="tool-label">Move</span>
                     </button>
 
@@ -120,7 +121,7 @@ export function SelectionToolbar({
                         title="Rotate tool (R) - Rotate selected objects"
                         disabled={!hasSelection}
                     >
-                        <span className="tool-icon">🔄</span>
+                        <span className="tool-icon"><RotateCw size={18} /></span>
                         <span className="tool-label">Rotate</span>
                     </button>
                 </div>

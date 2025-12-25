@@ -15,6 +15,7 @@ import {
     initializeDefaultTemplates
 } from '@repo/academic-map-generator';
 import './TemplateManager.css';
+import { ClipboardList, Save, ArrowDownUp, Download, Upload, Trash2 } from 'lucide-react';
 
 interface TemplateManagerProps {
     topologyType: string;
@@ -129,7 +130,7 @@ export function TemplateManager({
     return (
         <div className="template-manager">
             <div className="manager-header">
-                <h3>📋 Templates</h3>
+                <h3><ClipboardList size={18} /> Templates</h3>
                 <div className="header-actions">
                     <button
                         className="btn-icon"
@@ -137,14 +138,14 @@ export function TemplateManager({
                         title="Save current as template"
                         disabled={currentSelections.length === 0}
                     >
-                        💾
+                        <Save size={16} />
                     </button>
                     <button
                         className="btn-icon"
                         onClick={() => setShowExportDialog(true)}
                         title="Export/Import"
                     >
-                        ⬇️
+                        <ArrowDownUp size={16} />
                     </button>
                 </div>
             </div>
@@ -174,7 +175,7 @@ export function TemplateManager({
                                 }}
                                 title="Delete"
                             >
-                                ×
+                                <Trash2 size={14} />
                             </button>
                         </div>
                     ))
@@ -217,10 +218,10 @@ export function TemplateManager({
                         <h4>Export / Import</h4>
                         <div className="export-actions">
                             <button onClick={handleExport}>
-                                ⬇️ Export Templates
+                                <Download size={14} /> Export Templates
                             </button>
                             <label className="import-label">
-                                ⬆️ Import Templates
+                                <Upload size={14} /> Import Templates
                                 <input
                                     type="file"
                                     accept=".json"

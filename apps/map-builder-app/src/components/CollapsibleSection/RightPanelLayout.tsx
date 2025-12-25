@@ -9,6 +9,7 @@
 
 import React, { ReactNode } from 'react';
 import { CollapsibleSection } from '../CollapsibleSection';
+import { Settings, Target, FileJson } from 'lucide-react';
 import './RightPanelLayout.css';
 
 interface RightPanelLayoutProps {
@@ -36,7 +37,7 @@ export function RightPanelLayout({
             {/* Properties Section */}
             <CollapsibleSection
                 title="Properties"
-                icon="⚙️"
+                icon={<Settings size={16} />}
                 storageKey="right-properties"
                 defaultCollapsed={!hasSelection}
                 badge={selectionCount > 0 ? `${selectionCount}` : undefined}
@@ -50,7 +51,7 @@ export function RightPanelLayout({
             {/* Quest Details Section */}
             <CollapsibleSection
                 title="Quest Details"
-                icon="🎯"
+                icon={<Target size={16} />}
                 storageKey="right-quest"
                 defaultCollapsed={true}
                 className="quest"
@@ -63,7 +64,7 @@ export function RightPanelLayout({
             {/* JSON Output Section */}
             <CollapsibleSection
                 title="JSON Output"
-                icon="📄"
+                icon={<FileJson size={16} />}
                 storageKey="right-json"
                 defaultCollapsed={true}
                 className="json"

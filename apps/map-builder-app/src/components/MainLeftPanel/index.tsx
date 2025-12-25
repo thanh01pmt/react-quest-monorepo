@@ -11,6 +11,7 @@
 import React, { useState, useRef } from 'react';
 import type { BuilderMode } from '../../types';
 import type { BuildableAsset, AssetGroup } from '../../types';
+import { MousePointer, Hammer, Eraser, Trash2, Keyboard, ChevronDown, ChevronRight } from 'lucide-react';
 import './MainLeftPanel.css';
 
 export type SelectionMode = 'box' | 'smart';
@@ -125,7 +126,7 @@ export function MainLeftPanel({
                         onClick={() => onModeChange('navigate')}
                         title="Select Mode (S) - Click to select, Shift+Drag area"
                     >
-                        <span className="tool-icon">👆</span>
+                        <span className="tool-icon"><MousePointer size={16} /></span>
                         <span className="tool-label">Select</span>
                         {hasSelection && selectionCount > 0 && (
                             <span className="tool-badge">{selectionCount}</span>
@@ -137,7 +138,7 @@ export function MainLeftPanel({
                         onClick={() => onModeChange('build-single')}
                         title="Build Mode (B) - Place objects"
                     >
-                        <span className="tool-icon">🧱</span>
+                        <span className="tool-icon"><Hammer size={16} /></span>
                         <span className="tool-label">Build</span>
                     </button>
                 </div>
@@ -163,14 +164,14 @@ export function MainLeftPanel({
                     {/* Clean Map */}
                     {onCleanMap && (
                         <button className="icon-btn" onClick={onCleanMap} title="Clean Map (Remove overlapping duplicates)">
-                            🧹
+                            <Eraser size={16} />
                         </button>
                     )}
 
                     {/* Clear Items */}
                     {onClearItems && (
                         <button className="icon-btn" onClick={onClearItems} title="Clear Items (Remove all collectibles/interactibles)">
-                            🗑️
+                            <Trash2 size={16} />
                         </button>
                     )}
                 </div>
@@ -179,7 +180,7 @@ export function MainLeftPanel({
                 {onShowShortcuts && (
                     <div className="tool-row shortcuts-row">
                         <button className="shortcuts-btn" onClick={onShowShortcuts} title="Keyboard Shortcuts (?)">
-                            <span className="shortcut-icon">⌨️</span>
+                            <span className="shortcut-icon"><Keyboard size={16} /></span>
                             <span className="shortcut-text">Keyboard Shortcuts</span>
                         </button>
                     </div>
@@ -228,7 +229,7 @@ export function MainLeftPanel({
                                 className="group-header"
                                 onClick={() => toggleGroup(group.name)}
                             >
-                                <span className="group-arrow">{expandedGroups.has(group.name) ? '▼' : '▶'}</span>
+                                <span className="group-arrow">{expandedGroups.has(group.name) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
                                 <span className="group-name">{group.name}</span>
                             </div>
 

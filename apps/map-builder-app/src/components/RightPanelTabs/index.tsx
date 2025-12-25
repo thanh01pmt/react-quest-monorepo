@@ -3,6 +3,7 @@ import { PropertiesPanel } from '../PropertiesPanel';
 import { QuestDetailsPanel } from '../QuestDetailsPanel';
 import { JsonOutputPanel } from '../JsonOutputPanel';
 import { PlacedObject } from '../../types';
+import { Palette, Target, Settings } from 'lucide-react';
 import './RightPanelTabs.css';
 
 type TabType = 'properties' | 'quest' | 'advanced';
@@ -65,7 +66,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
                     onClick={() => setActiveTab('properties')}
                     title="Object Properties & Actions"
                 >
-                    <span className="tab-icon">🎨</span>
+                    <span className="tab-icon"><Palette size={16} /></span>
                     <span className="tab-label">Properties</span>
                     {props.selectedObjects.length > 0 && (
                         <span className="tab-badge">{props.selectedObjects.length}</span>
@@ -77,7 +78,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
                     onClick={() => setActiveTab('quest')}
                     title="Quest Configuration & Solutions"
                 >
-                    <span className="tab-icon">🎯</span>
+                    <span className="tab-icon"><Target size={16} /></span>
                     <span className="tab-label">Quest</span>
                 </button>
 
@@ -86,7 +87,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
                     onClick={() => setActiveTab('advanced')}
                     title="JSON Editor & Advanced Settings"
                 >
-                    <span className="tab-icon">⚙️</span>
+                    <span className="tab-icon"><Settings size={16} /></span>
                     <span className="tab-label">Advanced</span>
                 </button>
             </div>

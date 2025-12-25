@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { ValidationReport } from '@repo/academic-map-generator';
 import { ValidationReportComponent } from '../ValidationReport';
+import { Loader2, CheckCircle, AlertTriangle, XCircle, Search, RefreshCw, ChevronUp, ChevronDown } from 'lucide-react';
 import './ValidationBadge.css';
 
 interface ValidationBadgeProps {
@@ -36,12 +37,12 @@ export function ValidationBadge({
     const [isExpanded, setIsExpanded] = useState(false);
 
     const getStatusIcon = () => {
-        if (isValidating) return '⏳';
+        if (isValidating) return <Loader2 size={16} className="spin-icon" />;
         switch (status) {
-            case 'valid': return '✅';
-            case 'warning': return '⚠️';
-            case 'invalid': return '❌';
-            default: return '🔍';
+            case 'valid': return <CheckCircle size={16} />;
+            case 'warning': return <AlertTriangle size={16} />;
+            case 'invalid': return <XCircle size={16} />;
+            default: return <Search size={16} />;
         }
     };
 
@@ -74,10 +75,10 @@ export function ValidationBadge({
                         }}
                         title="Re-validate"
                     >
-                        🔄
+                        <RefreshCw size={12} />
                     </button>
                 )}
-                <span className="expand-hint">{isExpanded ? '▲' : '▼'}</span>
+                <span className="expand-hint">{isExpanded ? <ChevronDown size={12} /> : <ChevronUp size={12} />}</span>
             </div>
 
             {/* Expanded Report */}

@@ -4,6 +4,11 @@ import './QuestDetailsPanel.css';
 import { BlocklyModal } from '../PropertiesPanel/BlocklyModal';
 import '../PropertiesPanel/BlocklyModal.css';
 import { toolboxPresets } from '../../config/toolboxPresets';
+import {
+  ClipboardList, Puzzle, Target, FolderOpen, Save, Globe,
+  ChevronDown, ChevronRight, CheckCircle, AlertTriangle,
+  RefreshCw, FileText, Pencil, FileJson
+} from 'lucide-react';
 
 interface QuestDetailsPanelProps {
   metadata: Record<string, any> | null;
@@ -23,10 +28,10 @@ const getDeepValue = (obj: any, path: string) => {
 // ============================================================
 interface CollapsibleSectionProps {
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   defaultOpen?: boolean;
   children: React.ReactNode;
-  badge?: string | number;
+  badge?: React.ReactNode;
   badgeColor?: 'green' | 'orange' | 'red' | 'blue';
 }
 
@@ -51,7 +56,7 @@ function CollapsibleSection({
         {badge !== undefined && (
           <span className={`section-badge badge-${badgeColor}`}>{badge}</span>
         )}
-        <span className="section-toggle">{isOpen ? '▼' : '▶'}</span>
+        <span className="section-toggle">{isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
       </button>
       {isOpen && <div className="section-content">{children}</div>}
     </div>
@@ -316,7 +321,7 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       }
       const finalXml = jsonToXml(structuredSolution);
       handleComplexChange({ path: 'blocklyConfig.startBlocks', value: finalXml });
-      alert('✅ Start Blocks created successfully!');
+      alert('Start Blocks created successfully!');
     } catch (error) {
       console.error("Error compiling JSON to XML:", error);
       alert(`Error: Could not parse ${sourceName}.\n\n${error}`);
@@ -335,10 +340,10 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
     return (
       <aside className="quest-details-panel empty-state">
         <div className="empty-state-content">
-          <span className="empty-icon">📋</span>
+          <span className="empty-icon"><ClipboardList size={48} /></span>
           <p>Import a Quest file to edit details.</p>
           <label className="import-btn primary">
-            📂 Import JSON Map
+            <span className="icon"><FolderOpen size={16} /></span> Import JSON Map
             <input type="file" accept=".json" onChange={handleFileChange} hidden />
           </label>
 
@@ -397,7 +402,7 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       {/* ============================================================ */}
       {/* QUEST INFO SECTION */}
       {/* ============================================================ */}
-      <CollapsibleSection title="Quest Info" icon="📋" defaultOpen={true}>
+      <CollapsibleSection title="Quest Info" icon={<ClipboardList size={16} />} defaultOpen={true}>
         <div className="field-row">
           <label>ID</label>
           <input
@@ -422,7 +427,7 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
               className="toggle-btn"
               onClick={() => setShowTranslations(!showTranslations)}
             >
-              🌐 Translations {showTranslations ? '▼' : '▶'}
+              <Globe size={14} /> Translations {showTranslations ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
             </button>
             {showTranslations && (
               <div className="translations-grid">
@@ -453,7 +458,7 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       {/* ============================================================ */}
       <CollapsibleSection
         title="Blockly Config"
-        icon="🧩"
+        icon={<Puzzle size={16} />}
         defaultOpen={true}
         badge={blockCount > 0 ? `${blockCount} blocks` : undefined}
         badgeColor="blue"
@@ -498,9 +503,9 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       {/* ============================================================ */}
       <CollapsibleSection
         title="Solution"
-        icon="🎯"
+        icon={<Target size={16} />}
         defaultOpen={true}
-        badge={hasSolution ? '✅ Solved' : '⚠️ Not solved'}
+        badge={hasSolution ? <span><CheckCircle size={12} className="inline-icon" /> Solved</span> : <span><AlertTriangle size={12} className="inline-icon" /> Not solved</span>}
         badgeColor={hasSolution ? 'green' : 'orange'}
       >
         {/* Gen Raw Action button - primary action */}
@@ -515,7 +520,7 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
               Generating...
             </>
           ) : (
-            '🔄 Gen Raw Action'
+            <><RefreshCw size={16} /> Gen Raw Action</>
           )}
         </button>
 
@@ -557,7 +562,7 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
             className="action-btn primary"
             onClick={() => setBlocklyModalOpen(true)}
           >
-            ✏️ Edit Start Blocks
+            <><Pencil size={14} /> Edit Start Blocks</>
           </button>
           {blockCount > 0 && (
             <span className="info-text">{blockCount} blocks</span>
@@ -685,10 +690,10 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       {/* ============================================================ */}
       {/* IMPORT/EXPORT SECTION */}
       {/* ============================================================ */}
-      <CollapsibleSection title="Import / Export" icon="📁" defaultOpen={false}>
+      <CollapsibleSection title="Import / Export" icon={<FileJson size={16} />} defaultOpen={false}>
         <div className="button-group vertical">
           <label className="action-btn secondary full-width">
-            📂 Import JSON Map
+            <span className="icon"><FolderOpen size={16} /></span> Import JSON Map
             <input type="file" accept=".json" onChange={handleFileChange} hidden />
           </label>
           <button
@@ -703,7 +708,7 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
               URL.revokeObjectURL(url);
             }}
           >
-            💾 Export Quest JSON
+            <span className="icon"><Save size={16} /></span> Export Quest JSON
           </button>
         </div>
 

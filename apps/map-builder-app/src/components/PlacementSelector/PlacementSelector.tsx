@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { ChevronRight, Circle, Minus, Ban, AlertTriangle, CircleDot, Hexagon, Diamond } from 'lucide-react';
 import type {
     SelectableElement,
     ElementCategory
@@ -186,9 +187,9 @@ export function PlacementSelector({
                             onChange={(e) => setItemType(element.id, e.target.value as ItemType)}
                             className="item-type-select"
                         >
-                            <option value="crystal">💎 Crystal</option>
-                            <option value="switch">🔘 Switch</option>
-                            <option value="gem">💠 Gem</option>
+                            <option value="crystal">Crystal</option>
+                            <option value="switch">Switch</option>
+                            <option value="gem">Gem</option>
                         </select>
 
                         {hasMirror && (
@@ -206,8 +207,8 @@ export function PlacementSelector({
 
                 {/* Show disabled message for avoid elements */}
                 {isAvoid && (
-                    <div className="avoid-message">
-                        ⛔ Cannot place items here
+                    <div className="avoid-message" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Ban size={12} /> Cannot place items here
                     </div>
                 )}
             </div>
@@ -228,7 +229,7 @@ export function PlacementSelector({
             {grouped.keypoints.length > 0 && (
                 <div className="element-group">
                     <div className="group-header">
-                        <span className="group-icon">●</span>
+                        <span className="group-icon"><Circle size={10} fill="currentColor" /></span>
                         <span>Key Points ({grouped.keypoints.length})</span>
                     </div>
                     <div className="group-elements">
@@ -241,7 +242,7 @@ export function PlacementSelector({
             {grouped.segments.length > 0 && (
                 <div className="element-group">
                     <div className="group-header">
-                        <span className="group-icon">─</span>
+                        <span className="group-icon"><Minus size={12} /></span>
                         <span>Segments ({grouped.segments.length})</span>
                     </div>
                     <div className="group-elements">
@@ -253,8 +254,9 @@ export function PlacementSelector({
             {/* Positions - collapsible */}
             {grouped.positions.length > 0 && (
                 <details className="element-group positions-group">
-                    <summary className="group-header">
-                        <span className="group-icon">○</span>
+                    <summary className="group-header" style={{ listStyle: 'none' }}>
+                        <ChevronRight size={12} className="group-arrow" style={{ marginRight: '6px', transition: 'transform 0.2s' }} />
+                        <span className="group-icon"><CircleDot size={12} /></span>
                         <span>Positions ({grouped.positions.length})</span>
                     </summary>
                     <div className="group-elements">

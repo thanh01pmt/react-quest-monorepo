@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import { Zap, Settings, Info, ChevronUp, ChevronDown } from 'lucide-react';
 import './SymmetryPanel.css';
 
 export type SymmetryAxis = 'x' | 'z' | 'both';
@@ -53,7 +54,7 @@ export function SymmetryPanel({
     return (
         <div className={`symmetry-panel ${enabled ? 'enabled' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
             <div className="symmetry-header">
-                <span className="symmetry-icon">⚡</span>
+                <span className="symmetry-icon"><Zap size={16} fill="currentColor" /></span>
                 <span className="symmetry-title">Symmetry Mode</span>
 
                 {enabled && (
@@ -62,7 +63,7 @@ export function SymmetryPanel({
                         onClick={() => setIsCollapsed(!isCollapsed)}
                         title={isCollapsed ? "Show Options" : "Hide Options"}
                     >
-                        {isCollapsed ? "⚙️" : "▲"}
+                        {isCollapsed ? <Settings size={14} /> : <ChevronUp size={14} />}
                     </button>
                 )}
 
@@ -162,7 +163,7 @@ export function SymmetryPanel({
 
                     {/* Info */}
                     <div className="symmetry-info">
-                        <span className="info-icon">ℹ️</span>
+                        <span className="info-icon"><Info size={14} /></span>
                         <span>Objects placed will auto-mirror {
                             axis === 'x' ? 'top/bottom (across horizontal line)' :
                                 axis === 'z' ? 'left/right (across vertical line)' :

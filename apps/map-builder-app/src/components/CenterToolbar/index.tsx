@@ -11,6 +11,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MapTheme } from '../../types';
 import type { SymmetryAxis } from '../../utils/SymmetryMode';
+import { Zap, Settings } from 'lucide-react';
 import './CenterToolbar.css';
 
 interface CenterToolbarProps {
@@ -118,7 +119,7 @@ export function CenterToolbar({
                         checked={smartSnapEnabled}
                         onChange={onToggleSmartSnap}
                     />
-                    <span className="checkbox-label">⚡ Smart Snap</span>
+                    <span className="checkbox-label"><Zap size={12} fill="currentColor" /> Smart Snap</span>
                 </label>
             </div>
 
@@ -135,7 +136,7 @@ export function CenterToolbar({
                             }}
                         />
                         <span className="checkbox-label" style={{ color: symmetryEnabled ? '#00ff88' : 'inherit' }}>
-                            ⚡ Sym
+                            <Zap size={12} fill="currentColor" /> Sym
                         </span>
                     </label>
                     {symmetryEnabled && (
@@ -157,7 +158,7 @@ export function CenterToolbar({
                             }}
                             title="Symmetry Settings"
                         >
-                            ⚙️
+                            <Settings size={12} />
                         </button>
                     )}
                 </div>

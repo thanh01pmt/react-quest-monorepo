@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { ValidationReport as ValidationReportType, TierValidationResult } from '@repo/academic-map-generator';
+import { Check, X, Search, Lightbulb } from 'lucide-react';
 import './ValidationReport.css';
 
 interface ValidationReportProps {
@@ -16,13 +17,13 @@ const TierSection: React.FC<{ tier: TierValidationResult; title: string }> = ({ 
     return (
         <div className={`tier-section ${tier.passed ? 'passed' : 'failed'}`}>
             <div className="tier-header">
-                <span className="tier-icon">{tier.passed ? '✅' : '❌'}</span>
+                <span className="tier-icon">{tier.passed ? <Check size={16} /> : <X size={16} />}</span>
                 <span className="tier-title">{title}</span>
             </div>
             <div className="tier-checks">
                 {tier.checks.map((check, idx) => (
                     <div key={idx} className={`check-item ${check.passed ? 'pass' : 'fail'}`}>
-                        <span className="check-icon">{check.passed ? '✓' : '✗'}</span>
+                        <span className="check-icon">{check.passed ? <Check size={12} /> : <X size={12} />}</span>
                         <span className="check-name">{check.name}</span>
                         <span className="check-message">{check.message}</span>
                     </div>
@@ -40,7 +41,7 @@ export const ValidationReportComponent: React.FC<ValidationReportProps> = ({ rep
     return (
         <div className="validation-report">
             <div className="validation-header">
-                <h3>🔍 Validation Report</h3>
+                <h3><Search size={16} /> Validation Report</h3>
                 {onClose && (
                     <button className="close-btn" onClick={onClose}>×</button>
                 )}
@@ -65,7 +66,7 @@ export const ValidationReportComponent: React.FC<ValidationReportProps> = ({ rep
 
             {report.suggestions.length > 0 && (
                 <div className="suggestions">
-                    <h4>💡 Suggestions</h4>
+                    <h4><Lightbulb size={16} /> Suggestions</h4>
                     <ul>
                         {report.suggestions.map((s, idx) => (
                             <li key={idx}>{s}</li>

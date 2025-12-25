@@ -8,6 +8,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useBuilderMode, BuilderMode } from '../../store/builderModeContext';
 import { MapTheme } from '../../types';
+import { Wrench, Zap, Settings } from 'lucide-react';
 import './CommonControls.css';
 
 export type SymmetryAxis = 'x' | 'z' | 'both';
@@ -101,7 +102,7 @@ export function CommonControls({
                         onClick={() => handleModeChange('manual')}
                         title="Manual Mode"
                     >
-                        <span className="mode-icon">🔧</span>
+                        <span className="mode-icon"><Wrench size={16} /></span>
                         <span className="mode-label">Manual</span>
                     </button>
                     <button
@@ -109,7 +110,7 @@ export function CommonControls({
                         onClick={() => handleModeChange('auto')}
                         title="Auto Mode"
                     >
-                        <span className="mode-icon">⚡</span>
+                        <span className="mode-icon"><Zap size={16} fill="currentColor" /></span>
                         <span className="mode-label">Auto</span>
                     </button>
                 </div>
@@ -177,7 +178,7 @@ export function CommonControls({
                                 }}
                                 title="Symmetry Settings"
                             >
-                                ⚙️
+                                <Settings size={14} />
                             </button>
                         )}
                     </div>

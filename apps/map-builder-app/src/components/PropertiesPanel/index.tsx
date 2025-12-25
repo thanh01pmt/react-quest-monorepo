@@ -1,5 +1,6 @@
 import { PlacedObject, BuildableAsset } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
+import { RotateCw, FlipHorizontal, FlipVertical, Trash2, Copy, Palette, X } from 'lucide-react';
 interface PropertiesPanelProps {
   selectedObjects: PlacedObject[]; // Nhận mảng các đối tượng
   onUpdateObject: (updatedObject: PlacedObject) => void;
@@ -61,7 +62,7 @@ const MultipleSelectionPanel = ({
   <>
     <div className="panel-header">
       <h2>Multiple Objects</h2>
-      <button onClick={onClear} className="clear-btn">✖</button>
+      <button onClick={onClear} className="clear-btn"><X size={14} /></button>
     </div>
     <div className="prop-group info-group">
       <label>Selected</label>
@@ -71,19 +72,19 @@ const MultipleSelectionPanel = ({
       <h3 className="props-title">Actions</h3>
       <div className="action-buttons multiple-actions" >
         <button onClick={onRotate} className="action-btn">
-          <span className="icon">🔄</span>
+          <span className="icon"><RotateCw size={14} /></span>
           Rotate (R)
         </button>
         <button onClick={() => onFlip('x')} className="action-btn">
-          <span className="icon">↔️</span>
+          <span className="icon"><FlipHorizontal size={14} /></span>
           Flip Horizontal
         </button>
         <button onClick={() => onFlip('z')} className="action-btn">
-          <span className="icon">↕️</span>
+          <span className="icon"><FlipVertical size={14} /></span>
           Flip Vertical
         </button>
         <button onClick={onDelete} className="action-btn delete-btn">
-          <span className="icon">🗑️</span>
+          <span className="icon"><Trash2 size={14} /></span>
           Delete All
         </button>
       </div>
@@ -155,7 +156,7 @@ export function PropertiesPanel({
         <>
           <div className="panel-header">
             <h2>Properties</h2>
-            <button onClick={onClearSelection} className="clear-btn">✖</button>
+            <button onClick={onClearSelection} className="clear-btn"><X size={14} /></button>
           </div>
 
           <div className="prop-group info-group">
@@ -182,15 +183,15 @@ export function PropertiesPanel({
             </div>
             <div className="action-buttons" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               <button onClick={handleCopyAsset} className="action-btn copy-btn">
-                <span className="icon">📋</span>
+                <span className="icon"><Copy size={14} /></span>
                 Copy Asset
               </button>
               <button onClick={handleDuplicate} className="action-btn duplicate-btn">
-                <span className="icon">🎨</span>
+                <span className="icon"><Palette size={14} /></span>
                 Duplicate
               </button>
               <button onClick={onDeleteSelection} className="action-btn delete-btn">
-                <span className="icon">🗑️</span>
+                <span className="icon"><Trash2 size={14} /></span>
                 Delete
               </button>
             </div>

@@ -9,6 +9,7 @@
 
 import React, { useState } from 'react';
 import { PlannedSolution } from '@repo/academic-map-generator/generator';
+import { Puzzle, ChevronDown, ChevronRight, Copy } from 'lucide-react';
 
 interface SolutionDebugPanelProps {
     plannedSolution?: PlannedSolution | null;
@@ -70,8 +71,8 @@ export const SolutionDebugPanel: React.FC<SolutionDebugPanelProps> = ({ plannedS
                     borderRadius: isExpanded ? '8px 8px 0 0' : '8px'
                 }}
             >
-                <span style={{ fontWeight: 600, color: '#fff' }}>
-                    🧩 Planned Solution
+                <span style={{ fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Puzzle size={16} /> Planned Solution
                 </span>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <span style={{
@@ -84,7 +85,7 @@ export const SolutionDebugPanel: React.FC<SolutionDebugPanelProps> = ({ plannedS
                         {plannedSolution.path.length} steps
                     </span>
                     <span style={{ fontSize: '12px' }}>
-                        {isExpanded ? '▼' : '▶'}
+                        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </span>
                 </div>
             </div>
@@ -264,7 +265,7 @@ export const SolutionDebugPanel: React.FC<SolutionDebugPanelProps> = ({ plannedS
                             fontSize: '11px'
                         }}
                     >
-                        📋 Copy Full JSON
+                        <Copy size={14} className="inline-icon" /> Copy Full JSON
                     </button>
                 </div>
             )}

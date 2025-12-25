@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { defaultShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { Keyboard, Pencil, Eye, Hammer, FolderOpen } from 'lucide-react';
 import './KeyboardShortcutsPanel.css';
 
 interface KeyboardShortcutsPanelProps {
@@ -28,10 +29,10 @@ export const KeyboardShortcutsPanel: React.FC<KeyboardShortcutsPanelProps> = ({
     };
 
     const categories = {
-        edit: { label: 'Editing', icon: '✏️' },
-        view: { label: 'View', icon: '👁️' },
-        tools: { label: 'Tools', icon: '🛠️' },
-        file: { label: 'File', icon: '📁' },
+        edit: { label: 'Editing', icon: <Pencil size={18} /> },
+        view: { label: 'View', icon: <Eye size={18} /> },
+        tools: { label: 'Tools', icon: <Hammer size={18} /> },
+        file: { label: 'File', icon: <FolderOpen size={18} /> },
     };
 
     const groupedShortcuts = Object.entries(defaultShortcuts).reduce((acc, [shortcutName, shortcut]) => {
@@ -45,7 +46,7 @@ export const KeyboardShortcutsPanel: React.FC<KeyboardShortcutsPanelProps> = ({
         <div className="keyboard-shortcuts-overlay" onClick={onClose}>
             <div className="keyboard-shortcuts-panel" onClick={e => e.stopPropagation()}>
                 <div className="ks-header">
-                    <h2>⌨️ Keyboard Shortcuts</h2>
+                    <h2><Keyboard size={24} /> Keyboard Shortcuts</h2>
                     <button className="ks-close" onClick={onClose}>✕</button>
                 </div>
 

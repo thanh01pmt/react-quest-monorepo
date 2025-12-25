@@ -17,6 +17,7 @@ import { PlacementService, PedagogyStrategy } from '@repo/academic-map-generator
 import { useBuilderMode, GenerateConfig } from '../../store/builderModeContext';
 import { v4 as uuidv4 } from 'uuid';
 import { TopologyInspector, HighlightItem } from '../TopologyInspector';
+import { Map, ChevronDown, ChevronRight, CheckCircle, Loader2, Construction, Lightbulb } from 'lucide-react';
 import './TopologyPanel.css';
 
 interface TopologyPanelProps {
@@ -933,11 +934,11 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
             {state.isEditing && (
                 <div className="post-generate-section">
                     <div className="post-generate-header">
-                        <span className="status-indicator">✅ Generated</span>
+                        <span className="status-indicator"><CheckCircle size={14} /> Generated</span>
                         <span className="status-text">Editing mode active</span>
                     </div>
                     <p className="post-generate-hint">
-                        💡 After generating ground, switch to <strong>Placement</strong> tab to add items.
+                        <Lightbulb size={14} className="hint-icon" /> After generating ground, switch to <strong>Placement</strong> tab to add items.
                     </p>
                 </div>
             )}
@@ -948,8 +949,8 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                     className="section-header"
                     onClick={() => toggleSection('topology')}
                 >
-                    <span>🗺️ Topology</span>
-                    <span className="toggle-icon">{expandedSections.has('topology') ? '▼' : '▶'}</span>
+                    <span><Map size={16} className="section-icon" /> Topology</span>
+                    <span className="toggle-icon">{expandedSections.has('topology') ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
                 </button>
                 {expandedSections.has('topology') && (
                     <div className="section-content">
@@ -975,14 +976,19 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                         </div>
                     </div>
                 )}
+            </div>
 
-                {/* Generate Ground button */}
+            {/* Generate Ground Button - outside collapsible section */}
+            <div className="generate-section">
                 <button className="generate-btn" onClick={handleGenerate} disabled={state.isGenerating}>
-                    {state.isGenerating ? '⏳ Generating...' : '🚧 Generate Ground'}
+                    {state.isGenerating ? (
+                        <><Loader2 size={18} className="spin-icon" /> Generating...</>
+                    ) : (
+                        <><Construction size={18} /> Generate Ground</>
+                    )}
                 </button>
-
-                <p className="hint-text" style={{ fontSize: '11px', color: '#888', textAlign: 'center', marginTop: '8px', padding: '0 12px' }}>
-                    💡 After generating ground, switch to <strong>Placement</strong> tab to add items.
+                <p className="hint-text">
+                    <Lightbulb size={14} className="hint-icon" /> After generating ground, switch to <strong>Placement</strong> tab to add items.
                 </p>
             </div>
 

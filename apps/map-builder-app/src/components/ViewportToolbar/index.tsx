@@ -10,6 +10,7 @@
 
 import React, { useState } from 'react';
 import type { BuilderMode } from '../../types';
+import { MousePointer, Hammer, Eraser, BoxSelect, Target } from 'lucide-react';
 import './ViewportToolbar.css';
 
 export type SelectionMode = 'box' | 'smart';
@@ -33,7 +34,7 @@ interface ViewportToolbarProps {
 
 type ModeConfig = {
     mode: BuilderMode;
-    icon: string;
+    icon: React.ReactNode;
     label: string;
     shortcut: string;
     title: string;
@@ -44,14 +45,14 @@ type ModeConfig = {
 const MODES: ModeConfig[] = [
     {
         mode: 'navigate',
-        icon: '👆',
+        icon: <MousePointer size={18} />,
         label: 'Select',
         shortcut: 'S',
         title: 'Select mode (S) - Click to select, Shift+Drag for area'
     },
     {
         mode: 'build-single',
-        icon: '🧱',
+        icon: <Hammer size={18} />,
         label: 'Build',
         shortcut: 'B',
         title: 'Build mode (B) - Place objects'
@@ -109,7 +110,7 @@ export function ViewportToolbar({
                         onClick={onCleanMap}
                         title="Clean Map (Remove duplicates)"
                     >
-                        <span className="btn-icon">🧹</span>
+                        <span className="btn-icon"><Eraser size={18} /></span>
                         {isExpanded && <span className="btn-label">Clean</span>}
                     </button>
                 </>
@@ -125,14 +126,14 @@ export function ViewportToolbar({
                             onClick={() => onSelectionModeChange('box')}
                             title="Box Selection - Click or Shift+Drag"
                         >
-                            ⬜
+                            <BoxSelect size={16} />
                         </button>
                         <button
                             className={`toggle-btn ${selectionMode === 'smart' ? 'active' : ''}`}
                             onClick={() => onSelectionModeChange('smart')}
                             title="Smart Selection - Click to select connected"
                         >
-                            🎯
+                            <Target size={16} />
                         </button>
                     </div>
                     {isExpanded && (

@@ -7,6 +7,10 @@
 
 import React from 'react';
 import { useBuilderMode } from '../../store/builderModeContext';
+import {
+    Undo2, Redo2, CheckCircle, AlertTriangle, XCircle, Search,
+    Loader2, Rocket, Trash2, Puzzle, Save
+} from 'lucide-react';
 import './ActionBar.css';
 
 interface ActionBarProps {
@@ -72,7 +76,7 @@ export function ActionBar({
                     disabled={generateDisabled || isGenerating}
                     title="Generate map from current settings"
                 >
-                    <span className="btn-icon">{isGenerating ? '⏳' : '🚀'}</span>
+                    <span className="btn-icon">{isGenerating ? <Loader2 size={16} className="spin-icon" /> : <Rocket size={16} />}</span>
                     <span className="btn-label">{isGenerating ? 'Generating...' : 'Generate'}</span>
                 </button>
             );
@@ -83,7 +87,7 @@ export function ActionBar({
                     onClick={onClear}
                     title="Clear all objects from map"
                 >
-                    <span className="btn-icon">🗑️</span>
+                    <span className="btn-icon"><Trash2 size={16} /></span>
                     <span className="btn-label">Clear All</span>
                 </button>
             );
@@ -93,10 +97,10 @@ export function ActionBar({
     // Validation status icon
     const getValidationIcon = () => {
         switch (validationStatus) {
-            case 'valid': return '✅';
-            case 'warning': return '⚠️';
-            case 'invalid': return '❌';
-            default: return '🔍';
+            case 'valid': return <CheckCircle size={16} />;
+            case 'warning': return <AlertTriangle size={16} />;
+            case 'invalid': return <XCircle size={16} />;
+            default: return <Search size={16} />;
         }
     };
 
@@ -110,7 +114,7 @@ export function ActionBar({
                     disabled={undoCount === 0}
                     title={`Undo (${undoCount} steps)`}
                 >
-                    <span className="btn-icon">↩️</span>
+                    <span className="btn-icon"><Undo2 size={16} /></span>
                     {undoCount > 0 && <span className="count-badge">{undoCount}</span>}
                 </button>
                 <button
@@ -119,7 +123,7 @@ export function ActionBar({
                     disabled={redoCount === 0}
                     title={`Redo (${redoCount} steps)`}
                 >
-                    <span className="btn-icon">↪️</span>
+                    <span className="btn-icon"><Redo2 size={16} /></span>
                     {redoCount > 0 && <span className="count-badge">{redoCount}</span>}
                 </button>
             </div>
@@ -142,7 +146,7 @@ export function ActionBar({
                     disabled={solveDisabled}
                     title="Solve maze and show optimal path"
                 >
-                    <span className="btn-icon">🧩</span>
+                    <span className="btn-icon"><Puzzle size={16} /></span>
                     <span className="btn-label">Solve</span>
                 </button>
 
@@ -156,7 +160,7 @@ export function ActionBar({
                     onClick={onExport}
                     title="Export map as JSON file"
                 >
-                    <span className="btn-icon">💾</span>
+                    <span className="btn-icon"><Save size={16} /></span>
                     <span className="btn-label">Export</span>
                 </button>
             </div>

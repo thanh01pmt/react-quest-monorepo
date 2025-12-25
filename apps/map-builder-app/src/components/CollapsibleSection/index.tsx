@@ -8,13 +8,14 @@
  */
 
 import React, { useState, useEffect, useRef, ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
 import './CollapsibleSection.css';
 
 interface CollapsibleSectionProps {
     /** Section title */
     title: string;
     /** Optional icon to display before title */
-    icon?: string;
+    icon?: ReactNode;
     /** Unique key for localStorage persistence */
     storageKey?: string;
     /** Initial collapsed state (default: false = expanded) */
@@ -86,7 +87,7 @@ export function CollapsibleSection({
                     {badge && <span className="header-badge">{badge}</span>}
                 </div>
                 <span className={`toggle-icon ${isCollapsed ? 'collapsed' : ''}`}>
-                    ▼
+                    <ChevronDown size={14} />
                 </span>
             </button>
 
