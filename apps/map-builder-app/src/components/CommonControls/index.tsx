@@ -20,13 +20,13 @@ export interface CommonControlsProps {
     /** Available themes */
     availableThemes?: MapTheme[];
 
-    // Symmetry Props
-    symmetryEnabled: boolean;
-    onSymmetryToggle: (enabled: boolean) => void;
-    symmetryAxis: SymmetryAxis;
-    onSymmetryAxisChange: (axis: SymmetryAxis) => void;
-    symmetryCenter: { x: number; z: number };
-    onSymmetryCenterChange: (center: { x: number; z: number }) => void;
+    // Symmetry Props (optional - for backwards compatibility)
+    symmetryEnabled?: boolean;
+    onSymmetryToggle?: (enabled: boolean) => void;
+    symmetryAxis?: SymmetryAxis;
+    onSymmetryAxisChange?: (axis: SymmetryAxis) => void;
+    symmetryCenter?: { x: number; z: number };
+    onSymmetryCenterChange?: (center: { x: number; z: number }) => void;
     gridWidth?: number;
     gridDepth?: number;
 }
@@ -47,11 +47,11 @@ export function CommonControls({
     mapTheme,
     onThemeChange,
     availableThemes,
-    symmetryEnabled,
+    symmetryEnabled = false,
     onSymmetryToggle,
-    symmetryAxis,
+    symmetryAxis = 'x',
     onSymmetryAxisChange,
-    symmetryCenter,
+    symmetryCenter = { x: 7, z: 7 },
     onSymmetryCenterChange,
     gridWidth = 14,
     gridDepth = 14,
@@ -155,7 +155,7 @@ export function CommonControls({
                                 type="checkbox"
                                 checked={symmetryEnabled}
                                 onChange={(e) => {
-                                    onSymmetryToggle(e.target.checked);
+                                    onSymmetryToggle?.(e.target.checked);
                                     if (e.target.checked) setShowSymmetrySettings(true);
                                 }}
                             />
@@ -215,7 +215,7 @@ export function CommonControls({
                                     ].map(opt => (
                                         <button
                                             key={opt.id}
-                                            onClick={() => onSymmetryAxisChange(opt.id as SymmetryAxis)}
+                                            onClick={() => onSymmetryAxisChange?.(opt.id as SymmetryAxis)}
                                             style={{
                                                 flex: 1,
                                                 padding: '4px',
@@ -243,7 +243,7 @@ export function CommonControls({
                                             type="number"
                                             value={symmetryCenter.x}
                                             step={0.5}
-                                            onChange={(e) => onSymmetryCenterChange({ ...symmetryCenter, x: parseFloat(e.target.value) || 0 })}
+                                            onChange={(e) => onSymmetryCenterChange?.({ ...symmetryCenter, x: parseFloat(e.target.value) || 0 })}
                                             style={{ width: '100%', background: '#2a2a2e', border: '1px solid #444', color: '#fff', padding: '2px 4px', fontSize: '12px' }}
                                             disabled={symmetryAxis === 'x'}
                                         />
@@ -254,7 +254,7 @@ export function CommonControls({
                                             type="number"
                                             value={symmetryCenter.z}
                                             step={0.5}
-                                            onChange={(e) => onSymmetryCenterChange({ ...symmetryCenter, z: parseFloat(e.target.value) || 0 })}
+                                            onChange={(e) => onSymmetryCenterChange?.({ ...symmetryCenter, z: parseFloat(e.target.value) || 0 })}
                                             style={{ width: '100%', background: '#2a2a2e', border: '1px solid #444', color: '#fff', padding: '2px 4px', fontSize: '12px' }}
                                             disabled={symmetryAxis === 'z'}
                                         />
@@ -262,7 +262,7 @@ export function CommonControls({
                                 </div>
                                 <div style={{ marginTop: '8px', display: 'flex', gap: '4px' }}>
                                     <button
-                                        onClick={() => onSymmetryCenterChange({ x: gridWidth / 2, z: gridDepth / 2 })}
+                                        onClick={() => onSymmetryCenterChange?.({ x: gridWidth / 2, z: gridDepth / 2 })}
                                         style={{ flex: 1, padding: '2px', fontSize: '10px', background: '#333', color: '#ccc', border: 'none', borderRadius: '2px', cursor: 'pointer' }}
                                     >
                                         Center Grid
