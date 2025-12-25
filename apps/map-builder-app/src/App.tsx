@@ -580,6 +580,12 @@ function App() {
         setSelectedObjectIds(placedObjects.map(obj => obj.id));
       }
 
+      // NEW: Ctrl+D to duplicate selection
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd') {
+        event.preventDefault();
+        handleDuplicateSelection();
+      }
+
       // --- Ưu tiên các phím tắt cho vùng chọn (select area) ---
       if (selectionBounds) {
         const key = event.key.toLowerCase();
@@ -612,7 +618,99 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedObjectIds, selectionBounds, placedObjects, handleRotateSelection]); // Thêm handleRotateObject và selectionBounds vào dependencies
+  }, [selectedObjectIds, selectionBounds, placedObjects, handleRotateSelection, handleFlipSelection]); // Added missing dependencies
+
+  // --- HÀM MỚI: Clean Map (Remove Identical Duplicates) ---
+  const handleCleanMap = useCallback(() => {
+    if (placedObjects.length === 0) return;
+
+    // Group objects by position key
+    const positionMap = new Map<string, PlacedObject[]>();
+    placedObjects.forEach(obj => {
+      const key = `${obj.position[0]},${obj.position[1]},${obj.position[2]}`;
+      if (!positionMap.has(key)) positionMap.set(key, []);
+      positionMap.get(key)!.push(obj);
+    });
+
+    const objectsToRemove: string[] = [];
+
+    // Check for duplicates
+    positionMap.forEach((objects) => {
+      if (objects.length > 1) {
+        // Only remove duplicates if they share the SAME ASSET KEY
+        const seenAssets = new Set<string>();
+        for (const obj of objects) {
+          if (seenAssets.has(obj.asset.key)) {
+            objectsToRemove.push(obj.id); // Duplicate found
+          } else {
+            seenAssets.add(obj.asset.key);
+          }
+        }
+      }
+    });
+
+    if (objectsToRemove.length > 0) {
+      if (window.confirm(`Found ${objectsToRemove.length} duplicate objects (same asset at same position). Clean them up?`)) {
+        setPlacedObjectsWithHistory(prev => prev.filter(o => !objectsToRemove.includes(o.id)));
+        setHasUserEdit(true);
+      }
+    } else {
+      alert("Map is clean! No identical duplicates found.");
+    }
+  }, [placedObjects]);
+
+  // --- HÀM MỚI: Duplicate Selection ---
+  const handleDuplicateSelection = useCallback(() => {
+    if (selectedObjectIds.length === 0) return;
+
+    // Filter objects that are actually in placedObjects
+    const objectsToDuplicate = placedObjects.filter(o => selectedObjectIds.includes(o.id));
+    if (objectsToDuplicate.length === 0) return;
+
+    // Helper to calculate switch ID starting point
+    const switchObjects = placedObjects.filter(o => o.asset.key === 'switch');
+    let maxSwitchNum = switchObjects.reduce((max, o) => {
+      const num = parseInt(o.id.substring(1), 10);
+      return isNaN(num) ? max : Math.max(max, num);
+    }, 0);
+
+    const newObjects: PlacedObject[] = [];
+    const newSelectedIds: string[] = [];
+
+    for (const obj of objectsToDuplicate) {
+      let newId = uuidv4();
+
+      // Smart ID splitting for special types
+      if (obj.asset.key === 'switch') {
+        maxSwitchNum++;
+        newId = `s${maxSwitchNum}`;
+      } else if (obj.properties.type === 'portal') {
+        newId = `${obj.asset.key}_${uuidv4().substring(0, 4)}`;
+      }
+
+      const newObj: PlacedObject = {
+        ...obj,
+        id: newId,
+        properties: { ...obj.properties } // Deep copy properties
+      };
+
+      // Reset targetId for portals to avoid linking to original
+      if (newObj.properties.type === 'portal') {
+        newObj.properties.targetId = null;
+      }
+
+      newObjects.push(newObj);
+      newSelectedIds.push(newId);
+    }
+
+    if (newObjects.length > 0) {
+      setHasUserEdit(true);
+      setPlacedObjectsWithHistory(prev => [...prev, ...newObjects]);
+      setSelectedObjectIds(newSelectedIds);
+      // Optional: Log success
+      console.log(`Duplicated ${newObjects.length} objects.`);
+    }
+  }, [selectedObjectIds, placedObjects]);
 
   // --- HÀM MỚI: Nhân bản đối tượng ---
   const handleDuplicateObject = (objectId: string) => {
@@ -2934,6 +3032,7 @@ function App() {
           onSelectionModeChange={handleSelectionModeChange}
           hasSelection={selectedObjectIds.length > 0}
           selectionCount={selectedObjectIds.length}
+          onCleanMap={handleCleanMap} // Pass clean function
         />
 
         {/* Smart Selection integrated into AssetPalette */}

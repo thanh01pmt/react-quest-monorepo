@@ -26,6 +26,9 @@ interface ViewportToolbarProps {
     // State indicators
     hasSelection: boolean;
     selectionCount?: number;
+
+    // Actions
+    onCleanMap?: () => void;
 }
 
 type ModeConfig = {
@@ -62,6 +65,7 @@ export function ViewportToolbar({
     onSelectionModeChange,
     hasSelection,
     selectionCount = 0,
+    onCleanMap,
 }: ViewportToolbarProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -95,6 +99,21 @@ export function ViewportToolbar({
                     )}
                 </button>
             ))}
+
+            {/* Clean Map Utility */}
+            {onCleanMap && (
+                <>
+                    <div className="toolbar-divider" />
+                    <button
+                        className="toolbar-btn utility-btn"
+                        onClick={onCleanMap}
+                        title="Clean Map (Remove duplicates)"
+                    >
+                        <span className="btn-icon">🧹</span>
+                        {isExpanded && <span className="btn-label">Clean</span>}
+                    </button>
+                </>
+            )}
 
             {/* Selection Mode Toggle (only in Select mode, only when expanded) */}
             {displayMode === 'navigate' && isExpanded && (
