@@ -29,6 +29,9 @@ import { RightPanelTabs } from './components/RightPanelTabs';
 // Smart selection types
 export type SelectionMode = 'box' | 'smart';
 import { SelectionEngine } from './utils/SelectionEngine';
+import { FloodFill } from './utils/FloodFill';
+import { SymmetryMode, type SymmetryAxis } from './utils/SymmetryMode';
+import { CloneEngine } from './utils/CloneEngine';
 import {
   MapAnalyzer,
   type SelectableElement,
@@ -36,6 +39,7 @@ import {
   type ItemPlacement
 } from '@repo/academic-map-generator';
 import { CenterToolbar } from './components/CenterToolbar';
+import { SymmetryPanel } from './components/SymmetryPanel';
 import _ from 'lodash';
 import './App.css';
 
@@ -104,6 +108,27 @@ function App() {
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('box'); // Box or Smart selection
   const [hoverPreviewIds, setHoverPreviewIds] = useState<string[]>([]); // Preview of smart selection on hover
   const selectionEngineRef = useRef(new SelectionEngine()); // Singleton instance
+
+  // --- NEW: Rotation States ---
+  const [isRotating, setIsRotating] = useState(false);
+  const [rotateSnapAngle, setRotateSnapAngle] = useState<'free' | 45 | 90>(90); // Default 90° snap
+
+  // --- NEW: Fill Tool States ---
+  const [isFillMode, setIsFillMode] = useState(false);
+  const [fillPreviewPositions, setFillPreviewPositions] = useState<[number, number, number][]>([]);
+  const floodFillRef = useRef(new FloodFill()); // Singleton instance
+
+  // --- NEW: Symmetry Mode States ---
+  const [symmetryEnabled, setSymmetryEnabled] = useState(false);
+  const [symmetryAxis, setSymmetryAxis] = useState<'x' | 'z' | 'both'>('x');
+  const [symmetryCenter, setSymmetryCenter] = useState({ x: 7, z: 7 }); // Default center
+  const symmetryModeRef = useRef(new SymmetryMode());
+
+  // --- NEW: Clone/Paste States ---
+  const cloneEngineRef = useRef(new CloneEngine());
+  const [isPasteMode, setIsPasteMode] = useState(false);
+  const [pastePreviewPositions, setPastePreviewPositions] = useState<[number, number, number][]>([]);
+  const [clipboardCount, setClipboardCount] = useState(0);
 
   // State mới để lưư trữ siêu dữ liệu của quest
   const [questMetadata, setQuestMetadata] = useState<Record<string, any> | null>(null);
@@ -255,6 +280,27 @@ function App() {
         handleRedo();
       }
 
+      // Ctrl+C: Copy selected objects
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        if (selectedObjectIds.length > 0) {
+          const selectedObjs = placedObjects.filter(o => selectedObjectIds.includes(o.id));
+          cloneEngineRef.current.copy(selectedObjs);
+          setClipboardCount(selectedObjs.length);
+          console.log(`Copied ${selectedObjs.length} objects to clipboard`);
+        }
+      }
+
+      // Ctrl+V: Paste mode
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+        e.preventDefault();
+        if (cloneEngineRef.current.hasContent()) {
+          setIsPasteMode(true);
+          setBuilderMode('navigate');
+          console.log('Paste mode activated. Click to place.');
+        }
+      }
+
       // --- NEW: TOOL SHORTCUTS ---
       // S key: Toggle to Smart Select mode
       else if (e.key.toLowerCase() === 's' && !e.ctrlKey && !e.metaKey) {
@@ -262,11 +308,42 @@ function App() {
         setSelectionMode('smart');
       }
 
-      // Esc key: Clear selection
+      // G key: Activate Move/Grab mode (switch to navigate to use gizmo)
+      else if (e.key.toLowerCase() === 'g' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        // If objects selected, switch to navigate mode to allow gizmo interaction
+        if (selectedObjectIds.length > 0) {
+          setBuilderMode('navigate');
+        }
+      }
+
+      // R key: Activate Rotate mode
+      else if (e.key.toLowerCase() === 'r' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        // If objects selected, switch to navigate mode for rotation
+        if (selectedObjectIds.length > 0) {
+          setBuilderMode('navigate');
+          setIsRotating(true);
+        }
+      }
+
+      // F key: Activate Fill mode
+      else if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setIsFillMode(true);
+        setBuilderMode('navigate');
+      }
+
+      // Esc key: Clear selection and cancel modes
       else if (e.key === 'Escape') {
         e.preventDefault();
         setSelectedObjectIds([]);
         setHoverPreviewIds([]);
+        setIsRotating(false);
+        setIsFillMode(false);
+        setFillPreviewPositions([]);
+        setIsPasteMode(false);
+        setPastePreviewPositions([]);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -736,6 +813,142 @@ function App() {
     setSelectionMode(mode);
     setHoverPreviewIds([]); // Clear preview when switching modes
   }, []);
+
+  /**
+   * Handle rotation of selected objects around center
+   */
+  const handleRotateObjects = useCallback((angleRadians: number) => {
+    if (selectedObjectIds.length === 0) return;
+
+    // Get all selected objects
+    const selectedObjs = placedObjects.filter(o => selectedObjectIds.includes(o.id));
+    if (selectedObjs.length === 0) return;
+
+    // Calculate center of selection
+    const centerX = selectedObjs.reduce((sum, o) => sum + o.position[0], 0) / selectedObjs.length;
+    const centerZ = selectedObjs.reduce((sum, o) => sum + o.position[2], 0) / selectedObjs.length;
+
+    // Rotate each object around the center
+    const newObjects = placedObjects.map(obj => {
+      if (!selectedObjectIds.includes(obj.id)) return obj;
+
+      // Translate to origin (relative to center)
+      const relX = obj.position[0] - centerX;
+      const relZ = obj.position[2] - centerZ;
+
+      // Rotate around Y axis
+      const cos = Math.cos(angleRadians);
+      const sin = Math.sin(angleRadians);
+      const newRelX = relX * cos - relZ * sin;
+      const newRelZ = relX * sin + relZ * cos;
+
+      // Translate back and round to grid
+      const newX = Math.round(centerX + newRelX);
+      const newZ = Math.round(centerZ + newRelZ);
+
+      return {
+        ...obj,
+        position: [newX, obj.position[1], newZ] as [number, number, number],
+        rotation: [obj.rotation[0], obj.rotation[1] + angleRadians, obj.rotation[2]] as [number, number, number]
+      };
+    });
+
+    setPlacedObjectsWithHistory(newObjects);
+  }, [selectedObjectIds, placedObjects]);
+
+  /**
+   * Handle fill preview on hover (show positions that would be filled)
+   */
+  const handleFillPreview = useCallback((position: [number, number, number] | null) => {
+    if (!isFillMode || !position || !selectedAsset) {
+      setFillPreviewPositions([]);
+      return;
+    }
+
+    const bounds = {
+      min: [0, 0, 0] as [number, number, number],
+      max: [boxDimensions.width - 1, boxDimensions.height - 1, boxDimensions.depth - 1] as [number, number, number]
+    };
+
+    const result = floodFillRef.current.getPreview(position, placedObjects, bounds, {
+      maxTiles: 500, // Limit preview for performance
+      sameYLevel: true
+    });
+
+    setFillPreviewPositions(result.positions);
+  }, [isFillMode, selectedAsset, boxDimensions, placedObjects]);
+
+  /**
+   * Execute fill at position
+   */
+  const handleFillExecute = useCallback((position: [number, number, number]) => {
+    if (!isFillMode || !selectedAsset) return;
+
+    const bounds = {
+      min: [0, 0, 0] as [number, number, number],
+      max: [boxDimensions.width - 1, boxDimensions.height - 1, boxDimensions.depth - 1] as [number, number, number]
+    };
+
+    const result = floodFillRef.current.floodFillEmpty(position, placedObjects, bounds, {
+      maxTiles: 2000,
+      sameYLevel: true
+    });
+
+    if (result.count === 0) return;
+
+    // Create new objects for all fill positions
+    const newObjects: PlacedObject[] = result.positions.map(pos => ({
+      id: `fill-${pos.join('-')}-${Date.now()}`,
+      position: pos,
+      rotation: [0, 0, 0] as [number, number, number],
+      asset: selectedAsset,
+      properties: {}
+    }));
+
+    // Add all at once (single history entry)
+    setPlacedObjectsWithHistory([...placedObjects, ...newObjects]);
+
+    // Clear fill mode after execution
+    setIsFillMode(false);
+    setFillPreviewPositions([]);
+  }, [isFillMode, selectedAsset, boxDimensions, placedObjects, setPlacedObjectsWithHistory]);
+
+  /**
+   * Handle paste preview on hover
+   */
+  const handlePastePreview = useCallback((position: [number, number, number] | null) => {
+    if (!isPasteMode || !position) {
+      setPastePreviewPositions([]);
+      return;
+    }
+
+    const preview = cloneEngineRef.current.getPreview(position);
+    setPastePreviewPositions(preview);
+  }, [isPasteMode]);
+
+  /**
+   * Execute paste at position
+   */
+  const handlePasteExecute = useCallback((position: [number, number, number]) => {
+    if (!isPasteMode) return;
+
+    const result = cloneEngineRef.current.paste(position);
+
+    if (result.objects.length === 0) return;
+
+    // Filter out objects that would overlap with existing ones
+    const existingCoords = new Set(placedObjects.map(o => o.position.join(',')));
+    const newObjects = result.objects.filter(obj => !existingCoords.has(obj.position.join(',')));
+
+    if (newObjects.length > 0) {
+      setPlacedObjectsWithHistory([...placedObjects, ...newObjects]);
+      console.log(`Pasted ${newObjects.length} objects`);
+    }
+
+    // Clear paste mode after execution
+    setIsPasteMode(false);
+    setPastePreviewPositions([]);
+  }, [isPasteMode, placedObjects, setPlacedObjectsWithHistory]);
   // --- END: SMART SELECTION HANDLERS ---
 
 
@@ -949,11 +1162,47 @@ function App() {
     // Fix: 'prev' is not available here. Use 'placedObjects' state directly.
     const newPlacedObjects = [...placedObjects.filter(o => !objectsToRemove.includes(o.id)), ...objectsToAdd];
 
+    // --- SYMMETRY MODE: Add mirrored copy if enabled ---
+    let finalObjects = [...newPlacedObjects];
+    if (symmetryEnabled && newObject.asset.key !== 'player_start' && newObject.asset.key !== 'finish') {
+      // Update symmetry config
+      symmetryModeRef.current.setConfig({
+        enabled: true,
+        axis: symmetryAxis,
+        centerX: symmetryCenter.x,
+        centerZ: symmetryCenter.z
+      });
+
+      // Get mirrored positions for the new object
+      const mirroredPlacements = symmetryModeRef.current.getPlacementPositions(
+        gridPosition,
+        newObject.rotation
+      );
+
+      // Add mirrored copies (skip first which is original)
+      for (let i = 1; i < mirroredPlacements.length; i++) {
+        const mirrored = mirroredPlacements[i];
+        const mirroredCoordId = mirrored.position.join(',');
+
+        // Check if position is already occupied
+        if (!finalObjects.some(obj => obj.position.join(',') === mirroredCoordId)) {
+          const mirroredObject: PlacedObject = {
+            id: `${newObject.id}-mirror-${i}`,
+            position: mirrored.position,
+            rotation: mirrored.rotation,
+            asset: finalAsset,
+            properties: { ...newObject.properties }
+          };
+          finalObjects.push(mirroredObject);
+        }
+      }
+    }
+
     // Path will be auto-recalculated by useEffect when placedObjects changes
     // ---------------------------------------------
 
 
-    setPlacedObjectsWithHistory(newPlacedObjects);
+    setPlacedObjectsWithHistory(finalObjects);
   };
 
   // Hàm mới để thêm một đối tượng đã được tạo sẵn (dùng cho Duplicate)
@@ -2289,6 +2538,28 @@ function App() {
           onThemeChange={handleThemeChange}
           availableThemes={Themes.COMPREHENSIVE_THEMES}
         />
+
+        {/* Symmetry Panel - Floating control for symmetry mode */}
+        <div className="symmetry-panel-container" style={{
+          position: 'absolute',
+          top: 70,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
+          minWidth: 280
+        }}>
+          <SymmetryPanel
+            enabled={symmetryEnabled}
+            onToggle={setSymmetryEnabled}
+            axis={symmetryAxis}
+            onAxisChange={setSymmetryAxis}
+            center={symmetryCenter}
+            onCenterChange={setSymmetryCenter}
+            gridWidth={boxDimensions.width}
+            gridDepth={boxDimensions.depth}
+          />
+        </div>
+
         {/* Smart Selection integrated into AssetPalette */}
         <button onClick={togglePalette} className={`toggle-palette-btn ${!isPaletteVisible ? 'closed' : ''}`}>
           {isPaletteVisible ? '‹' : '›'}
@@ -2352,6 +2623,21 @@ function App() {
           onObjectHover={handleObjectHover}
           hoverPreviewIds={hoverPreviewIds}
           selectionMode={selectionMode}
+          isRotating={isRotating}
+          rotateSnapAngle={rotateSnapAngle}
+          onRotateObjects={handleRotateObjects}
+          onSetIsRotating={setIsRotating}
+          isFillMode={isFillMode}
+          fillPreviewPositions={fillPreviewPositions}
+          onFillPreview={handleFillPreview}
+          onFillExecute={handleFillExecute}
+          symmetryEnabled={symmetryEnabled}
+          symmetryAxis={symmetryAxis}
+          symmetryCenter={symmetryCenter}
+          isPasteMode={isPasteMode}
+          pastePreviewPositions={pastePreviewPositions}
+          onPastePreview={handlePastePreview}
+          onPasteExecute={handlePasteExecute}
         />
       </div>
       {/* --- START: THÊM THANH RESIZER VÀ ÁP DỤNG WIDTH ĐỘNG --- */}

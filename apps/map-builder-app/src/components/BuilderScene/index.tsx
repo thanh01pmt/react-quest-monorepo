@@ -9,6 +9,8 @@ import { BoundingBox } from '../BoundingBox';
 import { SelectionBox } from '../SelectionBox';
 import { SelectionHighlight } from '../PropertiesPanel/SelectionHighlight';
 import type { HighlightItem } from '../TopologyInspector';
+import { TransformGizmo, type GizmoAxis } from '../TransformGizmo';
+import { RotateGizmo, type SnapAngle } from '../RotateGizmo';
 
 const TILE_SIZE = 2;
 
@@ -45,6 +47,25 @@ interface BuilderSceneProps {
   onObjectHover?: (objectId: string | null) => void;
   hoverPreviewIds?: string[];
   selectionMode?: 'box' | 'smart';
+  // Rotation Props
+  isRotating?: boolean;
+  rotateSnapAngle?: SnapAngle;
+  onRotateObjects?: (angleRadians: number) => void;
+  onSetIsRotating?: (isRotating: boolean) => void;
+  // Fill Tool Props
+  isFillMode?: boolean;
+  fillPreviewPositions?: [number, number, number][];
+  onFillPreview?: (position: [number, number, number] | null) => void;
+  onFillExecute?: (position: [number, number, number]) => void;
+  // Symmetry Props
+  symmetryEnabled?: boolean;
+  symmetryAxis?: 'x' | 'z' | 'both';
+  symmetryCenter?: { x: number; z: number };
+  // Paste Tool Props
+  isPasteMode?: boolean;
+  pastePreviewPositions?: [number, number, number][];
+  onPastePreview?: (position: [number, number, number] | null) => void;
+  onPasteExecute?: (position: [number, number, number]) => void;
 }
 
 // Separate component for player_start to ensure proper re-rendering
@@ -147,6 +168,24 @@ const selectionOverlayMaterial = new THREE.MeshBasicMaterial({
 const hoverPreviewMaterial = new THREE.MeshBasicMaterial({
   color: '#ffff00',
   opacity: 0.4,
+  transparent: true,
+  depthTest: false,
+  depthWrite: false
+});
+
+// Fill preview material (Green, semi-transparent)
+const fillPreviewMaterial = new THREE.MeshBasicMaterial({
+  color: '#00ff88',
+  opacity: 0.5,
+  transparent: true,
+  depthTest: false,
+  depthWrite: false
+});
+
+// Paste preview material (Cyan, semi-transparent)
+const pastePreviewMaterial = new THREE.MeshBasicMaterial({
+  color: '#00ccff',
+  opacity: 0.5,
   transparent: true,
   depthTest: false,
   depthWrite: false
@@ -389,7 +428,7 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
   const [hoveredObjectId, setHoveredObjectId] = useState<string | null>(null); // State cho hiệu ứng hover
   // Ref mới để lưu trạng thái bắt đầu kéo (vị trí đối tượng và vị trí chuột)
   const placedObjectsGroupRef = useRef<THREE.Group>(null!); // Ref cho group chứa các đối tượng
-  const dragStartRef = useRef<{ objectPos: [number, number, number], mousePos: { x: number, y: number } } | null>(null);
+  const dragStartRef = useRef<{ objectPos: [number, number, number], mousePos: { x: number, y: number }, originalPositions?: Array<{ id: string, pos: [number, number, number] }> } | null>(null);
 
   const {
     builderMode, selectedAsset, placedObjects, boxDimensions, onModeChange,
@@ -401,7 +440,22 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     onSmartSelect,
     onObjectHover,
     hoverPreviewIds,
-    selectionMode
+    selectionMode,
+    isRotating,
+    rotateSnapAngle,
+    onRotateObjects,
+    onSetIsRotating,
+    isFillMode,
+    fillPreviewPositions,
+    onFillPreview,
+    onFillExecute,
+    symmetryEnabled,
+    symmetryAxis,
+    symmetryCenter,
+    isPasteMode,
+    pastePreviewPositions,
+    onPastePreview,
+    onPasteExecute
   } = props;
 
 
@@ -550,6 +604,40 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
       if (selectionMode === 'smart' && onObjectHover) {
         onObjectHover(newHoverId);
       }
+
+      // Trigger Fill Preview on empty area hover
+      if (isFillMode && onFillPreview) {
+        raycaster.setFromCamera(event.pointer, camera);
+        const intersects = raycaster.intersectObjects([plane], true);
+        const intersect = intersects[0];
+        if (intersect) {
+          const gridPos: [number, number, number] = [
+            Math.floor(intersect.point.x / TILE_SIZE),
+            Math.floor(intersect.point.y / TILE_SIZE),
+            Math.floor(intersect.point.z / TILE_SIZE)
+          ];
+          onFillPreview(gridPos);
+        } else {
+          onFillPreview(null);
+        }
+      }
+
+      // Trigger Paste Preview on hover
+      if (isPasteMode && onPastePreview) {
+        raycaster.setFromCamera(event.pointer, camera);
+        const intersects = raycaster.intersectObjects([plane], true);
+        const intersect = intersects[0];
+        if (intersect) {
+          const gridPos: [number, number, number] = [
+            Math.floor(intersect.point.x / TILE_SIZE),
+            Math.floor(intersect.point.y / TILE_SIZE),
+            Math.floor(intersect.point.z / TILE_SIZE)
+          ];
+          onPastePreview(gridPos);
+        } else {
+          onPastePreview(null);
+        }
+      }
     }
 
     // Luôn cập nhật vị trí con trỏ để useFrame có thể sử dụng
@@ -625,6 +713,28 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     const intersects = raycaster.intersectObjects(objectsToIntersect, true);
     // Lọc ra đối tượng rollover để tránh click vào chính nó
     const intersect = intersects.find(i => i.object.name !== 'RollOverMesh');
+
+    // --- FILL MODE: Execute fill on click ---
+    if (isFillMode && onFillExecute && intersect) {
+      const gridPos: [number, number, number] = [
+        Math.floor(intersect.point.x / TILE_SIZE),
+        Math.floor(intersect.point.y / TILE_SIZE),
+        Math.floor(intersect.point.z / TILE_SIZE)
+      ];
+      onFillExecute(gridPos);
+      return; // Don't process further
+    }
+
+    // --- PASTE MODE: Execute paste on click ---
+    if (isPasteMode && onPasteExecute && intersect) {
+      const gridPos: [number, number, number] = [
+        Math.floor(intersect.point.x / TILE_SIZE),
+        Math.floor(intersect.point.y / TILE_SIZE),
+        Math.floor(intersect.point.z / TILE_SIZE)
+      ];
+      onPasteExecute(gridPos);
+      return; // Don't process further
+    }
 
     // --- START: LOGIC CLICK ĐÃ ĐƯỢC TÁI CẤU TRÚC ---
     // 1. Luôn xác định đối tượng được click.
@@ -717,6 +827,48 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
     <>
       <Grid position={[0, -0.01, 0]} args={[100, 100]} cellSize={TILE_SIZE} cellThickness={1} cellColor="#6f6f6f" sectionSize={10} sectionThickness={1.5} sectionColor="#2c89d7" fadeDistance={150} fadeStrength={1} infiniteGrid />
       <BoundingBox dimensions={boxDimensions} position={boundingBoxPosition} />
+
+      {/* Symmetry Axis Lines */}
+      {symmetryEnabled && symmetryCenter && (
+        <group>
+          {/* X axis line (horizontal at centerZ) */}
+          {(symmetryAxis === 'x' || symmetryAxis === 'both') && (
+            <Line
+              points={[
+                [0, 0.1, symmetryCenter.z * TILE_SIZE],
+                [boxDimensions.width * TILE_SIZE, 0.1, symmetryCenter.z * TILE_SIZE]
+              ]}
+              color="#00ff88"
+              lineWidth={3}
+              dashed
+              dashSize={0.5}
+              gapSize={0.3}
+            />
+          )}
+          {/* Z axis line (vertical at centerX) */}
+          {(symmetryAxis === 'z' || symmetryAxis === 'both') && (
+            <Line
+              points={[
+                [symmetryCenter.x * TILE_SIZE, 0.1, 0],
+                [symmetryCenter.x * TILE_SIZE, 0.1, boxDimensions.depth * TILE_SIZE]
+              ]}
+              color="#00ff88"
+              lineWidth={3}
+              dashed
+              dashSize={0.5}
+              gapSize={0.3}
+            />
+          )}
+          {/* Center point indicator for 'both' mode */}
+          {symmetryAxis === 'both' && (
+            <mesh position={[symmetryCenter.x * TILE_SIZE, 0.2, symmetryCenter.z * TILE_SIZE]}>
+              <sphereGeometry args={[0.3, 16, 16]} />
+              <meshBasicMaterial color="#00ff88" />
+            </mesh>
+          )}
+        </group>
+      )}
+
       {selectionBounds && <SelectionBox bounds={selectionBounds} />}
       <group ref={rollOverMeshRef}>
         <RollOverMesh selectedAsset={selectedAsset} />
@@ -735,6 +887,152 @@ const SceneContent = (props: BuilderSceneProps & { cameraControlsRef: React.RefO
         /></Suspense>)}
       </group>
       <PortalConnections objects={placedObjects} />
+
+      {/* Transform Gizmo - Show when objects are selected */}
+      {selectedObjectIds.length >= 1 && (() => {
+        // Get all selected objects
+        const selectedObjs = placedObjects.filter(o => selectedObjectIds.includes(o.id));
+        if (selectedObjs.length === 0) return null;
+
+        // Calculate center position of all selected objects
+        const centerX = selectedObjs.reduce((sum, o) => sum + o.position[0], 0) / selectedObjs.length;
+        const centerY = selectedObjs.reduce((sum, o) => sum + o.position[1], 0) / selectedObjs.length;
+        const centerZ = selectedObjs.reduce((sum, o) => sum + o.position[2], 0) / selectedObjs.length;
+
+        const gizmoPosition: [number, number, number] = [
+          centerX * TILE_SIZE + TILE_SIZE / 2,
+          centerY * TILE_SIZE + TILE_SIZE / 2,
+          centerZ * TILE_SIZE + TILE_SIZE / 2,
+        ];
+
+        return (
+          <TransformGizmo
+            position={gizmoPosition}
+            scale={2}
+            onDragStart={() => {
+              onSetIsMovingObject(true);
+              // Store original positions of all selected objects
+              dragStartRef.current = {
+                objectPos: [0, 0, 0],
+                mousePos: { x: 0, y: 0 },
+                originalPositions: selectedObjs.map(o => ({ id: o.id, pos: [...o.position] as [number, number, number] }))
+              };
+            }}
+            onDrag={(axis, delta) => {
+              if (!axis || !dragStartRef.current?.originalPositions) return;
+
+              // Calculate grid delta from original position
+              const gridDelta = Math.round(delta / TILE_SIZE);
+
+              // Move ALL selected objects relative to their ORIGINAL positions
+              dragStartRef.current.originalPositions.forEach(({ id, pos }) => {
+                const newPos: [number, number, number] = [...pos];
+                if (axis === 'x') newPos[0] = pos[0] + gridDelta;
+                if (axis === 'y') newPos[1] = pos[1] + gridDelta;
+                if (axis === 'z') newPos[2] = pos[2] + gridDelta;
+
+                onMoveObject(id, newPos);
+              });
+            }}
+            onDragEnd={() => {
+              onSetIsMovingObject(false);
+              dragStartRef.current = null;
+            }}
+          />
+        );
+      })()}
+
+      {/* Rotate Gizmo - Show when rotation mode is active */}
+      {isRotating && selectedObjectIds.length >= 1 && (() => {
+        const selectedObjs = placedObjects.filter(o => selectedObjectIds.includes(o.id));
+        if (selectedObjs.length === 0) return null;
+
+        // Calculate center position
+        const centerX = selectedObjs.reduce((sum, o) => sum + o.position[0], 0) / selectedObjs.length;
+        const centerY = selectedObjs.reduce((sum, o) => sum + o.position[1], 0) / selectedObjs.length;
+        const centerZ = selectedObjs.reduce((sum, o) => sum + o.position[2], 0) / selectedObjs.length;
+
+        const gizmoPosition: [number, number, number] = [
+          centerX * TILE_SIZE + TILE_SIZE / 2,
+          centerY * TILE_SIZE + TILE_SIZE / 2 + 0.5, // Slightly above
+          centerZ * TILE_SIZE + TILE_SIZE / 2,
+        ];
+
+        return (
+          <RotateGizmo
+            position={gizmoPosition}
+            scale={2}
+            snapAngle={rotateSnapAngle}
+            onRotateStart={() => onSetIsRotating?.(true)}
+            onRotate={(angle) => onRotateObjects?.(angle)}
+            onRotateEnd={() => onSetIsRotating?.(false)}
+          />
+        );
+      })()}
+
+      {/* Fill Preview - Show positions that would be filled */}
+      {isFillMode && fillPreviewPositions && fillPreviewPositions.length > 0 && (
+        <group>
+          {fillPreviewPositions.map((pos, idx) => (
+            <mesh
+              key={`fill-preview-${idx}`}
+              position={[
+                pos[0] * TILE_SIZE + TILE_SIZE / 2,
+                pos[1] * TILE_SIZE + TILE_SIZE / 2,
+                pos[2] * TILE_SIZE + TILE_SIZE / 2
+              ]}
+              scale={TILE_SIZE * 0.95}
+            >
+              <boxGeometry args={[1, 1, 1]} />
+              <primitive object={fillPreviewMaterial} attach="material" />
+            </mesh>
+          ))}
+          {/* Show count badge */}
+          <group position={[
+            fillPreviewPositions[0][0] * TILE_SIZE + TILE_SIZE / 2,
+            fillPreviewPositions[0][1] * TILE_SIZE + TILE_SIZE + 1,
+            fillPreviewPositions[0][2] * TILE_SIZE + TILE_SIZE / 2
+          ]}>
+            {/* Count indicator sphere */}
+            <mesh>
+              <sphereGeometry args={[0.5, 16, 16]} />
+              <meshBasicMaterial color="#00ff88" />
+            </mesh>
+          </group>
+        </group>
+      )}
+
+      {/* Paste Preview - Show positions that would be pasted */}
+      {isPasteMode && pastePreviewPositions && pastePreviewPositions.length > 0 && (
+        <group>
+          {pastePreviewPositions.map((pos, idx) => (
+            <mesh
+              key={`paste-preview-${idx}`}
+              position={[
+                pos[0] * TILE_SIZE + TILE_SIZE / 2,
+                pos[1] * TILE_SIZE + TILE_SIZE / 2,
+                pos[2] * TILE_SIZE + TILE_SIZE / 2
+              ]}
+              scale={TILE_SIZE * 0.9}
+            >
+              <boxGeometry args={[1, 1, 1]} />
+              <primitive object={pastePreviewMaterial} attach="material" />
+            </mesh>
+          ))}
+          {/* Count indicator */}
+          <group position={[
+            pastePreviewPositions[0][0] * TILE_SIZE + TILE_SIZE / 2,
+            pastePreviewPositions[0][1] * TILE_SIZE + TILE_SIZE + 1,
+            pastePreviewPositions[0][2] * TILE_SIZE + TILE_SIZE / 2
+          ]}>
+            <mesh>
+              <sphereGeometry args={[0.4, 16, 16]} />
+              <meshBasicMaterial color="#00ccff" />
+            </mesh>
+          </group>
+        </group>
+      )}
+
       {solutionPath && <SolutionOverlay path={solutionPath} />}
       {highlights && highlights.length > 0 && <HighlightLines highlights={highlights} />}
       <primitive object={plane} onPointerMove={handlePointerMove} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerOut={() => setPointer(new THREE.Vector2(99, 99))} />
