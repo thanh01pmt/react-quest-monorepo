@@ -19,6 +19,7 @@ import {
     type PathRelation,
     type Pattern
 } from '@repo/academic-map-generator';
+import { PlacedObject } from '../../types';
 import './TopologyInspector.css';
 
 interface TopologyInspectorProps {
@@ -29,6 +30,7 @@ interface TopologyInspectorProps {
         placement_coords?: [number, number, number][];
         metadata?: Record<string, any>;
     } | null;
+    placedObjects?: PlacedObject[];
     onHighlightChange?: (highlights: HighlightItem[]) => void;
 }
 
@@ -51,14 +53,59 @@ const HIGHLIGHT_COLORS = [
     '#ef4444', // red
 ];
 
-export function TopologyInspector({ pathInfo, onHighlightChange }: TopologyInspectorProps) {
+export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }: TopologyInspectorProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [context, setContext] = useState<PlacementContext | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // Analyze topology when pathInfo changes
+    // Analyze topology when pathInfo changes or manual trigger
     const analyze = useCallback(() => {
+        // Option 1: Use live placedObjects if available
+        if (placedObjects && placedObjects.length > 0) {
+            try {
+                // Filter for blocks/ground
+                const blocks = placedObjects
+                    .filter(o => o.asset?.type === 'block' || o.asset?.key?.includes('block') || o.asset?.key?.includes('ground'))
+                    .map(o => ({
+                        modelKey: o.asset.key,
+                        position: { x: o.position[0], y: o.position[1], z: o.position[2] }
+                    }));
+
+                const playerStart = placedObjects.find(o => o.asset.key === 'player_start');
+                const finishPoint = placedObjects.find(o => o.asset.key === 'finish');
+
+                // Defaults if missing
+                const start = playerStart?.position
+                    ? { x: playerStart.position[0], y: playerStart.position[1], z: playerStart.position[2], direction: 0 }
+                    : (pathInfo ? { x: pathInfo.start_pos[0], y: pathInfo.start_pos[1], z: pathInfo.start_pos[2], direction: 0 } : { x: 0, y: 0, z: 0, direction: 0 });
+
+                const finish = finishPoint?.position
+                    ? { x: finishPoint.position[0], y: finishPoint.position[1], z: finishPoint.position[2] }
+                    : (pathInfo ? { x: pathInfo.target_pos[0], y: pathInfo.target_pos[1], z: pathInfo.target_pos[2] } : { x: 10, y: 0, z: 10 });
+
+                const gameConfig = {
+                    type: pathInfo?.metadata?.topology_type || 'custom', // Use 'custom' if edited
+                    blocks,
+                    players: [{
+                        id: 'player1',
+                        start
+                    }],
+                    finish
+                };
+
+                const analyzer = new MapAnalyzer({ gameConfig });
+                const result = analyzer.analyze();
+                setContext(result);
+                setError(null);
+                return; // Success
+            } catch (e) {
+                console.error('Failed to analyze from placedObjects:', e);
+                // Fallback to pathInfo if failed?
+            }
+        }
+
+        // Option 2: Fallback to pathInfo (Original Generation Data)
         if (!pathInfo?.path_coords || pathInfo.path_coords.length === 0) {
             setError('No path data available');
             return;
@@ -98,7 +145,7 @@ export function TopologyInspector({ pathInfo, onHighlightChange }: TopologyInspe
             console.error('Failed to analyze topology:', e);
             setError('Analysis failed. Check console.');
         }
-    }, [pathInfo]);
+    }, [pathInfo, placedObjects]);
 
     // Toggle item selection
     const toggleItem = useCallback((id: string) => {

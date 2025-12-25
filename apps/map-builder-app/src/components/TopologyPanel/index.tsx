@@ -32,9 +32,10 @@ interface TopologyPanelProps {
     onHighlightChange?: (highlights: HighlightItem[]) => void;
     // Grid dimensions for topology generation - maps to bounding box in UI
     boxDimensions?: { width: number; height: number; depth: number };
+    placedObjects?: PlacedObject[];
 }
 
-export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetMap, pathInfo, onHighlightChange, boxDimensions }) => {
+export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetMap, pathInfo, onHighlightChange, boxDimensions, placedObjects }) => {
     const registry = useMemo(() => TopologyRegistry.getInstance(), []);
     const placementService = useMemo(() => new PlacementService(), []);
     const topologyGroups = useMemo(() => registry.getGrouped(), [registry]);
@@ -990,6 +991,7 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                 <TopologyInspector
                     pathInfo={pathInfo}
                     onHighlightChange={onHighlightChange}
+                    placedObjects={placedObjects}
                 />
             )}
         </div>

@@ -2880,6 +2880,7 @@ function App() {
                 pathInfo={questMetadata?.pathInfo || null}
                 onHighlightChange={setTopologyHighlights}
                 boxDimensions={boxDimensions}
+                placedObjects={placedObjects}
               />
             ) : (
               /* Placement Panel - Item Placement Controls */
