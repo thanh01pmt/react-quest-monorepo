@@ -318,9 +318,14 @@ export class GeometricDecomposer {
       }
     }
 
-    // Nếu không có lõi, chuyển sang fallback strategies
+    // Nếu không có lõi (không có block nào bị bao vây tứ phía):
+    // → Đây là thin structure (Z-shape, S-shape, wide paths, etc.)
+    // → KHÔNG tạo Area, để segment tracing xử lý như paths
+    // → Các paths song song sẽ được detect bởi PatternAnalyzer (parallel relation)
     if (coreBlocks.size === 0) {
-      return this.findAreasFallback(grid2D);
+      // [FIX] Bỏ junction-based fallback để tránh false positive cho wide thin structures
+      // traceAllSegments() sẽ xử lý tất cả blocks như segments
+      return [];
     }
 
     // 3. RECONSTRUCTION (DILATION): Khôi phục Area từ Lõi
