@@ -23,6 +23,7 @@ import { useMapValidation } from './hooks/useMapValidation';
 import { KeyboardShortcutsPanel } from './components/KeyboardShortcutsPanel';
 import { SolutionDebugPanel } from './components/SolutionDebugPanel';
 import { PlacementSelector } from './components/PlacementSelector';
+import { PatternSelector } from './components/PatternSelector';
 import { TemplateManager } from './components/TemplateManager';
 import { PlacementVariants } from './components/PlacementVariants';
 import { RightPanelTabs } from './components/RightPanelTabs';
@@ -36,7 +37,10 @@ import {
   MapAnalyzer,
   type SelectableElement,
   type TemplateItemPlacement,
-  type ItemPlacement
+  type ItemPlacement,
+  type SegmentPattern,
+  SEGMENT_PATTERNS,
+  applySegmentPattern
 } from '@repo/academic-map-generator';
 import { CenterToolbar } from './components/CenterToolbar';
 
@@ -91,6 +95,7 @@ function App() {
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   // Placement selector state
   const [placementSelections, setPlacementSelections] = useState<Array<{ elementId: string; itemType: 'crystal' | 'switch'; symmetric?: boolean }>>([]);
+  const [selectedPatternId, setSelectedPatternId] = useState<string | null>(null);
   // Strategy and item goals for placement
   const [placementStrategy, setPlacementStrategy] = useState<PedagogyStrategy>(PedagogyStrategy.NONE);
   const [placementDifficulty, setPlacementDifficulty] = useState<'intro' | 'simple' | 'complex'>('simple');
@@ -2705,6 +2710,122 @@ function App() {
     }
   }, [assetMap]);
 
+  // Handle applying guided placement selections
+  const handleApplyGuidedPlacement = useCallback((selections: Array<{ elementId: string; itemType: 'crystal' | 'switch'; symmetric?: boolean }>) => {
+    if (selections.length === 0) {
+      alert('Please select at least one segment to place items.');
+      return;
+    }
+
+    const newObjects: PlacedObject[] = [];
+    const elementsMap = new Map(selectableElements.map(e => [e.id, e]));
+
+    // Find selected pattern if any
+    const selectedPattern = selectedPatternId
+      ? SEGMENT_PATTERNS.find(p => p.id === selectedPatternId)
+      : null;
+
+    for (const selection of selections) {
+      const element = elementsMap.get(selection.elementId);
+      if (!element) continue;
+
+      if (element.type === 'segment' && element.segment && selectedPattern) {
+        // Use pattern-based placement
+        const placements = applySegmentPattern(selectedPattern, element.segment);
+
+        for (const placement of placements) {
+          const assetKey = placement.type;
+          const asset = assetMap.get(assetKey);
+          if (asset) {
+            newObjects.push({
+              id: uuidv4(),
+              asset,
+              position: [placement.position[0], placement.position[1] + 1, placement.position[2]],
+              rotation: [0, 0, 0],
+              properties: {}
+            });
+          }
+        }
+      } else {
+        // Fallback to simple placement (single item at center or for keypoints/positions)
+        const assetKey = selection.itemType;
+        const asset = assetMap.get(assetKey);
+        if (!asset) continue;
+
+        let positions: Coord[] = [];
+
+        if (element.type === 'keypoint' || element.type === 'position') {
+          if (element.position) {
+            positions.push(element.position);
+          }
+        } else if (element.type === 'segment' && element.segment) {
+          // No pattern selected - place single item at center
+          const centerIdx = Math.floor(element.segment.length / 2);
+          if (centerIdx > 0 && centerIdx < element.segment.length) {
+            positions.push(element.segment[centerIdx]);
+          }
+        }
+
+        for (const pos of positions) {
+          newObjects.push({
+            id: uuidv4(),
+            asset,
+            position: [pos[0], pos[1] + 1, pos[2]],
+            rotation: [0, 0, 0],
+            properties: {}
+          });
+        }
+      }
+
+      // Handle symmetric placement if requested
+      if (selection.symmetric && element.relationships.mirrorOf) {
+        const mirrorElement = elementsMap.get(element.relationships.mirrorOf);
+        if (mirrorElement && mirrorElement.segment && selectedPattern) {
+          const mirrorPlacements = applySegmentPattern(selectedPattern, mirrorElement.segment);
+          for (const placement of mirrorPlacements) {
+            const asset = assetMap.get(placement.type);
+            if (asset) {
+              newObjects.push({
+                id: uuidv4(),
+                asset,
+                position: [placement.position[0], placement.position[1] + 1, placement.position[2]],
+                rotation: [0, 0, 0],
+                properties: {}
+              });
+            }
+          }
+        }
+      }
+    }
+
+    if (newObjects.length > 0) {
+      // Deduplicate by position
+      const seenPositions = new Set<string>();
+      const uniqueObjects = newObjects.filter(obj => {
+        const key = `${obj.position[0]},${obj.position[1]},${obj.position[2]}`;
+        if (seenPositions.has(key)) return false;
+        seenPositions.add(key);
+        return true;
+      });
+
+      setPlacedObjectsWithHistory(prev => {
+        const existingPositions = new Set(
+          uniqueObjects.map(o => `${o.position[0]},${o.position[1]},${o.position[2]}`)
+        );
+        const filtered = prev.filter(o =>
+          o.asset.type !== 'collectible' ||
+          !existingPositions.has(`${o.position[0]},${o.position[1]},${o.position[2]}`)
+        );
+        return [...filtered, ...uniqueObjects];
+      });
+
+      const patternName = selectedPattern ? ` using "${selectedPattern.name}"` : '';
+      alert(`Placed ${uniqueObjects.length} items${patternName}.`);
+    } else {
+      alert('No valid positions found for selected elements.');
+    }
+  }, [assetMap, selectableElements, selectedPatternId]);
+
   // Handle applying items based on strategy and item goals
   const handleApplyItems = useCallback(() => {
     const pathInfo = questMetadata?.pathInfo;
@@ -2975,33 +3096,42 @@ function App() {
                   {/* ===== GUIDED TAB ===== */}
                   {placementSubTab === 'guided' && (
                     <>
-                      {/* Description */}
-                      <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '12px', lineHeight: 1.5 }}>
-                        Select segments and keypoints to manually place items. Choose item type for each selected element.
-                      </p>
-
-                      {/* PlacementSelector */}
-                      <PlacementSelector
-                        elements={selectableElements}
-                        onSelectionsChange={setPlacementSelections}
-                        initialSelections={placementSelections}
-                      />
-
-                      <div style={{ height: '16px' }} />
-
-                      {/* Template Manager */}
-                      <TemplateManager
-                        topologyType={questMetadata?.pathInfo?.metadata?.topology_type || 'unknown'}
-                        selectableElements={selectableElements}
-                        currentSelections={placementSelections}
-                        onApplyTemplate={handleApplyTemplatePlacements}
-                      />
-
-                      {selectableElements.length === 0 && (
+                      {selectableElements.length === 0 ? (
                         <div style={{ textAlign: 'center', color: '#888', padding: '20px', fontSize: '13px' }}>
                           <p>⚠️ No path data available.</p>
                           <p>Generate ground from the <strong>Topology</strong> tab first.</p>
                         </div>
+                      ) : (
+                        <>
+                          {/* Step 1: Select Pattern */}
+                          <PatternSelector
+                            segmentLength={
+                              selectableElements
+                                .filter(e => e.type === 'segment')
+                                .reduce((max, e) => Math.max(max, e.segment?.length || 0), 3)
+                            }
+                            selectedPatternId={selectedPatternId}
+                            onPatternSelect={(pattern) => setSelectedPatternId(pattern?.id || null)}
+                          />
+
+                          {/* Step 2: Select Segments */}
+                          <PlacementSelector
+                            elements={selectableElements}
+                            onSelectionsChange={setPlacementSelections}
+                            onApplyPlacement={handleApplyGuidedPlacement}
+                            initialSelections={placementSelections}
+                          />
+
+                          <div style={{ height: '16px' }} />
+
+                          {/* Templates (collapsed by default) */}
+                          <TemplateManager
+                            topologyType={questMetadata?.pathInfo?.metadata?.topology_type || 'unknown'}
+                            selectableElements={selectableElements}
+                            currentSelections={placementSelections}
+                            onApplyTemplate={handleApplyTemplatePlacements}
+                          />
+                        </>
                       )}
                     </>
                   )}

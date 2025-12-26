@@ -223,35 +223,97 @@ export class PlacementTemplateRegistry {
       const elements = findElementsBySelector(selectableElements, rule.selector);
       
       for (const element of elements) {
-        // Skip if no position
-        if (!element.position) continue;
+        // Get positions from element
+        let positions: Coord[] = [];
         
-        const posKey = `${element.position[0]},${element.position[1]},${element.position[2]}`;
+        if (element.type === 'segment' && element.segment && element.segment.length > 0) {
+          // For segments: apply interval-based placement
+          const skipFirst = rule.options?.skipFirst ?? true;
+          const skipLast = rule.options?.skipLast ?? true;
+          const startIdx = skipFirst ? 1 : 0;
+          const endIdx = skipLast ? element.segment.length - 1 : element.segment.length;
+          
+          // For interval selectors, use the specified interval
+          if (rule.selector.type === 'interval' && 'every' in rule.selector) {
+            const skip = (rule.selector as any).skip || 0;
+            for (let i = startIdx; i < endIdx; i++) {
+              if ((i - skip) % rule.selector.every === 0) {
+                positions.push(element.segment[i]);
+              }
+            }
+          } else if (rule.selector.type === 'all') {
+            // All positions in segment
+            for (let i = startIdx; i < endIdx; i++) {
+              positions.push(element.segment[i]);
+            }
+          } else {
+            // Default: single item at center
+            const centerIdx = Math.floor(element.segment.length / 2);
+            if (centerIdx >= 0 && centerIdx < element.segment.length) {
+              positions.push(element.segment[centerIdx]);
+            }
+          }
+        } else if (element.position) {
+          // For keypoints and positions: use the single position
+          positions.push(element.position);
+        }
         
-        // Skip if already placed
-        if (placedPositions.has(posKey)) continue;
-        
-        placedPositions.add(posKey);
-        placements.push({
-          type: rule.itemType,
-          position: element.position,
-          sourceRule: JSON.stringify(rule.selector)
-        });
+        // Create placements for each position
+        for (const pos of positions) {
+          const posKey = `${pos[0]},${pos[1]},${pos[2]}`;
+          
+          // Skip if already placed
+          if (placedPositions.has(posKey)) continue;
+          
+          placedPositions.add(posKey);
+          placements.push({
+            type: rule.itemType,
+            position: pos,
+            sourceRule: JSON.stringify(rule.selector)
+          });
+        }
         
         // Handle symmetric placement
         if (rule.options?.symmetric) {
           const mirror = getMirrorElement(selectableElements, element);
-          if (mirror && mirror.position) {
-            const mirrorKey = `${mirror.position[0]},${mirror.position[1]},${mirror.position[2]}`;
+          if (mirror) {
+            let mirrorPositions: Coord[] = [];
             
-            if (!placedPositions.has(mirrorKey)) {
-              placedPositions.add(mirrorKey);
-              placements.push({
-                type: rule.itemType,
-                position: mirror.position,
-                sourceRule: JSON.stringify(rule.selector),
-                isMirror: true
-              });
+            if (mirror.type === 'segment' && mirror.segment) {
+              const skipFirst = rule.options?.skipFirst ?? true;
+              const skipLast = rule.options?.skipLast ?? true;
+              const startIdx = skipFirst ? 1 : 0;
+              const endIdx = skipLast ? mirror.segment.length - 1 : mirror.segment.length;
+              
+              if (rule.selector.type === 'interval' && 'every' in rule.selector) {
+                const skip = (rule.selector as any).skip || 0;
+                for (let i = startIdx; i < endIdx; i++) {
+                  if ((i - skip) % rule.selector.every === 0) {
+                    mirrorPositions.push(mirror.segment[i]);
+                  }
+                }
+              } else {
+                const centerIdx = Math.floor(mirror.segment.length / 2);
+                if (centerIdx >= 0 && centerIdx < mirror.segment.length) {
+                  mirrorPositions.push(mirror.segment[centerIdx]);
+                }
+              }
+            } else if (mirror.position) {
+              mirrorPositions.push(mirror.position);
+            }
+            
+            for (const mPos of mirrorPositions) {
+              const mirrorKey = `${mPos[0]},${mPos[1]},${mPos[2]}`;
+              
+              if (!placedPositions.has(mirrorKey)) {
+                placedPositions.add(mirrorKey);
+                placements.push({
+                  type: rule.itemType,
+                  position: mPos,
+                  sourceRule: JSON.stringify(rule.selector),
+                  isMirror: true
+                });
+              }
             }
           }
         }
@@ -359,7 +421,263 @@ export class PlacementTemplateRegistry {
 }
 
 // ============================================================================
-// DEFAULT TEMPLATES
+// SEGMENT PATTERN TYPES
+// ============================================================================
+
+/**
+ * Pattern notation:
+ * - C = Crystal
+ * - S = Switch
+ * - - = Empty block
+ * - | = Separator for repeating units
+ * 
+ * Examples:
+ * - "C" = Single crystal
+ * - "C-C" = Two crystals with 1 gap
+ * - "C--C" = Two crystals with 2 gaps
+ * - "CSC" = Crystal, Switch, Crystal (adjacent)
+ * - "C-S-C" = Crystal, gap, Switch, gap, Crystal
+ */
+export interface SegmentPattern {
+  id: string;
+  name: string;
+  description: string;
+  pattern: ('C' | 'S' | '-')[];  // The pattern to apply
+  minSegmentLength: number;       // Minimum segment length to apply this pattern
+  repeatMode: 'single' | 'fill' | 'edges';  // How to apply on segment
+  skipEnds?: boolean;             // Skip first/last block of segment
+}
+
+// Universal segment patterns that work for any topology
+export const SEGMENT_PATTERNS: SegmentPattern[] = [
+  // === SINGLE ITEMS ===
+  {
+    id: 'single_crystal',
+    name: '1 × Crystal',
+    description: 'Single crystal at center of segment',
+    pattern: ['C'],
+    minSegmentLength: 3,
+    repeatMode: 'single',
+    skipEnds: true
+  },
+  {
+    id: 'single_switch',
+    name: '1 × Switch',
+    description: 'Single switch at center of segment',
+    pattern: ['S'],
+    minSegmentLength: 3,
+    repeatMode: 'single',
+    skipEnds: true
+  },
+
+  // === PAIRS (ADJACENT) ===
+  {
+    id: 'pair_cc',
+    name: '1 × (C-C)',
+    description: 'Pair of adjacent crystals at center',
+    pattern: ['C', 'C'],
+    minSegmentLength: 4,
+    repeatMode: 'single',
+    skipEnds: true
+  },
+  {
+    id: 'pair_cs',
+    name: '1 × (C-S)',
+    description: 'Crystal followed by switch at center',
+    pattern: ['C', 'S'],
+    minSegmentLength: 4,
+    repeatMode: 'single',
+    skipEnds: true
+  },
+
+  // === PAIRS (SPACED) ===
+  {
+    id: 'spaced_c_c',
+    name: '1 × (C_C)',
+    description: 'Two crystals with 1 block gap',
+    pattern: ['C', '-', 'C'],
+    minSegmentLength: 5,
+    repeatMode: 'single',
+    skipEnds: true
+  },
+  {
+    id: 'spaced_c__c',
+    name: '1 × (C__C)',
+    description: 'Two crystals with 2 block gaps',
+    pattern: ['C', '-', '-', 'C'],
+    minSegmentLength: 6,
+    repeatMode: 'single',
+    skipEnds: true
+  },
+
+  // === TRIPLETS ===
+  {
+    id: 'triple_csc',
+    name: '1 × (CSC)',
+    description: 'Crystal-Switch-Crystal triplet',
+    pattern: ['C', 'S', 'C'],
+    minSegmentLength: 5,
+    repeatMode: 'single',
+    skipEnds: true
+  },
+  {
+    id: 'triple_scs',
+    name: '1 × (SCS)',
+    description: 'Switch-Crystal-Switch triplet',
+    pattern: ['S', 'C', 'S'],
+    minSegmentLength: 5,
+    repeatMode: 'single',
+    skipEnds: true
+  },
+  {
+    id: 'triple_c_s_c',
+    name: '1 × (C_S_C)',
+    description: 'Crystal, gap, Switch, gap, Crystal',
+    pattern: ['C', '-', 'S', '-', 'C'],
+    minSegmentLength: 7,
+    repeatMode: 'single',
+    skipEnds: true
+  },
+
+  // === FILL PATTERNS ===
+  {
+    id: 'fill_crystals',
+    name: 'Fill Crystals',
+    description: 'Fill segment with crystals (skip ends)',
+    pattern: ['C'],
+    minSegmentLength: 3,
+    repeatMode: 'fill',
+    skipEnds: true
+  },
+  {
+    id: 'fill_alternating',
+    name: 'Fill Alternating C-S',
+    description: 'Alternating crystals and switches',
+    pattern: ['C', 'S'],
+    minSegmentLength: 4,
+    repeatMode: 'fill',
+    skipEnds: true
+  },
+  {
+    id: 'fill_spaced',
+    name: 'Fill Spaced (C_C_...)',
+    description: 'Crystals with 1 block gaps',
+    pattern: ['C', '-'],
+    minSegmentLength: 4,
+    repeatMode: 'fill',
+    skipEnds: true
+  },
+
+  // === EDGE PATTERNS ===
+  {
+    id: 'edges_crystals',
+    name: 'Edge Crystals',
+    description: 'Crystal at start and end of segment',
+    pattern: ['C'],
+    minSegmentLength: 4,
+    repeatMode: 'edges',
+    skipEnds: false  // We want the edges!
+  },
+  {
+    id: 'edges_switches',
+    name: 'Edge Switches',
+    description: 'Switch at start and end of segment',
+    pattern: ['S'],
+    minSegmentLength: 4,
+    repeatMode: 'edges',
+    skipEnds: false
+  }
+];
+
+/**
+ * Apply a segment pattern to generate item positions
+ */
+export function applySegmentPattern(
+  pattern: SegmentPattern,
+  segmentCoords: Coord[]
+): TemplateItemPlacement[] {
+  if (segmentCoords.length < pattern.minSegmentLength) {
+    return [];
+  }
+
+  const placements: TemplateItemPlacement[] = [];
+  const startIdx = pattern.skipEnds ? 1 : 0;
+  const endIdx = pattern.skipEnds ? segmentCoords.length - 1 : segmentCoords.length;
+  const usableLength = endIdx - startIdx;
+
+  if (usableLength <= 0) return [];
+
+  switch (pattern.repeatMode) {
+    case 'single': {
+      // Center the pattern on the segment
+      const patternLen = pattern.pattern.length;
+      const centerOffset = Math.floor((usableLength - patternLen) / 2);
+      const patternStart = startIdx + Math.max(0, centerOffset);
+
+      for (let i = 0; i < pattern.pattern.length; i++) {
+        const coordIdx = patternStart + i;
+        if (coordIdx >= endIdx) break;
+        
+        const item = pattern.pattern[i];
+        if (item === 'C' || item === 'S') {
+          placements.push({
+            type: item === 'C' ? 'crystal' : 'switch',
+            position: segmentCoords[coordIdx]
+          });
+        }
+      }
+      break;
+    }
+
+    case 'fill': {
+      // Repeat pattern to fill the segment
+      let patternIdx = 0;
+      for (let i = startIdx; i < endIdx; i++) {
+        const item = pattern.pattern[patternIdx % pattern.pattern.length];
+        if (item === 'C' || item === 'S') {
+          placements.push({
+            type: item === 'C' ? 'crystal' : 'switch',
+            position: segmentCoords[i]
+          });
+        }
+        patternIdx++;
+      }
+      break;
+    }
+
+    case 'edges': {
+      // Place at start and end only
+      const item = pattern.pattern[0];
+      if (item === 'C' || item === 'S') {
+        // Start edge
+        placements.push({
+          type: item === 'C' ? 'crystal' : 'switch',
+          position: segmentCoords[startIdx]
+        });
+        // End edge (if different position)
+        if (endIdx - 1 > startIdx) {
+          placements.push({
+            type: item === 'C' ? 'crystal' : 'switch',
+            position: segmentCoords[endIdx - 1]
+          });
+        }
+      }
+      break;
+    }
+  }
+
+  return placements;
+}
+
+/**
+ * Get patterns that can be applied to a segment of given length
+ */
+export function getApplicablePatterns(segmentLength: number): SegmentPattern[] {
+  return SEGMENT_PATTERNS.filter(p => segmentLength >= p.minSegmentLength);
+}
+
+// ============================================================================
+// DEFAULT TEMPLATES (Legacy - for specific topologies)
 // ============================================================================
 
 export const DEFAULT_TEMPLATES: Omit<PlacementTemplate, 'id' | 'createdAt' | 'updatedAt'>[] = [
@@ -396,6 +714,28 @@ export const DEFAULT_TEMPLATES: Omit<PlacementTemplate, 'id' | 'createdAt' | 'up
       { selector: { type: 'keypoint', name: 'corner' }, itemType: 'switch' },
       { selector: { type: 'interval', segment: 'seg_0', every: 2 }, itemType: 'crystal' },
       { selector: { type: 'interval', segment: 'seg_1', every: 2 }, itemType: 'crystal' }
+    ]
+  },
+  // Universal templates for any topology
+  {
+    name: 'Universal: Crystal Trail',
+    description: 'Fill segments with crystals every 2 blocks',
+    topologyType: '*',  // Universal
+    rules: [
+      { selector: { type: 'interval', segment: 'seg_0', every: 2 }, itemType: 'crystal' },
+      { selector: { type: 'interval', segment: 'seg_1', every: 2 }, itemType: 'crystal' },
+      { selector: { type: 'interval', segment: 'seg_2', every: 2 }, itemType: 'crystal' },
+      { selector: { type: 'interval', segment: 'seg_3', every: 2 }, itemType: 'crystal' }
+    ]
+  },
+  {
+    name: 'Universal: Switch Corners',
+    description: 'Switches at segment ends/corners',
+    topologyType: '*',
+    rules: [
+      { selector: { type: 'keypoint', name: 'center' }, itemType: 'switch' },
+      { selector: { type: 'keypoint', name: 'corner' }, itemType: 'switch' },
+      { selector: { type: 'keypoint', name: 'apex' }, itemType: 'switch' }
     ]
   }
 ];

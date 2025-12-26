@@ -247,13 +247,35 @@ export function findElementsBySelector(
       );
       
     case 'interval': {
-      const skip = selector.skip || 0;
-      return elements.filter(e => 
+      // Return both position elements (for exact offset matching) and segment elements
+      // When segment elements are returned, their coords will be processed in applyRules
+      const positionElements = elements.filter(e => 
         e.type === 'position' && 
         e.segmentName === selector.segment &&
         e.offset !== undefined &&
-        (e.offset - skip) % selector.every === 0
+        (e.offset - (selector.skip || 0)) % selector.every === 0
       );
+      
+      // Also return segment elements that match the segment name
+      // The interval logic will be applied in applyRules
+      const segmentElements = elements.filter(e =>
+        e.type === 'segment' && e.segmentName === selector.segment
+      );
+      
+      // If no exact segment name match, try matching by index (seg_0 -> topo_seg_0)
+      if (segmentElements.length === 0 && positionElements.length === 0) {
+        const segmentIndex = selector.segment.match(/seg_(\d+)/)?.[1];
+        if (segmentIndex !== undefined) {
+          const fuzzyMatches = elements.filter(e =>
+            e.type === 'segment' && 
+            e.segmentName?.includes(`seg_${segmentIndex}`) ||
+            e.segmentName?.includes(`seg ${segmentIndex}`)
+          );
+          return fuzzyMatches;
+        }
+      }
+      
+      return [...positionElements, ...segmentElements];
     }
     
     case 'relative':

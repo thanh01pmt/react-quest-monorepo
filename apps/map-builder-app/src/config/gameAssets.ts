@@ -46,7 +46,6 @@ function createBuildableAssetGroups(): AssetGroup[] {
   // --- SỬA LẠI LOGIC ĐỂ LẤY ĐÚNG ASSET ---
   const collectibleItems: BuildableAsset[] = [
     { key: 'crystal', name: 'Crystal', path: GameAssets.world.misc.crystal, thumbnail: createThumbnailPath(GameAssets.world.misc.crystal), type: 'collectible' },
-    { key: 'gem', name: 'Gem', path: GameAssets.world.misc.crystal, thumbnail: createThumbnailPath(GameAssets.world.misc.crystal), type: 'collectible' }, // Alias for crystal
     { key: 'key', name: 'Key', path: GameAssets.world.misc.key, thumbnail: createThumbnailPath(GameAssets.world.misc.key), type: 'collectible' },
   ];
 

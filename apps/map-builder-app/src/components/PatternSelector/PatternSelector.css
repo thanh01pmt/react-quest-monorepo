@@ -1,0 +1,242 @@
+/**
+ * PatternSelector Styles
+ */
+
+.pattern-selector {
+  background: var(--bg-secondary, #1e1e2e);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.pattern-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-tertiary, #2a2a3a);
+  border: none;
+  color: var(--text-primary, #e0e0e0);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pattern-selector-header:hover {
+  background: var(--bg-hover, #3a3a4a);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selected-pattern-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border-radius: 10px;
+}
+
+.pattern-content {
+  padding: 12px;
+}
+
+.pattern-warning {
+  text-align: center;
+  color: var(--text-secondary, #888);
+  font-size: 12px;
+  font-style: italic;
+  padding: 8px;
+}
+
+/* Quick patterns row */
+.quick-patterns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.quick-pattern {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  background: var(--bg-tertiary, #2a2a3a);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.quick-pattern:hover:not(:disabled) {
+  border-color: var(--accent, #6366f1);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.quick-pattern.selected {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.quick-pattern:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quick-pattern-preview {
+  display: flex;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.quick-pattern-name {
+  font-size: 10px;
+  color: var(--text-secondary, #aaa);
+}
+
+/* Pattern categories */
+.pattern-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pattern-category {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #aaa);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.category-header:hover {
+  background: var(--bg-tertiary, #2a2a3a);
+}
+
+.category-icon {
+  font-size: 10px;
+  width: 24px;
+  text-align: center;
+}
+
+.category-name {
+  flex: 1;
+  text-align: left;
+}
+
+.category-count {
+  color: var(--text-muted, #666);
+}
+
+/* Pattern options */
+.category-patterns {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 8px 8px 32px;
+}
+
+.pattern-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-primary, #16161e);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pattern-option:hover:not(:disabled) {
+  border-color: var(--accent, #6366f1);
+}
+
+.pattern-option.selected {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.pattern-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pattern-preview {
+  display: flex;
+  gap: 2px;
+  font-size: 14px;
+  min-width: 60px;
+}
+
+.pattern-item {
+  display: inline-block;
+}
+
+.pattern-item.pattern-c {
+  color: #3b82f6;
+}
+
+.pattern-item.pattern-s {
+  color: #f97316;
+}
+
+.pattern-item.pattern-- {
+  color: #666;
+}
+
+.pattern-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.pattern-name {
+  font-size: 12px;
+  color: var(--text-primary, #e0e0e0);
+  font-weight: 500;
+}
+
+.pattern-desc {
+  font-size: 10px;
+  color: var(--text-secondary, #888);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.pattern-min {
+  font-size: 9px;
+  color: var(--text-muted, #666);
+  padding: 2px 4px;
+  background: var(--bg-tertiary, #2a2a3a);
+  border-radius: 3px;
+}

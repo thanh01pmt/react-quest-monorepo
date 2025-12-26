@@ -60,14 +60,18 @@ export {
   PlacementTemplateRegistry,
   getTemplateRegistry,
   initializeDefaultTemplates,
-  DEFAULT_TEMPLATES
+  DEFAULT_TEMPLATES,
+  SEGMENT_PATTERNS,
+  applySegmentPattern,
+  getApplicablePatterns
 } from './PlacementTemplate';
 
 export type {
   PlacementRule,
   PlacementRuleOptions,
   PlacementTemplate,
-  TemplateItemPlacement
+  TemplateItemPlacement,
+  SegmentPattern
 } from './PlacementTemplate';
 
 // Selectable elements (for UI integration)

@@ -282,14 +282,18 @@ export {
   PlacementTemplateRegistry,
   getTemplateRegistry,
   initializeDefaultTemplates,
-  DEFAULT_TEMPLATES
+  DEFAULT_TEMPLATES,
+  SEGMENT_PATTERNS,
+  applySegmentPattern,
+  getApplicablePatterns
 } from './analyzer';
 
 export type {
   PlacementRule,
   PlacementRuleOptions,
   PlacementTemplate,
-  TemplateItemPlacement
+  TemplateItemPlacement,
+  SegmentPattern
 } from './analyzer';
 
 // Selectable elements

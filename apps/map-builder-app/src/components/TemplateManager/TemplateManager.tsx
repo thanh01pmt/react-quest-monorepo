@@ -56,10 +56,25 @@ export function TemplateManager({
 
     // Apply selected template
     const handleApply = () => {
-        if (!selectedTemplateId) return;
+        if (!selectedTemplateId) {
+            alert('Please select a template first.');
+            return;
+        }
+
+        console.log('[TemplateManager] Applying template:', selectedTemplateId);
+        console.log('[TemplateManager] Selectable elements:', selectableElements.length);
 
         const placements = registry.apply(selectedTemplateId, selectableElements);
+        console.log('[TemplateManager] Generated placements:', placements.length, placements);
+
+        if (placements.length === 0) {
+            const template = registry.get(selectedTemplateId);
+            alert(`Template "${template?.name}" generated 0 items.\n\nThis may happen if:\n• The template rules don't match your topology\n• The selectors (keypoints/segments) don't exist in your map`);
+            return;
+        }
+
         onApplyTemplate(placements);
+        alert(`Applied ${placements.length} items from template.`);
 
         const template = registry.get(selectedTemplateId);
         if (template && onTemplateLoaded) {
