@@ -336,3 +336,25 @@
 .report-content::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Collapsible section headers */
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 8px;
+  margin: 0 -8px 4px -8px;
+  border-radius: 4px;
+  transition: background-color 0.15s;
+  user-select: none;
+}
+
+.collapsible-header:hover {
+  background-color: #1e293b;
+}
+
+.collapsible-header svg:first-child {
+  color: #64748b;
+  flex-shrink: 0;
+}

@@ -64,6 +64,19 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
     const [error, setError] = useState<string | null>(null);
     const [showReport, setShowReport] = useState(false);
     const [reportContent, setReportContent] = useState('');
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set(['points', 'relations', 'areas', 'connectors', 'patterns', 'metapaths', 'segments', 'positions']));
+
+    const toggleGroup = useCallback((groupId: string) => {
+        setCollapsedGroups(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(groupId)) {
+                newSet.delete(groupId);
+            } else {
+                newSet.add(groupId);
+            }
+            return newSet;
+        });
+    }, []);
 
     // Analyze topology when pathInfo changes or manual trigger
     const analyze = useCallback(() => {
@@ -462,118 +475,138 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
 
                                 {/* Points */}
                                 <div className="points-section">
-                                    <h4><MapPin size={16} /> Special Points ({context.points.length})</h4>
-                                    <div className="items-list">
-                                        {context.points.slice(0, 10).map((point, i) => {
-                                            const id = `point_${i}`;
-                                            return (
-                                                <label key={id} className="item-row">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedItems.has(id)}
-                                                        onChange={() => toggleItem(id)}
-                                                    />
-                                                    <span className="item-info">
-                                                        <span className={`point-type type-${point.type}`}>
-                                                            {point.type}
-                                                        </span>
-                                                        <span className="item-meta">
-                                                            ({point.coord.x}, {point.coord.y}, {point.coord.z}) • {point.connectedSegments.length} segs
-                                                        </span>
-                                                    </span>
-                                                </label>
-                                            );
-                                        })}
-                                        {context.points.length > 10 && (
-                                            <div className="more-items">+{context.points.length - 10} more points</div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Areas */}
-                                {context.areas.length > 0 && (
-                                    <div className="areas-section">
-                                        <h4><BoxSelect size={16} /> Areas ({context.areas.length})</h4>
+                                    <h4 className="collapsible-header" onClick={() => toggleGroup('points')}>
+                                        {collapsedGroups.has('points') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                                        <MapPin size={16} /> Special Points ({context.points.length})
+                                    </h4>
+                                    {!collapsedGroups.has('points') && (
                                         <div className="items-list">
-                                            {context.areas.map((area, i) => (
-                                                <label key={area.id} className="item-row">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedItems.has(area.id)}
-                                                        onChange={() => toggleItem(area.id)}
-                                                        style={{
-                                                            accentColor: selectedItems.has(area.id)
-                                                                ? HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length]
-                                                                : undefined
-                                                        }}
-                                                    />
-                                                    <span className="item-info">
-                                                        <span className="item-name">{area.id}</span>
-                                                        <span className="item-meta">{area.blocks.length} blocks • center: ({area.center.x.toFixed(1)}, {area.center.y.toFixed(1)}, {area.center.z.toFixed(1)})</span>
-                                                    </span>
-                                                    {selectedItems.has(area.id) && (
-                                                        <span
-                                                            className="color-dot"
-                                                            style={{ backgroundColor: HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length] }}
-                                                        />
-                                                    )}
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Connectors */}
-                                {context.connectors.length > 0 && (
-                                    <div className="connectors-section">
-                                        <h4><Link size={16} /> Connectors ({context.connectors.length})</h4>
-                                        <div className="items-list">
-                                            {context.connectors.map(conn => (
-                                                <div key={conn.id} className="item-row compact">
-                                                    <span className="item-name">{conn.fromArea} → {conn.toArea}</span>
-                                                    <span className="item-meta">{conn.path.length} path pts</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Relations */}
-                                {context.relations.length > 0 && (
-                                    <div className="relations-section">
-                                        <h4><Scale size={16} /> Relations ({context.relations.length})</h4>
-                                        <div className="items-list">
-                                            {context.relations.slice(0, 8).map((rel, i) => {
-                                                const id = `rel_${i}`;
+                                            {context.points.slice(0, 10).map((point, i) => {
+                                                const id = `point_${i}`;
                                                 return (
                                                     <label key={id} className="item-row">
                                                         <input
                                                             type="checkbox"
                                                             checked={selectedItems.has(id)}
                                                             onChange={() => toggleItem(id)}
+                                                        />
+                                                        <span className="item-info">
+                                                            <span className={`point-type type-${point.type}`}>
+                                                                {point.type}
+                                                            </span>
+                                                            <span className="item-meta">
+                                                                ({point.coord.x}, {point.coord.y}, {point.coord.z}) • {point.connectedSegments.length} segs
+                                                            </span>
+                                                        </span>
+                                                    </label>
+                                                );
+                                            })}
+                                            {context.points.length > 10 && (
+                                                <div className="more-items">+{context.points.length - 10} more points</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Areas */}
+                                {context.areas.length > 0 && (
+                                    <div className="areas-section">
+                                        <h4 className="collapsible-header" onClick={() => toggleGroup('areas')}>
+                                            {collapsedGroups.has('areas') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                                            <BoxSelect size={16} /> Areas ({context.areas.length})
+                                        </h4>
+                                        {!collapsedGroups.has('areas') && (
+                                            <div className="items-list">
+                                                {context.areas.map((area, i) => (
+                                                    <label key={area.id} className="item-row">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedItems.has(area.id)}
+                                                            onChange={() => toggleItem(area.id)}
                                                             style={{
-                                                                accentColor: selectedItems.has(id)
+                                                                accentColor: selectedItems.has(area.id)
                                                                     ? HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length]
                                                                     : undefined
                                                             }}
                                                         />
                                                         <span className="item-info">
-                                                            <span className={`relation-type type-${rel.type}`}>{rel.type}</span>
-                                                            <span className="item-meta">{rel.path1Id} <ArrowLeftRight size={10} style={{ display: 'inline', verticalAlign: 'middle' }} /> {rel.path2Id}</span>
+                                                            <span className="item-name">{area.id}</span>
+                                                            <span className="item-meta">{area.blocks.length} blocks • center: ({area.center.x.toFixed(1)}, {area.center.y.toFixed(1)}, {area.center.z.toFixed(1)})</span>
                                                         </span>
-                                                        {selectedItems.has(id) && (
+                                                        {selectedItems.has(area.id) && (
                                                             <span
                                                                 className="color-dot"
                                                                 style={{ backgroundColor: HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length] }}
                                                             />
                                                         )}
                                                     </label>
-                                                );
-                                            })}
-                                            {context.relations.length > 8 && (
-                                                <div className="more-items">+{context.relations.length - 8} more relations</div>
-                                            )}
-                                        </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Connectors */}
+                                {context.connectors.length > 0 && (
+                                    <div className="connectors-section">
+                                        <h4 className="collapsible-header" onClick={() => toggleGroup('connectors')}>
+                                            {collapsedGroups.has('connectors') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                                            <Link size={16} /> Connectors ({context.connectors.length})
+                                        </h4>
+                                        {!collapsedGroups.has('connectors') && (
+                                            <div className="items-list">
+                                                {context.connectors.map(conn => (
+                                                    <div key={conn.id} className="item-row compact">
+                                                        <span className="item-name">{conn.fromArea} → {conn.toArea}</span>
+                                                        <span className="item-meta">{conn.path.length} path pts</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Relations */}
+                                {context.relations.length > 0 && (
+                                    <div className="relations-section">
+                                        <h4 className="collapsible-header" onClick={() => toggleGroup('relations')}>
+                                            {collapsedGroups.has('relations') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                                            <Scale size={16} /> Relations ({context.relations.length})
+                                        </h4>
+                                        {!collapsedGroups.has('relations') && (
+                                            <div className="items-list">
+                                                {context.relations.slice(0, 8).map((rel, i) => {
+                                                    const id = `rel_${i}`;
+                                                    return (
+                                                        <label key={id} className="item-row">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedItems.has(id)}
+                                                                onChange={() => toggleItem(id)}
+                                                                style={{
+                                                                    accentColor: selectedItems.has(id)
+                                                                        ? HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length]
+                                                                        : undefined
+                                                                }}
+                                                            />
+                                                            <span className="item-info">
+                                                                <span className={`relation-type type-${rel.type}`}>{rel.type}</span>
+                                                                <span className="item-meta">{rel.path1Id} <ArrowLeftRight size={10} style={{ display: 'inline', verticalAlign: 'middle' }} /> {rel.path2Id}</span>
+                                                            </span>
+                                                            {selectedItems.has(id) && (
+                                                                <span
+                                                                    className="color-dot"
+                                                                    style={{ backgroundColor: HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length] }}
+                                                                />
+                                                            )}
+                                                        </label>
+                                                    );
+                                                })}
+                                                {context.relations.length > 8 && (
+                                                    <div className="more-items">+{context.relations.length - 8} more relations</div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -583,19 +616,24 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                                 <div className="tier-section">
                                     <h3 className="tier-header">Tier 2: Pattern Extrapolation</h3>
                                     <div className="patterns-section">
-                                        <h4><Cpu size={16} /> Patterns ({context.patterns.length})</h4>
-                                        <div className="items-list">
-                                            {context.patterns.map((pattern) => (
-                                                <div key={pattern.id} className="pattern-item">
-                                                    <span className={`pattern-type type-${pattern.type}`}>
-                                                        {pattern.type}
-                                                    </span>
-                                                    <span className="pattern-meta">
-                                                        {pattern.repetitions}x • {pattern.unitElements.length} elements
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
+                                        <h4 className="collapsible-header" onClick={() => toggleGroup('patterns')}>
+                                            {collapsedGroups.has('patterns') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                                            <Cpu size={16} /> Patterns ({context.patterns.length})
+                                        </h4>
+                                        {!collapsedGroups.has('patterns') && (
+                                            <div className="items-list">
+                                                {context.patterns.map((pattern) => (
+                                                    <div key={pattern.id} className="pattern-item">
+                                                        <span className={`pattern-type type-${pattern.type}`}>
+                                                            {pattern.type}
+                                                        </span>
+                                                        <span className="pattern-meta">
+                                                            {pattern.repetitions}x • {pattern.unitElements.length} elements
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -604,68 +642,81 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                             <div className="tier-section">
                                 <h3 className="tier-header">Tier 3: Length Filtering</h3>
                                 <div className="segments-section">
-                                    <h4><Ruler size={16} /> Merged Segments ({context.segments.length})</h4>
-                                    <div className="items-list">
-                                        {context.segments.map((seg, i) => (
-                                            <label key={seg.id} className="item-row">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedItems.has(seg.id)}
-                                                    onChange={() => toggleItem(seg.id)}
-                                                    style={{
-                                                        accentColor: selectedItems.has(seg.id)
-                                                            ? HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length]
-                                                            : undefined
-                                                    }}
-                                                />
-                                                <span className="item-info">
-                                                    <span className="item-name">{seg.id}</span>
-                                                    <span className="item-meta">
-                                                        {seg.points.length} pts • L={seg.length.toFixed(1)} • {seg.plane || '3d'}
-                                                    </span>
-                                                </span>
-                                                {selectedItems.has(seg.id) && (
-                                                    <span
-                                                        className="color-dot"
-                                                        style={{ backgroundColor: HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length] }}
-                                                    />
-                                                )}
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Priority Positions */}
-                                <div className="positions-section">
-                                    <h4><MapPin size={16} /> Priority Positions ({context.prioritizedCoords.length}) <span className="tier-label">(Tier 4)</span></h4>
-                                    <div className="items-list">
-                                        {context.prioritizedCoords.slice(0, 15).map((coord, i) => {
-                                            const id = `coord_${i}`;
-                                            return (
-                                                <label key={id} className="item-row">
+                                    <h4 className="collapsible-header" onClick={() => toggleGroup('segments')}>
+                                        {collapsedGroups.has('segments') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                                        <Ruler size={16} /> Merged Segments ({context.segments.length})
+                                    </h4>
+                                    {!collapsedGroups.has('segments') && (
+                                        <div className="items-list">
+                                            {context.segments.map((seg, i) => (
+                                                <label key={seg.id} className="item-row">
                                                     <input
                                                         type="checkbox"
-                                                        checked={selectedItems.has(id)}
-                                                        onChange={() => toggleItem(id)}
+                                                        checked={selectedItems.has(seg.id)}
+                                                        onChange={() => toggleItem(seg.id)}
+                                                        style={{
+                                                            accentColor: selectedItems.has(seg.id)
+                                                                ? HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length]
+                                                                : undefined
+                                                        }}
                                                     />
                                                     <span className="item-info">
-                                                        <span className={`priority-badge priority-${coord.category}`}>
-                                                            {coord.category}
-                                                        </span>
+                                                        <span className="item-name">{seg.id}</span>
                                                         <span className="item-meta">
-                                                            ({coord.position.x}, {coord.position.y}, {coord.position.z})
+                                                            {seg.points.length} pts • L={seg.length.toFixed(1)} • {seg.plane || '3d'}
                                                         </span>
                                                     </span>
-                                                    <span className="priority-score">P{coord.priority}</span>
+                                                    {selectedItems.has(seg.id) && (
+                                                        <span
+                                                            className="color-dot"
+                                                            style={{ backgroundColor: HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length] }}
+                                                        />
+                                                    )}
                                                 </label>
-                                            );
-                                        })}
-                                        {context.prioritizedCoords.length > 15 && (
-                                            <div className="more-items">
-                                                +{context.prioritizedCoords.length - 15} more positions
-                                            </div>
-                                        )}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* ===== TIER 4: Prioritization ===== */}
+                            <div className="tier-section">
+                                <h3 className="tier-header">Tier 4: Prioritization</h3>
+                                <div className="positions-section">
+                                    <h4 className="collapsible-header" onClick={() => toggleGroup('positions')}>
+                                        {collapsedGroups.has('positions') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                                        <MapPin size={16} /> Priority Positions ({context.prioritizedCoords.length})
+                                    </h4>
+                                    {!collapsedGroups.has('positions') && (
+                                        <div className="items-list">
+                                            {context.prioritizedCoords.slice(0, 15).map((coord, i) => {
+                                                const id = `coord_${i}`;
+                                                return (
+                                                    <label key={id} className="item-row">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedItems.has(id)}
+                                                            onChange={() => toggleItem(id)}
+                                                        />
+                                                        <span className="item-info">
+                                                            <span className={`priority-badge priority-${coord.category}`}>
+                                                                {coord.category}
+                                                            </span>
+                                                            <span className="item-meta">
+                                                                ({coord.position.x}, {coord.position.y}, {coord.position.z})
+                                                            </span>
+                                                        </span>
+                                                        <span className="priority-score">P{coord.priority}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                            {context.prioritizedCoords.length > 15 && (
+                                                <div className="more-items">
+                                                    +{context.prioritizedCoords.length - 15} more positions
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </>
@@ -683,4 +734,3 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
 }
 
 export default TopologyInspector;
-
