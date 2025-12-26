@@ -17,10 +17,12 @@ import {
     type Area,
     type Connector,
     type PathRelation,
-    type Pattern
+    type Pattern,
+    type GameConfig,
+    MarkdownReporter
 } from '@repo/academic-map-generator';
 import { PlacedObject } from '../../types';
-import { Search, ChevronDown, ChevronRight, RefreshCw, BarChart2, Map as MapIcon, MapPin, BoxSelect, Link, Scale, Cpu, Ruler, ArrowLeftRight } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, RefreshCw, BarChart2, Map as MapIcon, MapPin, BoxSelect, Link, Scale, Cpu, Ruler, ArrowLeftRight, FileText, Copy, Download, X } from 'lucide-react';
 import './TopologyInspector.css';
 
 interface TopologyInspectorProps {
@@ -58,7 +60,10 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
     const [isExpanded, setIsExpanded] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [context, setContext] = useState<PlacementContext | null>(null);
+    const [gameConfig, setGameConfig] = useState<GameConfig | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [showReport, setShowReport] = useState(false);
+    const [reportContent, setReportContent] = useState('');
 
     // Analyze topology when pathInfo changes or manual trigger
     const analyze = useCallback(() => {
@@ -123,6 +128,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                 const analyzer = new MapAnalyzer({ gameConfig });
                 const result = analyzer.analyze();
                 setContext(result);
+                setGameConfig(gameConfig);
                 setError(null);
                 return; // Success
             } catch (e) {
@@ -166,6 +172,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
             const analyzer = new MapAnalyzer({ gameConfig });
             const result = analyzer.analyze();
             setContext(result);
+            setGameConfig(gameConfig);
             setError(null);
         } catch (e) {
             console.error('Failed to analyze topology:', e);
@@ -324,6 +331,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
         if (pathInfo && pathInfoKey) {
             // Reset context when pathInfo changes to trigger re-analyze
             setContext(null);
+            setGameConfig(null);
             setSelectedItems(new Set());
             setError(null);
             // Auto-analyze after reset
@@ -335,6 +343,36 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
         }
     }, [pathInfoKey]); // Only trigger on pathInfo change
 
+    const handleExport = () => {
+        if (!context || !gameConfig) return;
+
+        try {
+            const reporter = new MarkdownReporter();
+            const report = reporter.generate(gameConfig, context);
+            setReportContent(report);
+            setShowReport(true);
+        } catch (e) {
+            console.error('Failed to generate report:', e);
+            setError('Failed to generate report');
+        }
+    };
+
+    const copyReport = () => {
+        navigator.clipboard.writeText(reportContent);
+    };
+
+    const downloadReport = () => {
+        const blob = new Blob([reportContent], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `topology_report_${new Date().toISOString().slice(0, 10)}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="topology-inspector">
             <button
@@ -345,12 +383,36 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
                 <span className="toggle-icon">{isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
             </button>
 
-            {isExpanded && (
+            {isExpanded && showReport && (
+                <div className="report-modal-overlay">
+                    <div className="report-modal">
+                        <div className="report-header">
+                            <h3>Topology Report</h3>
+                            <div className="report-actions">
+                                <button onClick={copyReport} title="Copy to Clipboard"><Copy size={16} /></button>
+                                <button onClick={downloadReport} title="Download Markdown"><Download size={16} /></button>
+                                <button onClick={() => setShowReport(false)} title="Close"><X size={16} /></button>
+                            </div>
+                        </div>
+                        <textarea
+                            readOnly
+                            value={reportContent}
+                            className="report-content"
+                        />
+                    </div>
+                </div>
+            )}
+
+            {isExpanded && !showReport && (
                 <div className="inspector-content">
-                    {/* Refresh button */}
-                    <button className="refresh-btn" onClick={analyze}>
-                        <RefreshCw size={14} /> Analyze
-                    </button>
+                    <div className="inspector-toolbar">
+                        <button className="refresh-btn" onClick={analyze}>
+                            <RefreshCw size={14} /> Analyze
+                        </button>
+                        <button className="export-btn" onClick={handleExport} disabled={!context} title="Export Markdown Report">
+                            <FileText size={14} /> Export Report
+                        </button>
+                    </div>
 
                     {error && (
                         <div className="inspector-error">{error}</div>
