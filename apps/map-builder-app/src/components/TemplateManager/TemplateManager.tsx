@@ -20,7 +20,7 @@ import { ClipboardList, Save, ArrowDownUp, Download, Upload, Trash2 } from 'luci
 interface TemplateManagerProps {
     topologyType: string;
     selectableElements: SelectableElement[];
-    currentSelections: Array<{ elementId: string; itemType: 'crystal' | 'switch' | 'gem'; symmetric?: boolean }>;
+    currentSelections: Array<{ elementId: string; itemType: 'crystal' | 'switch'; symmetric?: boolean }>;
     onApplyTemplate: (placements: TemplateItemPlacement[]) => void;
     onTemplateLoaded?: (template: PlacementTemplate) => void;
 }

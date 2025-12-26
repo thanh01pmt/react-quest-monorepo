@@ -15,7 +15,7 @@ import './PlacementSelector.css';
 
 interface PlacementSelection {
     elementId: string;
-    itemType: 'crystal' | 'switch' | 'gem';
+    itemType: 'crystal' | 'switch';
     symmetric?: boolean;
 }
 
@@ -25,7 +25,7 @@ interface PlacementSelectorProps {
     initialSelections?: PlacementSelection[];
 }
 
-type ItemType = 'crystal' | 'switch' | 'gem' | null;
+type ItemType = 'crystal' | 'switch' | null;
 
 interface ElementState {
     selected: boolean;
@@ -189,7 +189,7 @@ export function PlacementSelector({
                         >
                             <option value="crystal">Crystal</option>
                             <option value="switch">Switch</option>
-                            <option value="gem">Gem</option>
+
                         </select>
 
                         {hasMirror && (

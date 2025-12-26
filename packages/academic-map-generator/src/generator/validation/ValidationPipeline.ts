@@ -232,23 +232,42 @@ export function validateTier2(data: MapDataForValidation): TierValidationResult 
             });
         }
     } else if (strategy === PedagogyStrategy.LOOP_LOGIC) {
-        // For loop logic: check for regular patterns
+        // For loop logic: check that items are concentrated for loop effectiveness
+        // Either all items on one segment, OR regular spacing across path
         const segments = data.pathInfo.metadata?.segments as Coord[][] | undefined;
+        const path = data.pathInfo.path_coords;
+        
+        // Check items per segment
+        let itemsOnSameSegment = false;
+        let maxItemsOnSegment = 0;
+        
         if (segments && segments.length > 0) {
-            checks.push({
-                name: 'Segment Coverage',
-                passed: true,
-                message: `${segments.length} segments detected`
-            });
+            for (const segment of segments) {
+                const segmentSet = new Set(segment.map(c => coordToString(c)));
+                const itemsOnSeg = items.filter(item => {
+                    const itemGroundCoord = coordToString([item.position[0], item.position[1] - 1, item.position[2]]);
+                    return segmentSet.has(itemGroundCoord);
+                }).length;
+                maxItemsOnSegment = Math.max(maxItemsOnSegment, itemsOnSeg);
+            }
+            // Valid if most items are on same segment
+            itemsOnSameSegment = maxItemsOnSegment >= Math.ceil(items.length * 0.7); // 70% on same segment
         } else {
-            checks.push({
-                name: 'Segment Coverage',
-                passed: items.length >= 5,
-                message: items.length >= 5 
-                    ? 'Sufficient items for loop pattern'
-                    : 'Need more items for loop logic'
-            });
+            // No segments metadata - check path-based intervals
+            itemsOnSameSegment = items.length >= 3; // Basic check
         }
+        
+        const isValidLoopPattern = itemsOnSameSegment || items.length >= 5;
+        
+        checks.push({
+            name: 'Segment Coverage',
+            passed: isValidLoopPattern,
+            message: isValidLoopPattern
+                ? (maxItemsOnSegment > 0 
+                    ? `${maxItemsOnSegment}/${items.length} items on same segment (good for loops)`
+                    : `${items.length} items with loop pattern`)
+                : `Items too scattered for effective loops (need ${Math.ceil(items.length * 0.7)} on same segment)`
+        });
     } else if (strategy === PedagogyStrategy.WHILE_LOOP_DECREASING) {
         // Check for decreasing density pattern
         // Split path into thirds and check density

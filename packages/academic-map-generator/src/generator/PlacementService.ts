@@ -35,6 +35,10 @@ export interface PlacementConfig {
     itemGoals?: ItemGoals;
     // Enable Solution-First placement approach
     useSolutionFirst?: boolean;
+    // Simple constraint counts for UI (alternative to itemGoals)
+    constraintCounts?: { crystals: number; switches: number };
+    // Precomputed segments from Map Analysis (use instead of computing from coords)
+    precomputedSegments?: Coord[][];
 }
 
 export class PlacementService {
@@ -435,9 +439,10 @@ export class PlacementService {
 
     /**
      * Suggests items to place on a specific set of coordinates (e.g. user selection).
+     * If itemGoals is provided, places exactly that many items at optimal positions for the strategy.
      */
     public suggestPlacement(coords: Coord[], config: Partial<PlacementConfig>): PlacedObject[] {
-        const { strategy = PedagogyStrategy.LOOP_LOGIC, difficulty = 'simple', assetMap } = config;
+        const { strategy = PedagogyStrategy.LOOP_LOGIC, difficulty = 'simple', assetMap, itemGoals } = config;
         
         if (!assetMap) {
             console.error("AssetMap required for suggestPlacement");
@@ -446,15 +451,207 @@ export class PlacementService {
 
         const objects: PlacedObject[] = [];
         
-        // Treat the selection as a set of segments
-        const segments = this.computeSegments(coords);
+        // Use precomputed segments from Map Analysis if provided, otherwise compute from coords
+        // This allows the Placer to leverage sophisticated analysis from MapAnalyzer
+        const segments = config.precomputedSegments && config.precomputedSegments.length > 0
+            ? config.precomputedSegments
+            : this.computeSegments(coords);
+        
+        // DEBUG: Log all segments for transparency
+        const segmentSource = config.precomputedSegments ? 'PRECOMPUTED (MapAnalysis)' : 'computed from coords';
+        console.log(`[suggestPlacement] Strategy: ${strategy}, Total coords: ${coords.length}, Segments: ${segments.length} (${segmentSource})`);
+        segments.forEach((seg, idx) => {
+            const first = seg[0];
+            const last = seg[seg.length - 1];
+            console.log(`  Segment ${idx}: length=${seg.length}, from (${first[0]},${first[2]}) to (${last[0]},${last[2]})`);
+        });
+        console.log(`[suggestPlacement] ConstraintCounts:`, config.constraintCounts);
 
-        if (strategy === PedagogyStrategy.LOOP_LOGIC || strategy === PedagogyStrategy.NONE) {
-             // For suggestion, we force Loop Logic "filling" behavior
-             this.applyLoopLogicInternal(objects, segments, assetMap, difficulty);
-        } else if (strategy === PedagogyStrategy.FUNCTION_LOGIC) {
-            // Try to find identical segments
-             this.applyFunctionLogicInternal(objects, segments, assetMap, difficulty);
+        // If constraintCounts is provided, use constraint-aware placement
+        const constraintCounts = config.constraintCounts;
+        if (constraintCounts) {
+            const crystalGoal = constraintCounts.crystals || 0;
+            const switchGoal = constraintCounts.switches || 0;
+            
+            // Calculate optimal positions based on strategy
+            let optimalPositions: Coord[] = [];
+            
+            if (strategy === PedagogyStrategy.LOOP_LOGIC || strategy === PedagogyStrategy.NONE) {
+                // For Loop Logic: PRIORITIZE placing items on a SINGLE segment (longest first)
+                // This creates a valid loop pattern (e.g., "repeat 3 times: move forward, collect gem")
+                const totalItems = crystalGoal + switchGoal;
+                
+                if (segments.length > 0 && totalItems > 0) {
+                    // Sort segments by length (longest first)
+                    const sortedSegments = [...segments].sort((a, b) => b.length - a.length);
+                    
+                    // RELAXED FILTER: Include ALL segments that can fit the required items
+                    // This allows vertical/diagonal segments to also be candidates for Loop Logic
+                    const candidateSegments = sortedSegments.filter(s => s.length >= totalItems);
+                    
+                    console.log(`[suggestPlacement] Candidates: ${candidateSegments.length} segments can fit ${totalItems} items`);
+                    
+                    // If no candidates can fit all items, use longest that can fit at least some
+                    const viableSegments = candidateSegments.length > 0 
+                        ? candidateSegments 
+                        : sortedSegments.filter(s => s.length >= Math.min(2, totalItems));
+                    
+                    if (viableSegments.length > 0) {
+                        // RANDOM: Pick one of the viable segments
+                        const randomIdx = Math.floor(Math.random() * viableSegments.length);
+                        const chosenSegment = viableSegments[randomIdx];
+                        
+                        if (chosenSegment.length >= totalItems) {
+                            // Ideal case: All items fit on one segment
+                            // RANDOM: Add random offset to starting position
+                            const maxOffset = chosenSegment.length - totalItems;
+                            const randomOffset = maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0;
+                            
+                            // Place at regular intervals within this segment, starting from random offset
+                            const interval = Math.max(1, Math.floor((chosenSegment.length - randomOffset) / totalItems));
+                            for (let i = randomOffset; i < chosenSegment.length && optimalPositions.length < totalItems; i += interval) {
+                                optimalPositions.push(chosenSegment[i]);
+                            }
+                            // Fill remaining if interval math didn't get enough
+                            for (let i = randomOffset; optimalPositions.length < totalItems && i < chosenSegment.length; i++) {
+                                if (!optimalPositions.some(p => p[0] === chosenSegment[i][0] && p[2] === chosenSegment[i][2])) {
+                                    optimalPositions.push(chosenSegment[i]);
+                                }
+                            }
+                            console.log(`[suggestPlacement] Loop Logic: Placed ${optimalPositions.length} items on segment ${randomIdx+1}/${viableSegments.length} (length=${chosenSegment.length}, offset=${randomOffset})`);
+                        } else {
+                            // Segment too short: fill what we can
+                            for (const pos of chosenSegment) {
+                                if (optimalPositions.length < totalItems) {
+                                    optimalPositions.push(pos);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Fallback if still need more items: spread across remaining segments
+                    if (optimalPositions.length < totalItems) {
+                        const usedPositionSet = new Set(optimalPositions.map(p => `${p[0]},${p[2]}`));
+                        for (const segment of sortedSegments) {
+                            for (const pos of segment) {
+                                if (optimalPositions.length < totalItems) {
+                                    const key = `${pos[0]},${pos[2]}`;
+                                    if (!usedPositionSet.has(key)) {
+                                        usedPositionSet.add(key);
+                                        optimalPositions.push(pos);
+                                    }
+                                }
+                            }
+                        }
+                        console.log(`[suggestPlacement] Loop Logic: Filled to ${optimalPositions.length} items across multiple segments`);
+                    }
+                }
+            } else if (strategy === PedagogyStrategy.FUNCTION_LOGIC) {
+                // For Function Logic: Place items to create repeating patterns across similar segments
+                // Group segments by length
+                const segmentsByLen: Record<number, Coord[][]> = {};
+                segments.forEach((seg: Coord[]) => {
+                    const len = seg.length;
+                    if (!segmentsByLen[len]) segmentsByLen[len] = [];
+                    segmentsByLen[len].push(seg);
+                });
+                
+                const totalItems = crystalGoal + switchGoal;
+                // Find segment groups with multiple segments (ideal for function reuse)
+                const sortedLengths = Object.keys(segmentsByLen)
+                    .map(Number)
+                    .sort((a, b) => segmentsByLen[b].length - segmentsByLen[a].length);
+                
+                for (const len of sortedLengths) {
+                    const segs = segmentsByLen[len];
+                    if (segs.length >= 2 && len >= 2) {
+                        // Create pattern positions within each segment
+                        const patternCount = Math.min(Math.ceil(totalItems / segs.length), len);
+                        const patternInterval = Math.max(1, Math.floor(len / patternCount));
+                        
+                        segs.forEach(seg => {
+                            for (let i = 0; i < seg.length && optimalPositions.length < totalItems; i += patternInterval) {
+                                optimalPositions.push(seg[i]);
+                            }
+                        });
+                    }
+                }
+                
+                // Fallback: if not enough from function patterns, fill from any segment
+                if (optimalPositions.length < totalItems) {
+                    segments.forEach(segment => {
+                        segment.forEach(pos => {
+                            if (optimalPositions.length < totalItems) {
+                                if (!optimalPositions.some(p => p[0] === pos[0] && p[2] === pos[2])) {
+                                    optimalPositions.push(pos);
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+
+            // DEDUP: Ensure no duplicate positions (using full X,Y,Z key)
+            const uniquePositions: Coord[] = [];
+            const seenPositions = new Set<string>();
+            for (const pos of optimalPositions) {
+                const key = `${pos[0]},${pos[1]},${pos[2]}`;
+                if (!seenPositions.has(key)) {
+                    seenPositions.add(key);
+                    uniquePositions.push(pos);
+                }
+            }
+            optimalPositions = uniquePositions;
+            console.log(`[suggestPlacement] After dedup: ${optimalPositions.length} unique positions`);
+
+            // Place crystals at optimal positions
+            const crystalAsset = assetMap.get('crystal');
+            const placedPositionKeys = new Set<string>();
+            
+            for (let i = 0; i < crystalGoal && i < optimalPositions.length; i++) {
+                if (crystalAsset) {
+                    const pos = optimalPositions[i];
+                    const posKey = `${pos[0]},${pos[1]+1},${pos[2]}`; // Final item position
+                    if (!placedPositionKeys.has(posKey)) {
+                        placedPositionKeys.add(posKey);
+                        objects.push({
+                            id: uuidv4(),
+                            position: [pos[0], pos[1] + 1, pos[2]], // Y+1 for on top of ground
+                            rotation: [0, 0, 0],
+                            asset: crystalAsset,
+                            properties: { ...crystalAsset.defaultProperties }
+                        });
+                    }
+                }
+            }
+
+            // Place switches at remaining optimal positions
+            const switchAsset = assetMap.get('switch');
+            for (let i = crystalGoal; i < crystalGoal + switchGoal && i < optimalPositions.length; i++) {
+                if (switchAsset) {
+                    const pos = optimalPositions[i];
+                    const posKey = `${pos[0]},${pos[1]+1},${pos[2]}`; // Final item position
+                    if (!placedPositionKeys.has(posKey)) {
+                        placedPositionKeys.add(posKey);
+                        objects.push({
+                            id: uuidv4(),
+                            position: [pos[0], pos[1] + 1, pos[2]], // Y+1 for on top of ground
+                            rotation: [0, 0, 0],
+                            asset: switchAsset,
+                            properties: { ...switchAsset.defaultProperties }
+                        });
+                    }
+                }
+            }
+
+            console.log(`[suggestPlacement] Final: Placed ${objects.length} items at unique positions for ${strategy}`);
+        } else {
+            // Legacy behavior: fill based on strategy without constraints
+            if (strategy === PedagogyStrategy.LOOP_LOGIC || strategy === PedagogyStrategy.NONE) {
+                this.applyLoopLogicInternal(objects, segments, assetMap, difficulty);
+            } else if (strategy === PedagogyStrategy.FUNCTION_LOGIC) {
+                this.applyFunctionLogicInternal(objects, segments, assetMap, difficulty);
+            }
         }
 
         return objects;

@@ -81,15 +81,20 @@ function App() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   // --- START: THAY ĐỔI ĐỂ QUẢN LÝ LỊCH SỬ UNDO/REDO ---
   const [activeSidePanel, setActiveSidePanel] = useState<'topology' | 'placement'>('topology'); // State chọn panel
+  const [placementSubTab, setPlacementSubTab] = useState<'guided' | 'auto'>('guided'); // Sub-tab trong Placement panel
+  const [autoPlacementMode, setAutoPlacementMode] = useState<'random' | 'academic'>('random'); // Mode trong Auto tab
+  const [constraintsEnabled, setConstraintsEnabled] = useState(true); // Bật/tắt constraints trong Random mode
+  const [excludeStartPos, setExcludeStartPos] = useState(true); // Không đặt items ở Start
+  const [excludeEndPos, setExcludeEndPos] = useState(true); // Không đặt items ở End
   // Sidebar Visibility State
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   // Placement selector state
-  const [placementSelections, setPlacementSelections] = useState<Array<{ elementId: string; itemType: 'crystal' | 'switch' | 'gem'; symmetric?: boolean }>>([]);
+  const [placementSelections, setPlacementSelections] = useState<Array<{ elementId: string; itemType: 'crystal' | 'switch'; symmetric?: boolean }>>([]);
   // Strategy and item goals for placement
   const [placementStrategy, setPlacementStrategy] = useState<PedagogyStrategy>(PedagogyStrategy.NONE);
   const [placementDifficulty, setPlacementDifficulty] = useState<'intro' | 'simple' | 'complex'>('simple');
-  const [itemGoals, setItemGoals] = useState<{ gems: number; crystals: number; switches: number }>({ gems: 3, crystals: 0, switches: 0 });
+  const [itemGoals, setItemGoals] = useState<{ crystals: number; switches: number }>({ crystals: 3, switches: 0 });
   const [activeLayer, setActiveLayer] = useState<'all' | 'ground' | 'items'>('all'); // NEW: Layer State
   const [smartSnapEnabled, setSmartSnapEnabled] = useState<boolean>(true); // NEW: Smart Snap State
   const [history, setHistory] = useState<PlacedObject[][]>([[]]); // Mảng lưu các trạng thái của placedObjects
@@ -2708,85 +2713,58 @@ function App() {
       return;
     }
 
-    const pathCoords: Coord[] = pathInfo.path_coords;
+    // Use placement_coords (ground level) for item placement, fallback to path_coords
+    // placement_coords has Y=0 (ground), path_coords may have Y=1 (on top)
+    const placementCoords: Coord[] = pathInfo.placement_coords?.length > 0
+      ? pathInfo.placement_coords
+      : pathInfo.path_coords;
 
-    // Use PlacementService to suggest placements based on strategy
-    const suggestedObjects = placementService.suggestPlacement(pathCoords, {
-      strategy: placementStrategy,
-      difficulty: placementDifficulty,
-      assetMap
-    });
+    const suggestedObjects: PlacedObject[] = [];
 
-    // Add additional items based on item goals
-    const existingCrystals = suggestedObjects.filter(o => o.asset.key === 'crystal').length;
-    const existingSwitches = suggestedObjects.filter(o => o.asset.key === 'switch').length;
-    const existingGems = suggestedObjects.filter(o => o.asset.key === 'gem').length;
-
-    // Find available positions (not start, not finish, not already occupied)
-    const usedPositions = new Set([
-      ...suggestedObjects.map(o => `${o.position[0]},${o.position[1]},${o.position[2]}`),
-      ...placedObjects.filter(o => o.asset.type !== 'collectible').map(o => `${o.position[0]},${o.position[1]},${o.position[2]}`)
-    ]);
-
+    // Build list of excluded positions based on checkbox settings
+    // Use Y from path_coords for comparison since start/end positions match path_coords Y
     const startPos = pathInfo.start_pos;
     const targetPos = pathInfo.target_pos;
-    usedPositions.add(`${startPos[0]},${startPos[1]},${startPos[2]}`);
-    usedPositions.add(`${targetPos[0]},${targetPos[1]},${targetPos[2]}`);
+    const excludedPositions = new Set<string>();
 
-    const availablePositions = pathCoords.filter(coord =>
-      !usedPositions.has(`${coord[0]},${coord[1]},${coord[2]}`)
+    // Exclude at ground level (X, *, Z) regardless of Y
+    if (excludeStartPos) {
+      excludedPositions.add(`${startPos[0]},${startPos[2]}`); // XZ only
+    }
+    if (excludeEndPos) {
+      excludedPositions.add(`${targetPos[0]},${targetPos[2]}`); // XZ only
+    }
+
+    // Filter available positions (excluding based on XZ settings)
+    const availablePositions = placementCoords.filter(coord =>
+      !excludedPositions.has(`${coord[0]},${coord[2]}`)
     );
 
-    // Add crystals if needed
-    const crystalsNeeded = Math.max(0, itemGoals.crystals - existingCrystals);
-    const crystalAsset = assetMap.get('crystal');
-    if (crystalAsset && crystalsNeeded > 0) {
-      for (let i = 0; i < Math.min(crystalsNeeded, availablePositions.length); i++) {
-        const pos = availablePositions.shift()!;
-        suggestedObjects.push({
-          id: uuidv4(),
-          asset: crystalAsset,
-          position: [pos[0], pos[1], pos[2]],
-          rotation: [0, 0, 0],
-          properties: {}
-        });
-      }
-    }
+    // Use PlacementService to get items based on strategy
+    // When constraints enabled, pass the counts so service can place optimally
+    // Use availablePositions (already filtered by exclude settings) instead of pathCoords
+    // Pass precomputed segments from Map Analysis if available
+    const precomputedSegments = pathInfo.metadata?.segments as Coord[][] | undefined;
+    console.log('[handleApplyItems] Metadata segments:', precomputedSegments?.length || 'none');
 
-    // Add switches if needed
-    const switchesNeeded = Math.max(0, itemGoals.switches - existingSwitches);
-    const switchAsset = assetMap.get('switch');
-    if (switchAsset && switchesNeeded > 0) {
-      for (let i = 0; i < Math.min(switchesNeeded, availablePositions.length); i++) {
-        const pos = availablePositions.shift()!;
-        suggestedObjects.push({
-          id: uuidv4(),
-          asset: switchAsset,
-          position: [pos[0], pos[1], pos[2]],
-          rotation: [0, 0, 0],
-          properties: {}
-        });
-      }
-    }
+    const serviceResult = placementService.suggestPlacement(availablePositions, {
+      strategy: placementStrategy,
+      difficulty: placementDifficulty,
+      assetMap,
+      constraintCounts: constraintsEnabled ? itemGoals : undefined,
+      precomputedSegments: precomputedSegments
+    });
 
-    // Add gems if needed (using gem or alternate asset)
-    const gemsNeeded = Math.max(0, itemGoals.gems - existingGems);
-    const gemAsset = assetMap.get('gem') || assetMap.get('crystal'); // Fallback
-    if (gemAsset && gemsNeeded > 0) {
-      for (let i = 0; i < Math.min(gemsNeeded, availablePositions.length); i++) {
-        const pos = availablePositions.shift()!;
-        suggestedObjects.push({
-          id: uuidv4(),
-          asset: gemAsset,
-          position: [pos[0], pos[1], pos[2]],
-          rotation: [0, 0, 0],
-          properties: {}
-        });
-      }
+    if (constraintsEnabled) {
+      // Service already placed optimal items based on constraints
+      suggestedObjects.push(...serviceResult);
+    } else {
+      // === NO CONSTRAINTS: Use all items from PlacementService ===
+      suggestedObjects.push(...serviceResult);
     }
 
     if (suggestedObjects.length === 0) {
-      alert('⚠️ No items could be placed. Try adjusting the item goals or strategy.');
+      alert('⚠️ No items could be placed. Try adjusting the item goals or enabling constraints.');
       return;
     }
 
@@ -2810,8 +2788,8 @@ function App() {
     }));
     setLastUsedStrategy(placementStrategy);
 
-    alert(`✅ Applied ${suggestedObjects.length} items using ${placementStrategy || 'random'} strategy.`);
-  }, [questMetadata, placementStrategy, placementDifficulty, itemGoals, assetMap, placedObjects, placementService]);
+    alert(`✅ Applied ${suggestedObjects.length} items${constraintsEnabled ? ' with constraints' : ' (random)'}.`);
+  }, [questMetadata, placementStrategy, placementDifficulty, itemGoals, assetMap, placementService, constraintsEnabled, excludeStartPos, excludeEndPos]);
 
   // Handle applying items from PlacementVariants (AcademicPlacement)
   const handleApplyVariant = useCallback((items: ItemPlacement[], suggestedToolbox?: string) => {
@@ -2945,132 +2923,300 @@ function App() {
                 placedObjects={placedObjects}
               />
             ) : (
-              /* Placement Panel - Item Placement Controls */
-              <div style={{ padding: '12px' }} className="placement-panel">
-                {/* Strategy Section */}
-                <div className="placement-section">
-                  <h4 style={{ margin: '0 0 8px 0', color: '#fff', fontSize: '13px' }}>🎯 Strategy (Pedagogy)</h4>
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                    <select
-                      value={placementStrategy}
-                      onChange={e => setPlacementStrategy(e.target.value as PedagogyStrategy)}
-                      style={{ flex: 1, padding: '6px 8px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff' }}
-                    >
-                      <option value={PedagogyStrategy.NONE}>None (Random)</option>
-                      <option value={PedagogyStrategy.LOOP_LOGIC}>Loop Logic</option>
-                      <option value={PedagogyStrategy.FUNCTION_LOGIC}>Function Logic</option>
-                      <option value={PedagogyStrategy.WHILE_LOOP_DECREASING}>While Loop</option>
-                      <option value={PedagogyStrategy.CONDITIONAL_BRANCHING}>Conditional</option>
-                      <option value={PedagogyStrategy.NESTED_LOOPS}>Nested Loops</option>
-                      <option value={PedagogyStrategy.PATTERN_RECOGNITION}>Pattern</option>
-                    </select>
-                    <select
-                      value={placementDifficulty}
-                      onChange={e => setPlacementDifficulty(e.target.value as any)}
-                      style={{ padding: '6px 8px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff' }}
-                    >
-                      <option value="intro">Intro</option>
-                      <option value="simple">Simple</option>
-                      <option value="complex">Complex</option>
-                    </select>
-                  </div>
+              /* Placement Panel - Item Placement Controls with Sub-tabs */
+              <div className="placement-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                {/* Sub-tabs for Guided vs Auto */}
+                <div style={{ display: 'flex', borderBottom: '1px solid #3c3c41', marginBottom: '12px' }}>
+                  <button
+                    onClick={() => setPlacementSubTab('guided')}
+                    style={{
+                      flex: 1,
+                      padding: '10px 12px',
+                      background: placementSubTab === 'guided' ? '#3c3c41' : 'transparent',
+                      color: placementSubTab === 'guided' ? '#fff' : '#888',
+                      border: 'none',
+                      borderBottom: placementSubTab === 'guided' ? '2px solid #6366f1' : '2px solid transparent',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: placementSubTab === 'guided' ? 'bold' : 'normal',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    🎯 Guided
+                  </button>
+                  <button
+                    onClick={() => setPlacementSubTab('auto')}
+                    style={{
+                      flex: 1,
+                      padding: '10px 12px',
+                      background: placementSubTab === 'auto' ? '#3c3c41' : 'transparent',
+                      color: placementSubTab === 'auto' ? '#fff' : '#888',
+                      border: 'none',
+                      borderBottom: placementSubTab === 'auto' ? '2px solid #22c55e' : '2px solid transparent',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: placementSubTab === 'auto' ? 'bold' : 'normal',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    🤖 Auto
+                  </button>
                 </div>
 
-                {/* Item Goals Section */}
-                <div className="placement-section">
-                  <h4 style={{ margin: '0 0 8px 0', color: '#fff', fontSize: '13px' }}>📊 Item Goals</h4>
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                    <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ fontSize: '11px', color: '#aaa' }}>💎 Crystals</span>
-                      <input
-                        type="number"
-                        value={itemGoals.crystals}
-                        onChange={e => setItemGoals(prev => ({ ...prev, crystals: parseInt(e.target.value) || 0 }))}
-                        min={0} max={20}
-                        style={{ padding: '6px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff', width: '100%' }}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px 12px' }}>
+                  {/* ===== GUIDED TAB ===== */}
+                  {placementSubTab === 'guided' && (
+                    <>
+                      {/* Description */}
+                      <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '12px', lineHeight: 1.5 }}>
+                        Select segments and keypoints to manually place items. Choose item type for each selected element.
+                      </p>
+
+                      {/* PlacementSelector */}
+                      <PlacementSelector
+                        elements={selectableElements}
+                        onSelectionsChange={setPlacementSelections}
+                        initialSelections={placementSelections}
                       />
-                    </label>
-                    <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ fontSize: '11px', color: '#aaa' }}>🔘 Switches</span>
-                      <input
-                        type="number"
-                        value={itemGoals.switches}
-                        onChange={e => setItemGoals(prev => ({ ...prev, switches: parseInt(e.target.value) || 0 }))}
-                        min={0} max={10}
-                        style={{ padding: '6px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff', width: '100%' }}
+
+                      <div style={{ height: '16px' }} />
+
+                      {/* Template Manager */}
+                      <TemplateManager
+                        topologyType={questMetadata?.pathInfo?.metadata?.topology_type || 'unknown'}
+                        selectableElements={selectableElements}
+                        currentSelections={placementSelections}
+                        onApplyTemplate={handleApplyTemplatePlacements}
                       />
-                    </label>
-                    <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ fontSize: '11px', color: '#aaa' }}>💠 Gems</span>
-                      <input
-                        type="number"
-                        value={itemGoals.gems}
-                        onChange={e => setItemGoals(prev => ({ ...prev, gems: parseInt(e.target.value) || 0 }))}
-                        min={0} max={20}
-                        style={{ padding: '6px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff', width: '100%' }}
-                      />
-                    </label>
-                  </div>
+
+                      {selectableElements.length === 0 && (
+                        <div style={{ textAlign: 'center', color: '#888', padding: '20px', fontSize: '13px' }}>
+                          <p>⚠️ No path data available.</p>
+                          <p>Generate ground from the <strong>Topology</strong> tab first.</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* ===== AUTO TAB ===== */}
+                  {placementSubTab === 'auto' && (
+                    <>
+                      {/* Mode Selector */}
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                        <button
+                          onClick={() => setAutoPlacementMode('random')}
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            background: autoPlacementMode === 'random' ? '#3b82f6' : '#3c3c41',
+                            color: autoPlacementMode === 'random' ? '#fff' : '#aaa',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: autoPlacementMode === 'random' ? 'bold' : 'normal',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          🎲 Random
+                        </button>
+                        <button
+                          onClick={() => setAutoPlacementMode('academic')}
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            background: autoPlacementMode === 'academic' ? '#22c55e' : '#3c3c41',
+                            color: autoPlacementMode === 'academic' ? '#fff' : '#aaa',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: autoPlacementMode === 'academic' ? 'bold' : 'normal',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          🧠 Academic
+                        </button>
+                      </div>
+
+                      {/* ===== RANDOM MODE ===== */}
+                      {autoPlacementMode === 'random' && (
+                        <div className="random-mode">
+                          <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '12px', lineHeight: 1.5 }}>
+                            Place items on path with optional pedagogy strategy and quantity constraints.
+                          </p>
+
+                          {/* Strategy Section */}
+                          <div className="placement-section" style={{ marginBottom: '12px' }}>
+                            <h4 style={{ margin: '0 0 8px 0', color: '#fff', fontSize: '13px' }}>🎯 Strategy (Pedagogy)</h4>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <select
+                                value={placementStrategy}
+                                onChange={e => setPlacementStrategy(e.target.value as PedagogyStrategy)}
+                                style={{ flex: 1, padding: '6px 8px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff' }}
+                              >
+                                <option value={PedagogyStrategy.NONE}>None (Random)</option>
+                                <option value={PedagogyStrategy.LOOP_LOGIC}>Loop Logic</option>
+                                <option value={PedagogyStrategy.FUNCTION_LOGIC}>Function Logic</option>
+                                <option value={PedagogyStrategy.WHILE_LOOP_DECREASING}>While Loop</option>
+                                <option value={PedagogyStrategy.CONDITIONAL_BRANCHING}>Conditional</option>
+                                <option value={PedagogyStrategy.NESTED_LOOPS}>Nested Loops</option>
+                                <option value={PedagogyStrategy.PATTERN_RECOGNITION}>Pattern</option>
+                              </select>
+                              <select
+                                value={placementDifficulty}
+                                onChange={e => setPlacementDifficulty(e.target.value as any)}
+                                style={{ padding: '6px 8px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff' }}
+                              >
+                                <option value="intro">Intro</option>
+                                <option value="simple">Simple</option>
+                                <option value="complex">Complex</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Constraints Toggle */}
+                          <div className="placement-section" style={{ marginBottom: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                              <h4 style={{ margin: 0, color: '#fff', fontSize: '13px' }}>📋 Constraints</h4>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={constraintsEnabled}
+                                  onChange={() => setConstraintsEnabled(!constraintsEnabled)}
+                                  style={{ width: '16px', height: '16px', accentColor: '#3b82f6' }}
+                                />
+                                <span style={{ fontSize: '12px', color: constraintsEnabled ? '#3b82f6' : '#888' }}>
+                                  {constraintsEnabled ? 'Enabled' : 'Disabled'}
+                                </span>
+                              </label>
+                            </div>
+
+                            {/* Item Goals - Only shown when constraints enabled */}
+                            <div style={{
+                              opacity: constraintsEnabled ? 1 : 0.5,
+                              pointerEvents: constraintsEnabled ? 'auto' : 'none',
+                              transition: 'opacity 0.2s'
+                            }}>
+                              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                                <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  <span style={{ fontSize: '11px', color: '#aaa' }}>💎 Crystals</span>
+                                  <input
+                                    type="number"
+                                    value={itemGoals.crystals}
+                                    onChange={e => setItemGoals(prev => ({ ...prev, crystals: parseInt(e.target.value) || 0 }))}
+                                    min={0} max={20}
+                                    style={{ padding: '6px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff', width: '100%' }}
+                                  />
+                                </label>
+                                <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  <span style={{ fontSize: '11px', color: '#aaa' }}>🔘 Switches</span>
+                                  <input
+                                    type="number"
+                                    value={itemGoals.switches}
+                                    onChange={e => setItemGoals(prev => ({ ...prev, switches: parseInt(e.target.value) || 0 }))}
+                                    min={0} max={10}
+                                    style={{ padding: '6px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff', width: '100%' }}
+                                  />
+                                </label>
+                              </div>
+
+                              {/* Position Exclusion Checkboxes */}
+                              <div style={{ display: 'flex', gap: '16px' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={excludeStartPos}
+                                    onChange={() => setExcludeStartPos(!excludeStartPos)}
+                                    style={{ width: '14px', height: '14px', accentColor: '#f97316' }}
+                                  />
+                                  <span style={{ fontSize: '12px', color: excludeStartPos ? '#f97316' : '#888' }}>
+                                    🚫 Exclude Start
+                                  </span>
+                                </label>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={excludeEndPos}
+                                    onChange={() => setExcludeEndPos(!excludeEndPos)}
+                                    style={{ width: '14px', height: '14px', accentColor: '#f97316' }}
+                                  />
+                                  <span style={{ fontSize: '12px', color: excludeEndPos ? '#f97316' : '#888' }}>
+                                    🚫 Exclude End
+                                  </span>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Apply Random Button */}
+                          <button
+                            onClick={handleApplyItems}
+                            disabled={!questMetadata?.pathInfo?.path_coords}
+                            style={{
+                              width: '100%',
+                              padding: '12px 16px',
+                              background: !questMetadata?.pathInfo?.path_coords ? '#555' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                              cursor: !questMetadata?.pathInfo?.path_coords ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            🎲 Apply Random Placement
+                          </button>
+                        </div>
+                      )}
+
+                      {/* ===== ACADEMIC MODE ===== */}
+                      {autoPlacementMode === 'academic' && (
+                        <div className="academic-mode">
+                          <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '12px', lineHeight: 1.5 }}>
+                            Generate placements based on academic concepts (loops, conditionals, functions, etc.) with varying difficulty levels.
+                          </p>
+
+                          {/* Placement Variants - AI Generated Options */}
+                          <PlacementVariants
+                            pathInfo={questMetadata?.pathInfo || null}
+                            onApplyPlacement={handleApplyVariant}
+                            currentToolboxPreset={questMetadata?.blockly?.toolboxPreset || ''}
+                            onSuggestToolbox={handleSuggestToolbox}
+                          />
+                        </div>
+                      )}
+
+                      {!questMetadata?.pathInfo?.path_coords && (
+                        <div style={{ textAlign: 'center', color: '#888', padding: '20px', fontSize: '13px' }}>
+                          <p>⚠️ No path data available.</p>
+                          <p>Generate ground from the <strong>Topology</strong> tab first.</p>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-
-                {/* Apply Items Button */}
-                <button
-                  onClick={handleApplyItems}
-                  disabled={!questMetadata?.pathInfo?.path_coords}
-                  style={{
-                    width: '100%',
-                    padding: '10px 16px',
-                    marginTop: '8px',
-                    background: !questMetadata?.pathInfo?.path_coords ? '#555' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    cursor: !questMetadata?.pathInfo?.path_coords ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  🎲 Apply Items
-                </button>
-
-                <hr style={{ border: 'none', borderTop: '1px solid #444', margin: '12px 0' }} />
-
-                {/* Place Items Section */}
-                <PlacementSelector
-                  elements={selectableElements}
-                  onSelectionsChange={setPlacementSelections}
-                  initialSelections={placementSelections}
-                />
-                <div style={{ height: '12px' }} />
-
-                {/* Placement Variants - AI Generated Options */}
-                <PlacementVariants
-                  pathInfo={questMetadata?.pathInfo || null}
-                  onApplyPlacement={handleApplyVariant}
-                  currentToolboxPreset={questMetadata?.blockly?.toolboxPreset || ''}
-                  onSuggestToolbox={handleSuggestToolbox}
-                />
-                <div style={{ height: '12px' }} />
-
-                {/* Template Manager */}
-                <TemplateManager
-                  topologyType={questMetadata?.pathInfo?.metadata?.topology_type || 'unknown'}
-                  selectableElements={selectableElements}
-                  currentSelections={placementSelections}
-                  onApplyTemplate={handleApplyTemplatePlacements}
-                />
-
-                {selectableElements.length === 0 && (
-                  <div style={{ textAlign: 'center', color: '#888', padding: '20px', fontSize: '13px' }}>
-                    <p>⚠️ No path data available.</p>
-                    <p>Generate ground from the <strong>Topology</strong> tab first.</p>
-                  </div>
-                )}
               </div>
             )}
           </div>
