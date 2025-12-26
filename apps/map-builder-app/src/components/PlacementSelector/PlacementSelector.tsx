@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { ChevronRight, Circle, Minus, Ban, AlertTriangle, CircleDot, Hexagon, Diamond } from 'lucide-react';
+import { ChevronRight, Circle, Minus, Ban, AlertTriangle, CircleDot, Hexagon, Diamond, Check } from 'lucide-react';
 import type {
     SelectableElement,
     ElementCategory
@@ -22,6 +22,7 @@ interface PlacementSelection {
 interface PlacementSelectorProps {
     elements: SelectableElement[];
     onSelectionsChange: (selections: PlacementSelection[]) => void;
+    onApplyPlacement?: (selections: PlacementSelection[]) => void;
     initialSelections?: PlacementSelection[];
 }
 
@@ -36,6 +37,7 @@ interface ElementState {
 export function PlacementSelector({
     elements,
     onSelectionsChange,
+    onApplyPlacement,
     initialSelections = []
 }: PlacementSelectorProps) {
     // Deduplicate elements by ID (prevent React key warnings)
@@ -263,6 +265,26 @@ export function PlacementSelector({
                         {grouped.positions.map(renderElement)}
                     </div>
                 </details>
+            )}
+
+            {/* Apply Placement Button */}
+            {onApplyPlacement && (
+                <button
+                    className="apply-placement-btn"
+                    onClick={() => {
+                        const selections = Object.entries(elementStates)
+                            .filter(([_, state]) => state.selected && state.itemType)
+                            .map(([id, state]) => ({
+                                elementId: id,
+                                itemType: state.itemType as 'crystal' | 'switch',
+                                symmetric: state.symmetric
+                            }));
+                        onApplyPlacement(selections);
+                    }}
+                    disabled={selectionCount === 0}
+                >
+                    <Check size={16} /> Apply Placement
+                </button>
             )}
         </div>
     );

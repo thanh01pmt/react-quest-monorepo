@@ -35,6 +35,12 @@ interface TopologyInspectorProps {
     } | null;
     placedObjects?: PlacedObject[];
     onHighlightChange?: (highlights: HighlightItem[]) => void;
+    /** If true, expand the inspector automatically when pathInfo becomes available */
+    autoExpand?: boolean;
+    /** If true, run analysis automatically when pathInfo becomes available */
+    autoAnalyze?: boolean;
+    /** If true, show the report modal automatically after analysis */
+    autoShowReport?: boolean;
 }
 
 export interface HighlightItem {
@@ -56,7 +62,7 @@ const HIGHLIGHT_COLORS = [
     '#ef4444', // red
 ];
 
-export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }: TopologyInspectorProps) {
+export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, autoExpand = false, autoAnalyze = false, autoShowReport = false }: TopologyInspectorProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [context, setContext] = useState<PlacementContext | null>(null);
@@ -65,6 +71,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
     const [showReport, setShowReport] = useState(false);
     const [reportContent, setReportContent] = useState('');
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set(['points', 'relations', 'areas', 'connectors', 'patterns', 'metapaths', 'segments', 'positions']));
+    const [lastPathKey, setLastPathKey] = useState<string>('');
 
     const toggleGroup = useCallback((groupId: string) => {
         setCollapsedGroups(prev => {
@@ -192,6 +199,51 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange }
             setError('Analysis failed. Check console.');
         }
     }, [pathInfo, placedObjects]);
+
+    // Auto-expand, auto-analyze, and auto-show report when pathInfo changes (new generation)
+    React.useEffect(() => {
+        if (!pathInfo) return;
+
+        // Create a unique key for this pathInfo to detect changes
+        const pathKey = JSON.stringify({
+            start: pathInfo.start_pos,
+            target: pathInfo.target_pos,
+            length: pathInfo.path_coords.length,
+            first: pathInfo.path_coords[0],
+            last: pathInfo.path_coords[pathInfo.path_coords.length - 1]
+        });
+
+        // Only trigger on NEW path generation (not initial load)
+        if (pathKey !== lastPathKey) {
+            setLastPathKey(pathKey);
+
+            if (autoExpand) {
+                setIsExpanded(true);
+            }
+
+            if (autoAnalyze) {
+                // Small delay to ensure component is ready
+                setTimeout(() => {
+                    analyze();
+                }, 100);
+            }
+        }
+    }, [pathInfo, autoExpand, autoAnalyze, lastPathKey, analyze]);
+
+    // Auto-show report after analysis completes
+    React.useEffect(() => {
+        if (autoShowReport && context && gameConfig) {
+            // Generate and show report automatically
+            try {
+                const reporter = new MarkdownReporter();
+                const report = reporter.generate(gameConfig, context);
+                setReportContent(report);
+                setShowReport(true);
+            } catch (e) {
+                console.error('Failed to auto-generate report:', e);
+            }
+        }
+    }, [context, gameConfig, autoShowReport]);
 
     // Toggle item selection
     const toggleItem = useCallback((id: string) => {
