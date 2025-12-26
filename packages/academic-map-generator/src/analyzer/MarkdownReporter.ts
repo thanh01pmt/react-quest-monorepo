@@ -163,17 +163,36 @@ export class MarkdownReporter {
       context.metaPaths.forEach((mp: MetaPath, i: number) => {
         this.line(`**Meta-Path #${i}:** \`${mp.structureType.toUpperCase()}\``);
         
-        // Collect all coords from segments
-        const mpBlocks: Vector3[] = [];
-        mp.segments.forEach(seg => mpBlocks.push(...seg.points));
+        // For macro_staircase: use zigzagPath if available for accurate visualization
+        // Otherwise: collect all coords from segments
+        let mpBlocks: Vector3[] = [];
+        const zigzagPath = (mp as any).zigzagPath;
+        
+        if (mp.structureType === 'macro_staircase' && zigzagPath && zigzagPath.length > 0) {
+          mpBlocks = zigzagPath;
+        } else {
+          mp.segments.forEach(seg => mpBlocks.push(...seg.points));
+        }
         
         this.drawFragmentMap(mpBlocks, `Meta-Path #${i}`);
-        this.list([
-          `Pattern Regularity: ${mp.isRegular ? "✅ Yes" : "❌ No"}`,
-          `Segments: ${mp.segments.length}`,
-          `Joints (Turns): ${mp.joints.length}`,
-          `Total Length: ${mp.totalLength}`
-        ]);
+        
+        // Show zigzag-specific info for staircases
+        if (mp.structureType === 'macro_staircase' && zigzagPath) {
+          this.list([
+            `Pattern Regularity: ${mp.isRegular ? "✅ Yes" : "❌ No"}`,
+            `Segments: ${mp.segments.length}`,
+            `Joints (Turns): ${mp.joints.length}`,
+            `Zigzag Path Length: ${zigzagPath.length} blocks`,
+            `Total Segment Blocks: ${mp.totalLength}`
+          ]);
+        } else {
+          this.list([
+            `Pattern Regularity: ${mp.isRegular ? "✅ Yes" : "❌ No"}`,
+            `Segments: ${mp.segments.length}`,
+            `Joints (Turns): ${mp.joints.length}`,
+            `Total Length: ${mp.totalLength}`
+          ]);
+        }
       });
     }
 

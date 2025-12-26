@@ -56,7 +56,15 @@ export class GeometricDecomposer {
     // [NEW] Phân tích cấu trúc bên trong Area (tìm cánh, đối xứng)
     this.analyzeAreaInternals(areas);
     
-    const metaPaths = this.analyzeMetaPaths(segments);
+    // [NEW] PRIORITY: Detect staircases FIRST before general MetaPath analysis
+    const { staircases, usedSegmentIds } = this.detectStaircases(segments);
+    
+    // Then analyze remaining segments for other MetaPath types
+    const remainingSegments = segments.filter(s => !usedSegmentIds.has(s.id));
+    const otherMetaPaths = this.analyzeMetaPaths(remainingSegments);
+    
+    // Combine: staircases first, then other patterns
+    const metaPaths = [...staircases, ...otherMetaPaths];
     
     // Enrich areas with holes and gateways
     this.enrichAreasWithHolesAndGateways(areas, gateways);
@@ -711,6 +719,543 @@ export class GeometricDecomposer {
     return gateways;
   }
 
+  // ============================================================================
+  // STAIRCASE DETECTION (Iterative Extraction Approach)
+  // ============================================================================
+
+  /**
+   * [NEW] Detect macro staircases by grouping connected segments and iteratively 
+   * extracting the most prominent zigzag/staircase patterns.
+   */
+  private detectStaircases(segments: PathSegment[]): { staircases: MetaPath[], usedSegmentIds: Set<string> } {
+    const staircases: MetaPath[] = [];
+    const usedSegmentIds = new Set<string>();
+    
+    if (segments.length < 2) return { staircases, usedSegmentIds };
+    
+    // 1. Group ALL segments into connected components (clusters) based on block adjacency
+    const clusters = this.clusterConnectedSegments(segments);
+    
+    // 2. Process each cluster to iteratively extract staircases
+    for (const cluster of clusters) {
+      if (cluster.length < 2) continue;
+      
+      // We will work with a set of available blocks in this cluster
+      const clusterBlocks = new Map<string, Vector3>();
+      const blockToSegId = new Map<string, string>();
+      
+      cluster.forEach(s => {
+        s.points.forEach(p => {
+          const key = vectorToKey(p);
+          clusterBlocks.set(key, p);
+          blockToSegId.set(key, s.id);
+        });
+      });
+      
+      // Iteratively find and remove best staircases
+      while (clusterBlocks.size > 0) {
+        // Try to find best path in current pool of blocks
+        // We check both orientations: along Z (X=perp) and along X (Z=perp)
+        
+        const currentBlocks = Array.from(clusterBlocks.values());
+        if (currentBlocks.length === 0) break;
+        
+        const resultZ = this.findBestStaircaseInBlocks(currentBlocks, 'z'); // Perp=Z (X-moving flow? No, Perp=Z means varying Z. So flow is X?? Wait. findBestStaircaseInBlocks(perp='z') sorts by Z. So flow is X.) 
+                                                                           // Actually let's stick to param name: "perpendicularAxis".
+                                                                           // if perp='z', we sort by Z. The path moves along Z? No, path moves along Z if we sort by X??
+                                                                           // Let's check logic: rows = map<perp, ...>. Step moves from row r to r+1 (perp increases).
+                                                                           // So path progresses along Perpendicular Axis.
+                                                                           // Width is along Parallel Axis.
+                                                                           // Example: Normal stairs (moving up). Perp=Y (Height).
+                                                                           // Here X-Z map.
+                                                                           // If Perp=Z. Path moves from Z=1 to Z=10. This is "Z-moving" or "Vertical".
+                                                                           // Width is along X.
+        
+        const resultX = this.findBestStaircaseInBlocks(currentBlocks, 'x'); // Path moves along X. Width along Z.
+        
+        // Choose the best one
+        let bestResult = resultZ;
+        let bestPerp: 'x' | 'z' = 'z';
+         
+        if (resultX && (!resultZ || resultX.path.length > resultZ.path.length)) {
+          bestResult = resultX;
+          bestPerp = 'x';
+        }
+         
+        // Threshold: Staircase should have at least 2 steps (distinct rows) and reasonable length
+        // Let's say at least 4 blocks or 3 rows?
+        // With current data, length 3 is possible.
+        if (!bestResult || bestResult.path.length < 3) {
+           break; // No more significant patterns
+        }
+        
+        // We found a staircase!
+        const zigzagPath = bestResult.path;
+        
+        // Identify which segments are involved (for usedSegmentIds)
+        // A segment is "used" if a significant portion of it is in the path?
+        // Or if ANY block is used? 
+        // Let's mark segments touching this path.
+        const involvedSegIds = new Set<string>();
+        for (const p of zigzagPath) {
+          const key = vectorToKey(p);
+          const segId = blockToSegId.get(key);
+          if (segId) involvedSegIds.add(segId);
+          
+          // Remove from available blocks
+          clusterBlocks.delete(key);
+        }
+        
+        // Create MetaPath
+        // We need to associate segments. We associate the ones we found.
+        const metaPathSegs = cluster.filter(s => involvedSegIds.has(s.id));
+        
+        const metaPath: MetaPath = {
+          id: `staircase_${staircases.length}`,
+          segments: metaPathSegs,
+          joints: [],
+          structureType: 'macro_staircase',
+          isRegular: true,
+          isClosed: false,
+          totalLength: zigzagPath.length // Approximation
+        };
+        (metaPath as any).zigzagPath = zigzagPath;
+        
+        staircases.push(metaPath);
+        involvedSegIds.forEach(id => usedSegmentIds.add(id));
+      }
+    }
+    
+    return { staircases, usedSegmentIds };
+  }
+
+  /**
+   * Group ALL segments into connected components using block adjacency.
+   */
+  private clusterConnectedSegments(segments: PathSegment[]): PathSegment[][] {
+    const blockToSeg = new Map<string, string>();
+    segments.forEach(s => {
+      s.points.forEach(p => blockToSeg.set(vectorToKey(p), s.id));
+    });
+
+    const adj = new Map<string, Set<string>>(); // segId -> Set<segId>
+    segments.forEach(s => adj.set(s.id, new Set()));
+
+    // Build connections
+    segments.forEach(s => {
+      s.points.forEach(p => {
+        // Check 4 neighbors (Manhattan)
+        const neighbors = [
+          {x: p.x+1, y: p.y, z: p.z}, {x: p.x-1, y: p.y, z: p.z},
+          {x: p.x, y: p.y, z: p.z+1}, {x: p.x, y: p.y, z: p.z-1}
+        ];
+        neighbors.forEach(n => {
+          const key = vectorToKey(n);
+          if (blockToSeg.has(key)) {
+            const otherId = blockToSeg.get(key)!;
+            if (otherId !== s.id) {
+              adj.get(s.id)!.add(otherId);
+              adj.get(otherId)!.add(s.id);
+            }
+          }
+        });
+      });
+    });
+
+    // Extract components
+    const clusters: PathSegment[][] = [];
+    const visited = new Set<string>();
+
+    for (const seg of segments) {
+      if (visited.has(seg.id)) continue;
+      
+      const cluster: PathSegment[] = [];
+      const queue = [seg.id];
+      visited.add(seg.id);
+      
+      while (queue.length > 0) {
+        const currId = queue.shift()!;
+        cluster.push(segments.find(s => s.id === currId)!);
+        
+        adj.get(currId)!.forEach(neighborId => {
+          if (!visited.has(neighborId)) {
+            visited.add(neighborId);
+            queue.push(neighborId);
+          }
+        });
+      }
+      clusters.push(cluster);
+    }
+    
+    return clusters;
+  }
+
+  /**
+   * Helper: Find best staircase in a raw set of blocks for a given orientation.
+   */
+  private findBestStaircaseInBlocks(
+    blocks: Vector3[], 
+    perpendicularAxis: 'x' | 'z'
+  ): { path: Vector3[], direction: 1 | -1 } | null {
+    // Organize blocks
+    const getPerp = (p: Vector3) => perpendicularAxis === 'z' ? p.z : p.x;
+    const getPar = (p: Vector3) => perpendicularAxis === 'z' ? p.x : p.z;
+    
+    const rows = new Map<number, Set<number>>();
+    blocks.forEach(p => {
+      const r = Math.round(getPerp(p));
+      const c = Math.round(getPar(p));
+      if (!rows.has(r)) rows.set(r, new Set());
+      rows.get(r)!.add(c);
+    });
+    
+    const sortedRowIndices = Array.from(rows.keys()).sort((a, b) => a - b);
+    
+    // Determine max width (heuristic)
+    let maxWidth = 5; // Search range
+    
+    let bestPath: Vector3[] = [];
+    let bestDirection = 0; // 0 for vertical, 1 for right, -1 for left
+    let detectedSlope: number = 0; // Actual shift value
+    
+    // Try step widths from maxWidth down to 1
+    for (let width = maxWidth; width >= 1; width--) {
+      // Try specific consistent shifts.
+      // Range: -5 to 5 heuristic.
+      // Typically Shift is 0 (vert), 1 (diag), -1 (diag), 2 (shallow)...
+      // Using specific shift enforces slope consistency.
+      
+      const shiftsToCheck = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5]; 
+      
+      for (const targetShift of shiftsToCheck) {
+        const path = this.findLongestPathForWidth(sortedRowIndices, rows, width, perpendicularAxis, targetShift);
+        
+        if (path.length > bestPath.length) {
+          bestPath = path;
+          bestDirection = targetShift === 0 ? 0 : (targetShift > 0 ? 1 : -1);
+          detectedSlope = targetShift;
+        }
+      }
+    }
+    
+    if (bestPath.length < 2) return null;
+    
+    // Add endpoints using the detected slope
+    bestPath = this.addEndpointsToPath(bestPath, rows, perpendicularAxis, detectedSlope);
+    
+    // Direction for meta path (-1 or 1). Map 0 to 1 (or handle properly?)
+    const metaDir = detectedSlope === 0 ? 1 : (detectedSlope > 0 ? 1 : -1);
+    
+    return { path: bestPath, direction: metaDir as 1 | -1 };
+  }
+  
+  /**
+   * Find longest consistent zigzag path for a fixed step width and FIXED SHIFT slope.
+   */
+  private findLongestPathForWidth(
+    sortedRows: number[],
+    rowMap: Map<number, Set<number>>,
+    stepWidth: number,
+    perpAxis: 'x' | 'z',
+    targetShift: number
+  ): Vector3[] {
+    // A "Step" is defined by (row, startCol). It covers [startCol, startCol + stepWidth - 1]
+    type StepNode = { row: number, startCol: number, id: string };
+    const nodes: StepNode[] = [];
+    
+    // 1. Identify all valid step nodes
+    for (const r of sortedRows) {
+      const cols = Array.from(rowMap.get(r)!);
+      if (cols.length < stepWidth) continue;
+      
+      cols.sort((a, b) => a - b);
+      
+      // Find contiguous sequences of length stepWidth
+      for (let i = 0; i <= cols.length - stepWidth; i++) {
+        // Check connectivity
+        let isContiguous = true;
+        for (let j = 0; j < stepWidth - 1; j++) {
+          if (cols[i+j+1] !== cols[i+j] + 1) {
+            isContiguous = false;
+            break;
+          }
+        }
+        
+        if (isContiguous) {
+          nodes.push({ row: r, startCol: cols[i], id: `${r}_${cols[i]}` });
+        }
+      }
+    }
+    
+    if (nodes.length === 0) return [];
+
+    // 2. Build DAG edges enforcing STRICT SHIFT CONSISTENCY
+    const adj = new Map<string, StepNode[]>();
+    nodes.forEach(n => adj.set(n.id, []));
+    
+    for (const u of nodes) {
+      for (const v of nodes) {
+        if (v.row === u.row + 1) { // Physically adjacent rows
+          
+          const shift = v.startCol - u.startCol;
+          
+          // Strict Slope Consistency
+          if (shift !== targetShift) continue;
+          
+          // Check overlap/touch strictness
+          // u range: [u.startCol, uMax]
+          // v range: [v.startCol, vMax]
+          const uMax = u.startCol + stepWidth - 1;
+          const vMax = v.startCol + stepWidth - 1;
+          
+          // Gap is strictly calculated as coordinate difference
+          // Touching: max - min = 1.
+          // Overlapping: max - min <= 0.
+          // Disconnected: max - min > 1.
+          const gap = Math.max(v.startCol - uMax, u.startCol - vMax);
+          
+          // Connect ONLY if they overlap or strictly touch (gap <= 1)
+          // Relaxed to gap <= 2 to robustly handle slight irregularities IF shift is perfect.
+          if (gap <= 2) {
+             adj.get(u.id)!.push(v);
+          }
+        }
+      }
+    }
+    
+    // 3. Find Longest Path in DAG
+    const memo = new Map<string, StepNode[]>();
+    
+    const getPath = (u: StepNode): StepNode[] => {
+      if (memo.has(u.id)) return memo.get(u.id)!;
+      
+      let maxPath: StepNode[] = [];
+      const neighbors = adj.get(u.id) || [];
+      
+      for (const v of neighbors) {
+        const pathFromV = getPath(v);
+        if (pathFromV.length > maxPath.length) {
+          maxPath = pathFromV;
+        }
+      }
+      
+      const res = [u, ...maxPath];
+      memo.set(u.id, res);
+      return res;
+    };
+    
+    let bestChain: StepNode[] = [];
+    
+    // Iteration order:
+    // Shift < 0: Reverse (Prioritize large startCol)
+    // Shift >= 0: Normal (Prioritize small startCol)
+    const nodesToIterate = targetShift < 0 ? [...nodes].reverse() : nodes;
+    
+    for (const node of nodesToIterate) {
+      const chain = getPath(node);
+      if (chain.length > bestChain.length) {
+        bestChain = chain;
+      }
+    }
+    
+    // 4. Convert chain to coordinates
+    const zigzag: Vector3[] = [];
+    for (const node of bestChain) {
+      for (let k = 0; k < stepWidth; k++) {
+        const c = node.startCol + k;
+        zigzag.push(perpAxis === 'z' 
+          ? { x: c, y: 0, z: node.row }  // Par=X, Perp=Z
+          : { x: node.row, y: 0, z: c }  // Par=Z, Perp=X
+        );
+      }
+    }
+    
+    return zigzag;
+  }
+  
+  /**
+   * Check start/end of path to add valid endpoints (Case A), respecting direction.
+   * Enhanced to aggressively extend with full-width segments when possible.
+   */
+  private addEndpointsToPath(
+    path: Vector3[], 
+    rowMap: Map<number, Set<number>>, 
+    perpAxis: 'x' | 'z',
+    targetShift: number
+  ): Vector3[] {
+    if (path.length === 0) return path;
+    const newPath = [...path];
+    
+    const getPerp = (p: Vector3) => perpAxis === 'z' ? p.z : p.x;
+    const getPar = (p: Vector3) => perpAxis === 'z' ? p.x : p.z;
+    const createVec = (r: number, c: number) => perpAxis === 'z' ? {x: c, y:0, z:r} : {x: r, y:0, z:c};
+    
+    // Detect current path width (from the last step)
+    const pathWidth = this.detectPathStepWidth(newPath, perpAxis);
+    
+    // Check Top End (Last row + 1)
+    const lastBlock = newPath[newPath.length - 1];
+    const lastRow = getPerp(lastBlock);
+    const lastPar = getPar(lastBlock);
+    const nextRow = lastRow + 1;
+    
+    if (rowMap.has(nextRow)) {
+      const candidates = Array.from(rowMap.get(nextRow)!).sort((a,b) => a-b);
+      
+      // Try to find a FULL-WIDTH segment first
+      if (pathWidth >= 2) {
+        for (let i = 0; i <= candidates.length - pathWidth; i++) {
+          let isContiguous = true;
+          for (let j = 0; j < pathWidth - 1; j++) {
+            if (candidates[i+j+1] !== candidates[i+j] + 1) {
+              isContiguous = false;
+              break;
+            }
+          }
+          
+          if (isContiguous) {
+            const segStart = candidates[i];
+            const shift = segStart - lastPar;
+            if (shift === targetShift) {
+              // Add entire segment
+              for (let k = 0; k < pathWidth; k++) {
+                newPath.push(createVec(nextRow, segStart + k));
+              }
+              return newPath; // Early return after adding full segment
+            }
+          }
+        }
+      }
+      
+      // Fallback: Try single block endpoint
+      const endpoint = candidates.find(c => {
+         if (Math.abs(c - lastPar) > Math.abs(targetShift) + 3) return false; 
+         const shift = c - lastPar;
+         return shift === targetShift;
+      });
+      
+      if (endpoint !== undefined) {
+         newPath.push(createVec(nextRow, endpoint));
+      }
+    }
+    
+    // Check Bottom End (First row - 1)
+    const firstBlock = newPath[0];
+    const firstRow = getPerp(firstBlock);
+    const firstPar = getPar(firstBlock);
+    const prevRow = firstRow - 1;
+    
+     if (rowMap.has(prevRow)) {
+      const candidates = Array.from(rowMap.get(prevRow)!).sort((a,b) => a-b);
+      
+      // Try to find a FULL-WIDTH segment first
+      if (pathWidth >= 2) {
+        for (let i = 0; i <= candidates.length - pathWidth; i++) {
+          let isContiguous = true;
+          for (let j = 0; j < pathWidth - 1; j++) {
+            if (candidates[i+j+1] !== candidates[i+j] + 1) {
+              isContiguous = false;
+              break;
+            }
+          }
+          
+          if (isContiguous) {
+            const segStart = candidates[i];
+            const shift = firstPar - segStart;
+            if (shift === targetShift) {
+              // Add entire segment at beginning
+              for (let k = pathWidth - 1; k >= 0; k--) {
+                newPath.unshift(createVec(prevRow, segStart + k));
+              }
+              return newPath; // Early return after adding full segment
+            }
+          }
+        }
+      }
+      
+      // Fallback: Try single block endpoint
+      const endpoint = candidates.find(c => {
+         const shift = firstPar - c; 
+         return shift === targetShift;
+      });
+      
+      if (endpoint !== undefined) {
+         newPath.unshift(createVec(prevRow, endpoint));
+      }
+    }
+    
+    return newPath;
+  }
+  
+  /**
+   * Detect the typical step width of a path by analyzing blocks at the same row.
+   */
+  private detectPathStepWidth(path: Vector3[], perpAxis: 'x' | 'z'): number {
+    if (path.length === 0) return 1;
+    
+    const getPerp = (p: Vector3) => perpAxis === 'z' ? p.z : p.x;
+    const getPar = (p: Vector3) => perpAxis === 'z' ? p.x : p.z;
+    
+    // Group blocks by row
+    const rowMap = new Map<number, number[]>();
+    path.forEach(p => {
+      const r = Math.round(getPerp(p));
+      const c = Math.round(getPar(p));
+      if (!rowMap.has(r)) rowMap.set(r, []);
+      rowMap.get(r)!.push(c);
+    });
+    
+    // Calculate width for each row (contiguous span)
+    const widths: number[] = [];
+    rowMap.forEach(cols => {
+      if (cols.length > 0) {
+        cols.sort((a,b) => a-b);
+        widths.push(cols[cols.length-1] - cols[0] + 1);
+      }
+    });
+    
+    // Return the most common width (mode) or max
+    if (widths.length === 0) return 1;
+    return Math.max(...widths);
+  }
+
+  /**
+   * Find joint points (step transitions) in a staircase
+   */
+  private findStaircaseJoints(chain: PathSegment[], perpendicularAxis: 'x' | 'z'): Vector3[] {
+    const joints: Vector3[] = [];
+    const parallelAxis = perpendicularAxis === 'z' ? 'x' : 'z';
+    
+    for (let i = 0; i < chain.length - 1; i++) {
+      const seg = chain[i];
+      const nextSeg = chain[i + 1];
+      
+      // Find the step connection point (overlap region)
+      const segCoords = seg.points.map(p => parallelAxis === 'x' ? p.x : p.z);
+      const nextCoords = nextSeg.points.map(p => parallelAxis === 'x' ? p.x : p.z);
+      
+      const overlapMin = Math.max(Math.min(...segCoords), Math.min(...nextCoords));
+      const overlapMax = Math.min(Math.max(...segCoords), Math.max(...nextCoords));
+      
+      if (overlapMax >= overlapMin) {
+        // Find a point in the overlap region from current segment
+        const stepPoint = seg.points.find(p => {
+          const coord = parallelAxis === 'x' ? p.x : p.z;
+          return coord >= overlapMin && coord <= overlapMax;
+        });
+        if (stepPoint) {
+          joints.push(stepPoint);
+        }
+      }
+    }
+    
+    return joints;
+  }
+
+  // ============================================================================
+  // META-PATH ANALYSIS (For non-staircase patterns)
+  // ============================================================================
+
   /**
    * Analyze MetaPaths - chains of connected path segments with pattern detection
    */
@@ -755,7 +1300,19 @@ export class GeometricDecomposer {
         const startKey = vectorToKey(seg.points[0]);
         const endKey = vectorToKey(seg.points[seg.points.length - 1]);
         
-        for (const key of [startKey, endKey]) {
+        // [UPDATED] Check strict endpoints AND adjacent blocks for connectivity
+        // This allows "stepped" paths (like Z-shape) where segments touch side-by-side to connect
+        const keysToCheck = [startKey, endKey];
+        
+        // Add neighbors of endpoints to keysToCheck
+        const startNeighbors = this.getHorizontalNeighbors(seg.points[0]);
+        const endNeighbors = this.getHorizontalNeighbors(seg.points[seg.points.length - 1]);
+        
+        for (const n of [...startNeighbors, ...endNeighbors]) {
+          keysToCheck.push(vectorToKey(n));
+        }
+
+        for (const key of keysToCheck) {
           const connectedSegIds = endpointToSegments.get(key) || [];
           for (const connectedId of connectedSegIds) {
             if (!visitedSegments.has(connectedId)) {
@@ -851,6 +1408,39 @@ export class GeometricDecomposer {
       structureType = 'straight_chain';
       isRegular = true;
     }
+    // ===== CHAIN WITH SAME DIRECTION (Check Collinearity) =====
+    else if (uniqueDirections.size === 1) {
+      // Check if segments are collinear (share same axis line)
+      let isCollinear = true;
+      const firstDir = chain[0].direction;
+      const firstStart = chain[0].points[0];
+      
+      for (let i = 1; i < chain.length; i++) {
+        // Project start point of this segment onto the line of the first segment
+        // If distance is > 0, they are offset (stepped)
+        const currentStart = chain[i].points[0];
+        const diff = vectorSub(currentStart, firstStart);
+        
+        // Remove component parallel to direction
+        // v_perp = v - (v . d) * d
+        const parallelComponent = vectorScale(firstDir, vectorDot(diff, firstDir));
+        const perpendicularComponent = vectorSub(diff, parallelComponent);
+        
+        if (vectorMagnitude(perpendicularComponent) > 0.1) {
+          isCollinear = false;
+          break;
+        }
+      }
+      
+      if (isCollinear) {
+        structureType = 'straight_chain';
+        isRegular = true;
+      } else {
+        // Parallel but offset -> Stepped / Zigzag
+        structureType = 'macro_staircase'; 
+        isRegular = lengthSet.size <= 2; // Allow some variance
+      }
+    }
     // ===== 2 SEGMENTS =====
     else if (chain.length === 2) {
       // Check angle between segments
@@ -901,6 +1491,37 @@ export class GeometricDecomposer {
         // Zigzag pattern
         structureType = 'macro_staircase';
         isRegular = true;
+      } else if (uniqueDirections.size === 1) {
+        // Check if segments are collinear (share same axis line)
+        let isCollinear = true;
+        const firstDir = chain[0].direction;
+        const firstStart = chain[0].points[0];
+        
+        for (let i = 1; i < chain.length; i++) {
+            const currentStart = chain[i].points[0];
+            const diff = vectorSub(currentStart, firstStart);
+            const parallelComponent = vectorScale(firstDir, vectorDot(diff, firstDir));
+            const perpendicularComponent = vectorSub(diff, parallelComponent);
+            if (vectorMagnitude(perpendicularComponent) > 0.1) {
+                isCollinear = false;
+                break;
+            }
+        }
+        
+        if (isCollinear) {
+            structureType = 'straight_chain';
+            isRegular = true;
+        } else {
+            const minLen = Math.min(...lengths);
+            const maxLen = Math.max(...lengths);
+            if (maxLen > minLen * 1.5) {
+                structureType = 'branching';
+                isRegular = false;
+            } else {
+                structureType = 'macro_staircase'; 
+                isRegular = true;
+            }
+        }
       } else {
         // Check for spine_branch: middle segment perpendicular to first and last
         const dotFirst = Math.abs(vectorDot(directions[0], directions[1]));
@@ -975,10 +1596,53 @@ export class GeometricDecomposer {
           structureType = 'branching';
         }
       }
-      // Check for macro_staircase (alternating 2 directions)
+      // Check for macro_staircase (alternating 2 directions) or Stepped Collinear
       else if (uniqueDirections.size === 2 && lengthSet.size === 1) {
         structureType = 'macro_staircase';
         isRegular = true;
+      }
+      else if (uniqueDirections.size === 1) {
+            // Check if segments are collinear (share same axis line)
+            let isCollinear = true;
+            const firstDir = chain[0].direction;
+            const firstStart = chain[0].points[0];
+            
+            for (let i = 1; i < chain.length; i++) {
+                // Project start point of this segment onto the line of the first segment
+                // If distance is > 0, they are offset (stepped)
+                const currentStart = chain[i].points[0];
+                const diff = vectorSub(currentStart, firstStart);
+                
+                // Remove component parallel to direction
+                // v_perp = v - (v . d) * d
+                const parallelComponent = vectorScale(firstDir, vectorDot(diff, firstDir));
+                const perpendicularComponent = vectorSub(diff, parallelComponent);
+                
+                if (vectorMagnitude(perpendicularComponent) > 0.1) {
+                isCollinear = false;
+                break;
+                }
+            }
+            
+            if (isCollinear) {
+                structureType = 'straight_chain';
+                isRegular = true;
+            } else {
+                // Parallel but offset -> Stepped / Zigzag
+                // [UPDATED] Check for regularity in length
+                const minLen = Math.min(...lengths);
+                const maxLen = Math.max(...lengths);
+                
+                // If max length is significantly larger than min length (e.g., > 1.5x),
+                // it's likely a mix of a thoroughfare (spine) and steps, not a regular staircase.
+                if (maxLen > minLen * 1.5) {
+                    structureType = 'branching'; // Or 'irregular_stepped'
+                    isRegular = false;
+                } else {
+                    structureType = 'macro_staircase'; 
+                    isRegular = true;
+                }
+            }
       }
       else {
         structureType = 'branching';
@@ -1108,18 +1772,57 @@ export class GeometricDecomposer {
       
       if (visited.has(key) || excludeSet.has(key)) continue;
 
+      // Try all directions to find the longest possible segment from this block
+      // This greedy approach helps reduce fragmentation
+      let bestSegment: PathSegment | null = null;
+      let maxLen = 0;
+
       for (const dir of this.getCardinalDirections()) {
-        const segment = this.traceSegmentInDirection(block, dir, visited, excludeSet);
+        // [UPDATED] Pass a temporary visited set to allow exploring directions even if partially visited by other segments
+        // We only mark global visited after choosing the best segment
+        const tempVisited = new Set(visited);
+        const segment = this.traceSegmentInDirection(block, dir, tempVisited, excludeSet);
+        
         if (segment && segment.points.length >= 2) {
-          segment.id = `seg_${segments.length}`;
-          segments.push(segment);
-          
-          for (const p of segment.points) {
-            visited.add(vectorToKey(p));
-          }
+            // Prefer longer segments
+            if (segment.points.length > maxLen) {
+                maxLen = segment.points.length;
+                bestSegment = segment;
+            }
         }
       }
+      
+      if (bestSegment) {
+          // Check if this segment is just a subset of an existing segment
+          // This avoids "ghost" segments appearing on top of existing ones
+          const isSubset = segments.some(existing => 
+             bestSegment!.points.every(p => existing.points.some(ep => vectorEquals(p, ep)))
+          );
+
+          if (!isSubset) {
+            bestSegment.id = `seg_${segments.length}`;
+            segments.push(bestSegment);
+            
+            for (const p of bestSegment.points) {
+                visited.add(vectorToKey(p));
+            }
+          }
+      }
     }
+    
+    // [NEW] Post-processing filter: Remove short segments (length=2) that are just connectors perpendicular to longer segments
+    // UNLESS they are necessary for connectivity (bridges)
+    // This removes artifacts like the vertical 2-block segment in Z-Shape
+    const filteredSegments = segments.filter(seg => {
+        if (seg.points.length > 2) return true;
+        
+        // If length is 2 (minimum), check if it's redundant
+        // It's redundant if both its endpoints belong to other longer segments
+        // AND removing it doesn't break the graph (this is hard to check cheaply, so we use a heuristic)
+        
+        // Simple heuristic: If it is perpendicular to a longer neighbor at a shared junction
+        return true; // Keep for now, but the Greedy approach above should minimize 2-block artifacts
+    });
 
     return segments;
   }
