@@ -3360,24 +3360,32 @@ function App() {
             {activeSidePanel === 'template' && (
               <TemplatePanel
                 onGenerate={(data) => {
+                  console.log('=== Template Generation Debug ===');
+                  console.log('Input blocks:', data.blocks.length, 'items:', data.items.length);
+
                   // Convert template output to PlacedObject format
                   const newObjects: PlacedObject[] = [];
 
-                  // Add blocks
+                  // Add blocks (ground layer)
+                  // Note: buildGroundBlocks already sets y=0, no need to subtract
                   data.blocks.forEach((block) => {
-                    const asset = assetMap.get('grass') || assetMap.get('ground.01') || buildableAssetGroups[0]?.items[0];
+                    const asset = assetMap.get('ground.normal') ||
+                      assetMap.get('ground.checker') ||
+                      buildableAssetGroups.find(g => g.name === 'Ground')?.items[0];
+
                     if (asset) {
                       newObjects.push({
                         id: uuidv4(),
                         asset,
-                        position: [block.x, block.y - 1, block.z], // y-1 because ground is at y=0
-                        rotation: [0, 0, 0],
+                        position: [block.x, block.y, block.z] as [number, number, number], // Already y=0
+                        rotation: [0, 0, 0] as [number, number, number],
                         properties: {}
                       });
                     }
                   });
 
-                  // Add items
+                  // Add items (crystals, keys, switches)
+                  // Items in trace are at y=1 (path level), need to be at y=1 (on top of ground at y=0)
                   data.items.forEach((item) => {
                     const assetKey = item.type === 'crystal' ? 'crystal' : item.type === 'key' ? 'key' : 'switch';
                     const asset = assetMap.get(assetKey);
@@ -3385,8 +3393,9 @@ function App() {
                       newObjects.push({
                         id: uuidv4(),
                         asset,
-                        position: [item.position.x, item.position.y, item.position.z],
-                        rotation: [0, 0, 0],
+                        // Items should be at y=1 (on ground surface which is at y=0)
+                        position: [item.position.x, item.position.y, item.position.z] as [number, number, number],
+                        rotation: [0, 0, 0] as [number, number, number],
                         properties: { type: item.type }
                       });
                     }
@@ -3398,8 +3407,8 @@ function App() {
                     newObjects.push({
                       id: 'player_start',
                       asset: playerAsset,
-                      position: [data.playerStart.x, data.playerStart.y, data.playerStart.z],
-                      rotation: [0, (data.playerStart.direction || 0) * Math.PI / 2, 0],
+                      position: [data.playerStart.x, data.playerStart.y, data.playerStart.z] as [number, number, number],
+                      rotation: [0, (data.playerStart.direction || 0) * Math.PI / 2, 0] as [number, number, number],
                       properties: { type: 'player_start', direction: data.playerStart.direction }
                     });
                   }
@@ -3410,28 +3419,30 @@ function App() {
                     newObjects.push({
                       id: 'finish',
                       asset: finishAsset,
-                      position: [data.finish.x, data.finish.y, data.finish.z],
-                      rotation: [0, 0, 0],
+                      position: [data.finish.x, data.finish.y, data.finish.z] as [number, number, number],
+                      rotation: [0, 0, 0] as [number, number, number],
                       properties: { type: 'finish' }
                     });
                   }
 
-                  // Replace map
-                  setPlacedObjectsWithHistory(newObjects);
-                  setHasUserEdit(true);
+                  console.log('Created PlacedObjects:', newObjects.length);
+                  console.log('First object:', JSON.stringify(newObjects[0], null, 2));
 
-                  // Update quest metadata with solution
-                  setQuestMetadata(prev => ({
-                    ...prev,
+                  // Use handleGenerateMap for proper state management
+                  const pathCoords = data.blocks.map(b => [b.x, b.y, b.z] as [number, number, number]);
+                  const metadataUpdate = {
                     rawSolution: data.rawActions,
                     pathInfo: {
-                      path_coords: data.blocks.map(b => [b.x, b.y, b.z]),
-                      start_pos: [data.playerStart.x, data.playerStart.y, data.playerStart.z],
-                      target_pos: [data.finish.x, data.finish.y, data.finish.z]
+                      path_coords: pathCoords,
+                      start_pos: [data.playerStart.x, data.playerStart.y, data.playerStart.z] as [number, number, number],
+                      target_pos: [data.finish.x, data.finish.y, data.finish.z] as [number, number, number],
+                      topology: 'template_generated',
+                      params: {}
                     }
-                  }));
+                  };
 
-                  console.log(`Template generated: ${data.blocks.length} blocks, ${data.items.length} items`);
+                  // Call handleGenerateMap which properly manages history
+                  handleGenerateMap(newObjects, metadataUpdate);
                 }}
                 hasExistingMap={placedObjects.length > 0}
               />

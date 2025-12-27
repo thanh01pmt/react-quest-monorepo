@@ -3,14 +3,16 @@
  * 
  * Main panel for Solution-Driven map generation.
  * Allows users to write or paste JavaScript code and generate maps.
+ * Supports {{variable}} syntax for dynamic parameters with auto-generated sliders.
  */
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Code, Play, Eye, Copy, AlertTriangle } from 'lucide-react';
+import { Code, Play, Eye, Copy, AlertTriangle, Sliders, Shuffle } from 'lucide-react';
 import { generateFromCode } from '@repo/academic-map-generator';
 import type { SolutionDrivenResult } from '@repo/academic-map-generator';
 import { TEMPLATE_PRESETS, getPresetById } from './presets';
-import type { TemplatePreset } from './presets';
+import { extractVariables, resolveTemplate, hasVariables } from './templateVariables';
+import type { TemplateVariable } from './templateVariables';
 import './TemplatePanel.css';
 
 // Types for generated output
@@ -45,6 +47,25 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
     const [code, setCode] = useState<string>(getPresetById('simple-for-loop')?.code || '');
     const [preview, setPreview] = useState<PreviewResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [variableValues, setVariableValues] = useState<Record<string, number>>({});
+    const [autoRandom, setAutoRandom] = useState(false);
+
+    // Extract variables from code
+    const variables = useMemo(() => extractVariables(code), [code]);
+
+    // Initialize variable values when variables change
+    useEffect(() => {
+        const newValues: Record<string, number> = {};
+        variables.forEach(v => {
+            newValues[v.name] = variableValues[v.name] ?? v.defaultValue;
+        });
+        setVariableValues(newValues);
+    }, [variables]);
+
+    // Get resolved code (with variables replaced)
+    const resolvedCode = useMemo(() => {
+        return resolveTemplate(code, variableValues);
+    }, [code, variableValues]);
 
     // Load code from localStorage on mount
     useEffect(() => {
@@ -78,6 +99,7 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
         if (preset) {
             setCode(preset.code);
             setPreview(null);
+            setVariableValues({}); // Reset variables
         }
     }, []);
 
@@ -87,10 +109,54 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
         setPreview(null);
     }, []);
 
+    // Handle variable change
+    const handleVariableChange = useCallback((name: string, value: number) => {
+        setVariableValues(prev => ({ ...prev, [name]: value }));
+        setPreview(null);
+    }, []);
+
+    // Randomize all variables
+    const randomizeVariables = useCallback(() => {
+        const newValues: Record<string, number> = {};
+        variables.forEach(v => {
+            newValues[v.name] = Math.floor(Math.random() * (v.max - v.min + 1)) + v.min;
+        });
+        setVariableValues(newValues);
+        setPreview(null);
+        return newValues;
+    }, [variables]);
+
+    // Handle range change (update min/max in script)
+    const handleRangeChange = useCallback((varName: string, newMin: number, newMax: number) => {
+        // Find and update the variable declaration in code
+        const regex = new RegExp(`\\{\\{${varName}(?::[^}]+)?\\}\\}`, 'g');
+        const currentVar = variables.find(v => v.name === varName);
+        if (!currentVar) return;
+
+        const currentValue = variableValues[varName] ?? currentVar.defaultValue;
+        const clampedValue = Math.min(Math.max(currentValue, newMin), newMax);
+
+        const newCode = code.replace(regex, `{{${varName}:${newMin}-${newMax}:${clampedValue}}}`);
+        console.log('Range change:', varName, newMin, newMax, 'New code:', newCode);
+        setCode(newCode);
+        setVariableValues(prev => ({ ...prev, [varName]: clampedValue }));
+        setPreview(null);
+    }, [code, variables, variableValues]);
+
+    // Get effective code (with auto-random if enabled)
+    const getEffectiveCode = useCallback(() => {
+        if (autoRandom && variables.length > 0) {
+            const randomValues = randomizeVariables();
+            return resolveTemplate(code, randomValues);
+        }
+        return resolvedCode;
+    }, [autoRandom, variables, code, resolvedCode, randomizeVariables]);
+
     // Generate preview
     const handlePreview = useCallback(() => {
         try {
-            const result = generateFromCode(code, {
+            const codeToUse = getEffectiveCode();
+            const result = generateFromCode(codeToUse, {
                 concept: 'sequential',
                 gradeLevel: '3-5'
             });
@@ -110,7 +176,7 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
                 error: err instanceof Error ? err.message : 'Failed to parse code'
             });
         }
-    }, [code]);
+    }, [getEffectiveCode]);
 
     // Generate map
     const handleGenerate = useCallback(() => {
@@ -126,7 +192,8 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
         setIsLoading(true);
 
         try {
-            const result = generateFromCode(code, {
+            const codeToUse = getEffectiveCode();
+            const result = generateFromCode(codeToUse, {
                 concept: 'sequential',
                 gradeLevel: '3-5'
             });
@@ -153,12 +220,13 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
         } finally {
             setIsLoading(false);
         }
-    }, [code, hasExistingMap, onGenerate]);
+    }, [getEffectiveCode, hasExistingMap, onGenerate]);
 
     // Copy JSON
     const handleCopyJson = useCallback(() => {
         try {
-            const result = generateFromCode(code, {
+            const codeToUse = getEffectiveCode();
+            const result = generateFromCode(codeToUse, {
                 concept: 'sequential',
                 gradeLevel: '3-5'
             });
@@ -167,7 +235,7 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
         } catch (err) {
             alert('Failed to copy: ' + (err instanceof Error ? err.message : 'Unknown error'));
         }
-    }, [code]);
+    }, [getEffectiveCode]);
 
     // Current preset info
     const currentPreset = getPresetById(selectedPresetId);
@@ -207,9 +275,105 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
                 )}
             </div>
 
+            {/* Variable Sliders */}
+            {variables.length > 0 && (
+                <div className="template-variables">
+                    <div className="template-variables__header">
+                        <Sliders size={14} />
+                        <span>Parameters ({variables.length})</span>
+                        <label className="template-variables__auto">
+                            <input
+                                type="checkbox"
+                                checked={autoRandom}
+                                onChange={(e) => setAutoRandom(e.target.checked)}
+                            />
+                            <Shuffle size={12} />
+                            <span>Random</span>
+                        </label>
+                    </div>
+                    {!autoRandom && (
+                        <div className="template-variables__list">
+                            {variables.map(variable => (
+                                <div key={variable.name} className="template-variables__item">
+                                    <label className="template-variables__label">
+                                        {variable.displayName}
+                                        <span className="template-variables__value">
+                                            {variableValues[variable.name] ?? variable.defaultValue}
+                                        </span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        className="template-variables__slider"
+                                        min={variable.min}
+                                        max={variable.max}
+                                        value={variableValues[variable.name] ?? variable.defaultValue}
+                                        onChange={(e) => handleVariableChange(variable.name, parseInt(e.target.value, 10))}
+                                    />
+                                    <div className="template-variables__range-editable">
+                                        <input
+                                            type="number"
+                                            className="template-variables__range-input"
+                                            key={`min-${variable.name}-${variable.min}`}
+                                            defaultValue={variable.min}
+                                            onBlur={(e) => {
+                                                const newMin = parseInt(e.target.value, 10);
+                                                if (!isNaN(newMin) && newMin >= 1 && newMin < variable.max) {
+                                                    handleRangeChange(variable.name, newMin, variable.max);
+                                                } else {
+                                                    e.target.value = String(variable.min);
+                                                }
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.currentTarget.blur();
+                                                }
+                                            }}
+                                            title="Min value"
+                                        />
+                                        <span className="template-variables__range-separator">—</span>
+                                        <input
+                                            type="number"
+                                            className="template-variables__range-input"
+                                            key={`max-${variable.name}-${variable.max}`}
+                                            defaultValue={variable.max}
+                                            onBlur={(e) => {
+                                                const newMax = parseInt(e.target.value, 10);
+                                                if (!isNaN(newMax) && newMax > variable.min && newMax <= 100) {
+                                                    handleRangeChange(variable.name, variable.min, newMax);
+                                                } else {
+                                                    e.target.value = String(variable.max);
+                                                }
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.currentTarget.blur();
+                                                }
+                                            }}
+                                            title="Max value"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {autoRandom && (
+                        <div className="template-variables__auto-info">
+                            🎲 Giá trị sẽ được random trong khoảng cho phép khi Generate
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Code Editor */}
             <div className="template-editor">
-                <label className="template-editor__label">Code (JavaScript)</label>
+                <label className="template-editor__label">
+                    Code (JavaScript)
+                    {variables.length > 0 && (
+                        <span className="template-editor__var-hint">
+                            💡 Variables: {variables.map(v => v.name).join(', ')}
+                        </span>
+                    )}
+                </label>
                 <div className="template-editor__wrapper">
                     <div className="template-editor__lines">{lineNumbers}</div>
                     <textarea
@@ -368,14 +532,18 @@ function convertToMapData(result: SolutionDrivenResult): GeneratedMapData {
 
     return {
         blocks: gameConfig.gameConfig.blocks.map((b: any) => ({
-            x: b.x,
-            y: b.y,
-            z: b.z,
-            model: 'grass'
+            x: b.position?.x ?? b.x ?? 0,
+            y: b.position?.y ?? b.y ?? 0,
+            z: b.position?.z ?? b.z ?? 0,
+            model: b.modelKey || 'grass'
         })),
         items: gameConfig.gameConfig.collectibles.map((c: any) => ({
             type: c.type,
-            position: { x: c.x, y: c.y, z: c.z }
+            position: {
+                x: c.position?.x ?? c.x ?? 0,
+                y: c.position?.y ?? c.y ?? 0,
+                z: c.position?.z ?? c.z ?? 0
+            }
         })),
         playerStart: {
             x: gameConfig.gameConfig.players[0].start.x,

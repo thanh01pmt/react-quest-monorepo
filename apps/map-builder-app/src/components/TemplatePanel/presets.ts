@@ -3,6 +3,14 @@
  * 
  * Predefined code templates for common patterns.
  * Commands match Quest Player exactly (see packages/quest-player/src/games/maze/blocks.ts)
+ * 
+ * RULES:
+ * 1. Start and Finish positions must NOT contain items.
+ * 2. Use {{varName}} for configurable values.
+ *    - {{varName}} - Default: 3, Range: 1-10
+ *    - {{varName:5}} - Default: 5, Range: 1-10
+ *    - {{varName:2-8}} - Default: 2, Range: 2-8
+ *    - {{varName:1-20:5}} - Range: 1-20, Default: 5
  */
 
 export interface TemplatePreset {
@@ -21,15 +29,18 @@ export const TEMPLATE_PRESETS: TemplatePreset[] = [
     id: 'custom',
     name: 'Custom Code',
     nameVi: 'Tùy chỉnh',
-    description: 'Write your own code',
-    descriptionVi: 'Tự viết code',
+    description: 'Write your own code with {{variables}}',
+    descriptionVi: 'Tự viết code với {{biến}}',
     difficulty: 1,
     concept: 'custom',
     code: `// Viết code của bạn ở đây
-// Write your code here
+// Dùng {{tên_biến}} để tạo tham số có thể điều chỉnh
 
 moveForward();
-collectItem();
+for (let i = 0; i < {{count:1-10:3}}; i++) {
+  collectItem();
+  moveForward();
+}
 `,
   },
   {
@@ -40,28 +51,33 @@ collectItem();
     descriptionVi: 'Các lệnh tuần tự không có vòng lặp',
     difficulty: 1,
     concept: 'sequential',
-    code: `// Di chuyển và thu thập
+    code: `// Chuỗi lệnh tuần tự
 moveForward();
 collectItem();
 moveForward();
 collectItem();
 moveForward();
 collectItem();
+moveForward();
 `,
   },
   {
     id: 'simple-for-loop',
     name: 'Simple FOR Loop',
     nameVi: 'Vòng lặp FOR đơn giản',
-    description: 'Repeat actions 5 times',
-    descriptionVi: 'Lặp lại hành động 5 lần',
+    description: 'Repeat actions N times',
+    descriptionVi: 'Lặp lại hành động N lần',
     difficulty: 2,
     concept: 'repeat_n',
-    code: `// Thu thập 5 viên pha lê
-for (let i = 0; i < 5; i++) {
-  moveForward();
+    code: `// Thu thập {{items:1-10:5}} viên pha lê
+
+moveForward();  // Rời Start
+
+for (let i = 0; i < {{items:1-10:5}}; i++) {
   collectItem();
+  moveForward();
 }
+// Kết thúc tại Finish
 `,
   },
   {
@@ -72,15 +88,22 @@ for (let i = 0; i < 5; i++) {
     descriptionVi: 'Tạo đường đi hình chữ L',
     difficulty: 2,
     concept: 'repeat_n',
-    code: `// Đường đi hình chữ L
-for (let i = 0; i < 3; i++) {
-  moveForward();
+    code: `// Đường đi hình chữ L ({{segment1:1-8:3}} + {{segment2:1-8:3}} ô)
+
+moveForward();
+
+// Đoạn 1: đi thẳng
+for (let i = 0; i < {{segment1:1-8:3}}; i++) {
   collectItem();
+  moveForward();
 }
+
 turnRight();
-for (let i = 0; i < 3; i++) {
-  moveForward();
+
+// Đoạn 2: rẽ phải đi tiếp
+for (let i = 0; i < {{segment2:1-8:3}}; i++) {
   collectItem();
+  moveForward();
 }
 `,
   },
@@ -88,16 +111,19 @@ for (let i = 0; i < 3; i++) {
     id: 'square-pattern',
     name: 'Square Pattern',
     nameVi: 'Mẫu hình vuông',
-    description: 'Create a square path',
-    descriptionVi: 'Tạo đường đi hình vuông',
+    description: 'Walk around a square',
+    descriptionVi: 'Đi vòng quanh hình vuông',
     difficulty: 3,
     concept: 'repeat_n',
-    code: `// Vẽ hình vuông - lặp 4 lần
+    code: `// Hình vuông với {{sideLength:1-6:2}} ô mỗi cạnh
+
+moveForward();
+
 for (let side = 0; side < 4; side++) {
-  moveForward();
-  collectItem();
-  moveForward();
-  collectItem();
+  for (let step = 0; step < {{sideLength:1-6:2}}; step++) {
+    collectItem();
+    moveForward();
+  }
   turnRight();
 }
 `,
@@ -110,40 +136,54 @@ for (let side = 0; side < 4; side++) {
     descriptionVi: 'Định nghĩa và gọi hàm',
     difficulty: 3,
     concept: 'procedure_simple',
-    code: `// Định nghĩa hàm
-function collectTwo() {
-  moveForward();
-  collectItem();
-  moveForward();
-  collectItem();
+    code: `// Hàm thu thập {{perCall:1-5:2}} items
+
+function collectItems() {
+  for (let i = 0; i < {{perCall:1-5:2}}; i++) {
+    collectItem();
+    moveForward();
+  }
 }
 
-// Gọi hàm 3 lần
-collectTwo();
-turnRight();
-collectTwo();
-turnRight();
-collectTwo();
+moveForward();
+
+// Gọi hàm {{callCount:1-4:3}} lần
+for (let c = 0; c < {{callCount:1-4:3}}; c++) {
+  collectItems();
+  turnRight();
+}
 `,
   },
   {
     id: 'nested-loops',
     name: 'Nested FOR Loops',
     nameVi: 'Vòng lặp lồng nhau',
-    description: 'Create a grid pattern (3x4)',
-    descriptionVi: 'Tạo mẫu lưới (3x4)',
+    description: 'Create a zigzag grid pattern',
+    descriptionVi: 'Tạo mẫu lưới zigzag',
     difficulty: 4,
     concept: 'nested_loop',
-    code: `// Vẽ lưới 3x4 bằng vòng lặp lồng nhau
-for (let row = 0; row < 3; row++) {
-  for (let col = 0; col < 4; col++) {
-    moveForward();
-    collectItem();
-  }
-  // Chuyển sang hàng tiếp theo
+    code: `// Lưới {{rows:1-5:2}} hàng x {{cols:2-8:4}} cột
+
+moveForward();
+
+// Hàng 1: đi thẳng
+for (let col = 0; col < {{cols:2-8:4}}; col++) {
+  collectItem();
+  moveForward();
+}
+
+// Lặp thêm các hàng còn lại
+for (let row = 1; row < {{rows:1-5:2}}; row++) {
+  // Chuyển sang hàng tiếp
   turnRight();
   moveForward();
   turnRight();
+  
+  // Đi qua hàng
+  for (let col = 0; col < {{cols:2-8:4}}; col++) {
+    collectItem();
+    moveForward();
+  }
 }
 `,
   },
@@ -155,19 +195,19 @@ for (let row = 0; row < 3; row++) {
     descriptionVi: 'Gọi hàm bên trong vòng lặp',
     difficulty: 4,
     concept: 'loop_function_call',
-    code: `// Định nghĩa hàm thu thập
-function collectLine() {
-  moveForward();
-  collectItem();
-  moveForward();
-  collectItem();
-  moveForward();
-  collectItem();
+    code: `// Hàm trong vòng lặp
+
+function collectSegment() {
+  for (let i = 0; i < {{segmentSize:1-4:2}}; i++) {
+    collectItem();
+    moveForward();
+  }
 }
 
-// Sử dụng hàm trong vòng lặp
-for (let i = 0; i < 4; i++) {
-  collectLine();
+moveForward();
+
+for (let i = 0; i < {{segments:2-6:4}}; i++) {
+  collectSegment();
   turnRight();
 }
 `,
@@ -180,11 +220,15 @@ for (let i = 0; i < 4; i++) {
     descriptionVi: 'Tạo địa hình cao với lệnh nhảy',
     difficulty: 4,
     concept: 'repeat_n',
-    code: `// Tạo cầu thang với jump
-for (let step = 0; step < 5; step++) {
-  jump();
+    code: `// Cầu thang {{steps:2-8:5}} bậc
+
+jump();  // Rời Start
+
+for (let step = 0; step < {{steps:2-8:5}}; step++) {
   collectItem();
+  jump();
 }
+// Đỉnh cầu thang = Finish
 `,
   },
 ];
