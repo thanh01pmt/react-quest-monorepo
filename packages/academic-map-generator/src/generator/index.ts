@@ -111,3 +111,28 @@ export type {
   ValidationReport,
   MapDataForValidation
 } from './validation/ValidationPipeline';
+
+// ============================================================================
+// SOLUTION-DRIVEN GENERATOR
+// ============================================================================
+
+export {
+  SolutionDrivenGenerator,
+  TemplateFactory,
+  generateFromCode,
+  TemplateInterpreter,
+  SolutionBuilder
+} from './solution-driven';
+
+export type {
+  CodeTemplate,
+  ParameterConfig,
+  GradeLevel,
+  SolutionDrivenResult,
+  GeneratedGameConfig,
+  GenerationMetadata,
+  ExecutionTrace,
+  StructuredSolution,
+  BlockAction
+} from './solution-driven';
+

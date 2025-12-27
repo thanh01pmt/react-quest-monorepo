@@ -330,6 +330,156 @@ export class MarkdownReporter {
     const context = analyzer.analyze();
     return this.generate(config, context);
   }
+
+  /**
+   * Generate a preview report for a Solution-Driven template result
+   */
+  public generateTemplatePreview(
+    result: {
+      trace: {
+        pathCoords: [number, number, number][];
+        items: Array<{ type: string; position: [number, number, number] }>;
+        startPosition: [number, number, number];
+        endPosition: [number, number, number];
+        startDirection: number;
+        endDirection: number;
+        totalMoves: number;
+        totalCollects: number;
+        loopIterations: number;
+      };
+      solution: {
+        rawActions: string[];
+        itemGoals: Record<string, number>;
+      };
+      metadata: {
+        templateId: string;
+        concept: string;
+        gradeLevel: string;
+        resolvedParams: Record<string, number>;
+        pathLength: number;
+        itemCount: number;
+      };
+    }
+  ): string {
+    this.buffer = [];
+    
+    const { trace, solution, metadata } = result;
+
+    this.h1(`Template Preview: ${metadata.templateId}`);
+    
+    this.h2('Template Info');
+    this.line(`- **Concept:** ${metadata.concept}`);
+    this.line(`- **Grade Level:** ${metadata.gradeLevel}`);
+    this.line(`- **Parameters:** ${JSON.stringify(metadata.resolvedParams)}`);
+    
+    this.h2('Execution Summary');
+    this.line(`- **Path Length:** ${metadata.pathLength} blocks`);
+    this.line(`- **Items Placed:** ${metadata.itemCount}`);
+    this.line(`- **Total Moves:** ${trace.totalMoves}`);
+    this.line(`- **Loop Iterations:** ${trace.loopIterations}`);
+    
+    // Draw ASCII Map
+    this.h2('Map Visualization');
+    this.drawTemplateMap(trace);
+    
+    // Item Goals
+    this.h2('Item Goals');
+    for (const [type, count] of Object.entries(solution.itemGoals)) {
+      this.line(`- ${type}: ${count}`);
+    }
+    
+    // Raw Actions (first 20)
+    this.h2('Raw Actions (first 20)');
+    this.buffer.push('```');
+    solution.rawActions.slice(0, 20).forEach((action, i) => {
+      this.line(`${(i + 1).toString().padStart(2)}. ${action}`);
+    });
+    if (solution.rawActions.length > 20) {
+      this.line(`... and ${solution.rawActions.length - 20} more`);
+    }
+    this.buffer.push('```');
+
+    return this.buffer.join('\n');
+  }
+
+  /**
+   * Draw ASCII map for template result
+   */
+  private drawTemplateMap(trace: {
+    pathCoords: [number, number, number][];
+    items: Array<{ type: string; position: [number, number, number] }>;
+    startPosition: [number, number, number];
+    endPosition: [number, number, number];
+  }) {
+    const { pathCoords, items, startPosition, endPosition } = trace;
+
+    if (pathCoords.length === 0) {
+      this.line('*No path generated*');
+      return;
+    }
+
+    // Calculate bounds
+    const xs = pathCoords.map(c => c[0]);
+    const zs = pathCoords.map(c => c[2]);
+    const minX = Math.min(...xs) - 1;
+    const maxX = Math.max(...xs) + 1;
+    const minZ = Math.min(...zs) - 1;
+    const maxZ = Math.max(...zs) + 1;
+
+    // Create lookups
+    const pathSet = new Set(pathCoords.map(c => `${c[0]},${c[2]}`));
+    const itemMap = new Map<string, string>();
+    items.forEach(item => {
+      itemMap.set(`${item.position[0]},${item.position[2]}`, item.type);
+    });
+    const startKey = `${startPosition[0]},${startPosition[2]}`;
+    const endKey = `${endPosition[0]},${endPosition[2]}`;
+
+    this.buffer.push('```text');
+
+    // Header
+    let header = '    ';
+    for (let x = minX; x <= maxX; x++) {
+      header += `${x.toString().padStart(2)} `;
+    }
+    this.buffer.push(header);
+    this.buffer.push('    ' + '-'.repeat((maxX - minX + 1) * 3));
+
+    // Rows
+    for (let z = maxZ; z >= minZ; z--) {
+      let row = `${z.toString().padStart(2)} |`;
+      for (let x = minX; x <= maxX; x++) {
+        const key = `${x},${z}`;
+        const isStart = key === startKey;
+        const isEnd = key === endKey;
+        const item = itemMap.get(key);
+        const isPath = pathSet.has(key);
+
+        if (isStart) {
+          row += ' S ';
+        } else if (isEnd && !item) {
+          row += ' E ';
+        } else if (item) {
+          const symbols: Record<string, string> = {
+            'crystal': 'C',
+            'key': 'K',
+            'switch': 'W',
+            'portal': 'P'
+          };
+          row += ` ${symbols[item] || '?'} `;
+        } else if (isPath) {
+          row += '██ ';
+        } else {
+          row += ' . ';
+        }
+      }
+      this.buffer.push(row);
+    }
+
+    this.buffer.push('```');
+    this.line('');
+    this.line('Legend: S=Start, E=End, ██=Path, C=Crystal, K=Key, W=Switch, P=Portal');
+  }
 }
 
 // ============================================================================

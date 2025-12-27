@@ -1,0 +1,267 @@
+{
+  "id": "TEST_FOR_SIMPLE-test-seed-1",
+  "gameType": "maze",
+  "topic": "topic-title-repeat_n",
+  "level": 1,
+  "titleKey": "Challenge.TEST_FOR_SIMPLE.Title",
+  "questTitleKey": "Challenge.TEST_FOR_SIMPLE.Description",
+  "descriptionKey": "Challenge.TEST_FOR_SIMPLE.Description",
+  "translations": {
+    "vi": {
+      "Challenge.TEST_FOR_SIMPLE.Title": "Thu thập pha lê",
+      "Challenge.TEST_FOR_SIMPLE.Description": "Sử dụng vòng lặp để thu thập pha lê",
+      "topic-title-repeat_n": "repeat_n"
+    },
+    "en": {
+      "Challenge.TEST_FOR_SIMPLE.Title": "Collect Crystals",
+      "Challenge.TEST_FOR_SIMPLE.Description": "Use a loop to collect crystals",
+      "topic-title-repeat_n": "repeat_n"
+    }
+  },
+  "supportedEditors": [
+    "blockly",
+    "monaco"
+  ],
+  "blocklyConfig": {
+    "toolbox": {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATMOVEMENT}",
+          "categorystyle": "movement_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_moveForward"
+            },
+            {
+              "kind": "block",
+              "type": "maze_turn"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATACTIONS}",
+          "categorystyle": "actions_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_collect"
+            }
+          ]
+        },
+        {
+          "kind": "sep"
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATLOOPS}",
+          "categorystyle": "loop_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "controls_repeat_ext"
+            }
+          ]
+        }
+      ]
+    },
+    "maxBlocks": 8
+  },
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 2,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 3,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 4,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 0
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 0,
+          "y": 1,
+          "z": 0,
+          "direction": 1
+        }
+      }
+    ],
+    "collectibles": [
+      {
+        "id": "c1",
+        "type": "crystal",
+        "position": {
+          "x": 1,
+          "y": 1,
+          "z": 0
+        }
+      },
+      {
+        "id": "c2",
+        "type": "crystal",
+        "position": {
+          "x": 2,
+          "y": 1,
+          "z": 0
+        }
+      },
+      {
+        "id": "c3",
+        "type": "crystal",
+        "position": {
+          "x": 3,
+          "y": 1,
+          "z": 0
+        }
+      },
+      {
+        "id": "c4",
+        "type": "crystal",
+        "position": {
+          "x": 4,
+          "y": 1,
+          "z": 0
+        }
+      },
+      {
+        "id": "c5",
+        "type": "crystal",
+        "position": {
+          "x": 5,
+          "y": 1,
+          "z": 0
+        }
+      }
+    ],
+    "interactibles": [],
+    "finish": {
+      "x": 5,
+      "y": 1,
+      "z": 0
+    }
+  },
+  "solution": {
+    "type": "reach_target",
+    "itemGoals": {
+      "crystal": 5
+    },
+    "optimalBlocks": 3,
+    "optimalLines": 3,
+    "rawActions": [
+      "moveForward",
+      "collect",
+      "moveForward",
+      "collect",
+      "moveForward",
+      "collect",
+      "moveForward",
+      "collect",
+      "moveForward",
+      "collect"
+    ],
+    "structuredSolution": {
+      "main": [
+        {
+          "type": "controls_repeat_ext",
+          "times": 5,
+          "do": [
+            {
+              "type": "maze_moveForward"
+            },
+            {
+              "type": "maze_collect"
+            }
+          ]
+        }
+      ],
+      "procedures": {}
+    },
+    "basicSolution": {
+      "main": [
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        }
+      ],
+      "procedures": {}
+    }
+  },
+  "sounds": {
+    "win": "/assets/maze/win.mp3",
+    "fail": "/assets/maze/fail_pegman.mp3"
+  }
+}

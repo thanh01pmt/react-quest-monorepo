@@ -1,0 +1,320 @@
+{
+  "id": "05-simple-function-test-05-simple-function",
+  "gameType": "maze",
+  "topic": "topic-title-procedure_simple",
+  "level": 1,
+  "titleKey": "Challenge.05-simple-function.Title",
+  "questTitleKey": "Challenge.05-simple-function.Description",
+  "descriptionKey": "Challenge.05-simple-function.Description",
+  "translations": {
+    "vi": {
+      "Challenge.05-simple-function.Title": "Simple Function",
+      "Challenge.05-simple-function.Description": "Define a function and call it multiple times",
+      "topic-title-procedure_simple": "procedure_simple"
+    },
+    "en": {
+      "Challenge.05-simple-function.Title": "Simple Function",
+      "Challenge.05-simple-function.Description": "Define a function and call it multiple times",
+      "topic-title-procedure_simple": "procedure_simple"
+    }
+  },
+  "supportedEditors": [
+    "blockly",
+    "monaco"
+  ],
+  "blocklyConfig": {
+    "toolbox": {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATMOVEMENT}",
+          "categorystyle": "movement_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_moveForward"
+            },
+            {
+              "kind": "block",
+              "type": "maze_turn"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATACTIONS}",
+          "categorystyle": "actions_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_collect"
+            }
+          ]
+        }
+      ]
+    },
+    "maxBlocks": 19
+  },
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 2,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 2,
+          "y": 0,
+          "z": -1
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 2,
+          "y": 0,
+          "z": -2
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 1,
+          "y": 0,
+          "z": -2
+        }
+      },
+      {
+        "modelKey": "ground.earthChecker",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": -2
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 0,
+          "y": 1,
+          "z": 0,
+          "direction": 1
+        }
+      }
+    ],
+    "collectibles": [
+      {
+        "id": "c1",
+        "type": "crystal",
+        "position": {
+          "x": 1,
+          "y": 1,
+          "z": 0
+        }
+      },
+      {
+        "id": "c2",
+        "type": "crystal",
+        "position": {
+          "x": 2,
+          "y": 1,
+          "z": 0
+        }
+      },
+      {
+        "id": "c3",
+        "type": "crystal",
+        "position": {
+          "x": 2,
+          "y": 1,
+          "z": -1
+        }
+      },
+      {
+        "id": "c4",
+        "type": "crystal",
+        "position": {
+          "x": 2,
+          "y": 1,
+          "z": -2
+        }
+      },
+      {
+        "id": "c5",
+        "type": "crystal",
+        "position": {
+          "x": 1,
+          "y": 1,
+          "z": -2
+        }
+      },
+      {
+        "id": "c6",
+        "type": "crystal",
+        "position": {
+          "x": 0,
+          "y": 1,
+          "z": -2
+        }
+      }
+    ],
+    "interactibles": [],
+    "finish": {
+      "x": 0,
+      "y": 1,
+      "z": -2
+    }
+  },
+  "solution": {
+    "type": "reach_target",
+    "itemGoals": {
+      "crystal": 6
+    },
+    "optimalBlocks": 14,
+    "optimalLines": 14,
+    "rawActions": [
+      "moveForward",
+      "collect",
+      "moveForward",
+      "collect",
+      "turnRight",
+      "moveForward",
+      "collect",
+      "moveForward",
+      "collect",
+      "turnRight",
+      "moveForward",
+      "collect",
+      "moveForward",
+      "collect"
+    ],
+    "structuredSolution": {
+      "main": [
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        }
+      ],
+      "procedures": {}
+    },
+    "basicSolution": {
+      "main": [
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        }
+      ],
+      "procedures": {}
+    }
+  },
+  "sounds": {
+    "win": "/assets/maze/win.mp3",
+    "fail": "/assets/maze/fail_pegman.mp3"
+  }
+}
