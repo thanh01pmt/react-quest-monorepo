@@ -147,13 +147,14 @@ export class SolutionBuilder {
 
   /**
    * Build ground blocks from path coordinates
+   * Ground blocks are placed at path Y minus 1 (one level below player level)
    */
   buildGroundBlocks(trace: ExecutionTrace, modelKey: string = 'ground.earthChecker'): Block[] {
     return trace.pathCoords.map(coord => ({
       modelKey,
       position: {
         x: coord[0],
-        y: 0, // Ground level
+        y: coord[1] - 1, // Ground is one level below path level
         z: coord[2]
       }
     }));
@@ -261,6 +262,8 @@ export class SolutionBuilder {
         return { type: 'maze_collect' };
       case 'interact':
         return { type: 'maze_toggle_switch' };
+      case 'jump':
+        return { type: 'maze_jump' };
       default:
         return { type: action.type };
     }
@@ -319,7 +322,8 @@ export class SolutionBuilder {
         categorystyle: 'movement_category',
         contents: [
           { kind: 'block', type: 'maze_moveForward' },
-          { kind: 'block', type: 'maze_turn' }
+          { kind: 'block', type: 'maze_turn' },
+          ...(template.code.includes('jump') ? [{ kind: 'block', type: 'maze_jump' }] : [])
         ]
       },
       {
