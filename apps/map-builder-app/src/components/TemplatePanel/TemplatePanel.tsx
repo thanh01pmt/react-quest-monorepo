@@ -23,6 +23,7 @@ interface GeneratedMapData {
     finish: { x: number; y: number; z: number };
     rawActions: string[];
     gameConfig: any;
+    pathCoords: Array<[number, number, number]>; // Path level coordinates for visualization
 }
 
 interface PreviewResult {
@@ -528,7 +529,7 @@ function generateAsciiMap(result: SolutionDrivenResult): string {
 }
 
 function convertToMapData(result: SolutionDrivenResult): GeneratedMapData {
-    const { gameConfig } = result;
+    const { gameConfig, trace } = result;
 
     return {
         blocks: gameConfig.gameConfig.blocks.map((b: any) => ({
@@ -557,7 +558,8 @@ function convertToMapData(result: SolutionDrivenResult): GeneratedMapData {
             z: gameConfig.gameConfig.finish.z
         },
         rawActions: result.solution.rawActions,
-        gameConfig: gameConfig
+        gameConfig: gameConfig,
+        pathCoords: trace.pathCoords as Array<[number, number, number]>
     };
 }
 

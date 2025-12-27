@@ -2599,10 +2599,15 @@ function App() {
         }
 
         // Neighbors (4-connected on same Y, or basic steps up/down?)
-        // For now, flat 4-connected + optional small steps (ramp) logic if needed. 
-        // Let's stick to flat 4-connected for basic path.
+        // UPDATED: Support staircase - allow step up/down by 1 Y level
+        // Moves: [dx, dy, dz] - flat moves + step up/down moves
         const moves = [
-          [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]
+          // Flat movement (same Y)
+          [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1],
+          // Step UP (move forward + up 1 level, like jump())
+          [1, 1, 0], [-1, 1, 0], [0, 1, 1], [0, 1, -1],
+          // Step DOWN (move forward + down 1 level)
+          [1, -1, 0], [-1, -1, 0], [0, -1, 1], [0, -1, -1]
         ];
 
         for (const [dx, dy, dz] of moves) {
@@ -2627,7 +2632,6 @@ function App() {
           curr = curr.parent;
         }
         // Path coords are ground positions.
-        // Start/End are usually raised? No, usually placed objects have integer coords if snapped.
         setDynamicPathCoords(path);
       } else {
         // Path not found -> clear path
@@ -2639,20 +2643,26 @@ function App() {
   }, [placedObjects]);
 
   const solutionPath = useMemo(() => {
-    // Priority 1: Pre-defined solution (Smart Solver)
+    // PRIORITY 1: If user has edited the map, use real-time BFS result
+    // This ensures when user breaks the path, we show no path (empty [])
+    if (hasUserEdit && dynamicPathCoords !== null) {
+      return dynamicPathCoords; // May be [] if no valid path
+    }
+
+    // PRIORITY 2: Pre-defined solution from Smart Solver
     if (questMetadata?.solution?.pathCoordinates) {
       return questMetadata.solution.pathCoordinates.map((p: any) => [p.x, p.y, p.z] as [number, number, number]);
     }
 
-    // Priority 2: Real-time calculated path (Edit fallback)
+    // PRIORITY 3: Real-time calculated path (when no user edit yet)
     if (dynamicPathCoords !== null) return dynamicPathCoords;
 
-    // Priority 3: Topology Path
+    // PRIORITY 4: Topology Path (from generation)
     if (questMetadata?.pathInfo?.path_coords) {
       return questMetadata.pathInfo.path_coords as [number, number, number][];
     }
     return undefined;
-  }, [questMetadata?.solution, questMetadata?.pathInfo, dynamicPathCoords]);
+  }, [hasUserEdit, questMetadata?.solution, questMetadata?.pathInfo, dynamicPathCoords]);
 
   // Compute selectable elements from pathInfo
   const selectableElements = useMemo((): SelectableElement[] => {
@@ -3428,12 +3438,13 @@ function App() {
                   console.log('Created PlacedObjects:', newObjects.length);
                   console.log('First object:', JSON.stringify(newObjects[0], null, 2));
 
-                  // Use handleGenerateMap for proper state management
-                  const pathCoords = data.blocks.map(b => [b.x, b.y, b.z] as [number, number, number]);
+                  // Use path coordinates from trace (path level) for visualization
+                  // Also include placement_coords (ground level blocks) for item placement
                   const metadataUpdate = {
                     rawSolution: data.rawActions,
                     pathInfo: {
-                      path_coords: pathCoords,
+                      path_coords: data.pathCoords, // Path level coordinates from trace
+                      placement_coords: data.blocks.map(b => [b.x, b.y, b.z] as [number, number, number]), // Ground blocks
                       start_pos: [data.playerStart.x, data.playerStart.y, data.playerStart.z] as [number, number, number],
                       target_pos: [data.finish.x, data.finish.y, data.finish.z] as [number, number, number],
                       topology: 'template_generated',
