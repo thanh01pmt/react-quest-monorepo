@@ -211,6 +211,27 @@ export type {
   PathVerificationResult
 } from './generator';
 
+// Solution-Driven Generator
+export {
+  SolutionDrivenGenerator,
+  TemplateFactory,
+  generateFromCode,
+  TemplateInterpreter,
+  SolutionBuilder
+} from './generator';
+
+export type {
+  CodeTemplate,
+  ParameterConfig,
+  GradeLevel,
+  SolutionDrivenResult,
+  GeneratedGameConfig,
+  GenerationMetadata,
+  ExecutionTrace,
+  StructuredSolution,
+  BlockAction
+} from './generator';
+
 // ============================================================================
 // ANALYZER MODULE
 // ============================================================================
