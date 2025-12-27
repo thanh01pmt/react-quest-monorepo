@@ -26,6 +26,7 @@ import { PlacementSelector } from './components/PlacementSelector';
 import { PatternSelector } from './components/PatternSelector';
 import { TemplateManager } from './components/TemplateManager';
 import { PlacementVariants } from './components/PlacementVariants';
+import { TemplatePanel } from './components/TemplatePanel';
 import { RightPanelTabs } from './components/RightPanelTabs';
 // Smart selection types
 export type SelectionMode = 'box' | 'smart';
@@ -84,7 +85,7 @@ function App() {
   // Keyboard Shortcuts State (Moved from HelpButton)
   const [showShortcuts, setShowShortcuts] = useState(false);
   // --- START: THAY ĐỔI ĐỂ QUẢN LÝ LỊCH SỬ UNDO/REDO ---
-  const [activeSidePanel, setActiveSidePanel] = useState<'topology' | 'placement'>('topology'); // State chọn panel
+  const [activeSidePanel, setActiveSidePanel] = useState<'topology' | 'placement' | 'template'>('topology'); // State chọn panel
   const [placementSubTab, setPlacementSubTab] = useState<'guided' | 'auto'>('guided'); // Sub-tab trong Placement panel
   const [autoPlacementMode, setAutoPlacementMode] = useState<'random' | 'academic'>('random'); // Mode trong Auto tab
   const [constraintsEnabled, setConstraintsEnabled] = useState(true); // Bật/tắt constraints trong Random mode
@@ -3030,11 +3031,17 @@ function App() {
             >
               Placement
             </button>
+            <button
+              style={{ flex: 1, padding: '10px', background: activeSidePanel === 'template' ? '#3c3c41' : '#2a2a2e', color: activeSidePanel === 'template' ? '#fff' : '#888', border: 'none', cursor: 'pointer', fontWeight: activeSidePanel === 'template' ? 'bold' : 'normal', transition: 'all 0.2s' }}
+              onClick={() => setActiveSidePanel('template')}
+            >
+              Template
+            </button>
           </div>
 
 
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {activeSidePanel === 'topology' ? (
+            {activeSidePanel === 'topology' && (
               <TopologyPanel
                 onGenerate={handleGenerateMap}
                 assetMap={assetMap}
@@ -3043,7 +3050,8 @@ function App() {
                 boxDimensions={boxDimensions}
                 placedObjects={placedObjects}
               />
-            ) : (
+            )}
+            {activeSidePanel === 'placement' && (
               /* Placement Panel - Item Placement Controls with Sub-tabs */
               <div className="placement-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 {/* Sub-tabs for Guided vs Auto */}
@@ -3348,6 +3356,85 @@ function App() {
                   )}
                 </div>
               </div>
+            )}
+            {activeSidePanel === 'template' && (
+              <TemplatePanel
+                onGenerate={(data) => {
+                  // Convert template output to PlacedObject format
+                  const newObjects: PlacedObject[] = [];
+
+                  // Add blocks
+                  data.blocks.forEach((block) => {
+                    const asset = assetMap.get('grass') || assetMap.get('ground.01') || buildableAssetGroups[0]?.items[0];
+                    if (asset) {
+                      newObjects.push({
+                        id: uuidv4(),
+                        asset,
+                        position: [block.x, block.y - 1, block.z], // y-1 because ground is at y=0
+                        rotation: [0, 0, 0],
+                        properties: {}
+                      });
+                    }
+                  });
+
+                  // Add items
+                  data.items.forEach((item) => {
+                    const assetKey = item.type === 'crystal' ? 'crystal' : item.type === 'key' ? 'key' : 'switch';
+                    const asset = assetMap.get(assetKey);
+                    if (asset) {
+                      newObjects.push({
+                        id: uuidv4(),
+                        asset,
+                        position: [item.position.x, item.position.y, item.position.z],
+                        rotation: [0, 0, 0],
+                        properties: { type: item.type }
+                      });
+                    }
+                  });
+
+                  // Add player start
+                  const playerAsset = assetMap.get('player_start');
+                  if (playerAsset) {
+                    newObjects.push({
+                      id: 'player_start',
+                      asset: playerAsset,
+                      position: [data.playerStart.x, data.playerStart.y, data.playerStart.z],
+                      rotation: [0, (data.playerStart.direction || 0) * Math.PI / 2, 0],
+                      properties: { type: 'player_start', direction: data.playerStart.direction }
+                    });
+                  }
+
+                  // Add finish
+                  const finishAsset = assetMap.get('finish');
+                  if (finishAsset) {
+                    newObjects.push({
+                      id: 'finish',
+                      asset: finishAsset,
+                      position: [data.finish.x, data.finish.y, data.finish.z],
+                      rotation: [0, 0, 0],
+                      properties: { type: 'finish' }
+                    });
+                  }
+
+                  // Replace map
+                  setPlacedObjectsWithHistory(newObjects);
+                  setHasUserEdit(true);
+
+                  // Update quest metadata with solution
+                  setQuestMetadata(prev => ({
+                    ...prev,
+                    rawSolution: data.rawActions,
+                    pathInfo: {
+                      path_coords: data.blocks.map(b => [b.x, b.y, b.z]),
+                      start_pos: [data.playerStart.x, data.playerStart.y, data.playerStart.z],
+                      target_pos: [data.finish.x, data.finish.y, data.finish.z]
+                    }
+                  }));
+
+                  console.log(`Template generated: ${data.blocks.length} blocks, ${data.items.length} items`);
+                }}
+                hasExistingMap={placedObjects.length > 0}
+              />
             )}
           </div>
         </div>

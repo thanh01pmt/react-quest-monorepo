@@ -142,7 +142,7 @@ export interface LoopFrame {
  * Single action during execution
  */
 export interface ExecutionAction {
-  type: 'move' | 'turn_left' | 'turn_right' | 'collect' | 'interact';
+  type: 'move' | 'jump' | 'turn_left' | 'turn_right' | 'collect' | 'interact';
   position: Coord;
   direction: Direction;
   item?: string;

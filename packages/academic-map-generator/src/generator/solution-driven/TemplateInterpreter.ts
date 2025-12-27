@@ -721,32 +721,53 @@ export class TemplateInterpreter {
     const name = node.name.toLowerCase();
     
     switch (name) {
+      // === Movement Commands (Quest Player compatible) ===
       case 'moveforward':
       case 'move_forward':
         this.doMoveForward();
         break;
+      
+      case 'jump':
+        this.doJump();
+        break;
+      
       case 'turnleft':
       case 'turn_left':
         this.doTurnLeft();
         break;
+      
       case 'turnright':
       case 'turn_right':
         this.doTurnRight();
         break;
+      
+      // === Item Commands (Quest Player compatible) ===
+      // Primary: collectItem() - matches Quest Player exactly
+      case 'collectitem':
+      case 'collect_item':
+        this.doCollect('crystal'); // Default to crystal
+        break;
+      
+      // Legacy aliases for backward compatibility
       case 'pickcrystal':
       case 'pick_crystal':
       case 'collectcrystal':
       case 'collect':
         this.doCollect('crystal');
         break;
+      
       case 'pickkey':
       case 'pick_key':
+      case 'collectkey':
         this.doCollect('key');
         break;
+      
+      // === Switch Commands (Quest Player compatible) ===
       case 'toggleswitch':
       case 'toggle_switch':
         this.doInteract('switch');
         break;
+      
       default:
         // Check for user-defined functions
         this.callUserFunction(name);
@@ -777,6 +798,34 @@ export class TemplateInterpreter {
     
     this.actions.push({
       type: 'move',
+      position: [...this.context.position] as Coord,
+      direction: this.context.direction
+    });
+    this.totalMoves++;
+  }
+
+  /**
+   * Jump: Move forward and up one block (for elevated terrain)
+   * In map generation, this creates a step-up in the path
+   */
+  private doJump(): void {
+    // Move forward
+    this.context.position = moveForward(this.context.position, this.context.direction);
+    // Move up one block
+    this.context.position = [
+      this.context.position[0],
+      this.context.position[1] + 1,
+      this.context.position[2]
+    ] as Coord;
+    
+    const key = coordToKey(this.context.position);
+    if (!this.pathSet.has(key)) {
+      this.pathCoords.push([...this.context.position] as Coord);
+      this.pathSet.add(key);
+    }
+    
+    this.actions.push({
+      type: 'jump',
       position: [...this.context.position] as Coord,
       direction: this.context.direction
     });
