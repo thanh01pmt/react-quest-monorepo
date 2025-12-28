@@ -1231,14 +1231,35 @@ function App() {
   const recalculatePathForObjects = (objects: PlacedObject[]) => {
     // 1. Chuẩn bị dữ liệu cho solver
     const blocks = objects.filter((o: PlacedObject) => o.asset.type === 'block').map((o: PlacedObject) => ({ modelKey: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
-    const collectibles = objects.filter((o: PlacedObject) => o.asset.type === 'collectible').map((o: PlacedObject, i: number) => ({ id: o.id, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
+    const collectibles = objects.filter((o: PlacedObject) =>
+      o.asset.type === 'collectible' ||
+      (o.asset.key && o.asset.key.toLowerCase().includes('crystal'))
+    ).map((o: PlacedObject, i: number) => ({ id: o.id, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
+
+    console.log('[DEBUG Solver] Blocks count:', blocks.length, 'Collectibles count (raw):', collectibles.length);
     const interactibles = objects.filter((o: PlacedObject) => o.asset.type === 'interactible').map((o: PlacedObject) => ({ id: o.id, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] }, initialState: o.properties?.initialState }));
 
     const finishObject = objects.find(o => o.asset.key === 'finish');
     const startObject = objects.find(o => o.asset.key === 'player_start');
 
     if (finishObject && startObject) {
-      const finish = { x: finishObject.position[0], y: finishObject.position[1], z: finishObject.position[2] };
+      let finish = { x: finishObject.position[0], y: finishObject.position[1], z: finishObject.position[2] };
+
+      // AUTO-CORRECT: If finish is placed AT ground level (Y=0), lift it to Y=1 so solver can reach it
+      const blockAtFinish = blocks.find(b => b.position.x === finish.x && b.position.y === finish.y && b.position.z === finish.z);
+      if (blockAtFinish) {
+        console.log('[DEBUG Solver] Finish is inside block, lifting to Y+1');
+        finish.y += 1;
+      }
+
+      const startPos = { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2] };
+      // AUTO-CORRECT: Lift start too if needed
+      const blockAtStart = blocks.find(b => b.position.x === startPos.x && b.position.y === startPos.y && b.position.z === startPos.z);
+      if (blockAtStart) {
+        console.log('[DEBUG Solver] Start is inside block, lifting to Y+1');
+        startPos.y += 1;
+      }
+
       // Parse direction safely
       let uiDirection = 0;
       if (startObject.properties?.direction) {
@@ -1251,16 +1272,24 @@ function App() {
       // No conversion needed anymore (the old mapping was for Python solver)
       const solverDirection = uiDirection;
 
-      const players = [{ start: { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2], direction: solverDirection } }];
+      const players = [{ start: { x: startPos.x, y: startPos.y, z: startPos.z, direction: solverDirection } }];
 
 
       const gameConfig = { blocks, players, finish, collectibles, interactibles };
 
       // Cấu hình itemGoals cho solver
       const itemGoals: Record<string, any> = {};
+
+      // AUTO-DETECT ITEM GOALS from collectibles
       collectibles.forEach(c => {
-        itemGoals[c.type] = (itemGoals[c.type] || 0) + 1;
+        // Ensure valid type (fallback to 'crystal' if missing/empty)
+        const type = c.type || 'crystal';
+        itemGoals[type] = (itemGoals[type] || 0) + 1;
       });
+      console.log('[DEBUG Solver] Collectibles found:', collectibles.length);
+      console.log('[DEBUG Solver] Generated ItemGoals:', JSON.stringify(itemGoals));
+
+      // Đối với switch, chúng ta đếm số lượng switch cần bật (mặc định là tất cả nếu có switch)
       // Đối với switch, chúng ta đếm số lượng switch cần bật (mặc định là tất cả nếu có switch)
       const switches = interactibles.filter(i => i.type === 'switch');
       if (switches.length > 0) {
@@ -1275,6 +1304,8 @@ function App() {
 
       // 2. Gọi hàm giải
       console.log("Auto-calculating path...");
+      console.log("gameConfig:", { blocks: blocks.length, collectibles, finish, players });
+      console.log("itemGoals:", itemGoals);
       // @ts-ignore - solveMaze might have slight type mismatch with strict null checks
       const result = solveMaze(gameConfig, solveConfig, { availableBlocks: [] });
 
@@ -1291,7 +1322,11 @@ function App() {
               ...prev.pathInfo,
               path_coords: newPathCoords
             },
-            solution: result
+            solution: {
+              ...prev.solution, // Keep existing metadata
+              ...result,        // Override with new solver result
+              itemGoals: solveConfig.itemGoals // Explicitly save items goals used
+            }
           };
         });
       } else {
@@ -1318,6 +1353,18 @@ function App() {
       placedObjects
         .filter(o => o.asset.type === 'collectible' || o.asset.type === 'interactible')
         .map(o => ({ id: o.id, pos: o.position }))
+    ),
+    // Also recalculate when blocks change (affects pathfinding)
+    JSON.stringify(
+      placedObjects
+        .filter(o => o.asset.type === 'block')
+        .map(o => ({ id: o.id, pos: o.position }))
+    ),
+    // Trigger when Start/Finish moves or changes direction
+    JSON.stringify(
+      placedObjects
+        .filter(o => o.asset.key === 'player_start' || o.asset.key === 'finish')
+        .map(o => ({ id: o.id, pos: o.position, dir: o.properties?.direction }))
     )
   ]);
 
@@ -3442,6 +3489,7 @@ function App() {
                   // Also include placement_coords (ground level blocks) for item placement
                   const metadataUpdate = {
                     rawSolution: data.rawActions,
+                    solution: data.solutionConfig, // Store initial solution with ItemGoals
                     pathInfo: {
                       path_coords: data.pathCoords, // Path level coordinates from trace
                       placement_coords: data.blocks.map(b => [b.x, b.y, b.z] as [number, number, number]), // Ground blocks

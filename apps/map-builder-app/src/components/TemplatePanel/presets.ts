@@ -2,15 +2,11 @@
  * Template Presets
  * 
  * Predefined code templates for common patterns.
- * Commands match Quest Player exactly (see packages/quest-player/src/games/maze/blocks.ts)
+ * Commands match Quest Player exactly.
  * 
- * RULES:
- * 1. Start and Finish positions must NOT contain items.
- * 2. Use {{varName}} for configurable values.
- *    - {{varName}} - Default: 3, Range: 1-10
- *    - {{varName:5}} - Default: 5, Range: 1-10
- *    - {{varName:2-8}} - Default: 2, Range: 2-8
- *    - {{varName:1-20:5}} - Range: 1-20, Default: 5
+ * PLACEHOLDERS:
+ * - _MIN_X_ and _MAX_X_ for adjustable min/max bounds
+ * - random(_MIN_X_, _MAX_X_) for runtime random values
  */
 
 export interface TemplatePreset {
@@ -29,15 +25,18 @@ export const TEMPLATE_PRESETS: TemplatePreset[] = [
     id: 'custom',
     name: 'Custom Code',
     nameVi: 'Tùy chỉnh',
-    description: 'Write your own code with {{variables}}',
-    descriptionVi: 'Tự viết code với {{biến}}',
+    description: 'Write your own code with adjustable parameters',
+    descriptionVi: 'Viết code với tham số điều chỉnh được',
     difficulty: 1,
     concept: 'custom',
-    code: `// Viết code của bạn ở đây
-// Dùng {{tên_biến}} để tạo tham số có thể điều chỉnh
+    code: `// === Adjustable Parameters ===
+var _MIN_ITEMS_ = 2;
+var _MAX_ITEMS_ = 5;
+var ITEMS = random(_MIN_ITEMS_, _MAX_ITEMS_);
 
+// Your code here
 moveForward();
-for (let i = 0; i < {{count:1-10:3}}; i++) {
+for (let i = 0; i < ITEMS; i++) {
   collectItem();
   moveForward();
 }
@@ -65,19 +64,22 @@ moveForward();
     id: 'simple-for-loop',
     name: 'Simple FOR Loop',
     nameVi: 'Vòng lặp FOR đơn giản',
-    description: 'Repeat actions N times',
-    descriptionVi: 'Lặp lại hành động N lần',
+    description: 'Collect N crystals with random count',
+    descriptionVi: 'Thu thập N pha lê với số lượng ngẫu nhiên',
     difficulty: 2,
     concept: 'repeat_n',
-    code: `// Thu thập {{items:1-10:5}} viên pha lê
+    code: `// === Adjustable Parameters ===
+var _MIN_CRYSTAL_NUM_ = 3;
+var _MAX_CRYSTAL_NUM_ = 6;
+var CRYSTAL_NUM = random(_MIN_CRYSTAL_NUM_, _MAX_CRYSTAL_NUM_);
 
-moveForward();  // Rời Start
+// Thu thập pha lê
+moveForward();
 
-for (let i = 0; i < {{items:1-10:5}}; i++) {
+for (let i = 0; i < CRYSTAL_NUM; i++) {
   collectItem();
   moveForward();
 }
-// Kết thúc tại Finish
 `,
   },
   {
@@ -88,20 +90,25 @@ for (let i = 0; i < {{items:1-10:5}}; i++) {
     descriptionVi: 'Tạo đường đi hình chữ L',
     difficulty: 2,
     concept: 'repeat_n',
-    code: `// Đường đi hình chữ L ({{segment1:1-8:3}} + {{segment2:1-8:3}} ô)
+    code: `// === Adjustable Parameters ===
+var _MIN_SEGMENT1_ = 2;
+var _MAX_SEGMENT1_ = 4;
+var _MIN_SEGMENT2_ = 2;
+var _MAX_SEGMENT2_ = 4;
+var SEGMENT1 = random(_MIN_SEGMENT1_, _MAX_SEGMENT1_);
+var SEGMENT2 = random(_MIN_SEGMENT2_, _MAX_SEGMENT2_);
 
+// Đường đi hình chữ L
 moveForward();
 
-// Đoạn 1: đi thẳng
-for (let i = 0; i < {{segment1:1-8:3}}; i++) {
+for (let i = 0; i < SEGMENT1; i++) {
   collectItem();
   moveForward();
 }
 
 turnRight();
 
-// Đoạn 2: rẽ phải đi tiếp
-for (let i = 0; i < {{segment2:1-8:3}}; i++) {
+for (let i = 0; i < SEGMENT2; i++) {
   collectItem();
   moveForward();
 }
@@ -115,12 +122,16 @@ for (let i = 0; i < {{segment2:1-8:3}}; i++) {
     descriptionVi: 'Đi vòng quanh hình vuông',
     difficulty: 3,
     concept: 'repeat_n',
-    code: `// Hình vuông với {{sideLength:1-6:2}} ô mỗi cạnh
+    code: `// === Adjustable Parameters ===
+var _MIN_SIDE_ = 2;
+var _MAX_SIDE_ = 4;
+var SIDE = random(_MIN_SIDE_, _MAX_SIDE_);
 
+// Hình vuông
 moveForward();
 
 for (let side = 0; side < 4; side++) {
-  for (let step = 0; step < {{sideLength:1-6:2}}; step++) {
+  for (let step = 0; step < SIDE; step++) {
     collectItem();
     moveForward();
   }
@@ -136,10 +147,16 @@ for (let side = 0; side < 4; side++) {
     descriptionVi: 'Định nghĩa và gọi hàm',
     difficulty: 3,
     concept: 'procedure_simple',
-    code: `// Hàm thu thập {{perCall:1-5:2}} items
+    code: `// === Adjustable Parameters ===
+var _MIN_PER_CALL_ = 1;
+var _MAX_PER_CALL_ = 3;
+var _MIN_CALLS_ = 2;
+var _MAX_CALLS_ = 4;
+var PER_CALL = random(_MIN_PER_CALL_, _MAX_PER_CALL_);
+var CALLS = random(_MIN_CALLS_, _MAX_CALLS_);
 
 function collectItems() {
-  for (let i = 0; i < {{perCall:1-5:2}}; i++) {
+  for (let i = 0; i < PER_CALL; i++) {
     collectItem();
     moveForward();
   }
@@ -147,8 +164,7 @@ function collectItems() {
 
 moveForward();
 
-// Gọi hàm {{callCount:1-4:3}} lần
-for (let c = 0; c < {{callCount:1-4:3}}; c++) {
+for (let c = 0; c < CALLS; c++) {
   collectItems();
   turnRight();
 }
@@ -162,53 +178,30 @@ for (let c = 0; c < {{callCount:1-4:3}}; c++) {
     descriptionVi: 'Tạo mẫu lưới zigzag',
     difficulty: 4,
     concept: 'nested_loop',
-    code: `// Lưới {{rows:1-5:2}} hàng x {{cols:2-8:4}} cột
+    code: `// === Adjustable Parameters ===
+var _MIN_ROWS_ = 2;
+var _MAX_ROWS_ = 3;
+var _MIN_COLS_ = 3;
+var _MAX_COLS_ = 5;
+var ROWS = random(_MIN_ROWS_, _MAX_ROWS_);
+var COLS = random(_MIN_COLS_, _MAX_COLS_);
 
 moveForward();
 
-// Hàng 1: đi thẳng
-for (let col = 0; col < {{cols:2-8:4}}; col++) {
+for (let col = 0; col < COLS; col++) {
   collectItem();
   moveForward();
 }
 
-// Lặp thêm các hàng còn lại
-for (let row = 1; row < {{rows:1-5:2}}; row++) {
-  // Chuyển sang hàng tiếp
+for (let row = 1; row < ROWS; row++) {
   turnRight();
   moveForward();
   turnRight();
   
-  // Đi qua hàng
-  for (let col = 0; col < {{cols:2-8:4}}; col++) {
+  for (let col = 0; col < COLS; col++) {
     collectItem();
     moveForward();
   }
-}
-`,
-  },
-  {
-    id: 'function-in-loop',
-    name: 'Function in Loop',
-    nameVi: 'Hàm trong vòng lặp',
-    description: 'Call function inside a loop',
-    descriptionVi: 'Gọi hàm bên trong vòng lặp',
-    difficulty: 4,
-    concept: 'loop_function_call',
-    code: `// Hàm trong vòng lặp
-
-function collectSegment() {
-  for (let i = 0; i < {{segmentSize:1-4:2}}; i++) {
-    collectItem();
-    moveForward();
-  }
-}
-
-moveForward();
-
-for (let i = 0; i < {{segments:2-6:4}}; i++) {
-  collectSegment();
-  turnRight();
 }
 `,
   },
@@ -220,15 +213,18 @@ for (let i = 0; i < {{segments:2-6:4}}; i++) {
     descriptionVi: 'Tạo địa hình cao với lệnh nhảy',
     difficulty: 4,
     concept: 'repeat_n',
-    code: `// Cầu thang {{steps:2-8:5}} bậc
+    code: `// === Adjustable Parameters ===
+var _MIN_STEPS_ = 3;
+var _MAX_STEPS_ = 6;
+var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
-jump();  // Rời Start
+// Cầu thang
+jump();
 
-for (let step = 0; step < {{steps:2-8:5}}; step++) {
+for (let step = 0; step < STEPS; step++) {
   collectItem();
   jump();
 }
-// Đỉnh cầu thang = Finish
 `,
   },
 ];

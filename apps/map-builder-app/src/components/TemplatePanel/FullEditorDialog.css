@@ -1,0 +1,153 @@
+/**
+ * FullEditorDialog CSS
+ */
+
+/* Overlay */
+.full-editor-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(4px);
+}
+
+/* Dialog */
+.full-editor-dialog {
+    width: 90vw;
+    max-width: 1200px;
+    height: 85vh;
+    background: #1e1e1e;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid #333;
+    overflow: hidden;
+}
+
+/* Header */
+.full-editor-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #2d2d2d, #252525);
+    border-bottom: 1px solid #444;
+    gap: 16px;
+}
+
+.full-editor-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.full-editor-title svg {
+    color: #3b82f6;
+}
+
+.full-editor-variables {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.full-editor-variables-label {
+    font-size: 12px;
+    color: #888;
+}
+
+.full-editor-variable-badge {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.full-editor-close {
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.full-editor-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* Editor Body */
+.full-editor-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Footer */
+.full-editor-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #252525;
+    border-top: 1px solid #444;
+}
+
+.full-editor-hint {
+    font-size: 12px;
+    color: #888;
+}
+
+.full-editor-hint code {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.full-editor-done-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.full-editor-done-btn:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-1px);
+}
+
+.full-editor-done-btn:active {
+    transform: translateY(0);
+}
+
+/* Monaco overrides for better look */
+.full-editor-body .monaco-editor,
+.full-editor-body .monaco-editor .margin,
+.full-editor-body .monaco-editor-background {
+    background-color: #1e1e1e !important;
+}
