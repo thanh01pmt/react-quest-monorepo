@@ -1,12 +1,13 @@
 // src/games/maze/Maze3DRenderer.tsx
 
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { IGameRenderer as IGameRendererBase, MazeConfig, CameraMode } from '../../types';
 import type { MazeGameState } from './types';
 import { RobotCharacter } from './components/RobotCharacter';
 import { CameraRig } from './components/CameraRig';
+import { IntroSceneController } from './components/IntroSceneController';
 import BlockComponent from './components/Block';
 import { Collectible } from './components/Collectible';
 import { Portal } from './components/Portal';
@@ -21,10 +22,13 @@ interface IGameRenderer extends IGameRendererBase {
 const TILE_SIZE = 2;
 
 // --- [THÊM MỚI] Component quản lý camera ---
-const SceneCamera: React.FC<{ blocks: MazeConfig['blocks'] }> = ({ blocks }) => {
-  const { camera, scene } = useThree();
+const SceneCamera: React.FC<{ blocks: MazeConfig['blocks']; skipInitialPosition?: boolean }> = ({ blocks, skipInitialPosition = false }) => {
+  const { camera } = useThree();
 
   useEffect(() => {
+    // Nếu intro scene đang chạy, không đặt vị trí camera ban đầu
+    if (skipInitialPosition) return;
+
     if (!blocks || blocks.length === 0) {
       camera.position.set(0, 30, 25);
       camera.lookAt(0, 0, 0);
@@ -56,14 +60,14 @@ const SceneCamera: React.FC<{ blocks: MazeConfig['blocks'] }> = ({ blocks }) => 
 
     // Đặt camera ở một vị trí hợp lý, nhìn về phía trung tâm
     camera.position.set(center.x, center.y + cameraZ * 0.8, center.z + cameraZ);
-    
+
     // Quan trọng: Hướng camera nhìn vào tâm của màn chơi
     camera.lookAt(center);
-    
+
     // Cập nhật ma trận chiếu của camera
     camera.updateProjectionMatrix();
 
-  }, [blocks, camera]);
+  }, [blocks, camera, skipInitialPosition]);
 
   return null; // Component này không render gì cả, chỉ để điều khiển camera
 };
@@ -71,39 +75,39 @@ const SceneCamera: React.FC<{ blocks: MazeConfig['blocks'] }> = ({ blocks }) => 
 // --- Helper Components ---
 
 const FinishMarker: React.FC<{ position: [number, number, number] }> = ({ position }) => {
-    const height = 0.5;
-    const radius = TILE_SIZE / 4;
-    return (
-        <mesh position={[position[0], position[1] + height / 2, position[2]]}>
-            <cylinderGeometry args={[radius, radius, height, 32]} />
-            <meshStandardMaterial color="#00ffff" emissive="#00ffff" emissiveIntensity={2} />
-        </mesh>
-    );
+  const height = 0.5;
+  const radius = TILE_SIZE / 4;
+  return (
+    <mesh position={[position[0], position[1] + height / 2, position[2]]}>
+      <cylinderGeometry args={[radius, radius, height, 32]} />
+      <meshStandardMaterial color="#00ffff" emissive="#00ffff" emissiveIntensity={2} />
+    </mesh>
+  );
 };
 
-const Scene: React.FC<{ 
-  gameConfig: MazeConfig; 
-  gameState: MazeGameState; 
+const Scene: React.FC<{
+  gameConfig: MazeConfig;
+  gameState: MazeGameState;
   onActionComplete: () => void;
   onTeleportComplete: () => void; // Nhận prop mới
   robotRef: React.RefObject<THREE.Group>;
 }> = ({ gameConfig, gameState, onActionComplete, onTeleportComplete, robotRef }) => {
   const activePlayer = gameState.players[gameState.activePlayerId];
-  
+
   const robotPosition = useMemo(() => {
     if (!activePlayer) return new THREE.Vector3(0, 0, 0);
     // For TeleportIn, the visual position should be the target, not the old logical position
     if (activePlayer.pose === 'TeleportIn' && activePlayer.teleportTarget) {
-        const { x, y, z } = activePlayer.teleportTarget;
-        return new THREE.Vector3(x * TILE_SIZE, (y-1) * TILE_SIZE + TILE_SIZE/2, z*TILE_SIZE);
+      const { x, y, z } = activePlayer.teleportTarget;
+      return new THREE.Vector3(x * TILE_SIZE, (y - 1) * TILE_SIZE + TILE_SIZE / 2, z * TILE_SIZE);
     }
     const groundY = (activePlayer.y - 1) * TILE_SIZE;
     const surfaceY = groundY + TILE_SIZE / 2;
 
     return new THREE.Vector3(
-        activePlayer.x * TILE_SIZE,
-        surfaceY,
-        activePlayer.z * TILE_SIZE
+      activePlayer.x * TILE_SIZE,
+      surfaceY,
+      activePlayer.z * TILE_SIZE
     );
   }, [activePlayer]);
 
@@ -112,14 +116,14 @@ const Scene: React.FC<{
   return (
     <group>
       {gameState.blocks.map((block, index) => (
-        <BlockComponent 
-          key={`block-${index}`} 
-          modelKey={block.modelKey} 
+        <BlockComponent
+          key={`block-${index}`}
+          modelKey={block.modelKey}
           position={[
-            block.position.x * TILE_SIZE, 
-            block.position.y * TILE_SIZE, 
+            block.position.x * TILE_SIZE,
+            block.position.y * TILE_SIZE,
             block.position.z * TILE_SIZE
-          ]} 
+          ]}
         />
       ))}
 
@@ -143,7 +147,7 @@ const Scene: React.FC<{
               color={item.color}
               position={[
                 item.position.x * TILE_SIZE,
-                (item.position.y - 0.54) * TILE_SIZE + 0.1, 
+                (item.position.y - 0.54) * TILE_SIZE + 0.1,
                 item.position.z * TILE_SIZE,
               ]}
             />
@@ -166,21 +170,21 @@ const Scene: React.FC<{
         return null;
       })}
 
-      <FinishMarker 
+      <FinishMarker
         position={[
-          gameConfig.finish.x * TILE_SIZE, 
+          gameConfig.finish.x * TILE_SIZE,
           (gameConfig.finish.y - 1) * TILE_SIZE + TILE_SIZE / 2,
           (gameConfig.finish.z ?? gameConfig.finish.y) * TILE_SIZE
-        ]} 
+        ]}
       />
-      
-      <RobotCharacter 
+
+      <RobotCharacter
         ref={robotRef}
-        position={robotPosition} 
+        position={robotPosition}
         direction={activePlayer.direction}
         animationName={activePlayer.pose || 'Idle'}
         onTweenComplete={onActionComplete}
-        onTeleportOutComplete={onTeleportComplete} 
+        onTeleportOutComplete={onTeleportComplete}
       />
     </group>
   );
@@ -188,44 +192,79 @@ const Scene: React.FC<{
 
 // --- Main Renderer Component ---
 
-export const Maze3DRenderer: IGameRenderer = ({ gameState, gameConfig, cameraMode = 'Follow', onActionComplete = () => {}, onTeleportComplete = () => {} }) => {
-    const mazeState = gameState as MazeGameState;
-    const mazeConfig = gameConfig as MazeConfig;
-    const robotRef = useRef<THREE.Group>(null);
+export const Maze3DRenderer: IGameRenderer = ({ gameState, gameConfig, cameraMode = 'Follow', onActionComplete = () => { }, onTeleportComplete = () => { } }) => {
+  const mazeState = gameState as MazeGameState;
+  const mazeConfig = gameConfig as MazeConfig;
+  const robotRef = useRef<THREE.Group>(null);
 
-    if (!mazeState || !mazeConfig) return null;
+  // --- Intro Scene State ---
+  const introConfig = mazeConfig.introScene;
+  const shouldPlayIntro = introConfig?.enabled === true;
+  const [isIntroPlaying, setIsIntroPlaying] = useState(shouldPlayIntro);
 
-    return (
-      // Canvas sẽ tự động chiếm 100% kích thước của div này.
-      // Không cần ref hay ResizeObserver nữa.
-      <div style={{ width: '100%', height: '100%' }}>
-        <Canvas
-          // Xóa key để Canvas không bị mount lại khi thay đổi kích thước
-          shadows
-          style={{ width: '100%', height: '100%' }}
-        >
-          <color attach="background" args={['#1a0c2b']} />
-          <fog attach="fog" args={['#1a0c2b', 60, 110]} />
-          <ambientLight intensity={0.6} />
-          <directionalLight
-            position={[10, 20, 35]}
-            intensity={1.5}
-            castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
+  // Debug logs
+  console.log('[DEBUG Intro] mazeConfig.introScene:', introConfig);
+  console.log('[DEBUG Intro] shouldPlayIntro:', shouldPlayIntro);
+  console.log('[DEBUG Intro] isIntroPlaying:', isIntroPlaying);
+
+  // Reset intro state khi config thay đổi
+  useEffect(() => {
+    console.log('[DEBUG Intro] useEffect - shouldPlayIntro changed to:', shouldPlayIntro);
+    setIsIntroPlaying(shouldPlayIntro);
+  }, [shouldPlayIntro]);
+
+  const handleIntroComplete = () => {
+    console.log('[DEBUG Intro] handleIntroComplete called');
+    setIsIntroPlaying(false);
+  };
+
+  if (!mazeState || !mazeConfig) return null;
+
+  return (
+    // Canvas sẽ tự động chiếm 100% kích thước của div này.
+    <div style={{ width: '100%', height: '100%' }}>
+      <Canvas
+        shadows
+        style={{ width: '100%', height: '100%' }}
+      >
+        <color attach="background" args={['#1a0c2b']} />
+        <fog attach="fog" args={['#1a0c2b', 60, 110]} />
+        <ambientLight intensity={0.6} />
+        <directionalLight
+          position={[10, 20, 35]}
+          intensity={1.5}
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+        />
+
+        {/* SceneCamera chỉ đặt vị trí ban đầu nếu không có intro */}
+        <SceneCamera blocks={mazeConfig.blocks} skipInitialPosition={isIntroPlaying} />
+
+        {/* IntroSceneController điều khiển camera khi intro đang chạy */}
+        {isIntroPlaying && introConfig && mazeConfig.blocks && (
+          <IntroSceneController
+            config={introConfig}
+            blocks={mazeConfig.blocks}
+            onComplete={handleIntroComplete}
           />
-          
-          <SceneCamera blocks={mazeConfig.blocks} />
-          <CameraRig targetRef={robotRef} mode={cameraMode} />
-          
-          <Scene 
-            gameConfig={mazeConfig} 
-            gameState={mazeState} 
-            onActionComplete={onActionComplete} 
-            robotRef={robotRef}
-            onTeleportComplete={onTeleportComplete}
-          />
-        </Canvas>
-      </div>
-    );
+        )}
+
+        {/* CameraRig nhận introMode để biết khi nào không điều khiển camera */}
+        <CameraRig
+          targetRef={robotRef}
+          mode={cameraMode}
+          introMode={isIntroPlaying}
+        />
+
+        <Scene
+          gameConfig={mazeConfig}
+          gameState={mazeState}
+          onActionComplete={onActionComplete}
+          robotRef={robotRef}
+          onTeleportComplete={onTeleportComplete}
+        />
+      </Canvas>
+    </div>
+  );
 };

@@ -72,6 +72,19 @@ const blockSchema = z.object({
   position: position3DSchema,
 });
 
+// --- Intro Scene Config Schema ---
+const introSceneConfigSchema = z.object({
+  enabled: z.boolean(),
+  type: z.enum(['dronie', 'rocket', 'circle', 'helix', 'boomerang']),
+  duration: z.number().optional(),
+  distance: z.number().optional(),
+  height: z.number().optional(),
+  radius: z.number().optional(),
+  radiusX: z.number().optional(),
+  radiusZ: z.number().optional(),
+  loops: z.number().optional(),
+});
+
 const mazeConfigSchema = z.object({
   type: z.literal('maze'),
   renderer: z.enum(['2d', '3d']).optional(),
@@ -89,6 +102,9 @@ const mazeConfigSchema = z.object({
     y: z.number(),
     z: z.number().optional(),
   }),
+  
+  // Intro Scene configuration (optional, only for 3D renderer)
+  introScene: introSceneConfigSchema.optional(),
 }).superRefine((data, ctx) => {
   if (!data.map && !data.blocks) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Maze config must have either 'map' or 'blocks'" });

@@ -7,7 +7,7 @@ interface VisualizationProps {
   GameRenderer: IGameRenderer;
   gameState: GameState | null;
   gameConfig: GameConfig;
-  solutionCommands?: any[] | null; 
+  solutionCommands?: any[] | null;
   cameraMode?: CameraMode;
   onActionComplete: () => void;
   onTeleportComplete?: () => void;
@@ -22,7 +22,7 @@ export const Visualization = forwardRef<any, VisualizationProps>(
       solutionCommands,
       cameraMode,
       onActionComplete,
-      onTeleportComplete, 
+      onTeleportComplete,
     },
     ref
   ) => {
@@ -43,6 +43,10 @@ export const Visualization = forwardRef<any, VisualizationProps>(
         </div>
       );
     }
+
+    // Debug log
+    console.log('[DEBUG Visualization] gameConfig passed to renderer:', gameConfig);
+    console.log('[DEBUG Visualization] gameConfig.introScene:', (gameConfig as any).introScene);
 
     return (
       <GameRenderer

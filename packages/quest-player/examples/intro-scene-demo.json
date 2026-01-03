@@ -1,0 +1,82 @@
+{
+  "id": "intro-scene-demo",
+  "gameType": "maze",
+  "level": 1,
+  "titleKey": "IntroScene.Title",
+  "questTitleKey": "IntroScene.QuestTitle", 
+  "descriptionKey": "IntroScene.Description",
+  "translations": {
+    "en": {
+      "IntroScene.Title": "Intro Scene Demo",
+      "IntroScene.QuestTitle": "Demo: Camera Intro",
+      "IntroScene.Description": "Watch the camera fly around the maze before starting!"
+    },
+    "vi": {
+      "IntroScene.Title": "Demo Intro Scene",
+      "IntroScene.QuestTitle": "Demo: Camera Intro",
+      "IntroScene.Description": "Xem camera bay quanh màn chơi trước khi bắt đầu!"
+    }
+  },
+  "blocklyConfig": {
+    "toolbox": {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category",
+          "name": "Movement",
+          "colour": "#5C81A6",
+          "contents": [
+            { "kind": "block", "type": "maze_moveForward" },
+            { "kind": "block", "type": "maze_turn" }
+          ]
+        }
+      ]
+    }
+  },
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "introScene": {
+      "enabled": true,
+      "type": "circle",
+      "duration": 4000,
+      "radius": 30,
+      "loops": 1
+    },
+    "blocks": [
+      { "modelKey": "ground.normal", "position": { "x": 0, "y": 0, "z": 0 } },
+      { "modelKey": "ground.normal", "position": { "x": 1, "y": 0, "z": 0 } },
+      { "modelKey": "ground.normal", "position": { "x": 2, "y": 0, "z": 0 } },
+      { "modelKey": "ground.normal", "position": { "x": 3, "y": 0, "z": 0 } },
+      { "modelKey": "ground.normal", "position": { "x": 4, "y": 0, "z": 0 } },
+      { "modelKey": "ground.normal", "position": { "x": 0, "y": 0, "z": 1 } },
+      { "modelKey": "ground.normal", "position": { "x": 1, "y": 0, "z": 1 } },
+      { "modelKey": "ground.normal", "position": { "x": 2, "y": 0, "z": 1 } },
+      { "modelKey": "ground.normal", "position": { "x": 3, "y": 0, "z": 1 } },
+      { "modelKey": "ground.normal", "position": { "x": 4, "y": 0, "z": 1 } },
+      { "modelKey": "ground.normal", "position": { "x": 0, "y": 0, "z": 2 } },
+      { "modelKey": "ground.normal", "position": { "x": 1, "y": 0, "z": 2 } },
+      { "modelKey": "ground.normal", "position": { "x": 2, "y": 0, "z": 2 } },
+      { "modelKey": "ground.normal", "position": { "x": 3, "y": 0, "z": 2 } },
+      { "modelKey": "ground.normal", "position": { "x": 4, "y": 0, "z": 2 } },
+      { "modelKey": "ground.normal", "position": { "x": 0, "y": 0, "z": 3 } },
+      { "modelKey": "ground.normal", "position": { "x": 1, "y": 0, "z": 3 } },
+      { "modelKey": "ground.normal", "position": { "x": 2, "y": 0, "z": 3 } },
+      { "modelKey": "ground.normal", "position": { "x": 3, "y": 0, "z": 3 } },
+      { "modelKey": "ground.normal", "position": { "x": 4, "y": 0, "z": 3 } },
+      { "modelKey": "ground.normal", "position": { "x": 0, "y": 0, "z": 4 } },
+      { "modelKey": "ground.normal", "position": { "x": 1, "y": 0, "z": 4 } },
+      { "modelKey": "ground.normal", "position": { "x": 2, "y": 0, "z": 4 } },
+      { "modelKey": "ground.normal", "position": { "x": 3, "y": 0, "z": 4 } },
+      { "modelKey": "ground.normal", "position": { "x": 4, "y": 0, "z": 4 } }
+    ],
+    "player": {
+      "id": "player1",
+      "start": { "x": 0, "y": 1, "z": 0, "direction": 1 }
+    },
+    "finish": { "x": 4, "y": 1, "z": 4 }
+  },
+  "solution": {
+    "type": "reach_target"
+  }
+}

@@ -121,6 +121,33 @@ export interface PlayerConfig {
   };
 }
 
+// --- Intro Scene Configuration ---
+
+export type IntroSceneType = 'dronie' | 'rocket' | 'circle' | 'helix' | 'boomerang';
+
+export interface IntroSceneConfig {
+  /** Bật/tắt intro scene. Nếu false hoặc không có, màn chơi bắt đầu ngay */
+  enabled: boolean;
+  /** Loại animation camera */
+  type: IntroSceneType;
+  /** Thời lượng animation (ms). Mặc định: 4000 */
+  duration?: number;
+  
+  // Type-specific parameters
+  /** Khoảng cách bay lùi (dronie). Mặc định: 20 */
+  distance?: number;
+  /** Độ cao (rocket, helix, boomerang). Mặc định: 15 */
+  height?: number;
+  /** Bán kính (circle, helix). Mặc định: 25 */
+  radius?: number;
+  /** Bán kính trục X (boomerang). Mặc định: 30 */
+  radiusX?: number;
+  /** Bán kính trục Z (boomerang). Mặc định: 20 */
+  radiusZ?: number;
+  /** Số vòng quay (circle, helix). Mặc định: 1 */
+  loops?: number;
+}
+
 export interface MazeConfig {
   type: 'maze';
   renderer?: '2d' | '3d';
@@ -131,6 +158,8 @@ export interface MazeConfig {
   collectibles?: Collectible[];
   interactibles?: Interactive[];
   finish: { x: number, y: number, z?: number };
+  /** Cấu hình intro scene camera animation (chỉ áp dụng cho 3D renderer) */
+  introScene?: IntroSceneConfig;
 }
 
 export interface TurtleConfig {

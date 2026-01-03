@@ -21,17 +21,27 @@ import './App.css';
 const MemoizedQuestPlayer = React.memo(QuestPlayer);
 
 // Mở rộng kiểu Quest để bao gồm thuộc tính 'topic' và 'groupId'
-type AppQuest = Quest & { 
+type AppQuest = Quest & {
   topic?: string;
-  groupId: string; 
+  groupId: string;
 };
 
 type AppSettings = QuestPlayerSettings & { language: string };
 
 function solutionHasOptimalBlocks(solution: SolutionConfig): solution is SolutionConfig & { optimalBlocks: number } {
-    return solution.optimalBlocks !== undefined;
+  return solution.optimalBlocks !== undefined;
 }
 const questModules: Record<string, { default: Quest }> = import.meta.glob('../quests/**/*.json', { eager: true });
+
+// Debug: Log raw glob output to verify JSON content
+console.log('[DEBUG GLOB] questModules loaded at:', new Date().toISOString());
+Object.entries(questModules).forEach(([path, mod]) => {
+  if (path.includes('C19')) {
+    console.log('[DEBUG GLOB] C19 quest path:', path);
+    console.log('[DEBUG GLOB] C19 quest gameConfig:', (mod.default as any).gameConfig);
+    console.log('[DEBUG GLOB] C19 quest introScene:', (mod.default as any).gameConfig?.introScene);
+  }
+});
 
 const getStoredSettings = (): AppSettings => {
   try {
@@ -80,7 +90,7 @@ function AppContent() {
       i18n.changeLanguage(settings.language);
     }
   }, [settings.language, i18n]);
-  
+
   useEffect(() => {
     const applyTheme = (isDarkMode: boolean) => {
       const newColorScheme = isDarkMode ? 'dark' : 'light';
@@ -171,17 +181,27 @@ function AppContent() {
   }, [groupId, questIdFromUrl, questsInCurrentGroup, navigate, currentQuestId]);
 
   useEffect(() => {
-    if (currentQuestId) {
+    if (currentQuestId && groupId) {
       setIsLoading(true);
       setQuestData(null);
-      
+
       setTimeout(() => {
-        const targetQuest = allQuests.find(quest => quest.id === currentQuestId);
+        // FIX: Match by BOTH groupId and questId to avoid loading wrong quest
+        const targetQuest = allQuests.find(quest => quest.id === currentQuestId && quest.groupId === groupId);
         if (targetQuest) {
+          // Debug log: Check quest data before validation
+          console.log('[DEBUG App.tsx] Loading quest ID:', targetQuest.id, 'from group:', targetQuest.groupId);
+          console.log('[DEBUG App.tsx] targetQuest.gameConfig BEFORE validation:', targetQuest.gameConfig);
+          console.log('[DEBUG App.tsx] introScene in targetQuest:', (targetQuest.gameConfig as any).introScene);
+
           const validationResult = questSchema.safeParse(targetQuest);
           if (validationResult.success) {
+            // Debug log: Check quest data after validation
+            console.log('[DEBUG App.tsx] validationResult.data.gameConfig AFTER validation:', validationResult.data.gameConfig);
+            console.log('[DEBUG App.tsx] introScene AFTER validation:', (validationResult.data.gameConfig as any).introScene);
+
             const newQuestData = { ...validationResult.data, groupId: targetQuest.groupId } as AppQuest;
-            
+
             if (newQuestData.translations) {
               const translations = newQuestData.translations; // Tạo biến mới để TypeScript hiểu kiểu
               Object.keys(translations).forEach((langCode) => {
@@ -192,7 +212,7 @@ function AppContent() {
               });
               i18n.changeLanguage(i18n.language);
             }
-            
+
             setQuestData(newQuestData);
           } else {
             console.error("Quest validation failed:", validationResult.error);
@@ -208,7 +228,7 @@ function AppContent() {
     // Sử dụng navigate để thay đổi URL, effect ở trên sẽ tự động cập nhật state
     navigate(`/quest/${groupId}/${id}`);
   }, [questIdFromUrl, navigate, groupId]);
-  
+
   const handleToggleSidebar = useCallback(() => {
     setIsSidebarCollapsed(prev => !prev);
     setTimeout(() => {
@@ -218,7 +238,7 @@ function AppContent() {
 
   const handleQuestComplete = useCallback((result: QuestCompletionResult) => {
     if (result.isSuccess && result.finalState.solution) {
-      const unitLabel = result.unitLabel === 'block' ? 'blockCount' : 'lineCount';      
+      const unitLabel = result.unitLabel === 'block' ? 'blockCount' : 'lineCount';
       let message = '';
 
       if (result.stars === 3) {
@@ -243,10 +263,10 @@ function AppContent() {
       const resultType = (result.finalState as GameState & { result?: string }).result ?? 'failure';
       const reasonKey = `Games.result${resultType.charAt(0).toUpperCase() + resultType.slice(1)}`;
       const translatedReason = t(reasonKey, { defaultValue: resultType });
-      setDialogState({ 
-          isOpen: true, 
-          title: t('Games.dialogTryAgain'), 
-          message: `${t('Games.dialogReason')}: ${translatedReason}`
+      setDialogState({
+        isOpen: true,
+        title: t('Games.dialogTryAgain'),
+        message: `${t('Games.dialogReason')}: ${translatedReason}`
       });
     }
   }, [t]); // Thêm các phụ thuộc nếu cần
@@ -256,7 +276,7 @@ function AppContent() {
       return <div className="emptyState"><h2>{t('UI.Loading')}</h2></div>;
     }
     return (
-      <MemoizedQuestPlayer 
+      <MemoizedQuestPlayer
         key={questData.id}
         isStandalone={false}
         questData={questData}
@@ -271,9 +291,9 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      <Dialog 
-        isOpen={dialogState.isOpen} 
-        title={dialogState.title} 
+      <Dialog
+        isOpen={dialogState.isOpen}
+        title={dialogState.title}
         onClose={() => setDialogState({ ...dialogState, isOpen: false })}
       >
         {dialogState.stars !== undefined && dialogState.stars > 0 ? (
@@ -288,7 +308,7 @@ function AppContent() {
             {dialogState.stars === 2 && dialogState.optimalBlocks && (
               <p className="optimal-solution-info">{t('Games.dialogOptimalSolution', { optimalBlocks: dialogState.optimalBlocks })}</p>
             )}
-            {dialogState.stars === 1 && <p className="optimal-solution-info">{t('Games.dialogImproveTo3Stars')}</p>} 
+            {dialogState.stars === 1 && <p className="optimal-solution-info">{t('Games.dialogImproveTo3Stars')}</p>}
 
             {dialogState.code && ( // Luôn hiển thị code nếu có
               <details className="code-details">
@@ -301,17 +321,17 @@ function AppContent() {
           <p>{dialogState.message}</p>
         )}
       </Dialog>
-      
-      <QuestSidebar 
+
+      <QuestSidebar
         allQuests={questsInCurrentGroup}
         currentQuestId={currentQuestId}
         onQuestSelect={handleQuestSelect}
         isCollapsed={isSidebarCollapsed}
         onToggle={handleToggleSidebar}
       >
-        <LanguageSelector 
-            language={settings.language} 
-            onChange={handleLanguageChange} 
+        <LanguageSelector
+          language={settings.language}
+          onChange={handleLanguageChange}
         />
       </QuestSidebar>
 

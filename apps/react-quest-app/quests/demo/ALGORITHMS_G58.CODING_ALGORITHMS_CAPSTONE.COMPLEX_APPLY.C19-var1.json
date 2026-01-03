@@ -99,6 +99,13 @@
   "gameConfig": {
     "type": "maze",
     "renderer": "3d",
+    "introScene": {
+      "enabled": true,
+      "type": "circle",
+      "duration": 4000,
+      "radius": 30,
+      "loops": 1
+    },
     "blocks": [
       {
         "modelKey": "ground.snow",
