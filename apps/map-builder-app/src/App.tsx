@@ -2579,109 +2579,69 @@ function App() {
         return;
       }
 
-      // Build Graph
-      // Map: "x,y,z" -> boolean (isWalkable)
-      // "Walkable" means: Has a block at (x,y,z) AND no obstacle at (x,y+1,z)
-      const groundMap = new Set<string>();
-      const obstacleMap = new Set<string>();
+      // --- INTEGRATION: USE REAL GAME SOLVER (A*) TO FIND PATH ---
+      // This ensures we find a path that visits all required items (collectibles/switches)
+      // and updates automatically when map changes.
 
-      placedObjects.forEach(obj => {
-        const key = `${obj.position[0]},${obj.position[1]},${obj.position[2]}`;
-        if (obj.asset.type === 'block' || obj.asset.key.includes('ground')) {
-          groundMap.add(key);
-        } else {
-          // Items/obstacles usually sit ON TOP of ground.
-          // If an item is solid/obstacle, it blocks the position ABOVE the ground?
-          // For simplicity, let's assume walls block, but collectibles don't.
-          if (obj.asset.key.includes('wall') || obj.asset.key.includes('obstacle')) {
-            obstacleMap.add(key);
-          }
-        }
-      });
-
-      const isWalkable = (x: number, y: number, z: number) => {
-        const groundKey = `${x},${y},${z}`;
-        const aboveKey = `${x},${y + 1},${z}`;
-        // Must have ground below
-        if (!groundMap.has(groundKey)) return false;
-        // Must not have obstacle at head level (simplified)
-        // Note: Player moves ON TOP of ground, so player Y = ground Y + 1
-        // But the path_coords usually represent the ground block coordinates.
-        // Let's assume path nodes are the ground blocks themselves.
-        if (obstacleMap.has(aboveKey)) return false;
-        return true;
+      // 1. Build GameConfig
+      const gameConfig = {
+        blocks: placedObjects.filter(o => o.asset.type === 'block' || o.asset.key.includes('ground')).map(b => ({
+          position: { x: b.position[0], y: b.position[1], z: b.position[2] },
+          modelKey: b.asset.key
+        })),
+        players: [{
+          start: { x: startObj.position[0], y: startObj.position[1], z: startObj.position[2], direction: startObj.rotation ? Math.round(startObj.rotation[1] / (Math.PI / 2)) : 1 }
+        }],
+        finish: { x: targetObj.position[0], y: targetObj.position[1], z: targetObj.position[2] },
+        collectibles: placedObjects.filter(o => o.asset.type === 'collectible' || o.asset.key.includes('crystal') || o.asset.key.includes('key')).map(c => ({
+          position: { x: c.position[0], y: c.position[1], z: c.position[2] },
+          id: c.id,
+          type: c.asset.key // Use asset key as type for simplicity
+        })),
+        interactibles: placedObjects.filter(o => o.asset.type === 'interactible' || o.asset.key.includes('switch')).map(i => ({
+          position: { x: i.position[0], y: i.position[1], z: i.position[2] }, // Switches are on ground?
+          id: i.id,
+          type: 'switch',
+          initialState: 'off' as 'off' // Default state
+        }))
       };
 
-      // BFS
-      // Adjust start/target to ground level if needed (Player/Finish often sit ON TOP of ground)
-      let sx = startObj.position[0], sy = startObj.position[1], sz = startObj.position[2];
-      // If start pos is not a ground block, but the block below it is, shift down.
-      if (!groundMap.has(`${sx},${sy},${sz}`) && groundMap.has(`${sx},${sy - 1},${sz}`)) {
-        sy -= 1;
+      // 2. Build SolutionConfig (Compute item goals based on what is placed)
+      const itemGoals: Record<string, any> = {};
+      const collectibleTypes = new Set(gameConfig.collectibles?.map(c => c.type));
+      collectibleTypes.forEach(type => {
+        // Require collecting ALL placed items of this type
+        itemGoals[type] = 'all';
+      });
+      if (gameConfig.interactibles && gameConfig.interactibles.length > 0) {
+        itemGoals['switch'] = 'all';
       }
 
-      let tx = targetObj.position[0], ty = targetObj.position[1], tz = targetObj.position[2];
-      if (!groundMap.has(`${tx},${ty},${tz}`) && groundMap.has(`${tx},${ty - 1},${tz}`)) {
-        ty -= 1;
-      }
+      const solutionConfig = {
+        itemGoals,
+        rawActions: [],
+        structuredSolution: { main: [] }
+      };
 
-      const startNode = { x: sx, y: sy, z: sz, parent: null as any };
-      const targetPosString = `${tx},${ty},${tz}`;
+      // 3. Call Solver
+      try {
+        // Pass minimal blockly config if needed, or let solver use defaults
+        const result = solveMaze(gameConfig, solutionConfig);
 
-      const queue = [startNode];
-      const visited = new Set<string>();
-      visited.add(`${startNode.x},${startNode.y},${startNode.z}`);
+        if (result && result.pathCoordinates && result.pathCoordinates.length > 0) {
+          // 4. Update Dynamic Path
+          // IMPORTANT: Solver returns ground/item coordinates.
+          // We need to shift Y + 1 to visualise ON TOP of blocks.
+          // Also deduplicate if solver returns same pos multiple times (e.g. for turns/actions)
+          // though visualization might assume point-to-point.
 
-      let foundPath = null;
-
-      while (queue.length > 0) {
-        const current = queue.shift()!;
-        const currentKey = `${current.x},${current.y},${current.z}`;
-
-        // Check target (allow proximity? strictly same block for now)
-        // Usually Finish point is ON a block.
-        if (currentKey === targetPosString) {
-          foundPath = current;
-          break;
+          const path = result.pathCoordinates.map(p => [p.x, p.y, p.z] as [number, number, number]);
+          setDynamicPathCoords(path);
+        } else {
+          setDynamicPathCoords([]);
         }
-
-        // Neighbors (4-connected on same Y, or basic steps up/down?)
-        // UPDATED: Support staircase - allow step up/down by 1 Y level
-        // Moves: [dx, dy, dz] - flat moves + step up/down moves
-        const moves = [
-          // Flat movement (same Y)
-          [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1],
-          // Step UP (move forward + up 1 level, like jump())
-          [1, 1, 0], [-1, 1, 0], [0, 1, 1], [0, 1, -1],
-          // Step DOWN (move forward + down 1 level)
-          [1, -1, 0], [-1, -1, 0], [0, -1, 1], [0, -1, -1]
-        ];
-
-        for (const [dx, dy, dz] of moves) {
-          const nx = current.x + dx;
-          const ny = current.y + dy;
-          const nz = current.z + dz;
-          const nextKey = `${nx},${ny},${nz}`;
-
-          if (!visited.has(nextKey) && isWalkable(nx, ny, nz)) {
-            visited.add(nextKey);
-            queue.push({ x: nx, y: ny, z: nz, parent: current });
-          }
-        }
-      }
-
-      if (foundPath) {
-        // Reconstruct path
-        const path: [number, number, number][] = [];
-        let curr = foundPath;
-        while (curr) {
-          path.unshift([curr.x, curr.y, curr.z]);
-          curr = curr.parent;
-        }
-        // Path coords are ground positions.
-        setDynamicPathCoords(path);
-      } else {
-        // Path not found -> clear path
+      } catch (e) {
+        console.error("Auto-solver failed:", e);
         setDynamicPathCoords([]);
       }
     }, 500); // 500ms debounce
