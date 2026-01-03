@@ -1000,7 +1000,7 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                     placedObjects={placedObjects}
                     autoExpand={true}
                     autoAnalyze={true}
-                    autoShowReport={true}
+                    autoShowReport={false}
                 />
             )}
         </div>
