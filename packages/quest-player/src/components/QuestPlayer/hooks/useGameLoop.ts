@@ -57,7 +57,8 @@ export const useGameLoop = (
   // Thêm các tham số mới để tính toán kết quả
   currentEditor: EditorType,
   userCode: string,
-  workspaceRef: React.RefObject<Blockly.WorkspaceSvg>
+  workspaceRef: React.RefObject<Blockly.WorkspaceSvg>,
+  blockCount: number // New parameter
 ) => {
   const [playerStatus, setPlayerStatus] = useState<PlayerStatus>('idle');
   const [currentGameState, setCurrentGameState] = useState<GameState | null>(null);
@@ -92,11 +93,19 @@ export const useGameLoop = (
       setPlayerStatus('finished');
       setHighlightedBlockId(null);
       
-      // --- [SỬA LỖI] BUILD THE COMPLETION RESULT OBJECT ---
-      // Luôn tính toán dựa trên số dòng code logic của mã JavaScript được thực thi (userCode)
-      // để đảm bảo tính nhất quán, bất kể người dùng đang ở editor nào.
-      const unitLabel = questData.solution.optimalLines !== undefined ? 'line' : 'block';
-      const unitCount = calculateLogicalLines(userCode);
+      // --- [FIXED] BUILD THE COMPLETION RESULT OBJECT ---
+      // Determine unit type and count based on the current editor
+      let unitLabel: 'block' | 'line' = 'line';
+      let unitCount = 0;
+
+      if (currentEditor === 'blockly') {
+        unitLabel = 'block';
+        // Use the blockCount passed from props, or fallback to 0
+        unitCount = blockCount || 0;
+      } else {
+        unitLabel = 'line';
+        unitCount = calculateLogicalLines(userCode);
+      }
 
       let stars = 0;
       if (isSuccess) {
@@ -109,7 +118,8 @@ export const useGameLoop = (
           } else if (currentEditor === 'monaco' && questData.solution.optimalLines !== undefined) {
             stars = (unitCount <= questData.solution.optimalLines) ? 3 : 2;
           } else {
-            stars = 2; // Mặc định 2 sao nếu không có optimalBlocks
+            // Fallback: If optimalBlocks/Lines is missing, default to 2 stars for completion
+            stars = 2; 
           }
         } else {
           // Chỉ về đích -> 1 sao
@@ -170,7 +180,7 @@ export const useGameLoop = (
       }
     }
     return true;
-  }, [engineRef, questData, executionLog, rendererRef, onGameEnd, playSound, setHighlightedBlockId, currentEditor, userCode, workspaceRef]);
+  }, [engineRef, questData, executionLog, rendererRef, onGameEnd, playSound, setHighlightedBlockId, currentEditor, userCode, workspaceRef, blockCount]);
 
   const handleActionComplete = useCallback(() => {
     const engine = engineRef.current;

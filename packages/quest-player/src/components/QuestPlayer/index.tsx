@@ -338,7 +338,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     currentGameState, playerStatus, runGame, resetGame,
     pauseGame, resumeGame, stepForward,
     handleActionComplete, handleTeleportComplete
-  } = useGameLoop(engineRef, questData, rendererRef, handleGameEnd, playSound, setHighlightedBlockId, currentEditor, currentUserCode, workspaceRef);
+  } = useGameLoop(engineRef, questData, rendererRef, handleGameEnd, playSound, setHighlightedBlockId, currentEditor, currentUserCode, workspaceRef, blockCount);
 
   // Apply block highlighting to Blockly workspace in debug mode
   useEffect(() => {
