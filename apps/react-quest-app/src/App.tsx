@@ -247,11 +247,17 @@ function AppContent() {
       if (result.stars === 3) {
         message = t('Games.dialogExcellentSolution');
       } else if (result.stars === 2) {
-        message = t('Games.dialogGoodJob', { [unitLabel]: result.unitCount });
+        message = t('Games.dialogGoodJob', {
+          count: result.unitCount,
+          unit: result.unitLabel === 'line' ? t('UI.unit_lines', 'lines') : t('UI.unit_blocks', 'blocks')
+        });
       } else if (result.stars === 1) {
-        message = t('Games.dialogPartialSuccess'); // Chuỗi dịch mới
+        message = t('Games.dialogPartialSuccess');
       } else {
-        message = t('Games.dialogGoodJob', { [unitLabel]: result.unitCount });
+        message = t('Games.dialogGoodJob', {
+          count: result.unitCount,
+          unit: result.unitLabel === 'line' ? t('UI.unit_lines', 'lines') : t('UI.unit_blocks', 'blocks')
+        });
       }
 
       setDialogState({
@@ -319,23 +325,41 @@ function AppContent() {
                 marginTop: '15px',
                 marginBottom: '15px',
                 padding: '10px',
-                backgroundColor: '#f8f9fa',
+                backgroundColor: 'var(--button-bg-color, #f8f9fa)',
                 borderRadius: '8px',
                 fontSize: '14px',
                 textAlign: 'left',
-                border: '1px solid #dee2e6'
+                border: '1px solid var(--border-color, #dee2e6)',
+                color: 'var(--text-color, #212121)'
               }}>
-                <h4 style={{ margin: '0 0 8px 0', borderBottom: '1px solid #dee2e6', paddingBottom: '4px', fontSize: '14px', fontWeight: '600' }}>Quest Statistics</h4>
+                <h4 style={{
+                  margin: '0 0 8px 0',
+                  borderBottom: '1px solid var(--border-color, #dee2e6)',
+                  paddingBottom: '4px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: 'var(--text-color, #212121)'
+                }}>
+                  {t('UI.QuestStatistics', 'Quest Statistics')}
+                </h4>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <span>⏱ Total Time:</span>
+                  <span>⏱ {t('UI.TotalTime', 'Total Time')}:</span>
                   <strong>{(dialogState.metrics.totalTime / 1000).toFixed(1)}s</strong>
 
-                  <span>▶️ Run/Debug:</span>
+                  <span>▶️ {t('UI.RunDebug', 'Run/Debug')}:</span>
                   <strong>{dialogState.metrics.runCount} / {dialogState.metrics.debugCount}</strong>
 
                   {Object.keys(dialogState.metrics.timeToStars).length > 0 && (
                     <>
-                      <span style={{ gridColumn: '1 / -1', marginTop: '4px', fontStyle: 'italic', color: '#6c757d' }}>Time to Stars:</span>
+                      <span style={{
+                        gridColumn: '1 / -1',
+                        marginTop: '4px',
+                        fontStyle: 'italic',
+                        color: 'var(--text-color, #6c757d)',
+                        opacity: 0.7
+                      }}>
+                        {t('UI.TimeToStars', 'Time to Stars')}:
+                      </span>
                       {Object.entries(dialogState.metrics.timeToStars).map(([star, time]) => (
                         <span key={star} style={{ fontSize: '12px' }}>
                           ⭐️ {star}: {((time as number) / 1000).toFixed(1)}s
