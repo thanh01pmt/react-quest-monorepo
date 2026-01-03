@@ -104,7 +104,8 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
               }
             }
           },
-          { "kind": "block", "type": "maze_forever" }
+          { "kind": "block", "type": "maze_while" },
+          { "kind": "block", "type": "maze_until" }
         ]
       }
     ]
@@ -150,7 +151,8 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
               }
             }
           },
-          { "kind": "block", "type": "maze_forever" }
+          { "kind": "block", "type": "maze_while" },
+          { "kind": "block", "type": "maze_until" }
         ]
       },
       { "kind": "sep" },
@@ -203,7 +205,8 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
               }
             }
           },
-          { "kind": "block", "type": "maze_forever" }
+          { "kind": "block", "type": "maze_while" },
+          { "kind": "block", "type": "maze_until" }
         ]
       },
       {
@@ -268,8 +271,29 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
               }
             }
           },
-          { "kind": "block", "type": "maze_forever" },
-          { "kind": "block", "type": "controls_whileUntil" }
+          {
+            "kind": "block",
+            "type": "maze_while",
+            "inputs": {
+              "BOOL": {
+                "shadow": {
+                  "type": "maze_is_path",
+                  "fields": { "DIR": "path ahead" }
+                }
+              }
+            }
+          },
+          {
+            "kind": "block",
+            "type": "maze_until",
+            "inputs": {
+              "BOOL": {
+                "shadow": {
+                  "type": "maze_at_finish"
+                }
+              }
+            }
+          }
         ]
       },
       {

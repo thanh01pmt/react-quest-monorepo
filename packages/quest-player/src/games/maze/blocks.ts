@@ -37,7 +37,16 @@ export function init(t: TFunction) {
   Blockly.Msg['INLINE_INPUTS'] = t('INLINE_INPUTS', 'Inline Inputs');
   Blockly.Msg['DELETE_BLOCK'] = t('DELETE_BLOCK', 'Delete Block');
   Blockly.Msg['DELETE_X_BLOCKS'] = t('DELETE_X_BLOCKS', 'Delete %1 Blocks');
+  Blockly.Msg['DELETE_X_BLOCKS'] = t('DELETE_X_BLOCKS', 'Delete %1 Blocks');
   Blockly.Msg['HELP'] = t('Games.help', 'Help');
+  
+  // [NEW] Messages for new loop blocks
+  Blockly.Msg['MAZE_WHILE'] = t('Maze.while', 'while');
+  Blockly.Msg['MAZE_WHILE_TOOLTIP'] = t('Maze.whileTooltip', 'Repeat actions while the condition is true.');
+  Blockly.Msg['MAZE_REPEAT'] = t('Controls.repeatTitle', 'repeat');
+  Blockly.Msg['MAZE_UNTIL'] = t('Maze.until', 'until');
+  Blockly.Msg['MAZE_UNTIL_TOOLTIP'] = t('Maze.untilTooltip', 'Repeat actions until the condition is true.');
+  Blockly.Msg['MAZE_DO_CODE'] = t('Maze.doCode', 'do');
 
   const LEFT_TURN = ' ↺';
   const RIGHT_TURN = ' ↻';
@@ -264,5 +273,49 @@ export function init(t: TFunction) {
   javascriptGenerator.forBlock['maze_at_finish'] = function(block: Blockly.Block) {
     const code = `!notDone('block_id_${block.id}')`;
     return [code, Order.LOGICAL_NOT];
+  };
+
+  // [NEW] Maze While Block
+  Blockly.defineBlocksWithJsonArray([
+    {
+      "type": "maze_while",
+      "message0": "%{BKY_MAZE_WHILE} %1 %2 %{BKY_MAZE_DO_CODE} %3",
+      "args0": [
+        { "type": "input_value", "name": "BOOL", "check": "Boolean" },
+        { "type": "input_dummy" },
+        { "type": "input_statement", "name": "DO" }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "style": "loops_category",
+      "tooltip": "%{BKY_MAZE_WHILE_TOOLTIP}",
+    },
+    {
+      "type": "maze_until",
+      "message0": "%{BKY_MAZE_REPEAT} %1",
+      "args0": [
+        { "type": "input_statement", "name": "DO" }
+      ],
+      "message1": "%{BKY_MAZE_UNTIL} %1",
+      "args1": [
+        { "type": "input_value", "name": "BOOL", "check": "Boolean" }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "style": "loops_category",
+      "tooltip": "%{BKY_MAZE_UNTIL_TOOLTIP}",
+    }
+  ]);
+
+  javascriptGenerator.forBlock['maze_while'] = function(block: Blockly.Block) {
+    const argument0 = javascriptGenerator.valueToCode(block, 'BOOL', Order.NONE) || 'false';
+    const branch = javascriptGenerator.statementToCode(block, 'DO');
+    return 'while (' + argument0 + ') {\n' + branch + '}\n';
+  };
+
+  javascriptGenerator.forBlock['maze_until'] = function(block: Blockly.Block) {
+    const argument0 = javascriptGenerator.valueToCode(block, 'BOOL', Order.NONE) || 'false';
+    const branch = javascriptGenerator.statementToCode(block, 'DO');
+    return 'do {\n' + branch + '} while (!' + argument0 + ');\n';
   };
 }
