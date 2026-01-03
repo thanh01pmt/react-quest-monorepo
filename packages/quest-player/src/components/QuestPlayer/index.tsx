@@ -94,7 +94,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
   const [dynamicToolboxConfig, setDynamicToolboxConfig] = useState<ToolboxJSON | null>(null);
   const [initialXml, setInitialXml] = useState<string | undefined>(undefined);
-  
+
   const [blocklyWorkspaceKey, setBlocklyWorkspaceKey] = useState<string>('initial-key');
   const [isBlocksInitialized, setIsBlocksInitialized] = useState(false);
   const [blockCount, setBlockCount] = useState(0);
@@ -107,7 +107,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   const initialToolboxConfigRef = useRef<ToolboxJSON | null>(null);
 
   const { GameRenderer, engineRef, solutionCommands, error: questLoaderError, isQuestReady } = useQuestLoader(questData);
-  
+
   // [MỚI] Hàm tạo mã an toàn, chỉ bao gồm khối start và các hàm
   const generateSafeCodeFromWorkspace = useCallback((workspace: Blockly.WorkspaceSvg | null): string => {
     if (!workspace) return '';
@@ -138,7 +138,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       props.onSettingsChange({ ...settings, ...newSettings });
     }
   };
-  
+
   useEffect(() => {
     // Hàm async để khởi tạo blocks
     const initializeBlocks = async () => {
@@ -205,7 +205,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     pauseGame, resumeGame, stepForward,
     handleActionComplete, handleTeleportComplete
   } = useGameLoop(engineRef, questData, rendererRef, handleGameEnd, playSound, setHighlightedBlockId, currentEditor, currentUserCode, workspaceRef);
-  
+
   useEffect(() => {
     if (questData?.blocklyConfig) {
       setLoadedQuestId(null);
@@ -244,11 +244,11 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     const regex = /(\d+)?(turnRight|turnLeft|moveForward|collect|jump)/g;
     let match;
     const blocksXml: string[] = [];
-  
+
     while ((match = regex.exec(shorthand)) !== null) {
       const count = match[1] ? parseInt(match[1], 10) : 1;
       const action = match[2];
-  
+
       if (count > 1) {
         // Nếu số lượng > 1, tạo khối lặp
         blocksXml.push(`<block type="maze_repeat"><value name="TIMES"><shadow type="math_number"><field name="NUM">${count}</field></shadow></value><statement name="DO"><block type="maze_${action}"></block></statement></block>`);
@@ -261,7 +261,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         }
       }
     }
-    
+
     const innerXml = blocksXml.join('<next>') + '</next>'.repeat(blocksXml.length > 1 ? blocksXml.length - 1 : 0);
     return `<xml><block type="maze_start" deletable="false" movable="false"><statement name="DO">${innerXml}</statement></block></xml>`;
   };
@@ -374,6 +374,14 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
   const onInject = useCallback((workspace: Blockly.WorkspaceSvg) => {
     workspaceRef.current = workspace;
+
+    // Resize workspace after inject to ensure correct dimensions
+    // Then run cleanUp to reposition blocks and prevent overlapping
+    setTimeout(() => {
+      Blockly.svgResize(workspace);
+      // cleanUp repositions top-level blocks to prevent overlapping
+      workspace.cleanUp();
+    }, 200);
 
     // Sử dụng `initialXml` đã được xử lý thay vì `questData.blocklyConfig.startBlocks`
     if (!initialXml) {
@@ -558,7 +566,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                       onInject={onInject}
                     />
                   )}
-                  {questData.blocklyConfig && loadedQuestId !== questData.id && (  
+                  {questData.blocklyConfig && loadedQuestId !== questData.id && (
                     <div className="emptyState">
                       <h2>{t('UI.LoadingEditor')}</h2>
                     </div>
