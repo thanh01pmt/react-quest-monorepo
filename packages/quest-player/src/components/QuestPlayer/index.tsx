@@ -256,28 +256,49 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
         const message = (
           <div style={{ textAlign: 'center' }}>
-            <p style={{ marginBottom: '15px' }}>{t('Games.dialogGoodJob', { [unitLabel]: result.unitCount })}</p>
+            <p style={{ marginBottom: '15px' }}>
+              {t('Games.dialogGoodJob', {
+                count: result.unitCount,
+                unit: result.unitLabel === 'line' ? t('UI.unit_lines', 'lines') : t('UI.unit_blocks', 'blocks')
+              })}
+            </p>
 
             {metrics && (
               <div style={{
                 marginTop: '10px',
                 padding: '10px',
-                backgroundColor: '#f8f9fa',
+                backgroundColor: 'var(--button-bg-color, #f8f9fa)',
                 borderRadius: '8px',
                 fontSize: '14px',
-                textAlign: 'left'
+                textAlign: 'left',
+                color: 'var(--text-color, #212121)'
               }}>
-                <h4 style={{ margin: '0 0 8px 0', borderBottom: '1px solid #dee2e6', paddingBottom: '4px' }}>Quest Statistics</h4>
+                <h4 style={{
+                  margin: '0 0 8px 0',
+                  borderBottom: '1px solid var(--border-color, #dee2e6)',
+                  paddingBottom: '4px',
+                  color: 'var(--text-color, #212121)'
+                }}>
+                  {t('UI.QuestStatistics', 'Quest Statistics')}
+                </h4>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <span>⏱ Total Time:</span>
+                  <span>⏱ {t('UI.TotalTime', 'Total Time')}:</span>
                   <strong>{(metrics.totalTime / 1000).toFixed(1)}s</strong>
 
-                  <span>▶️ Run/Debug:</span>
+                  <span>▶️ {t('UI.RunDebug', 'Run/Debug')}:</span>
                   <strong>{metrics.runCount} / {metrics.debugCount}</strong>
 
                   {Object.keys(metrics.timeToStars).length > 0 && (
                     <>
-                      <span style={{ gridColumn: '1 / -1', marginTop: '4px', fontStyle: 'italic', color: '#6c757d' }}>Time to Stars:</span>
+                      <span style={{
+                        gridColumn: '1 / -1',
+                        marginTop: '4px',
+                        fontStyle: 'italic',
+                        color: 'var(--text-color, #6c757d)',
+                        opacity: 0.7
+                      }}>
+                        {t('UI.TimeToStars', 'Time to Stars')}:
+                      </span>
                       {Object.entries(metrics.timeToStars).map(([star, time]) => (
                         <span key={star} style={{ fontSize: '12px' }}>
                           ⭐️ {star}: {((time as number) / 1000).toFixed(1)}s
@@ -318,6 +339,24 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     pauseGame, resumeGame, stepForward,
     handleActionComplete, handleTeleportComplete
   } = useGameLoop(engineRef, questData, rendererRef, handleGameEnd, playSound, setHighlightedBlockId, currentEditor, currentUserCode, workspaceRef);
+
+  // Apply block highlighting to Blockly workspace in debug mode
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
+
+    try {
+      // Clear previous highlight first
+      workspace.highlightBlock(null);
+
+      // Apply new highlight if we have a block ID
+      if (highlightedBlockId) {
+        workspace.highlightBlock(highlightedBlockId);
+      }
+    } catch (e) {
+      // Silently ignore if block doesn't exist (may have been deleted)
+    }
+  }, [highlightedBlockId]);
 
   useEffect(() => {
     if (questData?.blocklyConfig) {

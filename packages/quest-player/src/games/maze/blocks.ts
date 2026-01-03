@@ -204,14 +204,14 @@ export function init(t: TFunction) {
   };
 
   javascriptGenerator.forBlock['maze_moveForward'] = function(block: Blockly.Block) {
-    return `moveForward();\n`;
+    return `moveForward('block_id_${block.id}');\n`;
   };
   javascriptGenerator.forBlock['maze_jump'] = function(block: Blockly.Block) {
-    return `jump();\n`;
+    return `jump('block_id_${block.id}');\n`;
   };
   javascriptGenerator.forBlock['maze_turn'] = function(block: Blockly.Block) {
     const dir = block.getFieldValue('DIR');
-    return `${dir}();\n`;
+    return `${dir}('block_id_${block.id}');\n`;
   };
   javascriptGenerator.forBlock['maze_repeat'] = function(block: Blockly.Block) {
     const repeats = javascriptGenerator.valueToCode(block, 'TIMES', Order.ASSIGNMENT) || '0';
@@ -221,20 +221,20 @@ export function init(t: TFunction) {
     return code;
   };
   javascriptGenerator.forBlock['maze_collect'] = function(block: Blockly.Block) {
-    return `collectItem();\n`;
+    return `collectItem('block_id_${block.id}');\n`;
   };
   javascriptGenerator.forBlock['maze_toggle_switch'] = function(block: Blockly.Block) {
-    return `toggleSwitch();\n`;
+    return `toggleSwitch('block_id_${block.id}');\n`;
   };
   javascriptGenerator.forBlock['maze_item_count'] = function(block: Blockly.Block) {
     const type = block.getFieldValue('TYPE');
-    const code = `getItemCount('${type}')`;
+    const code = `getItemCount('${type}', 'block_id_${block.id}')`;
     return [code, Order.FUNCTION_CALL];
   };
 
   javascriptGenerator.forBlock['maze_forever'] = function(block: Blockly.Block) {
     let branch = javascriptGenerator.statementToCode(block, 'DO');
-    return `while (notDone()) {\n${branch}}\n`;
+    return `while (notDone('block_id_${block.id}')) {\n${branch}}\n`;
   };
 
   type PathDirectionKey = 'path ahead' | 'path to the left' | 'path to the right';
@@ -245,24 +245,24 @@ export function init(t: TFunction) {
       'path to the left': 'isPathLeft',
       'path to the right': 'isPathRight',
     }[dir];
-    const code = `${apiCall}()`;
+    const code = `${apiCall}('block_id_${block.id}')`;
     return [code, Order.FUNCTION_CALL];
   };
 
   javascriptGenerator.forBlock['maze_is_item_present'] = function(block: Blockly.Block) {
     const type = block.getFieldValue('TYPE');
-    const code = `isItemPresent('${type}')`;
+    const code = `isItemPresent('${type}', 'block_id_${block.id}')`;
     return [code, Order.FUNCTION_CALL];
   };
 
   javascriptGenerator.forBlock['maze_is_switch_state'] = function(block: Blockly.Block) {
     const state = block.getFieldValue('STATE');
-    const code = `isSwitchState('${state}')`;
+    const code = `isSwitchState('${state}', 'block_id_${block.id}')`;
     return [code, Order.FUNCTION_CALL];
   };
 
   javascriptGenerator.forBlock['maze_at_finish'] = function(block: Blockly.Block) {
-    const code = `!notDone()`;
+    const code = `!notDone('block_id_${block.id}')`;
     return [code, Order.LOGICAL_NOT];
   };
 }

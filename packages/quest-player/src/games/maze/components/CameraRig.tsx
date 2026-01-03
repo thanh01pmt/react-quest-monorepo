@@ -140,16 +140,6 @@ export const CameraRig: React.FC<CameraRigProps> = ({
     const robotPosition = targetRef.current.position;
     const lookAtTarget = robotPosition.clone();
 
-    // Debug: Log condition values every 60 frames (approx 1 per second)
-    if (Math.random() < 0.017) {
-      console.log('[DEBUG CameraRig useFrame] Checking conditions:', {
-        isTransitioning: isTransitioningFromIntroRef.current,
-        hasEndPos: !!introEndPosRef.current,
-        mode: mode,
-        introMode: introMode
-      });
-    }
-
     // Xử lý smooth transition từ intro về follow
     // FIX: Transition runs regardless of mode, not just Follow mode
     if (isTransitioningFromIntroRef.current && introEndPosRef.current) {

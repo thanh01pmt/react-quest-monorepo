@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import * as Blockly from 'blockly/core';
 import { javascriptGenerator } from 'blockly/javascript';
 import type { Quest } from '../../../types';
+import { stripBlockIds } from '../utils';
 
 export type EditorType = 'blockly' | 'monaco';
 
@@ -38,7 +39,8 @@ export const useEditorManager = (
 
     if (editor === 'monaco') {
       const code = generateSafeCode(workspaceRef.current); // Sử dụng hàm an toàn
-      setAceCode(code);
+      // Strip block IDs for cleaner display in Monaco editor
+      setAceCode(stripBlockIds(code));
     }
     setCurrentEditor(editor);
   };

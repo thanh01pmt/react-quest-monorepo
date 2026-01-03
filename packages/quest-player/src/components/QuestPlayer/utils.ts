@@ -69,6 +69,27 @@ export const createBlocklyTheme = (themeName: 'zelos' | 'classic', colorScheme: 
   return customTheme;
 };
 
+/**
+ * Strips block_id arguments from generated JavaScript code for cleaner display.
+ * This removes the tracking IDs while preserving the functional code.
+ * 
+ * Examples:
+ * - moveForward('block_id_xxx') -> moveForward()
+ * - isItemPresent('crystal', 'block_id_xxx') -> isItemPresent('crystal')
+ * - notDone('block_id_xxx') -> notDone()
+ */
+export const stripBlockIds = (code: string): string => {
+  if (!code) return code;
+  
+  // Pattern 1: Remove block_id as the only argument: func('block_id_xxx') -> func()
+  let cleaned = code.replace(/\('block_id_[^']+'\)/g, '()');
+  
+  // Pattern 2: Remove block_id as the last argument: func('arg', 'block_id_xxx') -> func('arg')
+  cleaned = cleaned.replace(/,\s*'block_id_[^']+'\)/g, ')');
+  
+  return cleaned;
+};
+
 export const getFailureMessage = (t: TFunction, result: ResultType): string => {
     if (!result) {
       return t('Games.dialogReason') + ': ' + t('Games.resultFailure');
