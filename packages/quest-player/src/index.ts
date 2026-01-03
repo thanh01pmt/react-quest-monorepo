@@ -14,6 +14,7 @@ export type {
   Quest,
   QuestPlayerSettings,
   QuestCompletionResult,
+  QuestMetrics, // NEW: Export for analytics
   GameState,
   SolutionConfig
 } from './types';

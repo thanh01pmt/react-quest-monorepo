@@ -89,7 +89,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   const questData = isStandalone ? internalQuestData : props.questData;
 
   const [importError, setImportError] = useState<string>('');
-  const [dialogState, setDialogState] = useState({ isOpen: false, title: '', message: '' });
+  const [dialogState, setDialogState] = useState<{ isOpen: boolean; title: string; message: React.ReactNode }>({ isOpen: false, title: '', message: '' });
   const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -249,10 +249,49 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     if (isStandalone) {
       if (result.isSuccess) {
         const unitLabel = result.unitLabel === 'block' ? 'blockCount' : 'lineCount';
+        const metrics = result.metrics;
+
+        const message = (
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ marginBottom: '15px' }}>{t('Games.dialogGoodJob', { [unitLabel]: result.unitCount })}</p>
+
+            {metrics && (
+              <div style={{
+                marginTop: '10px',
+                padding: '10px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '8px',
+                fontSize: '14px',
+                textAlign: 'left'
+              }}>
+                <h4 style={{ margin: '0 0 8px 0', borderBottom: '1px solid #dee2e6', paddingBottom: '4px' }}>Quest Statistics</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <span>⏱ Total Time:</span>
+                  <strong>{(metrics.totalTime / 1000).toFixed(1)}s</strong>
+
+                  <span>▶️ Run/Debug:</span>
+                  <strong>{metrics.runCount} / {metrics.debugCount}</strong>
+
+                  {Object.keys(metrics.timeToStars).length > 0 && (
+                    <>
+                      <span style={{ gridColumn: '1 / -1', marginTop: '4px', fontStyle: 'italic', color: '#6c757d' }}>Time to Stars:</span>
+                      {Object.entries(metrics.timeToStars).map(([star, time]) => (
+                        <span key={star} style={{ fontSize: '12px' }}>
+                          ⭐️ {star}: {((time as number) / 1000).toFixed(1)}s
+                        </span>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
         setDialogState({
           isOpen: true,
           title: t('Games.dialogCongratulations'),
-          message: t('Games.dialogGoodJob', { [unitLabel]: result.unitCount })
+          message: message
         });
       } else {
         setDialogState({

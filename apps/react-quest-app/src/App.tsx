@@ -10,6 +10,7 @@ import {
   LanguageSelector,
   type Quest,
   type QuestCompletionResult,
+  QuestMetrics, // IMPORT MỚI
   type SolutionConfig,
   type GameState,
   type QuestPlayerSettings,
@@ -161,7 +162,9 @@ function AppContent() {
     stars?: number;
     optimalBlocks?: number;
     code?: string;
+    metrics?: QuestMetrics; // THÊM MỚI
   }>({ isOpen: false, title: '', message: '' });
+
 
   // Effect để đồng bộ URL và state
   useEffect(() => {
@@ -258,6 +261,7 @@ function AppContent() {
         stars: result.stars,
         optimalBlocks: solutionHasOptimalBlocks(result.finalState.solution) ? result.finalState.solution.optimalBlocks : undefined,
         code: result.userCode,
+        metrics: result.metrics, // CẬP NHẬT
       });
     } else {
       const resultType = (result.finalState as GameState & { result?: string }).result ?? 'failure';
@@ -309,6 +313,39 @@ function AppContent() {
               <p className="optimal-solution-info">{t('Games.dialogOptimalSolution', { optimalBlocks: dialogState.optimalBlocks })}</p>
             )}
             {dialogState.stars === 1 && <p className="optimal-solution-info">{t('Games.dialogImproveTo3Stars')}</p>}
+
+            {dialogState.metrics && (
+              <div style={{
+                marginTop: '15px',
+                marginBottom: '15px',
+                padding: '10px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '8px',
+                fontSize: '14px',
+                textAlign: 'left',
+                border: '1px solid #dee2e6'
+              }}>
+                <h4 style={{ margin: '0 0 8px 0', borderBottom: '1px solid #dee2e6', paddingBottom: '4px', fontSize: '14px', fontWeight: '600' }}>Quest Statistics</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <span>⏱ Total Time:</span>
+                  <strong>{(dialogState.metrics.totalTime / 1000).toFixed(1)}s</strong>
+
+                  <span>▶️ Run/Debug:</span>
+                  <strong>{dialogState.metrics.runCount} / {dialogState.metrics.debugCount}</strong>
+
+                  {Object.keys(dialogState.metrics.timeToStars).length > 0 && (
+                    <>
+                      <span style={{ gridColumn: '1 / -1', marginTop: '4px', fontStyle: 'italic', color: '#6c757d' }}>Time to Stars:</span>
+                      {Object.entries(dialogState.metrics.timeToStars).map(([star, time]) => (
+                        <span key={star} style={{ fontSize: '12px' }}>
+                          ⭐️ {star}: {((time as number) / 1000).toFixed(1)}s
+                        </span>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             {dialogState.code && ( // Luôn hiển thị code nếu có
               <details className="code-details">
