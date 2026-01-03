@@ -11,7 +11,7 @@
 import React, { useState, useRef } from 'react';
 import type { BuilderMode } from '../../types';
 import type { BuildableAsset, AssetGroup } from '../../types';
-import { MousePointer, Hammer, Eraser, Trash2, Keyboard, ChevronDown, ChevronRight } from 'lucide-react';
+import { MousePointer, Hammer, Eraser, Trash2, Keyboard, ChevronDown, ChevronRight, Move } from 'lucide-react';
 import './MainLeftPanel.css';
 
 export type SelectionMode = 'box' | 'smart';
@@ -25,6 +25,7 @@ interface MainLeftPanelProps {
     hasSelection: boolean;
     selectionCount?: number;
     onCleanMap?: () => void;
+    onCenterMap?: () => void;
     onClearItems?: () => void;
     onShowShortcuts?: () => void;
 
@@ -42,6 +43,7 @@ export function MainLeftPanel({
     hasSelection,
     selectionCount = 0,
     onCleanMap,
+    onCenterMap,
     onClearItems,
     onShowShortcuts,
     assetGroups,
@@ -144,6 +146,7 @@ export function MainLeftPanel({
                 </div>
 
                 {/* Sub-tools Row */}
+                {/* Sub-tools Row 1: Selection Toggle */}
                 <div className="tool-row secondary">
                     {/* Selection Type Toggle */}
                     <div className="toggle-pill" title="Selection Mode">
@@ -160,11 +163,21 @@ export function MainLeftPanel({
                             Smart
                         </button>
                     </div>
+                </div>
 
+                {/* Sub-tools Row 2: Actions (Clean, Center, Clear) */}
+                <div className="tool-row secondary" style={{ justifyContent: 'flex-end' }}>
                     {/* Clean Map */}
                     {onCleanMap && (
                         <button className="icon-btn" onClick={onCleanMap} title="Clean Map (Remove overlapping duplicates)">
                             <Eraser size={16} />
+                        </button>
+                    )}
+
+                    {/* Center Map */}
+                    {onCenterMap && (
+                        <button className="icon-btn" onClick={onCenterMap} title="Center Map (Move all objects to grid center)">
+                            <Move size={16} />
                         </button>
                     )}
 

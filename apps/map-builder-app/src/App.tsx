@@ -741,6 +741,57 @@ function App() {
     }
   }, [placedObjects]);
 
+  // --- HÀM MỚI: Manual Center Map ---
+  const handleCenterMap = useCallback(() => {
+    if (placedObjects.length === 0) return;
+
+    // 1. Calculate bounding box of current content
+    let minX = Infinity, maxX = -Infinity;
+    let minZ = Infinity, maxZ = -Infinity;
+
+    placedObjects.forEach(obj => {
+      const [x, , z] = obj.position;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (z < minZ) minZ = z;
+      if (z > maxZ) maxZ = z;
+    });
+
+    // 2. Calculate center of content
+    const centerX = (minX + maxX) / 2;
+    const centerZ = (minZ + maxZ) / 2;
+
+    // 3. Calculate target center (grid center)
+    const targetX = boxDimensions.width / 2;
+    const targetZ = boxDimensions.depth / 2;
+
+    // 4. Calculate offset (Movement Vector)
+    // Round to nearest integer to keep blocks aligned to grid
+    const dx = Math.round(targetX - centerX);
+    const dz = Math.round(targetZ - centerZ);
+
+    if (dx === 0 && dz === 0) {
+      // alert("Map is already centered!");
+      console.log("Map is already centered.");
+      return;
+    }
+
+    // 5. Apply offset to all objects
+    setPlacedObjectsWithHistory(prev => prev.map(obj => ({
+      ...obj,
+      position: [
+        obj.position[0] + dx,
+        obj.position[1],
+        obj.position[2] + dz
+      ]
+    })));
+
+    setHasUserEdit(true);
+    // Optional: Log action
+    console.log(`Centered map. Moved by vector [${dx}, 0, ${dz}]`);
+
+  }, [placedObjects, boxDimensions, setPlacedObjectsWithHistory]);
+
   // --- HÀM MỚI: Duplicate Selection ---
   const handleDuplicateSelection = useCallback(() => {
     if (selectedObjectIds.length === 0) return;
@@ -3518,6 +3569,7 @@ function App() {
           hasSelection={selectedObjectIds.length > 0}
           selectionCount={selectedObjectIds.length}
           onCleanMap={handleCleanMap}
+          onCenterMap={handleCenterMap}
           onClearItems={handleClearItems}
           assetGroups={buildableAssetGroups}
           selectedAssetKey={selectedAsset?.key || null}
