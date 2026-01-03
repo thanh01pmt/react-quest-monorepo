@@ -3,14 +3,14 @@
 ## Phase 1: Native Generators (Python, Lua)
 
 ### 1.1 Setup
-- [ ] Verify blockly package includes python/lua generators
-- [ ] Create `src/games/maze/generators/` directory
-- [ ] Add `CodeLanguage` type to types/index.ts
+- [x] Verify blockly package includes python/lua generators
+- [x] Create `src/games/maze/generators/` directory
+- [x] Add `CodeLanguage` type to types/index.ts
 
 ### 1.2 Python & Lua Generators
-- [ ] Implement Python generator with all Maze blocks
-- [ ] Implement Lua generator with all Maze blocks
-- [ ] Test generation for both languages
+- [x] Implement Python generator with all Maze blocks
+- [x] Implement Lua generator with all Maze blocks
+- [x] Test generation for both languages
 
 ### 1.3 UI Integration
 - [ ] Add language selector dropdown to QuestPlayer

@@ -4,7 +4,7 @@
 // ==                      QUEST DEFINITIONS                      ==
 // =================================================================
 
-export type EditorType = 'blockly' | 'monaco';
+export type EditorType = 'blockly' | 'monaco' | 'javascript' | 'python' | 'lua';
 
 // --- Toolbox Definition Types ---
 
@@ -297,7 +297,10 @@ export interface QuestPlayerSettings {
    */
   toolboxPresetKey?: 'default' | 'basic_movement' | 'with_actions' | 'with_loops' | 'with_functions' | 'with_conditionals' | 'full';
   environment?: 'day' | 'night';
+  displayLanguage?: CodeLanguage;
 }
+
+export type CodeLanguage = 'javascript' | 'python' | 'lua' | 'cpp' | 'swift';
 
 export interface QuestMetrics {
   /** Timestamp when the quest started (ms) */

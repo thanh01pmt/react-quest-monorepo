@@ -3,12 +3,14 @@
 import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { javascriptGenerator } from 'blockly/javascript';
+import { pythonGenerator } from 'blockly/python';
+import { luaGenerator } from 'blockly/lua';
 import * as Blockly from 'blockly/core';
 import * as Vi from 'blockly/msg/vi';
 import { BlocklyWorkspace } from 'react-blockly';
 import { transform } from '@babel/standalone';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import type { Quest, ExecutionMode, CameraMode, ToolboxJSON, ToolboxItem, QuestPlayerSettings, QuestCompletionResult, MazeConfig, Interactive, QuestMetrics } from '../../types';
+import type { Quest, ExecutionMode, CameraMode, ToolboxJSON, ToolboxItem, QuestPlayerSettings, QuestCompletionResult, MazeConfig, Interactive, QuestMetrics, CodeLanguage, EditorType } from '../../types';
 import type { MazeGameState } from '../../games/maze/types';
 import { Visualization } from '../Visualization';
 import { QuestImporter } from '../QuestImporter';
@@ -73,7 +75,8 @@ const DEFAULT_SETTINGS: Required<QuestPlayerSettings> = {
   cameraMode: 'Follow',
   toolboxMode: 'default',
   toolboxPresetKey: 'default',
-  environment: 'night',
+  environment: 'day',
+  displayLanguage: 'javascript', // Default to JavaScript
 };
 
 let blocklyDefaultEnglishMessages: { [key: string]: string } | null = null;
@@ -155,23 +158,26 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
   // Tách riêng code cho blockly và monaco để quản lý tốt hơn
   const [blocklyGeneratedCode, setBlocklyGeneratedCode] = useState('');
-
-  // currentUserCode sẽ là code được dùng để chạy game
-  const currentUserCode = useMemo(() => {
-    if (currentEditor === 'monaco') {
-      return aceCode;
-    }
-    return blocklyGeneratedCode;
-  }, [currentEditor, aceCode, blocklyGeneratedCode]);
+  const [displayCode, setDisplayCode] = useState('');
 
   // FIX: Use useState instead of useMemo so settings can be updated locally
   const [settings, setSettings] = useState<QuestPlayerSettings>(() => ({ ...DEFAULT_SETTINGS, ...props.initialSettings }));
+
+  // currentUserCode sẽ là code được dùng để chạy game (LUÔN LÀ JAVASCRIPT)
+  const currentUserCode = useMemo(() => {
+    if (currentEditor === 'monaco' || currentEditor === 'javascript') {
+      return aceCode;
+    }
+    // Đối với python/lua, game vẫn chạy bằng JS generated từ blocks
+    return blocklyGeneratedCode;
+  }, [currentEditor, aceCode, blocklyGeneratedCode]);
 
   const handleSettingsChange = useCallback((newSettings: Partial<QuestPlayerSettings>) => {
     setSettings(prev => {
       const updated = { ...prev, ...newSettings };
 
       // If Blockly-related settings changed, regenerate workspace key to force remount
+      // We check newSettings compared to prev to see if update is needed, but here we just check if keys exist
       const blocklySettingsChanged =
         newSettings.renderer !== undefined ||
         newSettings.blocklyThemeName !== undefined ||
@@ -215,6 +221,17 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         setIsBlocksInitialized(false); // Reset trước
         const mazeBlocks = await import('../../games/maze/blocks');
         mazeBlocks.init(t);
+
+        // Init generators
+        try {
+          const pythonGen = await import('../../games/maze/generators/python');
+          pythonGen.initPythonGenerator();
+          const luaGen = await import('../../games/maze/generators/lua');
+          luaGen.initLuaGenerator();
+        } catch (e) {
+          console.error("Failed to load generators", e);
+        }
+
         setIsBlocksInitialized(true);
       }
 
@@ -539,15 +556,77 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     setImportError('');
   };
   const lastGeneratedCode = useRef('');
+
+  // Hàm generate code theo ngôn ngữ
+  const generateCodeForLanguage = useCallback((workspace: Blockly.WorkspaceSvg, lang: CodeLanguage): string => {
+    try {
+      // console.log(`[DEBUG] Generating code for ${lang}...`);
+      let code = '';
+      switch (lang) {
+        case 'python':
+          code = pythonGenerator.workspaceToCode(workspace);
+          break;
+        case 'lua':
+          code = luaGenerator.workspaceToCode(workspace);
+          break;
+        case 'javascript':
+        default:
+          code = generateSafeCodeFromWorkspace(workspace);
+          break;
+      }
+
+      if (!code && lang !== 'javascript') {
+        const blocks = workspace.getAllBlocks(false);
+        const topBlocks = workspace.getTopBlocks(false);
+        console.warn(`[DEBUG] Empty code for ${lang}.`);
+        console.warn(`Workspace stats: TotalBlocks=${blocks.length}, TopBlocks=${topBlocks.length}`);
+
+        // Debug: Check a few blocks
+        if (blocks.length > 0) {
+          const sampleTypes = blocks.slice(0, 3).map(b => b.type);
+          console.warn(`Sample block types: ${sampleTypes.join(', ')}`);
+
+          const generator = lang === 'python' ? pythonGenerator : luaGenerator;
+          sampleTypes.forEach(type => {
+            console.warn(`Generator for ${type}: ${!!generator.forBlock[type] ? 'FOUND' : 'MISSING'}`);
+          });
+
+          // Debug: Try generating code for just one block
+          try {
+            const firstBlock = blocks[0];
+            const blockCode = generator.blockToCode(firstBlock);
+            console.warn(`Code for first block (${firstBlock.type}):`, blockCode);
+          } catch (err) {
+            console.error('Error generating single block code:', err);
+          }
+        }
+      }
+      return code;
+    } catch (e) {
+      console.error(`Error generating ${lang} code:`, e);
+      return `Error: ${e}`;
+    }
+  }, [generateSafeCodeFromWorkspace]);
+
   const onWorkspaceChange = useCallback((workspace: Blockly.WorkspaceSvg) => {
     workspaceRef.current = workspace;
     setBlockCount(workspace.getAllBlocks(false).length);
-    const finalCode = generateSafeCodeFromWorkspace(workspace);
-    if (finalCode !== lastGeneratedCode.current) {
-      lastGeneratedCode.current = finalCode;
-      setBlocklyGeneratedCode(finalCode);
+
+    // Luôn generate JS để chạy
+    const finalJsCode = generateSafeCodeFromWorkspace(workspace);
+    if (finalJsCode !== lastGeneratedCode.current) {
+      lastGeneratedCode.current = finalJsCode;
+      setBlocklyGeneratedCode(finalJsCode);
     }
-  }, [generateSafeCodeFromWorkspace, setBlocklyGeneratedCode]);
+
+    // Logic update code khi workspace thay đổi
+    // Nếu đang ở tab Python/Lua thì cần update ngay lập tức
+    if (currentEditor === 'python' || currentEditor === 'lua') {
+      const langCode = generateCodeForLanguage(workspace, currentEditor as CodeLanguage);
+      setAceCode(langCode);
+    }
+
+  }, [generateSafeCodeFromWorkspace, setBlocklyGeneratedCode, generateCodeForLanguage, currentEditor, setAceCode]);
 
   const onInject = useCallback((workspace: Blockly.WorkspaceSvg) => {
     workspaceRef.current = workspace;
@@ -739,24 +818,35 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         <Panel minSize={30} onResize={handleBlocklyPanelResize}>
           <div className="blocklyColumn">
             <EditorToolbar
-              supportedEditors={questData.supportedEditors || ['blockly']}
+              supportedEditors={['blockly', 'javascript', 'python', 'lua']}
               currentEditor={currentEditor}
-              onEditorChange={handleEditorChange}
+              onEditorChange={(editor) => {
+                handleEditorChange(editor);
+                // Nếu chuyển sang ngôn ngữ read-only (Python/Lua), generate code từ workspace
+                if ((editor === 'python' || editor === 'lua') && workspaceRef.current) {
+                  const code = generateCodeForLanguage(workspaceRef.current, editor as CodeLanguage);
+                  setAceCode(code);
+                }
+              }}
               onHelpClick={() => setIsDocsOpen(true)}
               onToggleSettings={() => setIsSettingsOpen(!isSettingsOpen)}
             />
 
             {isQuestReady && dynamicToolboxConfig && isBlocksInitialized ? (
-              currentEditor === 'monaco' ? (
-                <MonacoEditor
-                  initialCode={aceCode}
-                  onChange={(value) => {
-                    const code = value || '';
-                    setAceCode(code);
-                  }}
-                />
-              ) : (
-                <>
+              <>
+                <div style={{ display: currentEditor !== 'blockly' ? 'block' : 'none', height: '100%', width: '100%' }}>
+                  <MonacoEditor
+                    initialCode={aceCode}
+                    onChange={(value) => {
+                      const code = value || '';
+                      setAceCode(code);
+                    }}
+                    language={currentEditor === 'monaco' ? 'javascript' : currentEditor}
+                    readOnly={currentEditor !== 'javascript' && currentEditor !== 'monaco'}
+                  />
+                </div>
+
+                <div style={{ display: currentEditor === 'blockly' ? 'block' : 'none', height: '100%', width: '100%' }}>
                   {questData.blocklyConfig && loadedQuestId === questData.id && (
                     <BlocklyWorkspace
                       key={blocklyWorkspaceKey}
@@ -790,8 +880,8 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                     environment={settings.environment || 'night'}
                     onEnvironmentChange={value => handleSettingsChange({ environment: value })}
                   />
-                </>
-              )
+                </div>
+              </>
             ) : (
               <div className="emptyState">
                 <h2>{questLoaderError ? t('UI.Error') : t('UI.LoadingEditor')}</h2>
