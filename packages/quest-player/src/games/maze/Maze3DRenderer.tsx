@@ -220,6 +220,47 @@ export const Maze3DRenderer: IGameRenderer = ({ gameState, gameConfig, cameraMod
     setIsIntroPlaying(false);
   };
 
+  const environmentNode = useMemo(() => {
+    if (environment === 'day') {
+      return (
+        <>
+          <Sky sunPosition={[100, 20, 100]} turbidity={0.5} rayleigh={0.5} mieCoefficient={0.005} mieDirectionalG={0.8} />
+          <Float speed={1} rotationIntensity={0.2} floatIntensity={0.5}>
+            <Cloud opacity={0.6} speed={0.4} segments={20} position={[-20, 20, -20]} />
+            <Cloud opacity={0.6} speed={0.3} segments={20} position={[20, 25, 20]} />
+            <Cloud opacity={0.6} speed={0.5} segments={20} position={[0, 30, -30]} />
+            <Cloud opacity={0.5} speed={0.2} segments={20} position={[-40, 25, 10]} />
+            <Cloud opacity={0.7} speed={0.6} segments={20} position={[30, 15, -10]} />
+            <Cloud opacity={0.5} speed={0.3} segments={20} position={[10, 35, 40]} />
+          </Float>
+          <ambientLight intensity={0.8} />
+          <fog attach="fog" args={['#e0f7fa', 60, 150]} />
+        </>
+      );
+    }
+    return (
+      <>
+        <color attach="background" args={['#1a0c2b']} />
+        <fog attach="fog" args={['#1a0c2b', 60, 110]} />
+        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+        <Sparkles count={200} scale={[100, 50, 100]} size={6} speed={0.4} opacity={0.8} color="#ffffff" position={[0, 40, 0]} />
+        <group position={[50, 40, -50]}>
+          {/* Moon Mesh */}
+          <mesh>
+            <sphereGeometry args={[8, 32, 32]} />
+            <meshBasicMaterial color="#ffffcc" />
+          </mesh>
+          {/* Moon Halo (Glare) */}
+          <mesh>
+            <sphereGeometry args={[12, 32, 32]} />
+            <meshBasicMaterial color="#ffffcc" transparent opacity={0.15} side={THREE.BackSide} />
+          </mesh>
+        </group>
+        <ambientLight intensity={0.4} />
+      </>
+    );
+  }, [environment]);
+
   if (!mazeState || !mazeConfig) return null;
 
   return (
@@ -229,43 +270,7 @@ export const Maze3DRenderer: IGameRenderer = ({ gameState, gameConfig, cameraMod
         shadows
         style={{ width: '100%', height: '100%' }}
       >
-        {environment === 'day' ? (
-          <>
-            <>
-              <Sky sunPosition={[100, 20, 100]} turbidity={0.5} rayleigh={0.5} mieCoefficient={0.005} mieDirectionalG={0.8} />
-              <Float speed={1} rotationIntensity={0.2} floatIntensity={0.5}>
-                <Cloud opacity={0.6} speed={0.4} segments={20} position={[-20, 20, -20]} />
-                <Cloud opacity={0.6} speed={0.3} segments={20} position={[20, 25, 20]} />
-                <Cloud opacity={0.6} speed={0.5} segments={20} position={[0, 30, -30]} />
-                <Cloud opacity={0.5} speed={0.2} segments={20} position={[-40, 25, 10]} />
-                <Cloud opacity={0.7} speed={0.6} segments={20} position={[30, 15, -10]} />
-                <Cloud opacity={0.5} speed={0.3} segments={20} position={[10, 35, 40]} />
-              </Float>
-              <ambientLight intensity={0.8} />
-              <fog attach="fog" args={['#e0f7fa', 60, 150]} />
-            </>
-          </>
-        ) : (
-          <>
-            <color attach="background" args={['#1a0c2b']} />
-            <fog attach="fog" args={['#1a0c2b', 60, 110]} />
-            <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-            <Sparkles count={200} scale={[100, 50, 100]} size={6} speed={0.4} opacity={0.8} color="#ffffff" position={[0, 40, 0]} />
-            <group position={[50, 40, -50]}>
-              {/* Moon Mesh */}
-              <mesh>
-                <sphereGeometry args={[8, 32, 32]} />
-                <meshBasicMaterial color="#ffffcc" />
-              </mesh>
-              {/* Moon Halo (Glare) */}
-              <mesh>
-                <sphereGeometry args={[12, 32, 32]} />
-                <meshBasicMaterial color="#ffffcc" transparent opacity={0.15} side={THREE.BackSide} />
-              </mesh>
-            </group>
-            <ambientLight intensity={0.4} />
-          </>
-        )}
+        {environmentNode}
         <directionalLight
           position={[10, 20, 35]}
           intensity={1.5}
