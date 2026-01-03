@@ -292,6 +292,27 @@ export interface QuestPlayerSettings {
   environment?: 'day' | 'night';
 }
 
+export interface QuestMetrics {
+  /** Timestamp when the quest started (ms) */
+  startTime: number;
+  /** Number of times 'Run' was clicked */
+  runCount: number;
+  /** Number of times 'Debug' was clicked */
+  debugCount: number;
+  /**
+   * Time intervals (in ms) between consecutive Run/Debug actions.
+   * First element is time from start to first action.
+   */
+  actionIntervals: number[];
+  /**
+   * Timestamps (in ms relative to startTime) when specific star ratings were first achieved.
+   * e.g. { 1: 12000, 3: 45000 }
+   */
+  timeToStars: Record<number, number>;
+  /** Total time spent in the quest (ms) until completion */
+  totalTime: number;
+}
+
 export interface QuestCompletionResult {
   isSuccess: boolean;
   finalState: GameState;
@@ -299,4 +320,6 @@ export interface QuestCompletionResult {
   unitCount?: number;
   unitLabel: 'block' | 'line';
   stars?: number;
+  /** Metrics collected during the session */
+  metrics?: QuestMetrics;
 }

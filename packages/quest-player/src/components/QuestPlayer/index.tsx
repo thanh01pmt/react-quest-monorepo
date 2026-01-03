@@ -8,7 +8,7 @@ import * as Vi from 'blockly/msg/vi';
 import { BlocklyWorkspace } from 'react-blockly';
 import { transform } from '@babel/standalone';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import type { Quest, ExecutionMode, CameraMode, ToolboxJSON, ToolboxItem, QuestPlayerSettings, QuestCompletionResult, MazeConfig, Interactive } from '../../types';
+import type { Quest, ExecutionMode, CameraMode, ToolboxJSON, ToolboxItem, QuestPlayerSettings, QuestCompletionResult, MazeConfig, Interactive, QuestMetrics } from '../../types';
 import type { MazeGameState } from '../../games/maze/types';
 import { Visualization } from '../Visualization';
 import { QuestImporter } from '../QuestImporter';
@@ -108,6 +108,35 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   const rendererRef = useRef<TurtleRendererHandle>(null);
   const initialToolboxConfigRef = useRef<ToolboxJSON | null>(null);
 
+  // [METRICS] Tracking refs
+  const metricsRef = useRef<QuestMetrics>({
+    startTime: Date.now(),
+    runCount: 0,
+    debugCount: 0,
+    actionIntervals: [],
+    timeToStars: {},
+    totalTime: 0
+  });
+
+  // Track last action time to calculate intervals
+  const lastActionTimeRef = useRef<number>(Date.now());
+
+  // Reset metrics when quest loads
+  useEffect(() => {
+    if (questData) {
+      const now = Date.now();
+      metricsRef.current = {
+        startTime: now,
+        runCount: 0,
+        debugCount: 0,
+        actionIntervals: [],
+        timeToStars: {},
+        totalTime: 0
+      };
+      lastActionTimeRef.current = now;
+    }
+  }, [questData]);
+
   const { GameRenderer, engineRef, solutionCommands, error: questLoaderError, isQuestReady } = useQuestLoader(questData);
 
   // [MỚI] Hàm tạo mã an toàn, chỉ bao gồm khối start và các hàm
@@ -196,6 +225,27 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   }, [language, t, questData, settings.toolboxMode]);
 
   const handleGameEnd = useCallback((result: QuestCompletionResult) => {
+    // [METRICS] Record Star Achievements
+    if (result.isSuccess && result.stars && result.stars > 0) {
+      const now = Date.now();
+      const timeSinceStart = now - metricsRef.current.startTime;
+
+      // Only record if this is the first time achieving this star level OR improved time? 
+      // For now, simple logic: Record first time achievement for each star level
+      if (!metricsRef.current.timeToStars[result.stars]) {
+        metricsRef.current.timeToStars[result.stars] = timeSinceStart;
+      }
+    }
+
+    // [METRICS] Finalize total time
+    metricsRef.current.totalTime = Date.now() - metricsRef.current.startTime;
+
+    // Attach metrics to the result
+    const resultWithMetrics: QuestCompletionResult = {
+      ...result,
+      metrics: { ...metricsRef.current }
+    };
+
     if (isStandalone) {
       if (result.isSuccess) {
         const unitLabel = result.unitLabel === 'block' ? 'blockCount' : 'lineCount';
@@ -212,10 +262,10 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         });
       }
     } else {
-      props.onQuestComplete(result);
+      props.onQuestComplete(resultWithMetrics);
     }
     if (isStandalone && props.onQuestComplete) {
-      props.onQuestComplete(result);
+      props.onQuestComplete(resultWithMetrics);
     }
   }, [isStandalone, props, t]);
 
@@ -362,8 +412,21 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     setDisplayStats(newStats);
   }, [questData, currentGameState, blockCount, currentEditor, aceCode]);
 
-  const handleRun = (mode: ExecutionMode) => {
-    setExecutionMode(mode);
+  // Handle "Run" or "Debug" click
+  const handleRun = useCallback((mode: ExecutionMode) => {
+    // [METRICS] Track action
+    const now = Date.now();
+    const interval = now - lastActionTimeRef.current;
+
+    metricsRef.current.actionIntervals.push(interval);
+
+    if (mode === 'run') {
+      metricsRef.current.runCount++;
+    } else {
+      metricsRef.current.debugCount++;
+    }
+    lastActionTimeRef.current = now;
+
     let codeToRun = '';
     if (currentEditor === 'monaco') {
       try {
@@ -382,7 +445,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       codeToRun = blocklyGeneratedCode;
     }
     runGame(codeToRun, mode);
-  };
+  }, [runGame, currentEditor, aceCode, isStandalone, t, blocklyGeneratedCode]);
 
   const handleQuestLoad = (loadedQuest: Quest) => {
     if (isStandalone) setInternalQuestData(loadedQuest);
