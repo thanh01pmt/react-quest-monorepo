@@ -369,6 +369,7 @@ function AppContent() {
         <LanguageSelector
           language={settings.language}
           onChange={handleLanguageChange}
+          onIconClick={isSidebarCollapsed ? handleToggleSidebar : undefined}
         />
       </QuestSidebar>
 

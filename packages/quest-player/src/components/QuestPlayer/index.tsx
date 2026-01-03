@@ -20,6 +20,7 @@ import { DocumentationPanel } from '../DocumentationPanel';
 import { BackgroundMusic } from '../BackgroundMusic';
 import { SettingsPanel } from '../SettingsPanel';
 import { useSoundManager } from '../../hooks/useSoundManager';
+import { getToolboxPreset, type ToolboxPresetKey } from '../../config/toolboxPresets';
 import type { TurtleRendererHandle } from '../../games/turtle/TurtleRenderer';
 import { getFailureMessage, processToolbox, createBlocklyTheme, calculateLogicalLines } from './utils';
 import { useQuestLoader } from './hooks/useQuestLoader';
@@ -71,6 +72,7 @@ const DEFAULT_SETTINGS: Required<QuestPlayerSettings> = {
   colorSchemeMode: 'auto',
   cameraMode: 'Follow',
   toolboxMode: 'default',
+  toolboxPresetKey: 'default',
   environment: 'night',
 };
 
@@ -174,7 +176,8 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         newSettings.renderer !== undefined ||
         newSettings.blocklyThemeName !== undefined ||
         newSettings.gridEnabled !== undefined ||
-        newSettings.colorSchemeMode !== undefined;
+        newSettings.colorSchemeMode !== undefined ||
+        newSettings.toolboxPresetKey !== undefined; // Force re-render when toolbox preset changes
 
       if (blocklySettingsChanged) {
         setBlocklyWorkspaceKey(`settings-${Date.now()}`);
@@ -319,16 +322,21 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   useEffect(() => {
     if (questData?.blocklyConfig) {
       setLoadedQuestId(null);
-      const processedToolbox = processToolbox(questData.blocklyConfig.toolbox, t);
-      // Always remove start block from toolbox to prevent adding multiples
-      let newToolbox = JSON.parse(JSON.stringify(processedToolbox));
 
-      // Filter based on toolbox mode
-      if (settings.toolboxMode === 'simple') {
-        // [Example] Simple mode could remove 'Procedures' category
-        // newToolbox.contents = newToolbox.contents.filter((c: any) => c.custom !== 'PROCEDURE');
+      let newToolbox: ToolboxJSON;
+
+      // Apply preset if selected, otherwise use quest's toolbox
+      if (settings.toolboxPresetKey && settings.toolboxPresetKey !== 'default') {
+        // Override with selected preset
+        const preset = getToolboxPreset(settings.toolboxPresetKey as ToolboxPresetKey);
+        newToolbox = JSON.parse(JSON.stringify(processToolbox(preset, t)));
+      } else {
+        // Use quest's original toolbox
+        const processedToolbox = processToolbox(questData.blocklyConfig.toolbox, t);
+        newToolbox = JSON.parse(JSON.stringify(processedToolbox));
       }
 
+      // Always remove start block from toolbox to prevent adding multiples
       newToolbox.contents.forEach((category: ToolboxItem) => {
         if (category.kind === 'category' && Array.isArray(category.contents)) {
           category.contents = category.contents.filter(block => (block as any).type !== START_BLOCK_TYPE);
@@ -353,7 +361,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       setInitialXml(undefined);
       setLoadedQuestId(null);
     }
-  }, [questData, t, language]);
+  }, [questData, t, language, settings.toolboxPresetKey]); // Use toolboxPresetKey to trigger re-process
 
   // [MỚI] Hàm phân tích chuỗi shorthand thành XML
   const parseShorthandToXml = (shorthand: string): string => {
@@ -565,9 +573,15 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       wheel: true
     },
     // Only provide grid object if gridEnabled is true
-    grid: settings.gridEnabled ? { spacing: 20, length: 3, colour: "#ccc", snap: true } : undefined,
+    // Use darker grid color in dark mode for better visibility
+    grid: settings.gridEnabled ? {
+      spacing: 20,
+      length: 3,
+      colour: effectiveColorScheme === 'dark' ? '#444' : '#ccc',
+      snap: true
+    } : undefined,
     sounds: settings.soundsEnabled,
-  }), [blocklyTheme, settings]);
+  }), [blocklyTheme, settings, effectiveColorScheme]);
 
   const handleBlocklyPanelResize = useCallback(() => {
     setTimeout(() => {
@@ -617,13 +631,22 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                   )}
                   {playerStatus !== 'idle' && <button className="primaryButton" onClick={resetGame}>{t('UI.Reset')}</button>}
                 </div>
-                <div>
+                <div className="controls-left">
                   {is3DRenderer && (
-                    <select value={settings.cameraMode} onChange={(e) => handleSettingsChange({ cameraMode: e.target.value as CameraMode })}>
-                      <option value="Follow">{t('Camera.Follow')}</option>
-                      <option value="TopDown">{t('Camera.TopDown')}</option>
-                      <option value="Free">{t('Camera.Free')}</option>
-                    </select>
+                    <div className="control-group">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+                      </svg>
+                      <select
+                        className="themed-select"
+                        value={settings.cameraMode}
+                        onChange={(e) => handleSettingsChange({ cameraMode: e.target.value as CameraMode })}
+                      >
+                        <option value="Follow">{t('Camera.Follow')}</option>
+                        <option value="TopDown">{t('Camera.TopDown')}</option>
+                        <option value="Free">{t('Camera.Free')}</option>
+                      </select>
+                    </div>
                   )}
                 </div>
               </div>
@@ -723,8 +746,8 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                     onSoundsChange={value => handleSettingsChange({ soundsEnabled: value })}
                     colorSchemeMode={settings.colorSchemeMode || 'auto'}
                     onColorSchemeChange={value => handleSettingsChange({ colorSchemeMode: value })}
-                    toolboxMode={settings.toolboxMode || 'default'}
-                    onToolboxModeChange={value => handleSettingsChange({ toolboxMode: value })}
+                    toolboxPresetKey={settings.toolboxPresetKey || 'default'}
+                    onToolboxPresetChange={value => handleSettingsChange({ toolboxPresetKey: value })}
                     environment={settings.environment || 'night'}
                     onEnvironmentChange={value => handleSettingsChange({ environment: value })}
                   />

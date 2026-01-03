@@ -31,9 +31,9 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({
   const getQuestTranslation = (quest: AppQuest, key: string): string => {
     const currentLang = i18n.language;
     // Ưu tiên ngôn ngữ hiện tại, fallback về tiếng Anh, cuối cùng là chính key đó
-    return quest.translations?.[currentLang]?.[key] 
-        || quest.translations?.['en']?.[key] 
-        || t(key); // Dùng t() như một fallback cuối cùng
+    return quest.translations?.[currentLang]?.[key]
+      || quest.translations?.['en']?.[key]
+      || t(key); // Dùng t() như một fallback cuối cùng
   };
 
   // 1. Nhóm các quest theo 'topic'
@@ -81,7 +81,7 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({
         })}
       </div>
 
-      <div className="sidebar-footer">{!isCollapsed && children}</div>
+      <div className="sidebar-footer">{children}</div>
     </aside>
   );
 };

@@ -4,12 +4,23 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import './SettingsPanel.css';
 import type { QuestPlayerSettings } from '../../types';
+import { TOOLBOX_PRESET_LABELS, type ToolboxPresetKey } from '../../config/toolboxPresets';
 
 type Renderer = NonNullable<QuestPlayerSettings['renderer']>;
 type BlocklyThemeName = NonNullable<QuestPlayerSettings['blocklyThemeName']>;
 type ColorSchemeMode = NonNullable<QuestPlayerSettings['colorSchemeMode']>;
-type ToolboxMode = 'default' | 'simple' | 'test'; // Giữ lại vì nó là cục bộ cho panel
 type EnvironmentMode = 'day' | 'night';
+
+// Preset keys available in Settings dropdown
+const PRESET_OPTIONS: Array<'default' | ToolboxPresetKey> = [
+  'default',
+  'basic_movement',
+  'with_actions',
+  'with_loops',
+  'with_functions',
+  'with_conditionals',
+  'full',
+];
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -20,7 +31,7 @@ interface SettingsPanelProps {
   gridEnabled: boolean;
   soundsEnabled: boolean;
   colorSchemeMode: ColorSchemeMode;
-  toolboxMode: ToolboxMode;
+  toolboxPresetKey: 'default' | ToolboxPresetKey;
   environment: EnvironmentMode;
 
   // Các hàm callback để thay đổi giá trị
@@ -29,7 +40,7 @@ interface SettingsPanelProps {
   onGridChange: (enabled: boolean) => void;
   onSoundsChange: (enabled: boolean) => void;
   onColorSchemeChange: (mode: ColorSchemeMode) => void;
-  onToolboxModeChange: (mode: ToolboxMode) => void;
+  onToolboxPresetChange: (preset: 'default' | ToolboxPresetKey) => void;
   onEnvironmentChange: (mode: EnvironmentMode) => void;
 }
 
@@ -40,13 +51,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   gridEnabled,
   soundsEnabled,
   colorSchemeMode,
-  toolboxMode,
+  toolboxPresetKey,
   onRendererChange,
   onBlocklyThemeNameChange,
   onGridChange,
   onSoundsChange,
   onColorSchemeChange,
-  onToolboxModeChange,
+  onToolboxPresetChange,
   environment,
   onEnvironmentChange
 }) => {
@@ -108,15 +119,17 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </select>
         </div>
         <div className="setting-item">
-          <label htmlFor="toolbox-select">{t('Settings.toolbox')}</label>
+          <label htmlFor="toolbox-preset-select">{t('Settings.toolbox')}</label>
           <select
-            id="toolbox-select"
-            value={toolboxMode}
-            onChange={(e) => onToolboxModeChange(e.target.value as ToolboxMode)}
+            id="toolbox-preset-select"
+            value={toolboxPresetKey}
+            onChange={(e) => onToolboxPresetChange(e.target.value as 'default' | ToolboxPresetKey)}
           >
-            <option value="default">{t('Settings.toolboxDefault')}</option>
-            <option value="simple">{t('Settings.toolboxSimple')}</option>
-            <option value="test">{t('Settings.toolboxTest')}</option>
+            {PRESET_OPTIONS.map((key) => (
+              <option key={key} value={key}>
+                {key === 'default' ? 'Default (Quest)' : TOOLBOX_PRESET_LABELS[key as ToolboxPresetKey]}
+              </option>
+            ))}
           </select>
         </div>
         <div className="setting-item">

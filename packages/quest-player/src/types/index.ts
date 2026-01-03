@@ -19,8 +19,9 @@ interface ToolboxCategory {
   kind: 'category';
   name: string;
   colour?: string;
-  contents: ToolboxItem[];
+  contents?: ToolboxItem[]; // Optional for custom categories
   categorystyle?: string;
+  custom?: 'PROCEDURE' | 'VARIABLE'; // For dynamic flyout categories
 }
 
 interface ToolboxSeparator {
@@ -288,7 +289,13 @@ export interface QuestPlayerSettings {
   soundsEnabled?: boolean;
   colorSchemeMode?: 'auto' | 'light' | 'dark';
   cameraMode?: CameraMode;
+  /** @deprecated Use toolboxPresetKey instead */
   toolboxMode?: 'default' | 'simple' | 'test';
+  /** 
+   * Selected toolbox preset key. When set, overrides the quest's toolbox configuration.
+   * Set to 'default' to use the quest's original toolbox.
+   */
+  toolboxPresetKey?: 'default' | 'basic_movement' | 'with_actions' | 'with_loops' | 'with_functions' | 'with_conditionals' | 'full';
   environment?: 'day' | 'night';
 }
 

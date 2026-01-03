@@ -133,3 +133,18 @@
 .quest-sidebar.collapsed .quest-level {
   margin-right: 0;
 }
+
+/* Footer in collapsed state - show only icon */
+.quest-sidebar.collapsed .sidebar-footer {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.quest-sidebar.collapsed .sidebar-footer .control-group {
+  justify-content: center;
+}
+
+.quest-sidebar.collapsed .sidebar-footer .themed-select {
+  display: none;
+}
