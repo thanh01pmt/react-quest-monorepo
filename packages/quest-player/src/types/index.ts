@@ -289,6 +289,7 @@ export interface QuestPlayerSettings {
   colorSchemeMode?: 'auto' | 'light' | 'dark';
   cameraMode?: CameraMode;
   toolboxMode?: 'default' | 'simple' | 'test';
+  environment?: 'day' | 'night';
 }
 
 export interface QuestCompletionResult {

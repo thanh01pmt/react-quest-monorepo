@@ -11,6 +11,7 @@ interface VisualizationProps {
   cameraMode?: CameraMode;
   onActionComplete: () => void;
   onTeleportComplete?: () => void;
+  environment?: 'day' | 'night';
 }
 
 export const Visualization = forwardRef<any, VisualizationProps>(
@@ -23,6 +24,7 @@ export const Visualization = forwardRef<any, VisualizationProps>(
       cameraMode,
       onActionComplete,
       onTeleportComplete,
+      environment,
     },
     ref
   ) => {
@@ -57,6 +59,7 @@ export const Visualization = forwardRef<any, VisualizationProps>(
         cameraMode={cameraMode}
         onActionComplete={onActionComplete}
         onTeleportComplete={onTeleportComplete}
+        environment={environment}
       />
     );
   }

@@ -9,6 +9,7 @@ type Renderer = NonNullable<QuestPlayerSettings['renderer']>;
 type BlocklyThemeName = NonNullable<QuestPlayerSettings['blocklyThemeName']>;
 type ColorSchemeMode = NonNullable<QuestPlayerSettings['colorSchemeMode']>;
 type ToolboxMode = 'default' | 'simple' | 'test'; // Giữ lại vì nó là cục bộ cho panel
+type EnvironmentMode = 'day' | 'night';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface SettingsPanelProps {
   soundsEnabled: boolean;
   colorSchemeMode: ColorSchemeMode;
   toolboxMode: ToolboxMode;
+  environment: EnvironmentMode;
 
   // Các hàm callback để thay đổi giá trị
   onRendererChange: (renderer: Renderer) => void;
@@ -28,6 +30,7 @@ interface SettingsPanelProps {
   onSoundsChange: (enabled: boolean) => void;
   onColorSchemeChange: (mode: ColorSchemeMode) => void;
   onToolboxModeChange: (mode: ToolboxMode) => void;
+  onEnvironmentChange: (mode: EnvironmentMode) => void;
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -43,7 +46,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onGridChange,
   onSoundsChange,
   onColorSchemeChange,
-  onToolboxModeChange
+  onToolboxModeChange,
+  environment,
+  onEnvironmentChange
 }) => {
   const { t } = useTranslation();
 
@@ -110,8 +115,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             onChange={(e) => onToolboxModeChange(e.target.value as ToolboxMode)}
           >
             <option value="default">{t('Settings.toolboxDefault')}</option>
-            <option value="simple">Simple</option>
-            <option value="test">Test</option>
+            <option value="simple">{t('Settings.toolboxSimple')}</option>
+            <option value="test">{t('Settings.toolboxTest')}</option>
+          </select>
+        </div>
+        <div className="setting-item">
+          <label htmlFor="environment-select">{t('Settings.environment')}</label>
+          <select
+            id="environment-select"
+            value={environment}
+            onChange={(e) => onEnvironmentChange(e.target.value as EnvironmentMode)}
+          >
+            <option value="night">{t('Settings.environmentNight')}</option>
+            <option value="day">{t('Settings.environmentDay')}</option>
           </select>
         </div>
       </div>

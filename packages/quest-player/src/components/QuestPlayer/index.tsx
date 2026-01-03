@@ -71,6 +71,7 @@ const DEFAULT_SETTINGS: Required<QuestPlayerSettings> = {
   colorSchemeMode: 'auto',
   cameraMode: 'Follow',
   toolboxMode: 'default',
+  environment: 'night',
 };
 
 let blocklyDefaultEnglishMessages: { [key: string]: string } | null = null;
@@ -535,6 +536,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                     cameraMode={settings.cameraMode}
                     onActionComplete={handleActionComplete}
                     onTeleportComplete={handleTeleportComplete}
+                    environment={settings.environment || 'night'}
                   />
                   <div className="stats-overlay">
                     {displayStats.blockCount != null && displayStats.maxBlocks != null && (
@@ -621,6 +623,8 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                     onColorSchemeChange={value => handleSettingsChange({ colorSchemeMode: value })}
                     toolboxMode={settings.toolboxMode || 'default'}
                     onToolboxModeChange={value => handleSettingsChange({ toolboxMode: value })}
+                    environment={settings.environment || 'night'}
+                    onEnvironmentChange={value => handleSettingsChange({ environment: value })}
                   />
                 </>
               )
