@@ -288,6 +288,7 @@ export interface QuestPlayerSettings {
   soundsEnabled?: boolean;
   colorSchemeMode?: 'auto' | 'light' | 'dark';
   cameraMode?: CameraMode;
+  toolboxMode?: 'default' | 'simple' | 'test';
 }
 
 export interface QuestCompletionResult {

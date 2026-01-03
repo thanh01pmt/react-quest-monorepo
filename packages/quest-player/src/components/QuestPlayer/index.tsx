@@ -70,6 +70,7 @@ const DEFAULT_SETTINGS: Required<QuestPlayerSettings> = {
   soundsEnabled: true,
   colorSchemeMode: 'auto',
   cameraMode: 'Follow',
+  toolboxMode: 'default',
 };
 
 let blocklyDefaultEnglishMessages: { [key: string]: string } | null = null;
@@ -131,13 +132,32 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     return blocklyGeneratedCode;
   }, [currentEditor, aceCode, blocklyGeneratedCode]);
 
-  const settings = useMemo(() => ({ ...DEFAULT_SETTINGS, ...props.initialSettings }), [props.initialSettings]);
+  // FIX: Use useState instead of useMemo so settings can be updated locally
+  const [settings, setSettings] = useState<QuestPlayerSettings>(() => ({ ...DEFAULT_SETTINGS, ...props.initialSettings }));
 
-  const handleSettingsChange = (newSettings: Partial<QuestPlayerSettings>) => {
-    if (props.onSettingsChange) {
-      props.onSettingsChange({ ...settings, ...newSettings });
-    }
-  };
+  const handleSettingsChange = useCallback((newSettings: Partial<QuestPlayerSettings>) => {
+    setSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+
+      // If Blockly-related settings changed, regenerate workspace key to force remount
+      const blocklySettingsChanged =
+        newSettings.renderer !== undefined ||
+        newSettings.blocklyThemeName !== undefined ||
+        newSettings.gridEnabled !== undefined ||
+        newSettings.colorSchemeMode !== undefined;
+
+      if (blocklySettingsChanged) {
+        setBlocklyWorkspaceKey(`settings-${Date.now()}`);
+      }
+
+      // Notify parent if callback exists
+      if (props.onSettingsChange) {
+        props.onSettingsChange(updated);
+      }
+
+      return updated;
+    });
+  }, [props.onSettingsChange]);
 
   useEffect(() => {
     // Hàm async để khởi tạo blocks
@@ -172,7 +192,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     };
 
     initializeBlocks();
-  }, [language, t, questData]);
+  }, [language, t, questData, settings.toolboxMode]);
 
   const handleGameEnd = useCallback((result: QuestCompletionResult) => {
     if (isStandalone) {
@@ -211,7 +231,14 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       setLoadedQuestId(null);
       const processedToolbox = processToolbox(questData.blocklyConfig.toolbox, t);
       // Always remove start block from toolbox to prevent adding multiples
-      const newToolbox = JSON.parse(JSON.stringify(processedToolbox));
+      let newToolbox = JSON.parse(JSON.stringify(processedToolbox));
+
+      // Filter based on toolbox mode
+      if (settings.toolboxMode === 'simple') {
+        // [Example] Simple mode could remove 'Procedures' category
+        // newToolbox.contents = newToolbox.contents.filter((c: any) => c.custom !== 'PROCEDURE');
+      }
+
       newToolbox.contents.forEach((category: ToolboxItem) => {
         if (category.kind === 'category' && Array.isArray(category.contents)) {
           category.contents = category.contents.filter(block => (block as any).type !== START_BLOCK_TYPE);
@@ -412,21 +439,30 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
   const is3DRenderer = questData?.gameConfig.type === 'maze' && questData.gameConfig.renderer === '3d';
 
-  const effectiveColorScheme = useMemo(() => {
+  const effectiveColorScheme = useMemo((): 'light' | 'dark' => {
     if (settings.colorSchemeMode === 'auto') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-    return settings.colorSchemeMode;
+    return settings.colorSchemeMode || 'light';
   }, [settings.colorSchemeMode]);
 
-  const blocklyTheme = useMemo(() => createBlocklyTheme(settings.blocklyThemeName, effectiveColorScheme), [settings.blocklyThemeName, effectiveColorScheme]);
+  const blocklyTheme = useMemo(() => createBlocklyTheme(settings.blocklyThemeName || 'zelos', effectiveColorScheme), [settings.blocklyThemeName, effectiveColorScheme]);
 
   const workspaceConfiguration = useMemo(() => ({
     theme: blocklyTheme,
     renderer: settings.renderer,
     trashcan: true,
     zoom: { controls: true, wheel: false, startScale: 1.0, maxScale: 3, minScale: 0.3, scaleSpeed: 1.2 },
-    grid: { spacing: 20, length: 3, colour: "#ccc", snap: settings.gridEnabled },
+    move: {
+      scrollbars: {
+        horizontal: true,
+        vertical: true
+      },
+      drag: true,
+      wheel: true
+    },
+    // Only provide grid object if gridEnabled is true
+    grid: settings.gridEnabled ? { spacing: 20, length: 3, colour: "#ccc", snap: true } : undefined,
     sounds: settings.soundsEnabled,
   }), [blocklyTheme, settings]);
 
@@ -455,7 +491,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     <>
       <Dialog isOpen={dialogState.isOpen} title={dialogState.title} onClose={() => setDialogState({ ...dialogState, isOpen: false })}>{dialogState.message}</Dialog>
       <DocumentationPanel isOpen={isDocsOpen} onClose={() => setIsDocsOpen(false)} gameType={questData.gameType} />
-      <BackgroundMusic src={questData.backgroundMusic} play={playerStatus === 'running' && settings.soundsEnabled} />
+      <BackgroundMusic src={questData.backgroundMusic} play={playerStatus === 'running' && (settings.soundsEnabled ?? true)} />
 
       <PanelGroup direction="horizontal" className="quest-player-container" autoSaveId="quest-player-panels">
         <Panel defaultSize={50} minSize={20}>
@@ -573,18 +609,18 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                   )}
                   <SettingsPanel
                     isOpen={isSettingsOpen}
-                    renderer={settings.renderer}
+                    renderer={settings.renderer || 'zelos'}
                     onRendererChange={value => handleSettingsChange({ renderer: value })}
-                    blocklyThemeName={settings.blocklyThemeName}
+                    blocklyThemeName={settings.blocklyThemeName || 'zelos'}
                     onBlocklyThemeNameChange={value => handleSettingsChange({ blocklyThemeName: value })}
-                    gridEnabled={settings.gridEnabled}
+                    gridEnabled={settings.gridEnabled ?? true}
                     onGridChange={value => handleSettingsChange({ gridEnabled: value })}
-                    soundsEnabled={settings.soundsEnabled}
+                    soundsEnabled={settings.soundsEnabled ?? true}
                     onSoundsChange={value => handleSettingsChange({ soundsEnabled: value })}
-                    colorSchemeMode={settings.colorSchemeMode}
+                    colorSchemeMode={settings.colorSchemeMode || 'auto'}
                     onColorSchemeChange={value => handleSettingsChange({ colorSchemeMode: value })}
-                    toolboxMode={"default"}
-                    onToolboxModeChange={() => { }}
+                    toolboxMode={settings.toolboxMode || 'default'}
+                    onToolboxModeChange={value => handleSettingsChange({ toolboxMode: value })}
                   />
                 </>
               )

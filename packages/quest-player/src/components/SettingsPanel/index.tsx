@@ -12,7 +12,7 @@ type ToolboxMode = 'default' | 'simple' | 'test'; // Giữ lại vì nó là c�
 
 interface SettingsPanelProps {
   isOpen: boolean;
-  
+
   // Các giá trị hiện tại
   renderer: Renderer;
   blocklyThemeName: BlocklyThemeName;
@@ -30,20 +30,20 @@ interface SettingsPanelProps {
   onToolboxModeChange: (mode: ToolboxMode) => void;
 }
 
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
-    isOpen, 
-    renderer,
-    blocklyThemeName,
-    gridEnabled,
-    soundsEnabled,
-    colorSchemeMode,
-    toolboxMode,
-    onRendererChange,
-    onBlocklyThemeNameChange,
-    onGridChange,
-    onSoundsChange,
-    onColorSchemeChange,
-    onToolboxModeChange
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({
+  isOpen,
+  renderer,
+  blocklyThemeName,
+  gridEnabled,
+  soundsEnabled,
+  colorSchemeMode,
+  toolboxMode,
+  onRendererChange,
+  onBlocklyThemeNameChange,
+  onGridChange,
+  onSoundsChange,
+  onColorSchemeChange,
+  onToolboxModeChange
 }) => {
   const { t } = useTranslation();
 
@@ -53,9 +53,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         <h3>{t('Settings.title')}</h3>
         <div className="setting-item">
           <label htmlFor="renderer-select">{t('Settings.renderer')}</label>
-          <select 
-            id="renderer-select" 
-            value={renderer} 
+          <select
+            id="renderer-select"
+            value={renderer}
             onChange={(e) => onRendererChange(e.target.value as Renderer)}>
             <option value="zelos">Zelos</option>
             <option value="geras">Geras</option>
@@ -63,7 +63,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </div>
         <div className="setting-item">
           <label htmlFor="theme-select">{t('Settings.theme')}</label>
-          <select 
+          <select
             id="theme-select"
             value={blocklyThemeName}
             onChange={(e) => onBlocklyThemeNameChange(e.target.value as BlocklyThemeName)}
@@ -74,25 +74,25 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </div>
         <div className="setting-item">
           <label>
-            <input 
-                type="checkbox" 
-                checked={gridEnabled}
-                onChange={(e) => onGridChange(e.target.checked)}
+            <input
+              type="checkbox"
+              checked={gridEnabled}
+              onChange={(e) => onGridChange(e.target.checked)}
             /> {t('Settings.grid')}
           </label>
         </div>
         <div className="setting-item">
           <label>
-            <input 
-                type="checkbox" 
-                checked={soundsEnabled}
-                onChange={(e) => onSoundsChange(e.target.checked)}
+            <input
+              type="checkbox"
+              checked={soundsEnabled}
+              onChange={(e) => onSoundsChange(e.target.checked)}
             /> {t('Settings.sounds')}
           </label>
         </div>
         <div className="setting-item">
           <label htmlFor="colorscheme-select">{t('Settings.colorScheme')}</label>
-          <select 
+          <select
             id="colorscheme-select"
             value={colorSchemeMode}
             onChange={(e) => onColorSchemeChange(e.target.value as ColorSchemeMode)}
@@ -104,14 +104,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </div>
         <div className="setting-item">
           <label htmlFor="toolbox-select">{t('Settings.toolbox')}</label>
-          <select 
+          <select
             id="toolbox-select"
             value={toolboxMode}
             onChange={(e) => onToolboxModeChange(e.target.value as ToolboxMode)}
           >
             <option value="default">{t('Settings.toolboxDefault')}</option>
-            <option value="simple" disabled>Simple</option>
-            <option value="test" disabled>Test</option>
+            <option value="simple">Simple</option>
+            <option value="test">Test</option>
           </select>
         </div>
       </div>
