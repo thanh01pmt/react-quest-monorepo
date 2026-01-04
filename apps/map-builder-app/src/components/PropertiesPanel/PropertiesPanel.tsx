@@ -27,13 +27,14 @@ const renderPropertyInput = (key: string, value: any, onChange: (key: string, va
     );
   }
   // THÊM MỚI: Trình chỉnh sửa riêng cho thuộc tính 'direction'
+  // Convention: 0=-Z(South), 1=+X(East), 2=+Z(North), 3=-X(West)
   if (key === 'direction') {
     return (
       <select className="custom-select" value={value} onChange={(e) => onChange(key, parseInt(e.target.value, 10))}>
-        <option value="0">→ East (0°)</option>
-        <option value="1">↑ North (90°)</option>
-        <option value="2">← West (180°)</option>
-        <option value="3">↓ South (270°)</option>
+        <option value="0">East (0)</option>
+        <option value="1">North (1)</option>
+        <option value="2">West (2)</option>
+        <option value="3">South (3)</option>
       </select>
     );
   }

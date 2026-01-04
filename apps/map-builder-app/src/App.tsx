@@ -2641,7 +2641,17 @@ function App() {
           modelKey: b.asset.key
         })),
         players: [{
-          start: { x: startObj.position[0], y: startObj.position[1], z: startObj.position[2], direction: startObj.rotation ? Math.round(startObj.rotation[1] / (Math.PI / 2)) : 1 }
+          start: {
+            x: startObj.position[0],
+            y: startObj.position[1],
+            z: startObj.position[2],
+            // FIX: Read direction from properties.direction (same as handleSolveMaze)
+            direction: typeof startObj.properties?.direction === 'number'
+              ? Math.round(startObj.properties.direction) % 4
+              : (typeof startObj.properties?.direction === 'string'
+                ? Math.round(parseFloat(startObj.properties.direction)) % 4
+                : 1) // Default: 1 (North/+Z based on current convention)
+          }
         }],
         finish: { x: targetObj.position[0], y: targetObj.position[1], z: targetObj.position[2] },
         collectibles: placedObjects.filter(o => o.asset.type === 'collectible' || o.asset.key.includes('crystal') || o.asset.key.includes('key')).map(c => ({

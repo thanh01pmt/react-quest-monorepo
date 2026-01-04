@@ -91,22 +91,17 @@ class GameState {
   }
 }
 
-// DIRECTION CONVENTION (matches BuilderScene visual):
-// Direction index maps to visual cone rotation:
-// 0: +X (East)  - cone points to +X
-// 1: +Z (North) - cone points to +Z (default visual direction)
-// 2: -X (West)  - cone points to -X
-// 3: -Z (South) - cone points to -Z
+// DIRECTION CONVENTION (aligned with MazeEngine.ts in quest-player):
+// 0: -Z, 1: +X, 2: +Z, 3: -X
 //
-// Direction order 0->1->2->3 is COUNTERCLOCKWISE when viewed from above (+Y)
-// From PLAYER'S PERSPECTIVE (looking in facing direction):
-// - turnRight = (direction + 1) % 4 (counterclockwise from above = right hand)
-// - turnLeft = (direction + 3) % 4 (clockwise from above = left hand)
+// From PLAYER'S PERSPECTIVE:
+// - turnRight = (direction + 1) % 4
+// - turnLeft = (direction - 1 + 4) % 4
 const directions = [
-  { x: 1, z: 0 },  // 0: +X (East) - FIX: was -Z
-  { x: 0, z: 1 },  // 1: +Z (North) - FIX: was +X
-  { x: -1, z: 0 }, // 2: -X (West) - FIX: was +Z
-  { x: 0, z: -1 }, // 3: -Z (South) - FIX: was -X
+  { x: 0, z: -1 },  // 0: -Z
+  { x: 1, z: 0 },   // 1: +X
+  { x: 0, z: 1 },   // 2: +Z
+  { x: -1, z: 0 },  // 3: -X
 ];
 
 /**
