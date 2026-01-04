@@ -24,6 +24,7 @@ export const createBlocklyTheme = (themeName: 'zelos' | 'classic', colorScheme: 
     'procedure_category': { 'colour': '%{BKY_PROCEDURES_HUE}' },
     'pond_category': { 'colour': '#CF63CF' },
     'turtle_category': { 'colour': '#5BA55B' },
+    'oop_category': { 'colour': '#9370DB' }, // MediumPurple for OOP blocks
   };
 
   const blockStyleDefinitions = Object.entries(categoryStyleDefinitions).reduce((acc, [key, value]) => {

@@ -331,7 +331,7 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
       {
         "kind": "category",
         "name": "OOP",
-        "categorystyle": "movement_category",
+        "categorystyle": "oop_category",
         "contents": [
           { "kind": "block", "type": "oop_character_action" },
           { "kind": "block", "type": "oop_character_sensor" }

@@ -358,7 +358,7 @@ export function init(t: TFunction) {
       ],
       "previousStatement": null,
       "nextStatement": null,
-      "style": "movement_category",
+      "style": "oop_category",
       "tooltip": t('OOP.characterActionTooltip', 'Make a character perform an action'),
     },
     {
@@ -381,7 +381,7 @@ export function init(t: TFunction) {
         }
       ],
       "output": "Boolean",
-      "colour": 210,
+      "style": "oop_category",
       "tooltip": t('OOP.characterSensorTooltip', 'Check if a character can move in a direction'),
     }
   ]);
