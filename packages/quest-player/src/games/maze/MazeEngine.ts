@@ -497,7 +497,11 @@ export class MazeEngine implements IMazeEngine {
   }
 
   private getNextPosition(x: number, z: number, direction: Direction): { x: number, z: number } {
-    if (direction === 0) z--; else if (direction === 1) x++; else if (direction === 2) z++; else if (direction === 3) x--;
+    // COORDINATE_SYSTEM.md convention: 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
+    if (direction === 0) x++;       // East = +X
+    else if (direction === 1) z++;  // North = +Z
+    else if (direction === 2) x--;  // West = -X
+    else if (direction === 3) z--;  // South = -Z
     return { x, z };
   }
   
@@ -592,11 +596,13 @@ export class MazeEngine implements IMazeEngine {
   }
 
   private turnLeft(): void {
-    this.getActivePlayer().direction = this.constrainDirection(this.getActivePlayer().direction - 1);
+    // COORDINATE_SYSTEM.md: Turn Left = (direction + 3) % 4 = CCW (E→N→W→S→E)
+    this.getActivePlayer().direction = this.constrainDirection(this.getActivePlayer().direction + 3);
     this.getActivePlayer().pose = 'TurningLeft';
   }
 
   private turnRight(): void {
+    // COORDINATE_SYSTEM.md: Turn Right = (direction + 1) % 4 = CW (E→S→W→N→E)
     this.getActivePlayer().direction = this.constrainDirection(this.getActivePlayer().direction + 1);
     this.getActivePlayer().pose = 'TurningRight';
   }

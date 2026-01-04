@@ -72,17 +72,17 @@ interface BuilderSceneProps {
 
 // Separate component for player_start to ensure proper re-rendering
 function PlayerStartRenderer({ direction, material }: { direction: number, material?: THREE.Material }) {
-  // Rotation map updated for User Coordinate System:
-  // After baseRotation, cone tip points to +Z (North)
-  // Y-axis rotation (right-hand rule): +90° rotates +Z to +X
+  // COORDINATE_SYSTEM.md: 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
+  // After baseRotation (π/2 on X-axis), cone tip points to +X (East)
+  // Y-axis rotation adjusts from +X to target direction (CCW from above)
   const rotationMap: Record<number, number> = {
-    0: Math.PI / 2,   // East (+X): rotate +Z to +X via +90°
-    1: 0,             // North (+Z): no rotation
-    2: -Math.PI / 2,  // West (-X): rotate +Z to -X via -90°
-    3: Math.PI        // South (-Z): rotate +Z to -Z via 180°
+    0: 0,             // East (+X): no rotation needed, already facing +X
+    1: -Math.PI / 2,  // North (+Z): rotate -90° from +X to +Z
+    2: Math.PI,       // West (-X): rotate 180° from +X to -X
+    3: Math.PI / 2    // South (-Z): rotate +90° from +X to -Z
   };
 
-  const baseRotation = Math.PI / 2; // Tip forward (points to +Z by default) - Fixed: was -π/2 which pointed to -Z
+  const baseRotation = Math.PI / 2; // Cone tip from +Y to +X after X-axis rotation
   const yRotation = rotationMap[direction] ?? 0;
 
   // Use key to force complete remount when direction changes

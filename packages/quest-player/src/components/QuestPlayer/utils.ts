@@ -185,6 +185,12 @@ export const calculateLogicalLines = (code: string): number => {
 
 
 export const processToolbox = (toolbox: ToolboxJSON, t: TFunction): ToolboxJSON => {
+    if (!toolbox || !toolbox.contents) {
+      console.warn('[processToolbox] Toolbox is undefined, falling back to full preset');
+      // Import dynamically to avoid circular dependency issues
+      const { toolboxPresets } = require('../../config/toolboxPresets');
+      return processToolbox(toolboxPresets['full_toolbox'], t);
+    }
     const processedContents = toolbox.contents.map((item: ToolboxItem) => {
       if (item.kind === 'category') {
         let processedSubContents = item.contents;
