@@ -21,6 +21,7 @@ interface ToolboxCategory {
   colour?: string;
   contents?: ToolboxItem[]; // Optional for custom categories
   categorystyle?: string;
+  expanded?: boolean; // For auto-expanding search results
   custom?: 'PROCEDURE' | 'VARIABLE'; // For dynamic flyout categories
 }
 

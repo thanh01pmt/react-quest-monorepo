@@ -23,10 +23,11 @@ import { EditorToolbar } from '../EditorToolbar';
 import { DocumentationPanel } from '../DocumentationPanel';
 import { BackgroundMusic } from '../BackgroundMusic';
 import { SettingsPanel } from '../SettingsPanel';
+import { SnippetToolbox } from '../SnippetToolbox';
 import { useSoundManager } from '../../hooks/useSoundManager';
 import { getToolboxPreset, type ToolboxPresetKey } from '../../config/toolboxPresets';
 import type { TurtleRendererHandle } from '../../games/turtle/TurtleRenderer';
-import { getFailureMessage, processToolbox, createBlocklyTheme, calculateLogicalLines } from './utils';
+import { getFailureMessage, processToolbox, createBlocklyTheme, calculateLogicalLines, filterToolbox, getToolboxCategoryNames } from './utils';
 import { useQuestLoader } from './hooks/useQuestLoader';
 import { useEditorManager } from './hooks/useEditorManager';
 import { useGameLoop } from './hooks/useGameLoop';
@@ -102,6 +103,17 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
   const [dynamicToolboxConfig, setDynamicToolboxConfig] = useState<ToolboxJSON | null>(null);
+  const [blocklySearchQuery, setBlocklySearchQuery] = useState('');
+
+  const filteredToolboxConfig = useMemo(() => {
+    if (!dynamicToolboxConfig) return null;
+    return filterToolbox(dynamicToolboxConfig, blocklySearchQuery);
+  }, [dynamicToolboxConfig, blocklySearchQuery]);
+
+  const allowedCategories = useMemo(() => {
+    return getToolboxCategoryNames(dynamicToolboxConfig);
+  }, [dynamicToolboxConfig]);
+
   const [initialXml, setInitialXml] = useState<string | undefined>(undefined);
 
   const [blocklyWorkspaceKey, setBlocklyWorkspaceKey] = useState<string>('initial-key');
@@ -859,25 +871,48 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
             {isQuestReady && dynamicToolboxConfig && isBlocksInitialized ? (
               <>
-                <div style={{ display: currentEditor !== 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'column', minHeight: 0, width: '100%' }}>
-                  <MonacoEditor
-                    initialCode={aceCode}
-                    onChange={(value) => {
-                      const code = value || '';
-                      console.log('[DEBUG] Monaco onChange:', code.substring(0, 50) + '...');
-                      setAceCode(code);
-                    }}
-                    language={currentEditor === 'monaco' ? 'javascript' : currentEditor}
-                    readOnly={false} // Phase 2: Open editing for all languages
-                  />
+                <div style={{ display: currentEditor !== 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'row', minHeight: 0, width: '100%' }}>
+                  <SnippetToolbox currentEditor={currentEditor} allowedCategories={allowedCategories} />
+                  <div style={{ flex: 1, height: '100%', position: 'relative' }}>
+                    <MonacoEditor
+                      initialCode={aceCode}
+                      onChange={(value) => {
+                        const code = value || '';
+                        // console.log('[DEBUG] Monaco onChange:', code.substring(0, 50) + '...');
+                        setAceCode(code);
+                      }}
+                      language={currentEditor === 'monaco' ? 'javascript' : currentEditor}
+                      readOnly={false} // Phase 2: Open editing for all languages
+                    />
+                  </div>
                 </div>
 
                 <div style={{ display: currentEditor === 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'column', minHeight: 0, width: '100%' }}>
+                  {/* Blockly Search Input - TEMPORARILY DISABLED
+                  <div style={{ padding: '8px 10px', backgroundColor: 'var(--background-color, #1e1e1e)', borderBottom: '1px solid var(--border-color, #333)' }}>
+                    <input
+                      type="search"
+                      placeholder={t('UI.searchBlocks', 'Search...')}
+                      value={blocklySearchQuery}
+                      onChange={(e) => setBlocklySearchQuery(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '6px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid var(--border-color, #555)',
+                        backgroundColor: 'var(--input-bg, #3c3c3c)',
+                        color: 'var(--text-color, white)',
+                        fontSize: '13px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                  */}
                   {questData.blocklyConfig && loadedQuestId === questData.id && (
                     <BlocklyWorkspace
                       key={blocklyWorkspaceKey}
                       className="fill-container"
-                      toolboxConfiguration={dynamicToolboxConfig}
+                      toolboxConfiguration={filteredToolboxConfig || dynamicToolboxConfig}
                       initialXml={initialXml}
                       workspaceConfiguration={workspaceConfiguration}
                       onWorkspaceChange={onWorkspaceChange}

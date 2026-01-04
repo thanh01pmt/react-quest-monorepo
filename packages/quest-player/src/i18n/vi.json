@@ -389,5 +389,7 @@
 	"OOP.robot1": "Robot 1",
 	"OOP.robot2": "Robot 2",
 	"OOP.characterActionTooltip": "Cho một nhân vật thực hiện hành động",
-	"OOP.characterSensorTooltip": "Kiểm tra xem một nhân vật có thể di chuyển theo hướng nào"
+	"OOP.characterSensorTooltip": "Kiểm tra xem một nhân vật có thể di chuyển theo hướng nào",
+	"UI.searchBlocks": "Tìm kiếm khối...",
+	"UI.searchSnippets": "Tìm kiếm lệnh..."
 }

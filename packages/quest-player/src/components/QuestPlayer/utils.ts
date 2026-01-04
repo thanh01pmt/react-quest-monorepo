@@ -209,3 +209,63 @@ export const processToolbox = (toolbox: ToolboxJSON, t: TFunction): ToolboxJSON 
     });
     return { ...toolbox, contents: processedContents };
 };
+
+export const filterToolbox = (toolbox: ToolboxJSON, query: string): ToolboxJSON => {
+  if (!query) return toolbox;
+
+  const lowerQuery = query.toLowerCase();
+
+  const filterItem = (item: ToolboxItem): ToolboxItem | null => {
+    if (item.kind === 'category') {
+      // Check if category name matches
+      const nameMatch = item.name.toLowerCase().includes(lowerQuery);
+      
+      // Filter contents
+      const filteredContents = item.contents 
+        ? item.contents.map(filterItem).filter((i): i is ToolboxItem => i !== null)
+        : [];
+      
+      // Keep category if name matches OR it has matching contents
+      if (nameMatch || filteredContents.length > 0) {
+        return { 
+          ...item, 
+          contents: nameMatch ? item.contents : filteredContents,
+          expanded: true // Expand if matching children found
+        };
+      }
+      return null;
+    } else if (item.kind === 'block') {
+      // Check block type
+      if (item.type.toLowerCase().includes(lowerQuery)) {
+        return item;
+      }
+      return null;
+    }
+    return item; // Keep separators etc if needed, or filter them? Let's keep them if surrounding items exist? 
+                 // Actually separators are tricky in filtered lists. Let's drop them for now to simplify.
+  };
+
+  const filteredContents = toolbox.contents
+    .map(filterItem)
+    .filter((i): i is ToolboxItem => i !== null);
+
+  return { ...toolbox, contents: filteredContents };
+};
+
+export const getToolboxCategoryNames = (toolbox: ToolboxJSON | null): Set<string> => {
+  if (!toolbox || !toolbox.contents) return new Set();
+  
+  const names = new Set<string>();
+  
+  const scan = (items: ToolboxItem[]) => {
+    items.forEach(item => {
+      if (item.kind === 'category') {
+        if (item.name) names.add(item.name);
+        if (item.contents) scan(item.contents);
+      }
+    });
+  };
+
+  scan(toolbox.contents);
+  return names;
+};

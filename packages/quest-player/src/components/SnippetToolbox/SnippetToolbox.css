@@ -1,0 +1,112 @@
+.snippet-toolbox {
+  width: 220px;
+  background-color: var(--toolbox-bg, #252526); /* Default to dark BG like Blockly */
+  border-right: 1px solid var(--border-color, #333);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
+  color: var(--text-color, #fff); /* Default to white text for toolbox */
+}
+
+.snippet-search-container {
+  padding: 10px;
+  background-color: var(--toolbox-bg, #252526);
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.snippet-search-input {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color, #555);
+  background-color: var(--input-bg, #3c3c3c);
+  color: var(--text-color, #fff);
+  font-size: 13px;
+  outline: none;
+}
+
+.snippet-search-input:focus {
+  border-color: #007fd4; /* VS Code blue */
+}
+
+/* Header removed via component, but ensure no styling conflicts */
+
+.snippet-toolbox-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: var(--toolbox-bg, #252526);
+}
+
+.snippet-category {
+  border-bottom: none; /* No separator lines in blockly style, usually */
+}
+
+.snippet-category-header {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  color: var(--toolbox-text, #fff);
+  background-color: transparent;
+  border-left: 8px solid var(--category-color);
+  transition: background-color 0.2s;
+}
+
+.snippet-category-header:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.snippet-category-content {
+  background-color: var(--background-color, #fafafa);
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 6px;
+}
+
+.snippet-item {
+  padding: 8px 10px;
+  background-color: var(--card-bg-color, white); /* Need a card var, or just use input-bg */
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px; 
+  cursor: grab;
+  font-size: 13px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all 0.15s ease;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-color, #333);
+}
+
+.snippet-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: var(--category-color, #ccc);
+}
+
+.snippet-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-color: var(--text-color, #bbb);
+}
+
+.snippet-item:active {
+  cursor: grabbing;
+  transform: translateY(0);
+}
+
+.snippet-item-label {
+  margin-left: 8px;
+  color: #333;
+}

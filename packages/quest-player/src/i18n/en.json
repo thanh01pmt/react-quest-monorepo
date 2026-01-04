@@ -380,5 +380,7 @@
 	"OOP.robot1": "Robot 1",
 	"OOP.robot2": "Robot 2",
 	"OOP.characterActionTooltip": "Make a character perform an action",
-	"OOP.characterSensorTooltip": "Check if a character can move in a direction"
+	"OOP.characterSensorTooltip": "Check if a character can move in a direction",
+	"UI.searchBlocks": "Search blocks...",
+	"UI.searchSnippets": "Search snippets..."
 }
