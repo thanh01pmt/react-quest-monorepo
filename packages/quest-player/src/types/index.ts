@@ -109,6 +109,7 @@ export interface Portal {
   color: 'blue' | 'green' | 'orange' | 'pink';
   targetId: string;
   exitDirection?: Direction;
+  controlSwitchId?: string; // ID of switch that enables this portal
 }
 
 export type Interactive = Switch | Portal;

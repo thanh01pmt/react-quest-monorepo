@@ -143,10 +143,12 @@ const Scene: React.FC<{
 
       {gameState.interactibles.map((item) => {
         if (item.type === 'portal') {
+          const isActive = !item.controlSwitchId || gameState.interactiveStates[item.controlSwitchId] === 'on';
           return (
             <Portal
               key={item.id}
               color={item.color}
+              isActive={isActive}
               position={[
                 item.position.x * TILE_SIZE,
                 (item.position.y - 0.54) * TILE_SIZE + 0.1,

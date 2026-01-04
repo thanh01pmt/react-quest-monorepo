@@ -699,6 +699,17 @@ export class MazeEngine implements IMazeEngine {
     const cell = this.currentState.worldGrid[`${player.x},${player.y},${player.z}`];
     
     if (cell && cell.type === 'portal') {
+      const portalConfig = this.initialGameState.interactibles.find(i => i.id === cell.id) as Portal | undefined;
+
+      // Check if portal is enabled by a switch
+      if (portalConfig?.controlSwitchId) {
+        const switchState = this.currentState.interactiveStates[portalConfig.controlSwitchId];
+        if (switchState !== 'on') {
+            // Disabled
+            return null;
+        }
+      }
+
       const justMoved = (player.xPrev !== player.x) || (player.zPrev !== player.z);
       
       if (justMoved) {

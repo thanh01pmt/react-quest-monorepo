@@ -11,6 +11,7 @@ type PortalColor = 'blue' | 'green' | 'orange' | 'pink';
 interface PortalProps {
   position: [number, number, number];
   color: PortalColor;
+  isActive?: boolean;
 }
 
 const TILE_SIZE = 2;
@@ -23,7 +24,7 @@ const COLOR_MAP: Record<PortalColor, THREE.Color> = {
   pink: new THREE.Color('#ff69b4'),
 };
 
-export const Portal: React.FC<PortalProps> = ({ position, color }) => {
+export const Portal: React.FC<PortalProps> = ({ position, color, isActive = true }) => {
   const ref = useRef<THREE.Group>(null!);
   const assetPath = GameAssets.world.misc.portal;
 
@@ -40,23 +41,30 @@ export const Portal: React.FC<PortalProps> = ({ position, color }) => {
         if (child.material.name === 'Portal_Core') {
           // Clone the material so we can modify it without affecting other instances
           emissiveMaterial.current = child.material.clone() as THREE.MeshStandardMaterial;
-          emissiveMaterial.current.emissive = COLOR_MAP[color];
           child.material = emissiveMaterial.current;
         }
       }
     });
-  }, [clonedScene, color]);
+  }, [clonedScene]); // Removed color dependency as we handle it in useFrame
 
   // Animate the portal
   useFrame((state) => {
-    if (ref.current) {
+    if (ref.current && emissiveMaterial.current) {
       const time = state.clock.getElapsedTime();
-      // Constant rotation
-      ref.current.rotation.y = time * 0.1;
-      
-      // Pulsing emissive intensity
-      if (emissiveMaterial.current) {
+
+      if (isActive) {
+        // Active: Rotate fast, pulse, correct color
+        ref.current.rotation.y += 0.02;
+        emissiveMaterial.current.emissive.set(COLOR_MAP[color]);
         emissiveMaterial.current.emissiveIntensity = 1.0 + Math.sin(time * 3) * 0.5;
+        emissiveMaterial.current.opacity = 0.9;
+        emissiveMaterial.current.transparent = true;
+      } else {
+        // Inactive: No rotation, dim, grey
+        emissiveMaterial.current.emissive.setHex(0x555555);
+        emissiveMaterial.current.emissiveIntensity = 0.1;
+        emissiveMaterial.current.opacity = 0.3;
+        emissiveMaterial.current.transparent = true;
       }
     }
   });
