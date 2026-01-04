@@ -100,6 +100,17 @@ export const initLuaGenerator = () => {
     const code = 'itemCount()';
     return [code, Order.HIGH];
   };
+
+  luaGenerator.forBlock['maze_say'] = function(block: Blockly.Block) {
+    const msg = luaGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
+    return `say(${msg})\n`;
+  };
+
+  luaGenerator.forBlock['oop_character_say'] = function(block: Blockly.Block) {
+    const character = block.getFieldValue('CHARACTER');
+    const msg = luaGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
+    return `${character}:say(${msg})\n`;
+  };
   
   // Start block - Remove leading indentation from statementToCode output
   luaGenerator.forBlock['maze_start'] = function(block: Blockly.Block) {

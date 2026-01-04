@@ -1,7 +1,7 @@
 import React, { useEffect, forwardRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { useGLTF, useAnimations } from '@react-three/drei';
+import { useGLTF, useAnimations, Html } from '@react-three/drei';
 import { gsap } from 'gsap';
 import type { Direction } from '../../../types';
 
@@ -37,6 +37,7 @@ interface RobotCharacterProps {
   animationName: string;
   onTweenComplete: () => void;
   onTeleportOutComplete?: () => void;
+  speech?: string;
 }
 
 const TILE_SIZE = 2;
@@ -46,7 +47,7 @@ const BUMP_DURATION = 0.15;
 const TELEPORT_DURATION = 0.5;
 
 export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
-  ({ position, direction, animationName, onTweenComplete, onTeleportOutComplete }, ref) => {
+  ({ position, direction, animationName, onTweenComplete, onTeleportOutComplete, speech }, ref) => {
     const groupRef = ref as React.RefObject<THREE.Group>;
 
     const { scene, animations } = useGLTF(ROBOT_MODEL_PATH);
@@ -62,7 +63,7 @@ export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
       const targetAnimationName = ANIMATION_MAP[animationName] || ANIMATION_MAP.Idle;
       const newAction = actions[targetAnimationName];
       if (!newAction) return;
-      
+
       const activeAction = Object.values(actions).find(a => a && a.isRunning());
       if (newAction === activeAction) return;
 
@@ -79,21 +80,21 @@ export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
 
       // Chỉ gọi onTweenComplete từ mixer cho các hoạt ảnh one-shot KHÔNG có chuyển động
       if (ONE_SHOT_ANIMATIONS.includes(animationName) && !isMovementOnly) {
-          newAction.reset().setLoop(THREE.LoopOnce, 1).fadeIn(0.2).play();
-          newAction.clampWhenFinished = true;
-          const onFinished = (event: any) => {
-              if (event.action === newAction) {
-                  mixer.removeEventListener('finished', onFinished);
-                  if (!isCompleting.current) {
-                    isCompleting.current = true;
-                    console.log(`%c[RobotCharacter] Calling onTweenComplete() from One-Shot Animation '${animationName}' FINISHED.`, 'color: #e74c3c; font-weight: bold;');
-                    onTweenComplete();
-                  }
-              }
-          };
-          mixer.addEventListener('finished', onFinished);
+        newAction.reset().setLoop(THREE.LoopOnce, 1).fadeIn(0.2).play();
+        newAction.clampWhenFinished = true;
+        const onFinished = (event: any) => {
+          if (event.action === newAction) {
+            mixer.removeEventListener('finished', onFinished);
+            if (!isCompleting.current) {
+              isCompleting.current = true;
+              console.log(`%c[RobotCharacter] Calling onTweenComplete() from One-Shot Animation '${animationName}' FINISHED.`, 'color: #e74c3c; font-weight: bold;');
+              onTweenComplete();
+            }
+          }
+        };
+        mixer.addEventListener('finished', onFinished);
       } else {
-          newAction.reset().setLoop(THREE.LoopRepeat, Infinity).fadeIn(0.2).play();
+        newAction.reset().setLoop(THREE.LoopRepeat, Infinity).fadeIn(0.2).play();
       }
     }, [animationName, actions, mixer, onTweenComplete]);
 
@@ -130,7 +131,7 @@ export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
         console.groupEnd();
         return;
       }
-      
+
       if (animationName === 'TeleportOut') {
         console.log('-> Executing LOGIC BRANCH: TeleportOut');
         gsap.to(group.scale, {
@@ -163,7 +164,7 @@ export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
 
       if (isTurnAnimation) {
         console.log('-> Executing LOGIC BRANCH: Turning');
-        gsap.to({}, { 
+        gsap.to({}, {
           duration: TURN_DURATION,
           onComplete: () => {
             console.log('%c[RobotCharacter] Calling onTweenComplete() from Turn.', 'color: #e74c3c; font-weight: bold;');
@@ -173,7 +174,7 @@ export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
         console.groupEnd();
         return;
       }
-      
+
       if (isInteractionAnimation) {
         console.log('-> Executing LOGIC BRANCH: Interaction');
         // Không cần làm gì ở đây. `useEffect` đầu tiên đã xử lý việc
@@ -189,7 +190,7 @@ export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
         gsap.to(group.position, {
           x: position.x, y: targetY, z: position.z,
           duration: tweenDuration, ease: 'linear',
-          onUpdate: function() {
+          onUpdate: function () {
             const progress = this.progress();
             const baseY = startY + progress * (targetY - startY);
             if (animationName === 'Jumping') {
@@ -210,11 +211,11 @@ export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
         console.groupEnd();
         return;
       }
-      
+
       console.log('-> Executing LOGIC BRANCH: Static Pose');
       group.position.copy(position);
       console.groupEnd();
-      
+
     }, [position, animationName, onTweenComplete, onTeleportOutComplete, groupRef]);
 
     useFrame((_, delta) => {
@@ -225,7 +226,7 @@ export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
         group.quaternion.slerp(targetQuaternion, delta * 10);
       }
     });
-    
+
     useEffect(() => {
       scene.traverse((child: THREE.Object3D) => {
         if (child instanceof THREE.Mesh) {
@@ -237,10 +238,54 @@ export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
 
     return (
       <group ref={groupRef} dispose={null} scale={1}>
-        <primitive 
-          object={scene} 
-          scale={TILE_SIZE/2*0.68}
+        <primitive
+          object={scene}
+          scale={TILE_SIZE / 2 * 0.68}
         />
+        {speech && (
+          <Html position={[0, TILE_SIZE * 1.5, 0]} center>
+            <div style={{
+              background: 'white',
+              padding: '8px 12px',
+              borderRadius: '12px',
+              border: '2px solid #333',
+              minWidth: '60px',
+              textAlign: 'center',
+              whiteSpace: 'nowrap',
+              color: '#333',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              fontFamily: 'sans-serif',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
+              marginTop: '-30px',
+              position: 'relative'
+            }}>
+              {speech}
+              <div style={{
+                position: 'absolute',
+                bottom: '-8px',
+                left: '50%',
+                marginLeft: '-8px',
+                width: '0',
+                height: '0',
+                borderLeft: '8px solid transparent',
+                borderRight: '8px solid transparent',
+                borderTop: '8px solid #333'
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '-5px',
+                left: '50%',
+                marginLeft: '-6px',
+                width: '0',
+                height: '0',
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: '6px solid white'
+              }} />
+            </div>
+          </Html>
+        )}
       </group>
     );
   }

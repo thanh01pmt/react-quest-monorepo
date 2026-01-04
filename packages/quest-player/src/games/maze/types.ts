@@ -27,6 +27,7 @@ export type PlayerState = {
   z: number; // Represents depth
   direction: Direction;
   pose?: string; // For special animations like victory dance
+  speech?: string;
   
   xPrev?: number;
   yPrev?: number;

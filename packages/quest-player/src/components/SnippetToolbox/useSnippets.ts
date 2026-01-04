@@ -181,6 +181,7 @@ export const useSnippets = (lang: string): SnippetCategory[] => {
       snippets: [
         { id: 'collect', label: t('Maze.collectItem', 'Collect'), code: call('collect') },
         { id: 'switch', label: t('Maze.toggleSwitch', 'Toggle Switch'), code: call('toggleSwitch') },
+        { id: 'say', label: t('Maze.say', 'Say'), code: call('say', '"Hello"') },
       ]
     },
     {
@@ -247,6 +248,7 @@ export const useSnippets = (lang: string): SnippetCategory[] => {
         { id: 'r1_move', label: 'Robot 1: Move', code: call('robot1.moveForward') },
         { id: 'r1_left', label: 'Robot 1: Turn Left', code: call('robot1.turnLeft') },
         { id: 'r1_right', label: 'Robot 1: Turn Right', code: call('robot1.turnRight') },
+        { id: 'r1_say', label: 'Robot 1: Say', code: call('robot1.say', '"Hello"') },
         { id: 'r2_move', label: 'Robot 2: Move', code: call('robot2.moveForward') },
         { id: 'r2_left', label: 'Robot 2: Turn Left', code: call('robot2.turnLeft') },
         { id: 'r2_right', label: 'Robot 2: Turn Right', code: call('robot2.turnRight') },

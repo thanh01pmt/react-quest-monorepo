@@ -251,7 +251,19 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
         "categorystyle": "actions_category",
         "contents": [
           { "kind": "block", "type": "maze_collect" },
-          { "kind": "block", "type": "maze_toggle_switch" }
+          { "kind": "block", "type": "maze_toggle_switch" },
+          {
+            "kind": "block",
+            "type": "maze_say",
+            "inputs": {
+              "MSG": {
+                "shadow": {
+                  "type": "text",
+                  "fields": { "TEXT": "Hello" }
+                }
+              }
+            }
+          }
         ]
       },
       {
@@ -359,7 +371,19 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
         "categorystyle": "oop_category",
         "contents": [
           { "kind": "block", "type": "oop_character_action" },
-          { "kind": "block", "type": "oop_character_sensor" }
+          { "kind": "block", "type": "oop_character_sensor" },
+          {
+            "kind": "block",
+            "type": "oop_character_say",
+            "inputs": {
+              "MSG": {
+                "shadow": {
+                  "type": "text",
+                  "fields": { "TEXT": "Hello" }
+                }
+              }
+            }
+          }
         ]
       },
       { "kind": "sep" },

@@ -110,6 +110,17 @@ export const initPythonGenerator = () => {
     const code = 'itemCount()';
     return [code, Order.FUNCTION_CALL];
   };
+
+  pythonGenerator.forBlock['maze_say'] = function(block: Blockly.Block) {
+    const msg = pythonGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
+    return `say(${msg})\n`;
+  };
+
+  pythonGenerator.forBlock['oop_character_say'] = function(block: Blockly.Block) {
+    const character = block.getFieldValue('CHARACTER');
+    const msg = pythonGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
+    return `${character}.say(${msg})\n`;
+  };
   
   // Start block - Remove leading indentation from statementToCode output
   pythonGenerator.forBlock['maze_start'] = function(block: Blockly.Block) {

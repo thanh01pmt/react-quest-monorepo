@@ -20,7 +20,11 @@ export interface IMazeEngine extends IGameEngine {
   doToggleSwitch(): void;
   checkIsPath(direction: 0 | 1 | 3): boolean;
   checkIsItemPresent(): boolean;
+  checkIsItemPresent(): boolean;
   checkNotDone(): boolean;
+  
+  // Speech API
+  doSay(characterId: string, text: string): void;
   
   // OOP-Lite API for multi-character support (Phase 3)
   doActionForCharacter(characterId: string, action: string): void;
@@ -198,6 +202,14 @@ export class MazeEngine implements IMazeEngine {
     return this.isPath(direction);
   }
 
+  public doSay(characterId: string, text: string): void {
+    if (!characterId) characterId = this.currentState.activePlayerId;
+    const player = this.currentState.players[characterId];
+    if (player) {
+      player.speech = text;
+    }
+  }
+
   /** Check if there is an item at current position */
   public checkIsItemPresent(): boolean {
     return this.isItemPresent();
@@ -306,6 +318,13 @@ export class MazeEngine implements IMazeEngine {
         return interpreter.createNativeFunction(func.bind(this));
       };
       interpreter.setProperty(globalObject, 'isSwitchState', createConditionalWrapper(this.isSwitchState));
+      
+      // Speech API
+      interpreter.setProperty(globalObject, 'say', interpreter.createNativeFunction((text: string, blockId: string) => {
+        if (blockId) this.highlight(blockId);
+        this.doSay('', text);
+        this.executedAction = true; 
+      }));
 
       // ============================================
       // OOP-Lite: Create Character objects (Phase 3)
@@ -341,6 +360,12 @@ export class MazeEngine implements IMazeEngine {
         interpreter.setProperty(charObj, 'jump', createCharMethod('Jump', true));
         interpreter.setProperty(charObj, 'collect', createCharMethod('CollectItem', true));
         interpreter.setProperty(charObj, 'toggleSwitch', createCharMethod('ToggleSwitch', true));
+        
+        interpreter.setProperty(charObj, 'say', interpreter.createNativeFunction((text: string, blockId: string) => {
+            if (blockId) this.highlight(blockId);
+            this.doSay(characterId, text);
+            this.executedAction = true;
+        }));
         
         // Sensor methods
         interpreter.setProperty(charObj, 'isPathForward', createSensorMethod(0));

@@ -307,6 +307,17 @@ export function init(t: TFunction) {
       "nextStatement": null,
       "style": "loops_category",
       "tooltip": "%{BKY_MAZE_UNTIL_TOOLTIP}",
+    },
+    {
+      "type": "maze_say",
+      "message0": `${t('Maze.say', 'say')} %1`,
+      "args0": [
+        { "type": "input_value", "name": "MSG", "check": "String" }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "style": "actions_category",
+      "tooltip": t('Maze.sayTooltip', 'Say something'),
     }
   ]);
 
@@ -320,6 +331,11 @@ export function init(t: TFunction) {
     const argument0 = javascriptGenerator.valueToCode(block, 'BOOL', Order.NONE) || 'false';
     const branch = javascriptGenerator.statementToCode(block, 'DO');
     return 'do {\n' + branch + '} while (!' + argument0 + ');\n';
+  };
+
+  javascriptGenerator.forBlock['maze_say'] = function(block: Blockly.Block) {
+    const msg = javascriptGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
+    return `say(${msg}, 'block_id_${block.id}');\n`;
   };
 
   // ============================================
@@ -383,6 +399,30 @@ export function init(t: TFunction) {
       "output": "Boolean",
       "style": "oop_category",
       "tooltip": t('OOP.characterSensorTooltip', 'Check if a character can move in a direction'),
+    },
+    {
+      "type": "oop_character_say",
+      "message0": "%1 %2 %3",
+      "args0": [
+        {
+          "type": "field_dropdown",
+          "name": "CHARACTER",
+          "options": DEFAULT_CHARACTERS
+        },
+         {
+          "type": "field_label",
+          "text": t('Maze.say', 'say')
+        },
+        {
+          "type": "input_value",
+          "name": "MSG",
+          "check": "String"
+        }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "style": "oop_category",
+      "tooltip": t('Maze.sayTooltip', 'Say something'),
     }
   ]);
 
@@ -399,5 +439,11 @@ export function init(t: TFunction) {
     const character = block.getFieldValue('CHARACTER');
     const sensor = block.getFieldValue('SENSOR');
     return [`${character}.${sensor}()`, Order.FUNCTION_CALL];
+  };
+
+  javascriptGenerator.forBlock['oop_character_say'] = function(block: Blockly.Block) {
+    const character = block.getFieldValue('CHARACTER');
+    const msg = javascriptGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
+    return `${character}.say(${msg}, 'block_id_${block.id}');\n`;
   };
 }

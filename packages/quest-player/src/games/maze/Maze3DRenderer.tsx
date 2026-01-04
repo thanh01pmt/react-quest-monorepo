@@ -187,6 +187,7 @@ const Scene: React.FC<{
         animationName={activePlayer.pose || 'Idle'}
         onTweenComplete={onActionComplete}
         onTeleportOutComplete={onTeleportComplete}
+        speech={activePlayer.speech}
       />
     </group>
   );

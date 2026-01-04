@@ -134,6 +134,8 @@
 	"Maze.untilTooltip": "Thực hiện các lệnh cho đến khi điều kiện đúng.",
 	"Maze.moveForwardTooltip": "Di chuyển Pegman tới một bước.",
 	"Maze.turnTooltip": "Quay Pegman qua bên trái hoặc bên phải 90 độ.",
+	"Maze.say": "nói",
+	"Maze.sayTooltip": "Hiển thị bong bóng hội thoại",
 	"Maze.ifTooltip": "Nếu có đường ở hướng đấy, hãy thực hiện các lệnh đưa ra.",
 	"Maze.ifelseTooltip": "Nếu có đường ở hướng đấy, hãy thực hiện các lệnh thứ nhất. Nếu không, thực hiện các lệnh thứ hai.",
 	"Maze.capacity0": "Bạn còn %0 mảnh.",
