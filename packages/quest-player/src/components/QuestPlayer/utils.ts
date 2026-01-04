@@ -197,10 +197,11 @@ export const processToolbox = (toolbox: ToolboxJSON, t: TFunction): ToolboxJSON 
           if (key.startsWith('GAMES_CAT')) {
             const catName = key.substring('GAMES_CAT'.length);
             i18nKey = 'Games.cat' + catName.charAt(0).toUpperCase() + catName.slice(1).toLowerCase();
+            return t(i18nKey);
           } else {
-            i18nKey = 'Games.' + key.substring('GAMES_'.length).toLowerCase();
+             // Fallback to standard Blockly Msg or return key
+             return Blockly.Msg[key] || key;
           }
-          return t(i18nKey);
         });
 
         return { ...item, name: newName, contents: processedSubContents };

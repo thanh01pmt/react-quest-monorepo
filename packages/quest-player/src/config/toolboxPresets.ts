@@ -325,7 +325,32 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
               "B": { "shadow": { "type": "math_number", "fields": { "NUM": 1 } } }
             }
           },
-          { "kind": "block", "type": "maze_item_count" }
+
+          { "kind": "block", "type": "maze_item_count" },
+          { "kind": "block", "type": "math_random_float" },
+          { "kind": "block", "type": "math_round" },
+          { "kind": "block", "type": "math_modulo" }
+        ]
+      },
+      {
+        "kind": "category",
+        "name": "%{BKY_GAMES_CATLISTS}",
+        "categorystyle": "list_category",
+        "contents": [
+          { "kind": "block", "type": "lists_create_with" },
+          { "kind": "block", "type": "lists_length" },
+          { "kind": "block", "type": "lists_getIndex" },
+          { "kind": "block", "type": "lists_setIndex" }
+        ]
+      },
+      {
+        "kind": "category",
+        "name": "%{BKY_GAMES_CATTEXT}",
+        "categorystyle": "text_category",
+        "contents": [
+          { "kind": "block", "type": "text_length" },
+          { "kind": "block", "type": "text_join" },
+          { "kind": "block", "type": "text_print" }
         ]
       },
       {

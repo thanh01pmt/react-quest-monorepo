@@ -391,5 +391,7 @@
 	"OOP.characterActionTooltip": "Cho một nhân vật thực hiện hành động",
 	"OOP.characterSensorTooltip": "Kiểm tra xem một nhân vật có thể di chuyển theo hướng nào",
 	"UI.searchBlocks": "Tìm kiếm khối...",
-	"UI.searchSnippets": "Tìm kiếm lệnh..."
+	"UI.searchSnippets": "Tìm kiếm lệnh...",
+	"Games.catLists": "Danh sách",
+	"Games.catText": "Văn bản"
 }
