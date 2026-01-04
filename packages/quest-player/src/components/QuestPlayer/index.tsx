@@ -389,6 +389,18 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     }
   }, [highlightedBlockId]);
 
+  // Ensure Blockly workspace is correctly sized when it becomes visible
+  useEffect(() => {
+    if (currentEditor === 'blockly' && workspaceRef.current) {
+      // Small delay to ensure display: flex has taken effect
+      setTimeout(() => {
+        if (workspaceRef.current) {
+          Blockly.svgResize(workspaceRef.current);
+        }
+      }, 50);
+    }
+  }, [currentEditor]);
+
   useEffect(() => {
     if (questData?.blocklyConfig) {
       setLoadedQuestId(null);
