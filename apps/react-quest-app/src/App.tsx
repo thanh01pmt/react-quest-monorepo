@@ -17,6 +17,7 @@ import {
 } from '@repo/quest-player';
 import { QuestSidebar } from './components/QuestSidebar/index';
 import './App.css';
+import { SyncPage } from './pages/SyncPage'; // Import SyncPage
 
 // Bọc QuestPlayer trong React.memo để ngăn re-render không cần thiết
 const MemoizedQuestPlayer = React.memo(QuestPlayer);
@@ -404,12 +405,29 @@ function AppContent() {
   );
 }
 
+// Wrapper cho SyncPage để truy cập và chỉnh sửa settings
+function SyncPageWrapper() {
+  const [settings, setSettings] = useState<AppSettings>(getStoredSettings);
+
+  const handleSettingsChange = (newSettings: QuestPlayerSettings) => {
+    setSettings((prev: AppSettings) => {
+      const updated = { ...prev, ...newSettings };
+      localStorage.setItem('questAppSettings', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  return <SyncPage settings={settings} onSettingsChange={handleSettingsChange} />;
+}
+
 function App() {
   // Đặt 'demo' làm nhóm mặc định để tải khi vào trang.
   const defaultGroupId = 'demo';
 
   return (
     <Routes>
+      {/* Route cho builder sync */}
+      <Route path="/sync" element={<SyncPageWrapper />} />
       {/* Route cho một quest cụ thể: /quest/group1/QUEST_ID */}
       <Route path="/quest/:groupId/:questId" element={<AppContent />} />
       {/* Route cho một nhóm: /quest/group1, sẽ tự động chuyển đến quest đầu tiên */}

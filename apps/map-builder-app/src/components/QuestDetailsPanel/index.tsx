@@ -7,8 +7,9 @@ import { toolboxPresets } from '../../config/toolboxPresets';
 import {
   ClipboardList, Puzzle, Target, FolderOpen, Save, Globe,
   ChevronDown, ChevronRight, CheckCircle, AlertTriangle,
-  RefreshCw, FileText, Pencil, FileJson
+  RefreshCw, FileText, Pencil, FileJson, ExternalLink, Settings
 } from 'lucide-react';
+import { syncToPlayer, getPlayerUrl, setPlayerUrl as savePlayerUrl, isLocalSync } from '../../services/PlayerSyncService';
 
 interface QuestDetailsPanelProps {
   metadata: Record<string, any> | null;
@@ -231,6 +232,11 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
   const [showTranslations, setShowTranslations] = useState(false);
   const [isSolving, setIsSolving] = useState(false);
   const [mapList, setMapList] = useState<Record<string, unknown> | null>(null);
+
+  // Player Sync State
+  const [playerUrl, setPlayerUrl] = useState(getPlayerUrl());
+  const [showPlayerUrlConfig, setShowPlayerUrlConfig] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{ type: 'idle' | 'success' | 'error'; message?: string }>({ type: 'idle' });
 
   // Solution tabs: 'raw' | 'basic' | 'optimal'
   const [solutionTab, setSolutionTab] = useState<'raw' | 'basic' | 'optimal'>('raw');
@@ -710,6 +716,56 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
           >
             <span className="icon"><Save size={16} /></span> Export Quest JSON
           </button>
+
+          {/* Send to Player */}
+          <button
+            className="action-btn primary full-width"
+            onClick={() => {
+              setSyncStatus({ type: 'idle' });
+              const result = syncToPlayer(metadata, playerUrl);
+              if (result.success) {
+                setSyncStatus({ type: 'success', message: 'Quest sent to Player!' });
+                setTimeout(() => setSyncStatus({ type: 'idle' }), 3000);
+              } else {
+                setSyncStatus({ type: 'error', message: result.error });
+              }
+            }}
+          >
+            <span className="icon"><ExternalLink size={16} /></span> Send to Player
+          </button>
+
+          {/* Sync Status Feedback */}
+          {syncStatus.type !== 'idle' && (
+            <div className={`sync-status ${syncStatus.type}`}>
+              {syncStatus.type === 'success' ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
+              <span>{syncStatus.message}</span>
+            </div>
+          )}
+
+          {/* Player URL Config Toggle */}
+          <button
+            className="toggle-btn"
+            onClick={() => setShowPlayerUrlConfig(!showPlayerUrlConfig)}
+            style={{ marginTop: '8px' }}
+          >
+            <Settings size={14} /> Player URL {showPlayerUrlConfig ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          </button>
+
+          {showPlayerUrlConfig && (
+            <div className="field-row" style={{ marginTop: '8px' }}>
+              <input
+                type="text"
+                value={playerUrl}
+                onChange={(e) => setPlayerUrl(e.target.value)}
+                onBlur={() => savePlayerUrl(playerUrl)}
+                placeholder="http://localhost:5173"
+                style={{ fontSize: '12px' }}
+              />
+              <small style={{ color: '#888', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                🌐 URL mode (query param)
+              </small>
+            </div>
+          )}
         </div>
 
         {/* Load from Project */}

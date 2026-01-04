@@ -34,8 +34,10 @@
 }
 
 .controlsArea {
-  padding: 10px;
-  border-top: 1px solid var(--border-color);
+  padding: 8px 12px;
+  height: 48px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border-color);
   background-color: var(--background-color);
   display: flex;
   justify-content: space-between;

@@ -1,0 +1,193 @@
+/* ============================================================ */
+/* SYNC PAGE STYLES */
+/* ============================================================ */
+
+.sync-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.sync-container {
+  background: rgba(30, 30, 46, 0.95);
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sync-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.sync-header h1 {
+  margin: 0 0 12px 0;
+  font-size: 28px;
+  color: #fff;
+}
+
+.sync-mode-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Quest Info Card */
+.quest-info-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.quest-info-card h2 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: #fff;
+  word-break: break-all;
+}
+
+.quest-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.meta-item {
+  font-size: 13px;
+  color: #a0a0b0;
+}
+
+.meta-item strong {
+  color: #c0c0d0;
+}
+
+/* Actions */
+.sync-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sync-btn {
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sync-btn.primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.sync-btn.primary:hover {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+.sync-btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c0c0d0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sync-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Hint */
+.sync-hint {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #808090;
+}
+
+/* Error State */
+.sync-error {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.sync-error p {
+  color: #ef5350;
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+
+/* Loading State */
+.sync-loading {
+  text-align: center;
+  padding: 40px;
+  color: #a0a0b0;
+  font-size: 16px;
+}
+
+/* ============================================================ */
+/* SYNC PLAYER WRAPPER */
+/* ============================================================ */
+
+.sync-player-wrapper {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sync-player-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #1e1e2e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sync-back-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #c0c0d0;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sync-back-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.sync-badge {
+  padding: 4px 10px;
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

@@ -1,0 +1,213 @@
+/**
+ * PlayerSyncService - Handles syncing quests from Builder to Player
+ * 
+ * Supports two modes:
+ * - Local (same origin): Uses localStorage
+ * - Production (cross-origin): Uses URL-encoded quest data
+ */
+
+// Quest type for sync (simplified - we pass the full JSON object)
+export type QuestData = Record<string, unknown>;
+
+const STORAGE_KEYS = {
+  PLAYER_URL: 'playerSyncUrl',
+  BUILDER_QUEST: 'builderQuest',
+} as const;
+
+const DEFAULT_PLAYER_URL = 'http://localhost:5173';
+
+/**
+ * Get the configured Player URL
+ */
+export function getPlayerUrl(): string {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.PLAYER_URL);
+    return stored || DEFAULT_PLAYER_URL;
+  } catch {
+    return DEFAULT_PLAYER_URL;
+  }
+}
+
+/**
+ * Set the Player URL
+ */
+export function setPlayerUrl(url: string): void {
+  try {
+    // Normalize URL: remove trailing slash
+    const normalizedUrl = url.replace(/\/+$/, '');
+    localStorage.setItem(STORAGE_KEYS.PLAYER_URL, normalizedUrl);
+  } catch (error) {
+    console.error('Failed to save Player URL:', error);
+  }
+}
+
+/**
+ * Check if the target Player URL is on the same origin (localhost)
+ */
+export function isLocalSync(playerUrl?: string): boolean {
+  const url = playerUrl || getPlayerUrl();
+  try {
+    const targetOrigin = new URL(url).origin;
+    const currentOrigin = window.location.origin;
+    
+    // Check if both are localhost (even with different ports)
+    const isTargetLocalhost = targetOrigin.includes('localhost') || targetOrigin.includes('127.0.0.1');
+    const isCurrentLocalhost = currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1');
+    
+    return isTargetLocalhost && isCurrentLocalhost;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Compress and encode quest data for URL transmission
+ * Uses base64 encoding (pako gzip can be added later for larger quests)
+ */
+export function compressQuest(quest: QuestData): string {
+  try {
+    const jsonString = JSON.stringify(quest);
+    // Use base64 encoding - URL safe variant
+    const base64 = btoa(unescape(encodeURIComponent(jsonString)));
+    // Make it URL-safe by replacing + with - and / with _
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  } catch (error) {
+    console.error('Failed to compress quest:', error);
+    throw new Error('Failed to encode quest data');
+  }
+}
+
+/**
+ * Decompress quest data from URL
+ */
+export function decompressQuest(encoded: string): QuestData {
+  try {
+    // Restore base64 from URL-safe format
+    let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+    // Add padding if needed
+    while (base64.length % 4) {
+      base64 += '=';
+    }
+    const jsonString = decodeURIComponent(escape(atob(base64)));
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error('Failed to decompress quest:', error);
+    throw new Error('Failed to decode quest data');
+  }
+}
+
+/**
+ * Save quest to localStorage for local sync
+ */
+export function saveQuestToLocalStorage(quest: QuestData): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.BUILDER_QUEST, JSON.stringify(quest));
+  } catch (error) {
+    console.error('Failed to save quest to localStorage:', error);
+    throw new Error('Failed to save quest locally');
+  }
+}
+
+/**
+ * Load quest from localStorage
+ */
+export function loadQuestFromLocalStorage(): QuestData | null {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.BUILDER_QUEST);
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.error('Failed to load quest from localStorage:', error);
+    return null;
+  }
+}
+
+/**
+ * Clear quest from localStorage
+ */
+export function clearBuilderQuest(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.BUILDER_QUEST);
+  } catch (error) {
+    console.error('Failed to clear builder quest:', error);
+  }
+}
+
+/**
+ * Build the sync URL for the Player
+ */
+export function buildSyncUrl(playerUrl: string, quest?: QuestData): string {
+  const baseUrl = playerUrl.replace(/\/+$/, '');
+  const syncPath = `${baseUrl}/sync`;
+  
+  // Always encode if quest is provided (caller decides whether to pass quest or save to localstorage)
+  if (quest) {
+    const encoded = compressQuest(quest);
+    return `${syncPath}?quest=${encoded}`;
+  }
+  
+  return syncPath;
+}
+
+/**
+ * Main sync function - sends quest to Player
+ * 
+ * Always uses URL-based sync because Builder and Player run on different ports
+ * (even on localhost), so they cannot share localStorage.
+ */
+export function syncToPlayer(quest: QuestData, playerUrl?: string): { success: boolean; error?: string } {
+  const url = playerUrl || getPlayerUrl();
+  
+  try {
+    // Check if truly same origin (same protocol, domain, AND PORT)
+    const isTrulySameOrigin = new URL(url).origin === window.location.origin;
+
+    console.log('[PlayerSyncService] Syncing to:', url);
+    console.log('[PlayerSyncService] Is truly same origin?', isTrulySameOrigin);
+    console.log('[PlayerSyncService] Quest Data Keys:', Object.keys(quest));
+
+    if (isTrulySameOrigin) {
+      // Only use localStorage if truly same origin
+      console.log('[PlayerSyncService] Using LocalStorage mode');
+      saveQuestToLocalStorage(quest);
+      const syncUrl = buildSyncUrl(url);
+      window.open(syncUrl, '_blank');
+      return { success: true };
+    } else {
+      // Cross-origin (different ports or domains): MUST use URL param
+      console.log('[PlayerSyncService] Using URL Param mode');
+      const syncUrl = buildSyncUrl(url, quest);
+      console.log('[PlayerSyncService] Generated Sync URL length:', syncUrl.length);
+      
+      // Check URL length - most browsers support ~8000 chars
+      if (syncUrl.length > 7500) {
+        console.error('[PlayerSyncService] Quest too large for URL sync');
+        return { 
+          success: false, 
+          error: `Quest too large for URL sync (${syncUrl.length} chars). Try reducing map size.` 
+        };
+      }
+      
+      console.log('[PlayerSyncService] Opening URL:', syncUrl);
+      window.open(syncUrl, '_blank');
+      return { success: true };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error during sync' 
+    };
+  }
+}
+
+export default {
+  getPlayerUrl,
+  setPlayerUrl,
+  isLocalSync,
+  compressQuest,
+  decompressQuest,
+  saveQuestToLocalStorage,
+  loadQuestFromLocalStorage,
+  clearBuilderQuest,
+  buildSyncUrl,
+  syncToPlayer,
+};
