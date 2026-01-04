@@ -769,7 +769,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         <Panel defaultSize={50} minSize={20}>
           <div className="visualizationColumn">
             <div className="main-content-wrapper">
-              <div className="controlsArea">
+              <div className={`controlsArea ${effectiveColorScheme}`}>
                 <div>
                   {(playerStatus === 'idle' || playerStatus === 'finished') && (
                     <>
