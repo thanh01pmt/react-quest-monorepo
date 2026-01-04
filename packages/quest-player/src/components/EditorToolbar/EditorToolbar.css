@@ -2,31 +2,33 @@
 
 /* Define variables if they fall back */
 .editorToolbar {
-  --toolbar-bg-light: #f5f5f5;
-  --toolbar-bg-dark: #1e1e1e;
-  --text-primary-light: #333333;
-  --text-primary-dark: #e0e0e0;
-  --text-secondary-light: #666666;
-  --text-secondary-dark: #aaaaaa;
-  
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--border-color, #e0e0e0);
   height: 48px;
   box-sizing: border-box;
-  
-  /* Logically set background based on mode usually handled by app theme, 
-     but we force safe defaults here via media query fallbacks if var is missing */
-  background-color: var(--panel-bg, var(--toolbar-bg-light));
+  transition: background-color 0.2s, color 0.2s;
 }
 
-@media (prefers-color-scheme: dark) {
-  .editorToolbar {
-    background-color: var(--panel-bg, var(--toolbar-bg-dark));
-    border-color: #333;
-  }
+.editorToolbar.light {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  color: #333333;
+}
+
+.editorToolbar.dark {
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #333333;
+  color: #e0e0e0;
+}
+
+.editorToolbar.light .toolbar-left svg {
+  fill: #555;
+}
+
+.editorToolbar.dark .toolbar-left svg {
+  fill: #ccc;
 }
 
 .toolbar-left {
@@ -39,15 +41,13 @@
   display: flex;
   gap: 4px;
   align-items: center;
-  background-color: var(--group-bg, #e0e0e0);
+  background-color: #e0e0e0;
   padding: 3px;
   border-radius: 6px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .editor-switch-group {
-    background-color: #333;
-  }
+.editorToolbar.dark .editor-switch-group {
+  background-color: #333;
 }
 
 .editor-switch-group button {
@@ -58,55 +58,47 @@
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-secondary-light);
+  color: #666;
   transition: all 0.2s;
   white-space: nowrap;
 }
 
-@media (prefers-color-scheme: dark) {
-  .editor-switch-group button {
-    color: var(--text-secondary-dark);
-  }
+.editorToolbar.dark .editor-switch-group button {
+  color: #aaa;
 }
 
 .editor-switch-group button:hover {
   background-color: rgba(0, 0, 0, 0.05);
-  color: var(--text-primary-light);
+  color: #333;
 }
 
-@media (prefers-color-scheme: dark) {
-  .editor-switch-group button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary-dark);
-  }
+.editorToolbar.dark .editor-switch-group button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
 }
 
 .editor-switch-group button.active {
-  background-color: var(--surface-color, #ffffff);
-  color: var(--primary-color, #1976d2);
+  background-color: #ffffff;
+  color: #1976d2;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   font-weight: 600;
 }
 
-@media (prefers-color-scheme: dark) {
-  .editor-switch-group button.active {
-    background-color: #444; /* Darker accent surface */
-    color: #64b5f6; /* Lighter blue for dark mode */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  }
+.editorToolbar.dark .editor-switch-group button.active {
+  background-color: #444;
+  color: #64b5f6;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .editorLabel {
   font-weight: bold;
   font-size: 14px;
-  color: var(--text-primary-light);
+  color: #333;
   padding: 0 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .editorLabel {
-    color: var(--text-primary-dark);
-  }
+.editorToolbar.dark .editorLabel {
+  color: #e0e0e0;
 }
 
 .help-button {

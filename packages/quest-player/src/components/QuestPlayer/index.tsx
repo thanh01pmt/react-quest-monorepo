@@ -867,12 +867,13 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
               }}
               onHelpClick={() => setIsDocsOpen(true)}
               onToggleSettings={() => setIsSettingsOpen(!isSettingsOpen)}
+              theme={effectiveColorScheme}
             />
 
             {isQuestReady && dynamicToolboxConfig && isBlocksInitialized ? (
               <>
                 <div style={{ display: currentEditor !== 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'row', minHeight: 0, width: '100%' }}>
-                  <SnippetToolbox currentEditor={currentEditor} allowedCategories={allowedCategories} />
+                  <SnippetToolbox currentEditor={currentEditor} allowedCategories={allowedCategories} theme={effectiveColorScheme} />
                   <div style={{ flex: 1, height: '100%', position: 'relative' }}>
                     <MonacoEditor
                       initialCode={aceCode}
@@ -883,6 +884,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                       }}
                       language={currentEditor === 'monaco' ? 'javascript' : currentEditor}
                       readOnly={false} // Phase 2: Open editing for all languages
+                      theme={effectiveColorScheme}
                     />
                   </div>
                 </div>

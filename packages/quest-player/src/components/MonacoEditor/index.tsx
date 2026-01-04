@@ -9,15 +9,18 @@ interface MonacoEditorProps {
   onChange: (value: string | undefined) => void;
   language?: string;
   readOnly?: boolean;
+  theme?: 'light' | 'dark';
 }
 
 export const MonacoEditor: React.FC<MonacoEditorProps> = ({
   initialCode,
   onChange,
   language = 'javascript',
-  readOnly = false
+  readOnly = false,
+  theme
 }) => {
-  const colorScheme = usePrefersColorScheme();
+  const systemColorScheme = usePrefersColorScheme();
+  const effectiveTheme = theme || systemColorScheme;
 
   const editorOptions = {
     fontSize: 14,
@@ -34,7 +37,7 @@ export const MonacoEditor: React.FC<MonacoEditorProps> = ({
       height="100%"
       width="100%"
       language={language}
-      theme={colorScheme === 'dark' ? 'vs-dark' : 'light'}
+      theme={effectiveTheme === 'dark' ? 'vs-dark' : 'light'}
       defaultValue={initialCode}
       value={initialCode} // Controlled component for updates
       onChange={onChange}

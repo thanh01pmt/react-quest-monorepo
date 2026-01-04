@@ -1,46 +1,74 @@
 .snippet-toolbox {
   width: 220px;
-  background-color: var(--toolbox-bg, #252526); /* Default to dark BG like Blockly */
-  border-right: 1px solid var(--border-color, #333);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   user-select: none;
-  color: var(--text-color, #fff); /* Default to white text for toolbox */
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.snippet-toolbox.light {
+  background-color: #f5f5f5;
+  border-right: 1px solid #e0e0e0;
+  color: #333;
+}
+
+.snippet-toolbox.dark {
+  background-color: #252526;
+  border-right: 1px solid #333;
+  color: #fff;
+}
+
+.snippet-toolbox.light .snippet-search-container {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.snippet-toolbox.dark .snippet-search-container {
+  background-color: #252526;
+  border-bottom: 1px solid #333;
 }
 
 .snippet-search-container {
   padding: 10px;
-  background-color: var(--toolbox-bg, #252526);
-  border-bottom: 1px solid var(--border-color, #333);
 }
 
 .snippet-search-input {
   width: 100%;
   padding: 6px 8px;
   border-radius: 4px;
-  border: 1px solid var(--border-color, #555);
-  background-color: var(--input-bg, #3c3c3c);
-  color: var(--text-color, #fff);
   font-size: 13px;
   outline: none;
 }
 
-.snippet-search-input:focus {
-  border-color: #007fd4; /* VS Code blue */
+.snippet-toolbox.light .snippet-search-input {
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #333;
 }
 
-/* Header removed via component, but ensure no styling conflicts */
+.snippet-toolbox.dark .snippet-search-input {
+  border: 1px solid #555;
+  background-color: #3c3c3c;
+  color: #fff;
+}
+
+.snippet-search-input:focus {
+  border-color: #007fd4;
+}
 
 .snippet-toolbox-content {
   flex: 1;
   overflow-y: auto;
-  background-color: var(--toolbox-bg, #252526);
 }
 
-.snippet-category {
-  border-bottom: none; /* No separator lines in blockly style, usually */
+.snippet-toolbox.light .snippet-toolbox-content {
+  background-color: #f5f5f5;
+}
+
+.snippet-toolbox.dark .snippet-toolbox-content {
+  background-color: #252526;
 }
 
 .snippet-category-header {
@@ -50,28 +78,44 @@
   font-size: 14px;
   display: flex;
   align-items: center;
-  color: var(--toolbox-text, #fff);
   background-color: transparent;
   border-left: 8px solid var(--category-color);
   transition: background-color 0.2s;
 }
 
+.snippet-toolbox.light .snippet-category-header {
+  color: #333;
+}
+
+.snippet-toolbox.dark .snippet-category-header {
+  color: #fff;
+}
+
 .snippet-category-header:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.snippet-toolbox.dark .snippet-category-header:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
 .snippet-category-content {
-  background-color: var(--background-color, #fafafa);
   display: flex;
   flex-direction: column;
   padding: 8px;
   gap: 6px;
 }
 
+.snippet-toolbox.light .snippet-category-content {
+  background-color: #fafafa;
+}
+
+.snippet-toolbox.dark .snippet-category-content {
+  background-color: #1e1e1e; /* Darker than toolbox bg */
+}
+
 .snippet-item {
   padding: 8px 10px;
-  background-color: var(--card-bg-color, white); /* Need a card var, or just use input-bg */
-  border: 1px solid var(--border-color, #ddd);
   border-radius: 4px; 
   cursor: grab;
   font-size: 13px;
@@ -82,7 +126,18 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--text-color, #333);
+}
+
+.snippet-toolbox.light .snippet-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  color: #333;
+}
+
+.snippet-toolbox.dark .snippet-item {
+  background-color: #2d2d2d;
+  border: 1px solid #444;
+  color: #ccc;
 }
 
 .snippet-item::before {
@@ -98,7 +153,15 @@
 .snippet-item:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border-color: var(--text-color, #bbb);
+}
+
+.snippet-toolbox.light .snippet-item:hover {
+  border-color: #bbb;
+}
+
+.snippet-toolbox.dark .snippet-item:hover {
+  border-color: #666;
+  background-color: #333;
 }
 
 .snippet-item:active {
@@ -108,5 +171,4 @@
 
 .snippet-item-label {
   margin-left: 8px;
-  color: #333;
 }

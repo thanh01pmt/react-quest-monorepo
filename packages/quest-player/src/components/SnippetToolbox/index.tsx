@@ -6,9 +6,10 @@ import './SnippetToolbox.css';
 interface SnippetToolboxProps {
     currentEditor: string;
     allowedCategories?: Set<string>;
+    theme?: 'light' | 'dark';
 }
 
-export const SnippetToolbox: React.FC<SnippetToolboxProps> = ({ currentEditor, allowedCategories }) => {
+export const SnippetToolbox: React.FC<SnippetToolboxProps> = ({ currentEditor, allowedCategories, theme = 'light' }) => {
     const { t } = useTranslation();
     const categories = useSnippets(currentEditor);
     const [expandedCategory, setExpandedCategory] = useState<string | null>('movement');
@@ -42,7 +43,7 @@ export const SnippetToolbox: React.FC<SnippetToolboxProps> = ({ currentEditor, a
     const displayExpanded = searchQuery ? filteredCategories.map(c => c.id) : (expandedCategory ? [expandedCategory] : []);
 
     return (
-        <div className="snippet-toolbox">
+        <div className={`snippet-toolbox ${theme}`}>
             <div className="snippet-search-container">
                 <input
                     type="search"

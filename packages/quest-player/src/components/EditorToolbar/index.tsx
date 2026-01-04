@@ -12,6 +12,7 @@ interface EditorToolbarProps {
   onEditorChange: (editor: EditorType) => void;
   onHelpClick: () => void;
   onToggleSettings: () => void;
+  theme?: 'light' | 'dark';
 }
 
 const getEditorName = (editor: EditorType, t: any) => {
@@ -19,6 +20,7 @@ const getEditorName = (editor: EditorType, t: any) => {
     case 'blockly':
       return t('UI.EditorBlocks', 'Blocks');
     case 'monaco':
+      return t('UI.EditorCode', 'Code');
     case 'javascript':
       return t('UI.EditorJavaScript', 'JavaScript');
     case 'python':
@@ -40,11 +42,12 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   onEditorChange,
   onHelpClick,
   onToggleSettings,
+  theme = 'light',
 }) => {
   const { t } = useTranslation();
 
   return (
-    <div className="editorToolbar">
+    <div className={`editorToolbar ${theme}`}>
       <div className="toolbar-left">
         <button className="primaryButton help-button" onClick={onHelpClick}>
           {t('Games.help')}

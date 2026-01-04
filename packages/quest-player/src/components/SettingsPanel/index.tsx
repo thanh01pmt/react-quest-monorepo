@@ -111,7 +111,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <select
             id="colorscheme-select"
             value={colorSchemeMode}
-            onChange={(e) => onColorSchemeChange(e.target.value as ColorSchemeMode)}
+            onChange={(e) => {
+              const mode = e.target.value as ColorSchemeMode;
+              onColorSchemeChange(mode);
+              if (mode === 'light') {
+                onEnvironmentChange('day');
+              } else if (mode === 'dark') {
+                onEnvironmentChange('night');
+              } else if (mode === 'auto') {
+                const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                onEnvironmentChange(isSystemDark ? 'night' : 'day');
+              }
+            }}
           >
             <option value="auto">{t('Settings.colorSchemeAuto')}</option>
             <option value="light">{t('Settings.colorSchemeLight')}</option>
