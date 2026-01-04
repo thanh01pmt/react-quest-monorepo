@@ -534,12 +534,9 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
     console.log(`[DEBUG handleRun] currentEditor=${currentEditor}, aceCode length=${aceCode?.length}`);
 
-    // [SIMPLIFIED] Python/Lua/JavaScript all use the SAME execution path
-    // Since our API uses identical function names (moveForward, turnLeft, etc.),
-    // we can treat Python/Lua code as JavaScript and run it through the interpreter.
-    if (currentEditor === 'python' || currentEditor === 'lua' || currentEditor === 'monaco' || currentEditor === 'javascript') {
+    // For Monaco/JavaScript editors (user-typed code), transpile aceCode
+    if (currentEditor === 'monaco' || currentEditor === 'javascript') {
       try {
-        // Python/Lua code IS valid JavaScript (same function names)
         const es5Code = transform(aceCode, { presets: ['env'] }).code;
         if (!es5Code) throw new Error("Babel transpilation failed.");
         codeToRun = es5Code;
@@ -547,7 +544,19 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         if (isStandalone) setDialogState({ isOpen: true, title: 'Syntax Error', message: e.message });
         return;
       }
-    } else {
+    }
+    // For Python/Lua tabs: DISPLAY shows language-specific syntax (aceCode)
+    // but EXECUTION uses JavaScript (blocklyGeneratedCode) from Blockly
+    else if (currentEditor === 'python' || currentEditor === 'lua') {
+      // Use the JavaScript code generated from Blockly blocks
+      codeToRun = blocklyGeneratedCode || '';
+      if (!codeToRun) {
+        if (isStandalone) setDialogState({ isOpen: true, title: 'No Code', message: 'Please add blocks to the workspace first.' });
+        return;
+      }
+    }
+    // For Blockly editor
+    else {
       if (workspaceRef.current && !workspaceRef.current.getTopBlocks(true).find(b => b.type === START_BLOCK_TYPE)) {
         if (isStandalone) setDialogState({ isOpen: true, title: 'Missing Start Block', message: t('Blockly.MissingStartBlock') });
         return;
