@@ -25,6 +25,10 @@ const getEditorName = (editor: EditorType, t: any) => {
       return 'Python';
     case 'lua':
       return 'Lua';
+    case 'cpp':
+      return 'C++';
+    case 'swift':
+      return 'Swift';
     default:
       return editor;
   }

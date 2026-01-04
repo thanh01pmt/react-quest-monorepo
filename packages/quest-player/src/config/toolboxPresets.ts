@@ -328,6 +328,15 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
           { "kind": "block", "type": "maze_item_count" }
         ]
       },
+      {
+        "kind": "category",
+        "name": "OOP",
+        "categorystyle": "movement_category",
+        "contents": [
+          { "kind": "block", "type": "oop_character_action" },
+          { "kind": "block", "type": "oop_character_sensor" }
+        ]
+      },
       { "kind": "sep" },
       {
         "kind": "category",

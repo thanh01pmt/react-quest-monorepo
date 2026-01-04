@@ -321,4 +321,83 @@ export function init(t: TFunction) {
     const branch = javascriptGenerator.statementToCode(block, 'DO');
     return 'do {\n' + branch + '} while (!' + argument0 + ');\n';
   };
+
+  // ============================================
+  // OOP-Lite Blocks (Phase 3)
+  // ============================================
+
+  // Character list - will be populated dynamically from quest config
+  const DEFAULT_CHARACTERS: [string, string][] = [
+    [t('OOP.robot1', 'Robot 1'), 'robot1'],
+    [t('OOP.robot2', 'Robot 2'), 'robot2'],
+  ];
+
+  // OOP Action Block: [character] move forward
+  Blockly.defineBlocksWithJsonArray([
+    {
+      "type": "oop_character_action",
+      "message0": "%1 %2",
+      "args0": [
+        {
+          "type": "field_dropdown",
+          "name": "CHARACTER",
+          "options": DEFAULT_CHARACTERS
+        },
+        {
+          "type": "field_dropdown",
+          "name": "ACTION",
+          "options": [
+            [t('Maze.moveForward'), 'moveForward'],
+            [t('Maze.turnLeft'), 'turnLeft'],
+            [t('Maze.turnRight'), 'turnRight'],
+            [t('Maze.jump'), 'jump'],
+            [t('Maze.collectItem', 'collect'), 'collect'],
+            [t('Maze.toggleSwitch'), 'toggleSwitch'],
+          ]
+        }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "style": "movement_category",
+      "tooltip": t('OOP.characterActionTooltip', 'Make a character perform an action'),
+    },
+    {
+      "type": "oop_character_sensor",
+      "message0": "%1 %2",
+      "args0": [
+        {
+          "type": "field_dropdown",
+          "name": "CHARACTER",
+          "options": DEFAULT_CHARACTERS
+        },
+        {
+          "type": "field_dropdown",
+          "name": "SENSOR",
+          "options": [
+            [t('Maze.pathAhead'), 'isPathForward'],
+            [t('Maze.pathLeft'), 'isPathLeft'],
+            [t('Maze.pathRight'), 'isPathRight'],
+          ]
+        }
+      ],
+      "output": "Boolean",
+      "colour": 210,
+      "tooltip": t('OOP.characterSensorTooltip', 'Check if a character can move in a direction'),
+    }
+  ]);
+
+  // Generator for OOP action block
+  javascriptGenerator.forBlock['oop_character_action'] = function(block: Blockly.Block) {
+    const character = block.getFieldValue('CHARACTER');
+    const action = block.getFieldValue('ACTION');
+    // Generate OOP-style syntax: robot1.moveForward()
+    return `${character}.${action}('block_id_${block.id}');\n`;
+  };
+
+  // Generator for OOP sensor block
+  javascriptGenerator.forBlock['oop_character_sensor'] = function(block: Blockly.Block) {
+    const character = block.getFieldValue('CHARACTER');
+    const sensor = block.getFieldValue('SENSOR');
+    return [`${character}.${sensor}()`, Order.FUNCTION_CALL];
+  };
 }

@@ -376,5 +376,9 @@
 	"Blockly.PROCEDURES_DEFNORETURN_PROCEDURE": "do something",
 	"Blockly.PROCEDURES_DEFRETURN_RETURN": "return",
 	"Blockly.NEW_VARIABLE": "Create variable...",
-	"Blockly.VARIABLES_DEFAULT_NAME": "item"
+	"Blockly.VARIABLES_DEFAULT_NAME": "item",
+	"OOP.robot1": "Robot 1",
+	"OOP.robot2": "Robot 2",
+	"OOP.characterActionTooltip": "Make a character perform an action",
+	"OOP.characterSensorTooltip": "Check if a character can move in a direction"
 }

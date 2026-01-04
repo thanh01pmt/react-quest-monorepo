@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { javascriptGenerator } from 'blockly/javascript';
 import { pythonGenerator } from 'blockly/python';
 import { luaGenerator } from 'blockly/lua';
+import { generateCppCode } from '../../games/maze/generators/cpp';
+import { generateSwiftCode } from '../../games/maze/generators/swift';
 import * as Blockly from 'blockly/core';
 import * as Vi from 'blockly/msg/vi';
 import { BlocklyWorkspace } from 'react-blockly';
@@ -545,9 +547,9 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         return;
       }
     }
-    // For Python/Lua tabs: DISPLAY shows language-specific syntax (aceCode)
+    // For Python/Lua/C++/Swift tabs: DISPLAY shows language-specific syntax (aceCode)
     // but EXECUTION uses JavaScript (blocklyGeneratedCode) from Blockly
-    else if (currentEditor === 'python' || currentEditor === 'lua') {
+    else if (currentEditor === 'python' || currentEditor === 'lua' || currentEditor === 'cpp' || currentEditor === 'swift') {
       // Use the JavaScript code generated from Blockly blocks
       codeToRun = blocklyGeneratedCode || '';
       if (!codeToRun) {
@@ -585,6 +587,12 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
           break;
         case 'lua':
           code = luaGenerator.workspaceToCode(workspace);
+          break;
+        case 'cpp':
+          code = generateCppCode(workspace);
+          break;
+        case 'swift':
+          code = generateSwiftCode(workspace);
           break;
         case 'javascript':
         default:
@@ -835,12 +843,12 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         <Panel minSize={30} onResize={handleBlocklyPanelResize}>
           <div className="blocklyColumn">
             <EditorToolbar
-              supportedEditors={['blockly', 'javascript', 'python', 'lua']}
+              supportedEditors={['blockly', 'javascript', 'python', 'lua', 'cpp', 'swift']}
               currentEditor={currentEditor}
               onEditorChange={(editor) => {
                 handleEditorChange(editor);
-                // Nếu chuyển sang ngôn ngữ read-only (Python/Lua), generate code từ workspace
-                if ((editor === 'python' || editor === 'lua') && workspaceRef.current) {
+                // If switching to read-only language tabs (Python/Lua/C++/Swift), generate code from workspace
+                if ((editor === 'python' || editor === 'lua' || editor === 'cpp' || editor === 'swift') && workspaceRef.current) {
                   const code = generateCodeForLanguage(workspaceRef.current, editor as CodeLanguage);
                   setAceCode(code);
                 }

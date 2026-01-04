@@ -21,6 +21,10 @@ export interface IMazeEngine extends IGameEngine {
   checkIsPath(direction: 0 | 1 | 3): boolean;
   checkIsItemPresent(): boolean;
   checkNotDone(): boolean;
+  
+  // OOP-Lite API for multi-character support (Phase 3)
+  doActionForCharacter(characterId: string, action: string): void;
+  checkPathForCharacter(characterId: string, direction: 0 | 1 | 3): boolean;
 }
 
 // [FIX] Define walkable and non-walkable blocks explicitly to ensure consistency.
@@ -204,6 +208,71 @@ export class MazeEngine implements IMazeEngine {
     return this.notDone();
   }
 
+  // ============================================
+  // OOP-Lite API for multi-character support (Phase 3)
+  // ============================================
+
+  /**
+   * Execute an action for a specific character by ID.
+   * Temporarily switches activePlayerId, executes action, then restores.
+   * @param characterId - The ID of the character (e.g., "player1", "player2")
+   * @param action - The action name (e.g., "MoveForward", "TurnLeft")
+   */
+  public doActionForCharacter(characterId: string, action: string): void {
+    const previousActiveId = this.currentState.activePlayerId;
+    
+    // Switch to the target character
+    if (this.currentState.players[characterId]) {
+      this.currentState.activePlayerId = characterId;
+    } else {
+      console.warn(`[OOP-Lite] Character "${characterId}" not found`);
+      return;
+    }
+    
+    // Execute the action
+    const actionMap: Record<string, () => void> = {
+      'MoveForward': () => this.doMoveForward(),
+      'TurnLeft': () => this.doTurnLeft(),
+      'TurnRight': () => this.doTurnRight(),
+      'Jump': () => this.doJump(),
+      'CollectItem': () => this.doCollectItem(),
+      'ToggleSwitch': () => this.doToggleSwitch(),
+    };
+    
+    const actionFn = actionMap[action];
+    if (actionFn) {
+      actionFn();
+    } else {
+      console.warn(`[OOP-Lite] Unknown action "${action}"`);
+    }
+    
+    // Restore previous active player (optional, depending on game design)
+    // this.currentState.activePlayerId = previousActiveId;
+  }
+
+  /**
+   * Check if path is open for a specific character.
+   * @param characterId - The ID of the character
+   * @param direction - 0=forward, 1=right, 3=left
+   */
+  public checkPathForCharacter(characterId: string, direction: 0 | 1 | 3): boolean {
+    const previousActiveId = this.currentState.activePlayerId;
+    
+    if (this.currentState.players[characterId]) {
+      this.currentState.activePlayerId = characterId;
+    } else {
+      console.warn(`[OOP-Lite] Character "${characterId}" not found`);
+      return false;
+    }
+    
+    const result = this.checkIsPath(direction);
+    
+    // Restore previous active player
+    this.currentState.activePlayerId = previousActiveId;
+    
+    return result;
+  }
+
   execute(userCode: string): void {
     this.currentState = this.getInitialState();
     this.highlightedBlockId = null;
@@ -237,6 +306,54 @@ export class MazeEngine implements IMazeEngine {
         return interpreter.createNativeFunction(func.bind(this));
       };
       interpreter.setProperty(globalObject, 'isSwitchState', createConditionalWrapper(this.isSwitchState));
+
+      // ============================================
+      // OOP-Lite: Create Character objects (Phase 3)
+      // ============================================
+      
+      // Helper to create a Character object with methods
+      const createCharacterObject = (characterId: string) => {
+        const charObj = interpreter.nativeToPseudo({});
+        
+        // Store the character ID
+        interpreter.setProperty(charObj, 'id', interpreter.nativeToPseudo(characterId));
+        
+        // Create method wrappers that use doActionForCharacter
+        const createCharMethod = (action: string, isAction: boolean) => {
+          return interpreter.createNativeFunction((...args: any[]) => {
+            const blockId = args.pop();
+            this.highlight(blockId);
+            if (isAction) this.executedAction = true;
+            this.doActionForCharacter(characterId, action);
+          });
+        };
+        
+        const createSensorMethod = (direction: 0 | 1 | 3) => {
+          return interpreter.createNativeFunction(() => {
+            return this.checkPathForCharacter(characterId, direction);
+          });
+        };
+        
+        // Action methods
+        interpreter.setProperty(charObj, 'moveForward', createCharMethod('MoveForward', true));
+        interpreter.setProperty(charObj, 'turnLeft', createCharMethod('TurnLeft', true));
+        interpreter.setProperty(charObj, 'turnRight', createCharMethod('TurnRight', true));
+        interpreter.setProperty(charObj, 'jump', createCharMethod('Jump', true));
+        interpreter.setProperty(charObj, 'collect', createCharMethod('CollectItem', true));
+        interpreter.setProperty(charObj, 'toggleSwitch', createCharMethod('ToggleSwitch', true));
+        
+        // Sensor methods
+        interpreter.setProperty(charObj, 'isPathForward', createSensorMethod(0));
+        interpreter.setProperty(charObj, 'isPathRight', createSensorMethod(1));
+        interpreter.setProperty(charObj, 'isPathLeft', createSensorMethod(3));
+        
+        return charObj;
+      };
+      
+      // Create default character objects
+      // In the future, this can be populated from quest config
+      interpreter.setProperty(globalObject, 'robot1', createCharacterObject('player1'));
+      interpreter.setProperty(globalObject, 'robot2', createCharacterObject('player2'));
     };
 
     this.interpreter = new Interpreter(userCode, initApi);

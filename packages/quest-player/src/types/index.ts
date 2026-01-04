@@ -4,7 +4,7 @@
 // ==                      QUEST DEFINITIONS                      ==
 // =================================================================
 
-export type EditorType = 'blockly' | 'monaco' | 'javascript' | 'python' | 'lua';
+export type EditorType = 'blockly' | 'monaco' | 'javascript' | 'python' | 'lua' | 'cpp' | 'swift';
 
 // --- Toolbox Definition Types ---
 
