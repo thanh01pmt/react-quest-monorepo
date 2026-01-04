@@ -20,22 +20,24 @@ const OFF_COLOR = new THREE.Color('#888888'); // Grey
 const GlowBeam: React.FC<{ position: [number, number, number] }> = ({ position }) => {
   const shaderArgs = useMemo(() => ({
     uniforms: {
-      uColor: { value: new THREE.Color('#FFFF00') }, // Yellow
+      uColor: { value: new THREE.Color('#FFFF00') },
+      uHeight: { value: TILE_SIZE }
     },
     vertexShader: `
-      varying vec2 vUv;
+      varying float vY;
       void main() {
-        vUv = uv;
+        vY = position.y;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
     fragmentShader: `
       uniform vec3 uColor;
-      varying vec2 vUv;
+      uniform float uHeight;
+      varying float vY;
       void main() {
-        // Gradient from bottom (y=0) to top (y=1)
-        // Fade out as we go up
-        float opacity = (1.0 - vUv.y) * 0.5; 
+        // Calculate normalized Y from 0 (bottom) to 1 (top)
+        float normalizedY = (vY + uHeight / 2.0) / uHeight;
+        float opacity = (1.0 - normalizedY) * 0.5; 
         gl_FragColor = vec4(uColor, opacity);
       }
     `,
@@ -45,17 +47,12 @@ const GlowBeam: React.FC<{ position: [number, number, number] }> = ({ position }
     blending: THREE.AdditiveBlending,
   }), []);
 
-  // Position: Center of cylinder should be at position.y + height/2
-  // Height = TILE_SIZE / 2 (1 block)? User said "up to 1 block". 
-  // TILE_SIZE is 2. So 1 block height = 2 units?
-  // Maze blocks are TILE_SIZE.
-  // "up to 1 block" = TILE_SIZE height.
-  // Base at position[1]. Center at position[1] + TILE_SIZE/2.
   const centerPos: [number, number, number] = [position[0], position[1] + TILE_SIZE / 2, position[2]];
+  const sideLength = TILE_SIZE * 0.8;
 
   return (
     <mesh position={centerPos}>
-      <cylinderGeometry args={[0.4, 0.4, TILE_SIZE, 16, 1, true]} />
+      <boxGeometry args={[sideLength, TILE_SIZE, sideLength]} />
       <shaderMaterial args={[shaderArgs]} />
     </mesh>
   );
