@@ -161,33 +161,24 @@ export function syncToPlayer(quest: QuestData, playerUrl?: string): { success: b
     // Check if truly same origin (same protocol, domain, AND PORT)
     const isTrulySameOrigin = new URL(url).origin === window.location.origin;
 
-    console.log('[PlayerSyncService] Syncing to:', url);
-    console.log('[PlayerSyncService] Is truly same origin?', isTrulySameOrigin);
-    console.log('[PlayerSyncService] Quest Data Keys:', Object.keys(quest));
-
     if (isTrulySameOrigin) {
       // Only use localStorage if truly same origin
-      console.log('[PlayerSyncService] Using LocalStorage mode');
       saveQuestToLocalStorage(quest);
       const syncUrl = buildSyncUrl(url);
       window.open(syncUrl, '_blank');
       return { success: true };
     } else {
       // Cross-origin (different ports or domains): MUST use URL param
-      console.log('[PlayerSyncService] Using URL Param mode');
       const syncUrl = buildSyncUrl(url, quest);
-      console.log('[PlayerSyncService] Generated Sync URL length:', syncUrl.length);
       
       // Check URL length - most browsers support ~8000 chars
       if (syncUrl.length > 7500) {
-        console.error('[PlayerSyncService] Quest too large for URL sync');
         return { 
           success: false, 
           error: `Quest too large for URL sync (${syncUrl.length} chars). Try reducing map size.` 
         };
       }
       
-      console.log('[PlayerSyncService] Opening URL:', syncUrl);
       window.open(syncUrl, '_blank');
       return { success: true };
     }
