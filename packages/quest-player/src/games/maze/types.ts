@@ -28,6 +28,7 @@ export type PlayerState = {
   direction: Direction;
   pose?: string; // For special animations like victory dance
   speech?: string;
+  waitEndTime?: number; // Timestamp for wait action
   
   xPrev?: number;
   yPrev?: number;

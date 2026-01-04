@@ -243,7 +243,7 @@ export const RobotCharacter = forwardRef<THREE.Group, RobotCharacterProps>(
           scale={TILE_SIZE / 2 * 0.68}
         />
         {speech && (
-          <Html position={[0, TILE_SIZE * 1.5, 0]} center>
+          <Html position={[0, TILE_SIZE * 1.64, 0]} center>
             <div style={{
               background: 'white',
               padding: '8px 12px',

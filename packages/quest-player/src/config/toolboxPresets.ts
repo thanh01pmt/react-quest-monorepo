@@ -263,6 +263,36 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
                 }
               }
             }
+          },
+          {
+            "kind": "block",
+            "type": "maze_wait",
+            "inputs": {
+              "DURATION": {
+                "shadow": {
+                  "type": "math_number",
+                  "fields": { "NUM": 1 }
+                }
+              }
+            }
+          },
+          {
+            "kind": "block",
+            "type": "maze_say_for",
+            "inputs": {
+               "MSG": {
+                 "shadow": {
+                   "type": "text",
+                   "fields": { "TEXT": "Hello" }
+                 }
+               },
+               "DURATION": {
+                 "shadow": {
+                   "type": "math_number",
+                   "fields": { "NUM": 1 }
+                 }
+               }
+            }
           }
         ]
       },
@@ -360,6 +390,7 @@ export const toolboxPresets: Record<ToolboxPresetKey, ToolboxJSON> = {
         "name": "%{BKY_GAMES_CATTEXT}",
         "categorystyle": "text_category",
         "contents": [
+          { "kind": "block", "type": "text" },
           { "kind": "block", "type": "text_length" },
           { "kind": "block", "type": "text_join" },
           { "kind": "block", "type": "text_print" }

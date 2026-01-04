@@ -210,6 +210,11 @@ export class MazeEngine implements IMazeEngine {
     }
   }
 
+  public doWait(seconds: number): void {
+    const player = this.getActivePlayer();
+    player.waitEndTime = Date.now() + (seconds * 1000);
+  }
+
   /** Check if there is an item at current position */
   public checkIsItemPresent(): boolean {
     return this.isItemPresent();
@@ -326,6 +331,12 @@ export class MazeEngine implements IMazeEngine {
         this.executedAction = true; 
       }));
 
+      interpreter.setProperty(globalObject, 'wait', interpreter.createNativeFunction((seconds: number, blockId: string) => {
+        if (blockId) this.highlight(blockId);
+        this.doWait(seconds);
+        this.executedAction = true; 
+      }));
+
       // ============================================
       // OOP-Lite: Create Character objects (Phase 3)
       // ============================================
@@ -385,7 +396,22 @@ export class MazeEngine implements IMazeEngine {
   }
   
   step(): StepResult {
-    const currentPlayerPose = this.getActivePlayer().pose;
+    const player = this.getActivePlayer();
+
+    // Handle Wait
+    if (player.waitEndTime) {
+       if (Date.now() < player.waitEndTime) {
+           return {
+             done: false,
+             state: JSON.parse(JSON.stringify(this.currentState)),
+             highlightedBlockId: this.highlightedBlockId
+           };
+       } else {
+           player.waitEndTime = undefined;
+       }
+    }
+
+    const currentPlayerPose = player.pose;
     
     const oneShotPoses = [
       'TeleportIn',

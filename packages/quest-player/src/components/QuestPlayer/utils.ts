@@ -17,7 +17,7 @@ export const createBlocklyTheme = (themeName: 'zelos' | 'classic', colorScheme: 
     'logic_category': { 'colour': '#5B80A5' },
     'actions_category': { 'colour': '#A5745B' },
     'math_category': { 'colour': '%{BKY_MATH_HUE}' },
-    'text_category': { 'colour': '%{BKY_TEXTS_HUE}' },
+    'text_category': { 'colour': '#F9A825' },
     'list_category': { 'colour': '%{BKY_LISTS_HUE}' },
     'colour_category': { 'colour': '%{BKY_COLOUR_HUE}' },
     'variable_category': { 'colour': '%{BKY_VARIABLES_HUE}' },

@@ -182,6 +182,8 @@ export const useSnippets = (lang: string): SnippetCategory[] => {
         { id: 'collect', label: t('Maze.collectItem', 'Collect'), code: call('collect') },
         { id: 'switch', label: t('Maze.toggleSwitch', 'Toggle Switch'), code: call('toggleSwitch') },
         { id: 'say', label: t('Maze.say', 'Say'), code: call('say', '"Hello"') },
+        { id: 'wait', label: t('Maze.wait', 'Wait'), code: call('wait', '1') },
+        { id: 'say_for', label: `${t('Maze.say', 'Say')} ${t('Maze.for', 'For')}...`, code: `${call('say', '"Hello"')}\n${call('wait', '1')}\n${call('say', '""')}` },
       ]
     },
     {

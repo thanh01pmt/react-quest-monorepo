@@ -423,6 +423,29 @@ export function init(t: TFunction) {
       "nextStatement": null,
       "style": "oop_category",
       "tooltip": t('Maze.sayTooltip', 'Say something'),
+    },
+    {
+      "type": "maze_wait",
+      "message0": `${t('Maze.wait', 'wait')} %1 ${t('Maze.seconds', 'seconds')}`,
+      "args0": [
+        { "type": "input_value", "name": "DURATION", "check": "Number" }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "style": "actions_category",
+      "tooltip": t('Maze.waitTooltip', 'Wait for some time')
+    },
+    {
+      "type": "maze_say_for",
+      "message0": `${t('Maze.say', 'say')} %1 ${t('Maze.for', 'for')} %2 ${t('Maze.seconds', 'seconds')}`,
+      "args0": [
+        { "type": "input_value", "name": "MSG", "check": "String" },
+        { "type": "input_value", "name": "DURATION", "check": "Number" }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "style": "actions_category",
+      "tooltip": t('Maze.sayForTooltip', 'Say something for a duration')
     }
   ]);
 
@@ -445,5 +468,17 @@ export function init(t: TFunction) {
     const character = block.getFieldValue('CHARACTER');
     const msg = javascriptGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
     return `${character}.say(${msg}, 'block_id_${block.id}');\n`;
+  };
+
+  javascriptGenerator.forBlock['maze_wait'] = function(block: Blockly.Block) {
+    const duration = javascriptGenerator.valueToCode(block, 'DURATION', Order.NONE) || '1';
+    return `wait(${duration}, 'block_id_${block.id}');\n`;
+  };
+
+  javascriptGenerator.forBlock['maze_say_for'] = function(block: Blockly.Block) {
+    const msg = javascriptGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
+    const duration = javascriptGenerator.valueToCode(block, 'DURATION', Order.NONE) || '1';
+    const id = `'block_id_${block.id}'`;
+    return `say(${msg}, ${id});\nwait(${duration}, ${id});\nsay('', ${id});\n`;
   };
 }
