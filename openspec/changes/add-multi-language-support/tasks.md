@@ -14,107 +14,103 @@
 - [x] Fix indentation issue (maze_start block strips leading whitespace)
 
 ### 1.3 UI Integration
-- [x] Add language selector tabs to QuestPlayer (Khởi lệnh, JavaScript, Python, Lua)
+- [x] Add language selector tabs to QuestPlayer
 - [x] Update code viewer to show selected language
 - [x] Add i18n (en, vi) for language names
-- [x] Test switching between JS/Python/Lua
 
-### 1.4 Execution Integration (Key Decision)
-- [x] **Unified execution path**: All languages use Babel transpile → JS Interpreter
-- [x] No separate runtimes (Pyodide/Fengari) needed for Phase 1
-- [x] Verify character movement works correctly for all languages
-- [x] Remove debug logging after verification
+### 1.4 Execution Integration
+- [x] **Unified execution path**: Display Python/Lua → Execute JavaScript
+- [x] No separate runtimes (Pyodide/Fengari) needed
 
 ---
 
-## Phase 2: WebAssembly Execution (C++, Swift) [PLANNED]
+## Phase 2: C++ & Swift Generators (Simplified) [PLANNED]
 
-### 2.1 Client-side Compilation (Default)
-- [ ] Integrate Emception library for C++ compilation
-- [ ] Integrate SwiftWasm browser compilation
-- [ ] Implement IndexedDB caching for compiled WASM
-- [ ] Progress indicators for compilation
-- [ ] Error handling for compilation failures
-- [ ] Fallback to server-side if configured
+> **Same approach as Phase 1**: Display C++/Swift syntax, execute JavaScript.
 
-### 2.2 WASM Runtime Bridge
-- [ ] Create `runtime/wasmBridge.ts`
-- [ ] Define game API interface for WASM
-- [ ] Implement API import object (moveForward, sensors, etc.)
-- [ ] WASM module instantiation logic
-- [ ] Memory management
-- [ ] Error handling for WASM execution
+### 2.1 C++ Generator
+- [ ] Create `generators/cpp.ts`
+- [ ] Implement all Maze block generators with C++ syntax
+- [ ] Handle semicolons, braces, type declarations
+- [ ] Test code generation
 
-### 2.3 Optional Server-side Compilation
-- [ ] Create `runtime/compilationService.ts`
-- [ ] Environment variable `COMPILATION_SERVICE_URL` detection
-- [ ] HTTP client for backend API (when configured)
-- [ ] Fallback to client-side if server unavailable
-- [ ] Server-side cache coordination
+### 2.2 Swift Generator
+- [ ] Create `generators/swift.ts`
+- [ ] Implement all Maze block generators with Swift syntax
+- [ ] Handle Swift function syntax
+- [ ] Test code generation
 
-### 2.4 Backend Service (Optional - Separate Task)
-- [ ] Create Node.js compilation service repo
-- [ ] Docker: SwiftWasm (Swift 6.1+)
-- [ ] Docker: Emscripten for C++
-- [ ] API endpoints: `/compile/swift`, `/compile/cpp`
-- [ ] Redis caching
-- [ ] Deploy with HTTPS
+### 2.3 UI Integration
+- [ ] Add C++ tab to EditorToolbar
+- [ ] Add Swift tab to EditorToolbar
+- [ ] Add i18n for C++/Swift labels (en, vi)
+- [ ] Update `handleRun()` to use `blocklyGeneratedCode` for C++/Swift
 
-### 2.5 C++ & Swift Generators
-- [ ] C++ generator with Emscripten-compatible output
-- [ ] Swift generator with SwiftWasm exports
-- [ ] Include API declarations (extern "C" for C++, @_cdecl for Swift)
-- [ ] Test compilation pipeline end-to-end
-
-### 2.6 Integration & Testing
-- [ ] Language selector includes C++/Swift
-- [ ] Show compilation progress
-- [ ] Handle compilation errors gracefully
-- [ ] Test functions, variables, loops
-- [ ] Performance testing (compilation time, runtime)
-- [ ] Cache effectiveness testing
+### 2.4 Testing
+- [ ] Test C++ code display
+- [ ] Test Swift code display
+- [ ] Verify execution works (uses JS)
+- [ ] Compare syntax across all 5 languages
 
 ---
 
-## Phase 3: Unified OOP & Multi-Character Support [FUTURE]
+## Phase 3: OOP & Multi-Character Support (Simplified) [FUTURE]
 
-> **Key Decision**: All languages use the SAME JavaScript Character class at runtime.
-> OOP syntax is generated per language, but execution is always JS.
+> **Unified OOP**: All languages use JS Character class at runtime.
 
 ### 3.1 Engine Enhancements
 - [ ] Add `doAction(characterId: string, action: string)` to MazeEngine
 - [ ] Add `checkPath(characterId: string, direction)` to MazeEngine
 - [ ] Support multiple players in quest config
-- [ ] Camera strategy for multi-character (follow active, overview, split-screen?)
+- [ ] Camera strategy for multi-character
 
 ### 3.2 JS Runtime Character Class
 - [ ] Create `Character` class with all game methods
-- [ ] Inject character instances before user code based on quest config
-- [ ] Register `doAction()` and `checkPath()` in JS interpreter
+- [ ] Inject character instances before user code
+- [ ] Register `doAction()` in JS interpreter
 
 ### 3.3 Code Generators Update (OOP Syntax)
-- [ ] JavaScript: `robot1.moveForward()` (native)
-- [ ] Python: `robot1.moveForward()` (Babel compatible)
-- [ ] Lua: `robot1:moveForward()` → transform `:` to `.`
-- [ ] C++: `robot1.moveForward();` → WASM imports Character
-- [ ] Swift: `robot1.moveForward()` → WASM imports Character
+- [ ] JavaScript: `robot1.moveForward()`
+- [ ] Python: `robot1.moveForward()`
+- [ ] Lua: `robot1:moveForward()`
+- [ ] C++: `robot1.moveForward();`
+- [ ] Swift: `robot1.moveForward()`
 
 ### 3.4 Blockly Blocks (OOP)
 - [ ] Character selector dropdown in movement blocks
 - [ ] Character-specific sensor blocks
-- [ ] Variable blocks for character references
 
-### 3.5 Advanced Concepts (Future Ideas)
-- [ ] Events: `onCollision(crystal, callback)`
-- [ ] Async/Await: `await robot1.moveForward()`
-- [ ] State Machine: Idle → Walking → Collecting
-- [ ] Multi-threading simulation: Two robots sync at checkpoints
+---
+
+## Phase 4: WASM Real Execution [FUTURE - OPTIONAL]
+
+> Only implement when advanced teaching is required.
+
+### 4.1 Evaluate Need
+- [ ] Survey: Do students need real type checking?
+- [ ] Decide: C++ only? Swift only? Both?
+- [ ] Budget: Can afford server hosting?
+
+### 4.2 C++ WASM (Client-side with Emception)
+- [ ] Integrate Emception library
+- [ ] Implement IndexedDB caching
+- [ ] Handle compile errors
+
+### 4.3 Swift WASM (Server-side)
+- [ ] Create compilation server repo
+- [ ] Docker with SwiftWasm
+- [ ] API endpoints
+- [ ] Deploy with caching
+
+### 4.4 WASM Runtime Bridge
+- [ ] Create `runtime/wasmBridge.ts`
+- [ ] Define WASM imports (game APIs)
+- [ ] Instantiate and execute WASM
 
 ---
 
 ## Documentation
 - [ ] Update README with multi-language feature
-- [ ] Phase 2: Backend deployment guide
-- [ ] Phase 2: WASM bridge architecture doc
-- [ ] Phase 3: OOP concepts teaching guide
-
+- [ ] Phase 2: Add C++/Swift syntax examples
+- [ ] Phase 3: OOP concepts guide
+- [ ] Phase 4: WASM architecture doc (if implemented)
