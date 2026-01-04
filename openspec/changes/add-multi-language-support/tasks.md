@@ -1,6 +1,6 @@
 # Implementation Tasks
 
-## Phase 1: Native Generators (Python, Lua)
+## Phase 1: Native Generators (Python, Lua) ✅ COMPLETED
 
 ### 1.1 Setup
 - [x] Verify blockly package includes python/lua generators
@@ -11,14 +11,23 @@
 - [x] Implement Python generator with all Maze blocks
 - [x] Implement Lua generator with all Maze blocks
 - [x] Test generation for both languages
+- [x] Fix indentation issue (maze_start block strips leading whitespace)
 
 ### 1.3 UI Integration
-- [ ] Add language selector dropdown to QuestPlayer
-- [ ] Update code viewer to show selected language
-- [ ] Add i18n (en, vi) for language names
-- [ ] Test switching between JS/Python/Lua
+- [x] Add language selector tabs to QuestPlayer (Khởi lệnh, JavaScript, Python, Lua)
+- [x] Update code viewer to show selected language
+- [x] Add i18n (en, vi) for language names
+- [x] Test switching between JS/Python/Lua
 
-## Phase 2: WebAssembly Execution
+### 1.4 Execution Integration (Key Decision)
+- [x] **Unified execution path**: All languages use Babel transpile → JS Interpreter
+- [x] No separate runtimes (Pyodide/Fengari) needed for Phase 1
+- [x] Verify character movement works correctly for all languages
+- [x] Remove debug logging after verification
+
+---
+
+## Phase 2: WebAssembly Execution (C++, Swift) [PLANNED]
 
 ### 2.1 Client-side Compilation (Default)
 - [ ] Integrate Emception library for C++ compilation
@@ -51,13 +60,13 @@
 - [ ] Redis caching
 - [ ] Deploy with HTTPS
 
-### 2.4 C++ & Swift Generators
+### 2.5 C++ & Swift Generators
 - [ ] C++ generator with Emscripten-compatible output
 - [ ] Swift generator with SwiftWasm exports
 - [ ] Include API declarations (extern "C" for C++, @_cdecl for Swift)
 - [ ] Test compilation pipeline end-to-end
 
-### 2.5 Integration & Testing
+### 2.6 Integration & Testing
 - [ ] Language selector includes C++/Swift
 - [ ] Show compilation progress
 - [ ] Handle compilation errors gracefully
@@ -65,10 +74,47 @@
 - [ ] Performance testing (compilation time, runtime)
 - [ ] Cache effectiveness testing
 
-### 2.6 Documentation
-- [ ] Backend service deployment guide
-- [ ] API documentation  
-- [
+---
 
-] WASM bridge architecture doc
-- [ ] Troubleshooting guide
+## Phase 3: Unified OOP & Multi-Character Support [FUTURE]
+
+> **Key Decision**: All languages use the SAME JavaScript Character class at runtime.
+> OOP syntax is generated per language, but execution is always JS.
+
+### 3.1 Engine Enhancements
+- [ ] Add `doAction(characterId: string, action: string)` to MazeEngine
+- [ ] Add `checkPath(characterId: string, direction)` to MazeEngine
+- [ ] Support multiple players in quest config
+- [ ] Camera strategy for multi-character (follow active, overview, split-screen?)
+
+### 3.2 JS Runtime Character Class
+- [ ] Create `Character` class with all game methods
+- [ ] Inject character instances before user code based on quest config
+- [ ] Register `doAction()` and `checkPath()` in JS interpreter
+
+### 3.3 Code Generators Update (OOP Syntax)
+- [ ] JavaScript: `robot1.moveForward()` (native)
+- [ ] Python: `robot1.moveForward()` (Babel compatible)
+- [ ] Lua: `robot1:moveForward()` → transform `:` to `.`
+- [ ] C++: `robot1.moveForward();` → WASM imports Character
+- [ ] Swift: `robot1.moveForward()` → WASM imports Character
+
+### 3.4 Blockly Blocks (OOP)
+- [ ] Character selector dropdown in movement blocks
+- [ ] Character-specific sensor blocks
+- [ ] Variable blocks for character references
+
+### 3.5 Advanced Concepts (Future Ideas)
+- [ ] Events: `onCollision(crystal, callback)`
+- [ ] Async/Await: `await robot1.moveForward()`
+- [ ] State Machine: Idle → Walking → Collecting
+- [ ] Multi-threading simulation: Two robots sync at checkpoints
+
+---
+
+## Documentation
+- [ ] Update README with multi-language feature
+- [ ] Phase 2: Backend deployment guide
+- [ ] Phase 2: WASM bridge architecture doc
+- [ ] Phase 3: OOP concepts teaching guide
+
