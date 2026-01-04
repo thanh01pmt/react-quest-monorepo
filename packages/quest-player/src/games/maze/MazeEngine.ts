@@ -10,6 +10,17 @@ export interface IMazeEngine extends IGameEngine {
   triggerInteraction(): MazeGameState | null;
   completeTeleport(): void;
   getCurrentState(): MazeGameState;
+  
+  // Public API for external executors (Python/Lua)
+  doMoveForward(): void;
+  doTurnLeft(): void;
+  doTurnRight(): void;
+  doJump(): void;
+  doCollectItem(): void;
+  doToggleSwitch(): void;
+  checkIsPath(direction: 0 | 1 | 3): boolean;
+  checkIsItemPresent(): boolean;
+  checkNotDone(): boolean;
 }
 
 // [FIX] Define walkable and non-walkable blocks explicitly to ensure consistency.
@@ -132,8 +143,65 @@ export class MazeEngine implements IMazeEngine {
     return JSON.parse(JSON.stringify(this.initialGameState));
   }
 
+
   getCurrentState(): MazeGameState {
     return JSON.parse(JSON.stringify(this.currentState));
+  }
+
+  reset(): void {
+    this.currentState = this.getInitialState();
+    this.interpreter = null;
+    this.highlightedBlockId = null;
+    this.executedAction = false;
+  }
+
+  // ============================================
+  // PUBLIC API for external executors (Python/Lua)
+  // ============================================
+  
+  /** Move the active player forward one unit */
+  public doMoveForward(): void {
+    this.moveForward();
+  }
+
+  /** Turn the active player left */
+  public doTurnLeft(): void {
+    this.turnLeft();
+  }
+
+  /** Turn the active player right */
+  public doTurnRight(): void {
+    this.turnRight();
+  }
+
+  /** Make the active player jump */
+  public doJump(): void {
+    this.jump();
+  }
+
+  /** Collect item at current position */
+  public doCollectItem(): void {
+    this.collectItem();
+  }
+
+  /** Toggle switch at current position */
+  public doToggleSwitch(): void {
+    this.toggleSwitch();
+  }
+
+  /** Check if path is open in given direction (0=forward, 1=right, 3=left) */
+  public checkIsPath(direction: 0 | 1 | 3): boolean {
+    return this.isPath(direction);
+  }
+
+  /** Check if there is an item at current position */
+  public checkIsItemPresent(): boolean {
+    return this.isItemPresent();
+  }
+
+  /** Check if player has reached the finish */
+  public checkNotDone(): boolean {
+    return this.notDone();
   }
 
   execute(userCode: string): void {

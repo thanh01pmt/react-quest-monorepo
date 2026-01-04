@@ -208,8 +208,11 @@ export function init(t: TFunction) {
     },
   ]);
 
+  // Start block - Remove leading indentation from statementToCode output
   javascriptGenerator.forBlock['maze_start'] = function(block: Blockly.Block) {
-    return javascriptGenerator.statementToCode(block, 'DO') || '';
+    const code = javascriptGenerator.statementToCode(block, 'DO') || '';
+    // Remove leading whitespace from each line
+    return code.split('\n').map(line => line.trimStart()).join('\n');
   };
 
   javascriptGenerator.forBlock['maze_moveForward'] = function(block: Blockly.Block) {

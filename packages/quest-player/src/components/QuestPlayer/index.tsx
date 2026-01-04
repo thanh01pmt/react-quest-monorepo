@@ -531,8 +531,15 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     lastActionTimeRef.current = now;
 
     let codeToRun = '';
-    if (currentEditor === 'monaco') {
+
+    console.log(`[DEBUG handleRun] currentEditor=${currentEditor}, aceCode length=${aceCode?.length}`);
+
+    // [SIMPLIFIED] Python/Lua/JavaScript all use the SAME execution path
+    // Since our API uses identical function names (moveForward, turnLeft, etc.),
+    // we can treat Python/Lua code as JavaScript and run it through the interpreter.
+    if (currentEditor === 'python' || currentEditor === 'lua' || currentEditor === 'monaco' || currentEditor === 'javascript') {
       try {
+        // Python/Lua code IS valid JavaScript (same function names)
         const es5Code = transform(aceCode, { presets: ['env'] }).code;
         if (!es5Code) throw new Error("Babel transpilation failed.");
         codeToRun = es5Code;
@@ -545,8 +552,9 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         if (isStandalone) setDialogState({ isOpen: true, title: 'Missing Start Block', message: t('Blockly.MissingStartBlock') });
         return;
       }
-      codeToRun = blocklyGeneratedCode;
+      codeToRun = blocklyGeneratedCode || aceCode;
     }
+
     runGame(codeToRun, mode);
   }, [runGame, currentEditor, aceCode, isStandalone, t, blocklyGeneratedCode]);
 
@@ -834,19 +842,20 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
             {isQuestReady && dynamicToolboxConfig && isBlocksInitialized ? (
               <>
-                <div style={{ display: currentEditor !== 'blockly' ? 'block' : 'none', height: '100%', width: '100%' }}>
+                <div style={{ display: currentEditor !== 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'column', minHeight: 0, width: '100%' }}>
                   <MonacoEditor
                     initialCode={aceCode}
                     onChange={(value) => {
                       const code = value || '';
+                      console.log('[DEBUG] Monaco onChange:', code.substring(0, 50) + '...');
                       setAceCode(code);
                     }}
                     language={currentEditor === 'monaco' ? 'javascript' : currentEditor}
-                    readOnly={currentEditor !== 'javascript' && currentEditor !== 'monaco'}
+                    readOnly={false} // Phase 2: Open editing for all languages
                   />
                 </div>
 
-                <div style={{ display: currentEditor === 'blockly' ? 'block' : 'none', height: '100%', width: '100%' }}>
+                <div style={{ display: currentEditor === 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'column', minHeight: 0, width: '100%' }}>
                   {questData.blocklyConfig && loadedQuestId === questData.id && (
                     <BlocklyWorkspace
                       key={blocklyWorkspaceKey}

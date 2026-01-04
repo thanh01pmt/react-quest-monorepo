@@ -14,15 +14,20 @@ export const initLuaGenerator = () => {
   // Turn
   luaGenerator.forBlock['maze_turn'] = function(block: Blockly.Block) {
     const direction = block.getFieldValue('DIR');
-    return 'turn("' + direction + '")\n';
+    // Output turnLeft() or turnRight() directly
+    if (direction === 'turnLeft') {
+      return 'turnLeft()\n';
+    } else {
+      return 'turnRight()\n';
+    }
   };
 
-  // Turn Left/Right
+  // Turn Left/Right (Direct function calls)
   luaGenerator.forBlock['maze_turnLeft'] = function(_block: Blockly.Block) {
-    return 'turn("turnLeft")\n';
+    return 'turnLeft()\n';
   };
   luaGenerator.forBlock['maze_turnRight'] = function(_block: Blockly.Block) {
-    return 'turn("turnRight")\n';
+    return 'turnRight()\n';
   };
 
   // Collect Crystal
@@ -64,7 +69,14 @@ export const initLuaGenerator = () => {
   // Sensors
   luaGenerator.forBlock['maze_is_path'] = function(block: Blockly.Block) {
     const direction = block.getFieldValue('DIR');
-    const code = 'isPath("' + direction + '")';
+    // Map to direct function calls: isPathForward(), isPathLeft(), etc.
+    const funcMap: Record<string, string> = {
+      'forward': 'isPathForward()',
+      'right': 'isPathRight()',
+      'left': 'isPathLeft()',
+      'backward': 'isPathBackward()'
+    };
+    const code = funcMap[direction] || 'isPathForward()';
     return [code, Order.HIGH]; // Lua function calls have high precedence
   };
 
@@ -89,8 +101,10 @@ export const initLuaGenerator = () => {
     return [code, Order.HIGH];
   };
   
-  // Start block
+  // Start block - Remove leading indentation from statementToCode output
   luaGenerator.forBlock['maze_start'] = function(block: Blockly.Block) {
-    return luaGenerator.statementToCode(block, 'DO') || '';
+    const code = luaGenerator.statementToCode(block, 'DO') || '';
+    // Remove leading whitespace from each line
+    return code.split('\n').map(line => line.trimStart()).join('\n');
   };
 };

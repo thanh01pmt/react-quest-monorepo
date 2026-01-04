@@ -11,15 +11,20 @@ export const initPythonGenerator = () => {
   // Turn
   pythonGenerator.forBlock['maze_turn'] = function(block: Blockly.Block) {
     const direction = block.getFieldValue('DIR');
-    return 'turn("' + direction + '")\n';
+    // Output turnLeft() or turnRight() directly
+    if (direction === 'turnLeft') {
+      return 'turnLeft()\n';
+    } else {
+      return 'turnRight()\n';
+    }
   };
 
-  // Turn Left/Right (Legacy support if needed, or mapped to turn)
+  // Turn Left/Right (Direct function calls)
   pythonGenerator.forBlock['maze_turnLeft'] = function(_block: Blockly.Block) {
-    return 'turn("turnLeft")\n';
+    return 'turnLeft()\n';
   };
   pythonGenerator.forBlock['maze_turnRight'] = function(_block: Blockly.Block) {
-    return 'turn("turnRight")\n';
+    return 'turnRight()\n';
   };
 
   // Collect Crystal
@@ -74,7 +79,14 @@ export const initPythonGenerator = () => {
   // Sensors
   pythonGenerator.forBlock['maze_is_path'] = function(block: Blockly.Block) {
     const direction = block.getFieldValue('DIR');
-    const code = 'isPath("' + direction + '")';
+    // Map to direct function calls: isPathForward(), isPathLeft(), etc.
+    const funcMap: Record<string, string> = {
+      'forward': 'isPathForward()',
+      'right': 'isPathRight()',
+      'left': 'isPathLeft()',
+      'backward': 'isPathBackward()'
+    };
+    const code = funcMap[direction] || 'isPathForward()';
     return [code, Order.FUNCTION_CALL];
   };
 
@@ -99,8 +111,10 @@ export const initPythonGenerator = () => {
     return [code, Order.FUNCTION_CALL];
   };
   
-  // Start block (no-op in Python mainly, or entry point)
+  // Start block - Remove leading indentation from statementToCode output
   pythonGenerator.forBlock['maze_start'] = function(block: Blockly.Block) {
-    return pythonGenerator.statementToCode(block, 'DO') || '';
+    const code = pythonGenerator.statementToCode(block, 'DO') || '';
+    // Remove leading whitespace from each line (Python is whitespace-sensitive)
+    return code.split('\n').map(line => line.trimStart()).join('\n');
   };
 };

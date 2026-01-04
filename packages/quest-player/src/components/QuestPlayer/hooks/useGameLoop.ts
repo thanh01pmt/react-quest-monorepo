@@ -138,7 +138,20 @@ export const useGameLoop = (
       });
     };
 
-    if (engine.step) {
+    // Prioritize executionLog (Replay Mode) if it exists.
+    // This is used for Python/Lua playback or non-steppable engines.
+    if (executionLog) {
+      isWaitingForAnimation.current = false; 
+      const nextIndex = frameIndex.current + 1;
+      if (nextIndex >= executionLog.length) {
+        const finalState = executionLog[executionLog.length - 1];
+        handleGameOver(finalState);
+        return false;
+      } else {
+        frameIndex.current = nextIndex;
+        setCurrentGameState(executionLog[nextIndex]);
+      }
+    } else if (engine.step) {
       const result: StepResult = engine.step();
       if (result) {
         const newPose = (result.state as any).players?.[(result.state as any).activePlayerId]?.pose;
@@ -167,18 +180,8 @@ export const useGameLoop = (
           return false;
         }
       }
-    } else if (executionLog) {
-      isWaitingForAnimation.current = false; 
-      const nextIndex = frameIndex.current + 1;
-      if (nextIndex >= executionLog.length) {
-        const finalState = executionLog[executionLog.length - 1];
-        handleGameOver(finalState);
-        return false;
-      } else {
-        frameIndex.current = nextIndex;
-        setCurrentGameState(executionLog[nextIndex]);
-      }
     }
+    return true;
     return true;
   }, [engineRef, questData, executionLog, rendererRef, onGameEnd, playSound, setHighlightedBlockId, currentEditor, userCode, workspaceRef, blockCount]);
 
@@ -208,7 +211,7 @@ export const useGameLoop = (
     }
   }, [engineRef]);
 
-  const runGame = useCallback((codeToRun: string, mode: ExecutionMode) => {
+  const runGame = useCallback((codeToRun: string, mode: ExecutionMode, precomputedLog?: GameState[]) => {
     const engine = engineRef.current;
     if (!engine || playerStatus === 'running' || playerStatus === 'paused') return;
 
@@ -218,16 +221,23 @@ export const useGameLoop = (
     frameIndex.current = 0;
     lastStepTime.current = 0;
     
-    engine.execute(codeToRun); 
-
-    if (engine.step) {
-      setExecutionLog(null);
-      setCurrentGameState(engine.getInitialState());
+    if (precomputedLog) {
+      // Playback mode for Python/Lua (pre-calculated)
+      setExecutionLog(precomputedLog);
+      setCurrentGameState(precomputedLog[0]);
     } else {
-      // @ts-ignore
-      const log = engine.log || [];
-      setExecutionLog(log);
-      setCurrentGameState(log[0] || engine.getInitialState());
+      // Standard JS/Blockly execution
+      engine.execute(codeToRun); 
+
+      if (engine.step) {
+        setExecutionLog(null);
+        setCurrentGameState(engine.getInitialState());
+      } else {
+        // @ts-ignore
+        const log = engine.log || [];
+        setExecutionLog(log);
+        setCurrentGameState(log[0] || engine.getInitialState());
+      }
     }
 
     setPlayerStatus('running');
