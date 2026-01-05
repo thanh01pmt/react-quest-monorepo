@@ -14,13 +14,18 @@ import i18n from './i18n';
 // Import CSS của thư viện (nếu chưa chuyển sang CSS Modules)
 import '@repo/quest-player/index.css';
 
+// Firebase Auth Provider
+import { AuthProvider } from './contexts/AuthContext';
+
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <I18nextProvider i18n={i18n}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </AuthProvider>
     </I18nextProvider>
   </React.StrictMode>,
 );

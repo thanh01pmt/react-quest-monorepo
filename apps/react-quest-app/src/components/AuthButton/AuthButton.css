@@ -1,0 +1,130 @@
+/* AuthButton.css - Light/Dark theme support */
+
+.auth-button-container {
+  position: relative;
+}
+
+.auth-loading {
+  padding: 8px 12px;
+  opacity: 0.5;
+}
+
+/* Login Button */
+.auth-login-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--button-bg-color);
+  color: var(--text-color);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-login-button:hover {
+  background: var(--button-hover-bg-color);
+  border-color: #4f46e5;
+}
+
+/* User Button */
+.auth-user-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 50px;
+  border: 1px solid var(--border-color);
+  background: var(--button-bg-color);
+  color: var(--text-color);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-user-button:hover {
+  background: var(--button-hover-bg-color);
+}
+
+/* Avatar */
+.auth-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.auth-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.auth-display-name {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dropdown */
+.auth-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  min-width: 200px;
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.auth-dropdown-header {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.auth-dropdown-header strong {
+  font-size: 0.9rem;
+}
+
+.auth-dropdown-header span {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.auth-dropdown-item {
+  width: 100%;
+  padding: 10px 15px;
+  border: none;
+  background: none;
+  color: var(--text-color);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.auth-dropdown-item:hover {
+  background: var(--button-bg-color);
+}
+
+/* Dark theme adjustments */
+.theme-dark .auth-dropdown {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}

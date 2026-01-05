@@ -5,7 +5,7 @@
  * Uses same layout structure as AppContent but with PracticeSidebar.
  */
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     QuestPlayer,
@@ -14,12 +14,13 @@ import {
     type QuestPlayerSettings,
     type QuestCompletionResult,
 } from '@repo/quest-player';
-import type { PracticeConfig, PracticeSession, GeneratedExercise } from '@repo/shared-templates';
+import type { PracticeConfig, PracticeSession, GeneratedExercise, ConceptCategory } from '@repo/shared-templates';
 import { templateRegistry } from '@repo/shared-templates';
 import { PracticeSidebar } from '../components/PracticeSidebar';
 import { createPracticeGenerator } from '../services/PracticeGenerator';
-import { saveSession, loadSession, getIncompleteSessions } from '../services/SessionStorage';
-import { updateProgress, loadProgress } from '../services/ProgressService';
+import { saveSession, getIncompleteSessions } from '../services/SessionStorage';
+import { updateProgress } from '../services/ProgressService';
+import { exerciseToQuest } from '../services/ExerciseToQuestMapper';
 import '../App.css';
 
 // Wrapped QuestPlayer
@@ -122,7 +123,7 @@ export function PracticeContent({
     onSettingsChange,
     onLanguageChange,
 }: PracticeContentProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     // Session state
     const [session, setSession] = useState<PracticeSession | null>(null);
@@ -132,8 +133,14 @@ export function PracticeContent({
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
-    // Current exercise
+    // Current exercise and quest
     const currentExercise = session?.exercises[currentExerciseIndex];
+
+    // Convert current exercise to Quest format for QuestPlayer
+    const currentQuest: Quest | null = useMemo(() => {
+        if (!currentExercise) return null;
+        return exerciseToQuest(currentExercise, currentExerciseIndex);
+    }, [currentExercise, currentExerciseIndex]);
 
     // Initialize templates
     useEffect(() => {
@@ -189,6 +196,45 @@ export function PracticeContent({
         setCurrentExerciseIndex(index);
     }, []);
 
+    // Handle QuestPlayer completion
+    const handleQuestComplete = useCallback((result: QuestCompletionResult) => {
+        if (!session || !currentExercise) return;
+
+        const exerciseResult = {
+            exerciseId: currentExercise.id,
+            completed: true,
+            success: result.isSuccess,
+            timeTaken: result.metrics?.totalTime ? result.metrics.totalTime / 1000 : 30,
+            hintsUsed: 0,
+            attempts: (result.metrics?.runCount || 0) + (result.metrics?.debugCount || 0),
+            blocksUsed: result.unitCount || 5,
+            xpEarned: result.isSuccess ? currentExercise.difficulty * 10 * (result.stars || 1) : 0,
+            completedAt: new Date(),
+        };
+
+        updateProgress(currentExercise.concept as ConceptCategory, exerciseResult);
+
+        const updatedSession = {
+            ...session,
+            results: [...session.results, exerciseResult],
+            currentIndex: currentExerciseIndex + 1,
+        };
+
+        if (updatedSession.currentIndex >= updatedSession.exercises.length) {
+            updatedSession.completedAt = new Date();
+        }
+
+        saveSession(updatedSession);
+        setSession(updatedSession);
+
+        // Move to next exercise if available
+        if (result.isSuccess && currentExerciseIndex + 1 < session.exercises.length) {
+            setTimeout(() => {
+                setCurrentExerciseIndex(currentExerciseIndex + 1);
+            }, 1500); // Short delay to show success
+        }
+    }, [session, currentExercise, currentExerciseIndex]);
+
     // Render empty state
     const renderEmptyState = () => (
         <div className="practice-empty-state">
@@ -211,81 +257,43 @@ export function PracticeContent({
         </div>
     );
 
-    // Render exercise placeholder (will be replaced with actual QuestPlayer)
-    const renderExercise = () => {
-        if (!currentExercise) return renderEmptyState();
+    // Render session complete screen
+    const renderCompleteScreen = () => {
+        if (!session) return null;
 
-        const templateInfo = BUNDLED_TEMPLATES.find(t => t.metadata.id === currentExercise.templateId);
+        const totalXP = session.results.reduce((sum, r) => sum + (r.xpEarned || 0), 0);
+        const successCount = session.results.filter(r => r.success).length;
 
         return (
-            <div className="practice-exercise-view">
-                <div className="exercise-header">
-                    <h3>{templateInfo?.metadata.name || 'Exercise'}</h3>
-                    <span className="exercise-meta">
-                        {'⭐'.repeat(Math.ceil(currentExercise.difficulty / 2))}
-                        <span className="concept-badge">{currentExercise.concept}</span>
-                    </span>
+            <div className="practice-complete-screen">
+                <h2>🎉 {t('Practice.complete', 'Hoàn thành!')}</h2>
+                <div className="complete-stats">
+                    <div className="stat-item">
+                        <span className="stat-value">{successCount}/{session.exercises.length}</span>
+                        <span className="stat-label">{t('Practice.correct', 'Đúng')}</span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-value">+{totalXP}</span>
+                        <span className="stat-label">XP</span>
+                    </div>
                 </div>
-
-                <div className="exercise-placeholder">
-                    <p>🎮 {t('Practice.game_placeholder', 'QuestPlayer sẽ được tích hợp ở đây')}</p>
-                    <p className="hint">{currentExercise.hints[0]}</p>
-                </div>
-
-                <div className="exercise-actions">
+                <div className="complete-actions">
                     <button
-                        className="btn-complete"
+                        className="btn-start"
                         onClick={() => {
-                            // Mock completion - will integrate with actual QuestPlayer
-                            if (session) {
-                                const result = {
-                                    exerciseId: currentExercise.id,
-                                    completed: true,
-                                    success: true,
-                                    timeTaken: 30,
-                                    hintsUsed: 0,
-                                    attempts: 1,
-                                    blocksUsed: 5,
-                                    xpEarned: currentExercise.difficulty * 10,
-                                    completedAt: new Date(),
-                                };
-
-                                updateProgress(currentExercise.concept as any, result);
-
-                                const updatedSession = {
-                                    ...session,
-                                    results: [...session.results, result],
-                                    currentIndex: currentExerciseIndex + 1,
-                                };
-
-                                if (updatedSession.currentIndex >= updatedSession.exercises.length) {
-                                    updatedSession.completedAt = new Date();
-                                }
-
-                                saveSession(updatedSession);
-                                setSession(updatedSession);
-
-                                if (currentExerciseIndex + 1 < session.exercises.length) {
-                                    setCurrentExerciseIndex(currentExerciseIndex + 1);
-                                }
-                            }
+                            setSession(null);
+                            setCurrentExerciseIndex(0);
                         }}
                     >
-                        ✓ {t('Practice.complete_exercise', 'Hoàn thành')}
+                        {t('Practice.practice_again', 'Luyện tập tiếp')}
                     </button>
-
-                    {currentExerciseIndex + 1 < (session?.exercises.length || 0) && (
-                        <button
-                            className="btn-skip"
-                            onClick={() => setCurrentExerciseIndex(currentExerciseIndex + 1)}
-                        >
-                            → {t('Practice.skip', 'Bỏ qua')}
-                        </button>
-                    )}
                 </div>
             </div>
         );
     };
+
+    // Check if session is complete
+    const isSessionComplete = session && session.completedAt;
 
     return (
         <div className="app-container">
@@ -308,7 +316,20 @@ export function PracticeContent({
             </PracticeSidebar>
 
             <main className="main-content-area practice-main">
-                {session && session.exercises.length > 0 ? renderExercise() : renderEmptyState()}
+                {isSessionComplete ? (
+                    renderCompleteScreen()
+                ) : currentQuest ? (
+                    <MemoizedQuestPlayer
+                        isStandalone={false}
+                        language={i18n.language}
+                        questData={currentQuest}
+                        initialSettings={settings}
+                        onQuestComplete={handleQuestComplete}
+                        onSettingsChange={onSettingsChange}
+                    />
+                ) : (
+                    renderEmptyState()
+                )}
             </main>
         </div>
     );
