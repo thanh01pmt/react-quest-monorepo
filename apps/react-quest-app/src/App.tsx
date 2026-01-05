@@ -420,12 +420,45 @@ function SyncPageWrapper() {
   return <SyncPage settings={settings} onSettingsChange={handleSettingsChange} />;
 }
 
+// Import PracticeContent
+import { PracticeContent } from './pages/PracticeContent';
+
+// Practice mode wrapper with settings
+function PracticeContentWrapper() {
+  const { i18n } = useTranslation();
+  const [settings, setSettings] = useState<AppSettings>(getStoredSettings);
+
+  const handleSettingsChange = (newSettings: QuestPlayerSettings) => {
+    setSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      localStorage.setItem('questAppSettings', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
+    setSettings(prev => ({ ...prev, language: lang }));
+  };
+
+  return (
+    <PracticeContent
+      settings={settings}
+      onSettingsChange={handleSettingsChange}
+      onLanguageChange={handleLanguageChange}
+    />
+  );
+}
+
 function App() {
   // Đặt 'demo' làm nhóm mặc định để tải khi vào trang.
   const defaultGroupId = 'demo';
 
   return (
     <Routes>
+      {/* Route cho practice mode */}
+      <Route path="/practice" element={<PracticeContentWrapper />} />
+      <Route path="/practice/session" element={<PracticeContentWrapper />} />
       {/* Route cho builder sync */}
       <Route path="/sync" element={<SyncPageWrapper />} />
       {/* Route cho một quest cụ thể: /quest/group1/QUEST_ID */}

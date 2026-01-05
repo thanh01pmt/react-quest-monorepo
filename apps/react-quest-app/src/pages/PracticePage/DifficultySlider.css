@@ -1,0 +1,76 @@
+/* DifficultySlider.css - Light/Dark theme support */
+
+.difficulty-slider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  max-width: 200px;
+}
+
+.difficulty-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  flex: 1;
+  background: var(--border-color);
+  border-radius: 12px;
+  padding: 0 4px;
+}
+
+.difficulty-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 6px;
+  border-radius: 3px;
+  transition: width 0.2s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.difficulty-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--background-color);
+  background: var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+  padding: 0;
+}
+
+.difficulty-dot:hover {
+  transform: scale(1.2);
+}
+
+.difficulty-dot.active {
+  background: var(--dot-color);
+  border-color: var(--background-color);
+}
+
+.difficulty-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* Dark theme adjustments */
+.theme-dark .difficulty-track {
+  background: #374151;
+}
+
+.theme-dark .difficulty-dot {
+  border-color: var(--button-bg-color);
+}
+
+.theme-dark .difficulty-dot.active {
+  border-color: var(--button-bg-color);
+}
