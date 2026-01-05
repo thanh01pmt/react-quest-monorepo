@@ -72,13 +72,12 @@ interface BuilderSceneProps {
 
 // Separate component for player_start to ensure proper re-rendering
 function PlayerStartRenderer({ direction, material }: { direction: number, material?: THREE.Material }) {
-  // Convention: 0=South(-Z), 1=East(+X), 2=North(+Z), 3=West(-X)
-  // Cone tip points -Z after baseRotation
+  // Convention: 0=South(-Z), 1=West(+X), 2=North(+Z), 3=East(-X)
   const rotationMap: Record<number, number> = {
-    0: 0,             // South (-Z): no rotation (default)
-    1: -Math.PI / 2,  // East (+X): -90°
-    2: Math.PI,       // North (+Z): 180°
-    3: Math.PI / 2,   // West (-X): +90°
+    0: Math.PI / 2,   // South (-Z): +90° from default
+    1: 0,             // West (+X): no rotation (cone default points +X)
+    2: -Math.PI / 2,  // North (+Z): -90° from default
+    3: Math.PI,       // East (-X): 180° from default
   };
 
   const baseRotation = Math.PI / 2;

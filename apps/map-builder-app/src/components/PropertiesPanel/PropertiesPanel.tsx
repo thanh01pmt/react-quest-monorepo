@@ -31,10 +31,10 @@ const renderPropertyInput = (key: string, value: any, onChange: (key: string, va
   if (key === 'direction') {
     return (
       <select className="custom-select" value={value} onChange={(e) => onChange(key, parseInt(e.target.value, 10))}>
-        <option value="0">East (0)</option>
-        <option value="1">North (1)</option>
-        <option value="2">West (2)</option>
-        <option value="3">South (3)</option>
+        <option value="0">South (0)</option>
+        <option value="1">West (1)</option>
+        <option value="2">North (2)</option>
+        <option value="3">East (3)</option>
       </select>
     );
   }
