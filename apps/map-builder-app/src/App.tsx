@@ -2406,6 +2406,8 @@ function App() {
 
         setQuestMetadata(prev => ({
           ...prev,
+          // FIX: Also update top-level rawSolution so JSON output uses correct solution
+          rawSolution: solution.rawActions,
           // Cập nhật gameConfig trong metadata để JSON output được đồng bộ
           gameConfig: currentGC,
           // Cập nhật blocklyConfig với maxBlocks mới
