@@ -7,12 +7,12 @@ difficulty: 4
 tags: ["memory", "pattern", "inverse"]
 author: system
 version: 1
-description: "Walk a path then return to the start (A -> B -> A)"
+description: "Walk a path, collect crystal at destination, then return"
 ---
 
 # Path Return
 
-Walk a random path, stop, turn around, and walk exactly back to the start.
+Walk a random path, collect crystal at destination, turn around, and walk exactly back to the start.
 
 ## Academic Concept: Inverse Operations
 - Operation: `Move` | Inverse: `Move` (after turning 180)
@@ -23,10 +23,10 @@ Walk a random path, stop, turn around, and walk exactly back to the start.
 
 ```js
 // Parameters
-var _MIN_DIST_ = 2;
-var _MAX_DIST_ = 4;
-var D1 = random(_MIN_DIST_, _MAX_DIST_);
-var D2 = random(_MIN_DIST_, _MAX_DIST_);
+var MIN_DIST = 2;
+var MAX_DIST = 4;
+var D1 = random(MIN_DIST, MAX_DIST);
+var D2 = random(MIN_DIST, MAX_DIST);
 
 // Solution
 // Forward Phase
@@ -34,11 +34,14 @@ for(let i=0; i<D1; i++) moveForward();
 turnRight();
 for(let j=0; j<D2; j++) moveForward();
 
+// Collect at destination
+collectItem();
+
 // Return Phase
 turnAround();
 for(let j=0; j<D2; j++) moveForward();
-turnLeft(); // Inverse of TurnRight (viewed from return path is tricky, geometrically: Right -> 180 -> Left returns to origin vec)
+turnLeft();
 for(let i=0; i<D1; i++) moveForward();
 
-turnAround(); // Restore original facing
+turnAround();
 ```

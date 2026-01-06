@@ -97,13 +97,13 @@ export function PracticeContent({
             'progression', 'logic', 'memory', 'decomposition', 'search'
         ] as const;
         const shuffled = [...categories].sort(() => Math.random() - 0.5);
-        const selected = shuffled.slice(0, 2 + Math.floor(Math.random() * 3));
+        const selected = shuffled.slice(0, 5); // ALWAYS 5 different categories
 
         const config: PracticeConfig = {
             topics: selected.map(category => ({
                 category,
                 enabled: true,
-                questionCount: 2 + Math.floor(Math.random() * 3),
+                questionCount: 1, // EXACTLY 1 question per category = 5 total
                 difficultyLevel: (['easy', 'medium', 'hard'] as const)[Math.floor(Math.random() * 3)],
             })),
             mode: 'challenge_me',

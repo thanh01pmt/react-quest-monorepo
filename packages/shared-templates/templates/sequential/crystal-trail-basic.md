@@ -23,9 +23,9 @@ A simple path with crystals to collect. Perfect for learning basic movement comm
 
 ```js
 // Parameters
-var _MIN_CRYSTAL_COUNT_ = 3;
-var _MAX_CRYSTAL_COUNT_ = 8;
-var CRYSTAL_COUNT = random(_MIN_CRYSTAL_COUNT_, _MAX_CRYSTAL_COUNT_);
+var MIN_CRYSTAL_COUNT = 3;
+var MAX_CRYSTAL_COUNT = 8;
+var CRYSTAL_COUNT = random(MIN_CRYSTAL_COUNT, MAX_CRYSTAL_COUNT);
 
 // Solution
 // Collect all crystals along the path

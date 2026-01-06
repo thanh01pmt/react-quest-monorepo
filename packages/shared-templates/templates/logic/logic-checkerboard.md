@@ -22,39 +22,39 @@ Traverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a
 
 ```js
 // Parameters
-var _MIN_SIZE_ = 3;
-var _MAX_SIZE_ = 4;
-var SIZE = random(_MIN_SIZE_, _MAX_SIZE_);
+var MIN_SIZE = 3;
+var MAX_SIZE = 4;
+var SIZE = random(MIN_SIZE, MAX_SIZE);
 
 // Solution
-// Simple snake traversal Logic
-for (let row = 0; row < SIZE; row++) {
-  for (let col = 0; col < SIZE; col++) {
-    
-    // Check Parity
-    if ((row + col) % 2 == 1) {
+// Solution
+for (let r = 0; r < SIZE; r++) {
+  // Row Traversal
+  for (let c = 0; c < SIZE; c++) {
+    // Check if current spot has item
+    if (isOnCrystal()) {
       collectItem();
     }
     
-    if (col < SIZE - 1) {
+    if (c < SIZE - 1) {
       moveForward();
     }
   }
   
-  // Turn for next row (Snake pattern simplified for template)
-  if (row < SIZE - 1) {
+  // Return to start of row (Raster scan)
+  turnAround();
+  for(let k=0; k<SIZE-1; k++) {
+    moveForward();
+  }
+  turnAround(); // Face right again
+  
+  // Move to next row if not last
+  if (r < SIZE - 1) {
     turnRight();
     moveForward();
-    turnRight();
-    moveForward(); // Re-align (This mimics snake return or creates a simple raster scan with flyback if we don't snake perfectly. For specific "Snake", we need logic to alternate turns. Let's keep it simple: Raster Scan - walk back)
-    turnAround(); 
-    // Wait, Raster Scan with walk back is safer for solution generator without snaking logic complexity
-    // ACTUALLY: Let's use clean Move/Turn logic for grid
+    turnLeft();
   }
 }
-
-// NOTE: The above logic for turns is tricky in 1D code. 
-// Let's us a simpler "Row Clearing" function approach to ensure valid path.
 ```
 
 **Alternative simpler logic for template**:
@@ -80,9 +80,9 @@ for (let r = 0; r < SIZE; r++) {
 
 ```js
 // Parameters
-var _MIN_SIZE_ = 3;
-var _MAX_SIZE_ = 4;
-var SIZE = random(_MIN_SIZE_, _MAX_SIZE_);
+var MIN_SIZE = 3;
+var MAX_SIZE = 4;
+var SIZE = random(MIN_SIZE, MAX_SIZE);
 
 // Solution
 for (let r = 0; r < SIZE; r++) {

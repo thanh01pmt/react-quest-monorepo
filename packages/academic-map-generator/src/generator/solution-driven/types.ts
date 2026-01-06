@@ -189,7 +189,9 @@ export type ASTNode =
   | FunctionCallNode
   | IfStatementNode
   | WhileLoopNode
-  | FunctionDefNode;
+  | FunctionDefNode
+  | VariableDeclNode
+  | AssignmentNode;
 
 export interface BlockNode {
   type: 'Block';
@@ -199,8 +201,8 @@ export interface BlockNode {
 export interface ForLoopNode {
   type: 'ForLoop';
   variable: string;
-  start: number;
-  end: number;
+  start: any; // Expression
+  end: any;   // Expression
   body: BlockNode;
 }
 
@@ -230,6 +232,18 @@ export interface FunctionDefNode {
   body: BlockNode;
 }
 
+export interface VariableDeclNode {
+  type: 'VariableDecl';
+  name: string;
+  value: any; // Expression
+}
+
+export interface AssignmentNode {
+  type: 'Assignment';
+  name: string;
+  value: any; // Expression
+}
+
 export interface ConditionNode {
   type: 'Condition';
   conditionType: ConditionType;
@@ -237,13 +251,9 @@ export interface ConditionNode {
 }
 
 export type ConditionType = 
-  | 'crystalAhead'
-  | 'keyAhead'
-  | 'atPortal'
-  | 'hasKey'
-  | 'switchOn'
   | 'isOnCrystal'
-  | 'isOnSwitch';
+  | 'isOnSwitch'
+  | 'hasKey';
 
 // ============================================================================
 // OUTPUT TYPES

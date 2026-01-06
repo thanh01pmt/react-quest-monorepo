@@ -189,13 +189,13 @@ export class PracticeGenerator {
       parameters[param.name] = this.rng.nextInt(min, max);
     }
 
-    // Get primary concept from template
-    const primaryConcept = template.metadata.concepts[0] || template.metadata.category;
+    // Use category as displayed concept (matches what user selected)
+    const displayConcept = template.metadata.category;
 
     return {
       id: generateId(),
       templateId: template.metadata.id,
-      concept: primaryConcept,
+      concept: displayConcept,
       difficulty: template.metadata.difficulty,
       parameters,
       mapData: null, // Will be generated when exercise is played

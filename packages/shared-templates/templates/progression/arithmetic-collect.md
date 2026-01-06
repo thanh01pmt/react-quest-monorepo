@@ -22,36 +22,37 @@ Collect items where the count increases linearly each time.
 
 ```js
 // Parameters
-var _MIN_START_ = 1;
-var _MAX_START_ = 2;
-var START = random(_MIN_START_, _MAX_START_);
+var MIN_START = 1;
+var MAX_START = 2;
+var START = random(MIN_START, MAX_START);
 
-var _MIN_STEP_ = 1;
-var _MAX_STEP_ = 2;
-var STEP = random(_MIN_STEP_, _MAX_STEP_);
+var MIN_STEP = 1;
+var MAX_STEP = 2;
+var STEP = random(MIN_STEP, MAX_STEP);
 
-var _MIN_GROUPS_ = 3;
-var _MAX_GROUPS_ = 4;
-var GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);
+var MIN_GROUPS = 3;
+var MAX_GROUPS = 4;
+var GROUPS = random(MIN_GROUPS, MAX_GROUPS);
 
 // Solution
 moveForward();
 
-for (let i = 0; i < GROUPS; i++) {
+for (let i = 0; i < GROUPS - 1; i++) {
   let count = START + i * STEP;
-  // Collect 'count' items
-  // They are placed in a row
-  
-  // Atom: Collect Sequence
   for (let j = 0; j < count; j++) {
     collectItem();
     moveForward();
   }
   
-  if (i < GROUPS - 1) {
-    turnRight();
-    moveForward(); // Space between groups
-    turnRight();
-  }
+  turnRight();
+  moveForward();
+  turnRight();
+}
+
+// Last Group (No turn)
+let lastCount = START + (GROUPS - 1) * STEP;
+for (let k = 0; k < lastCount; k++) {
+  collectItem();
+  moveForward();
 }
 ```

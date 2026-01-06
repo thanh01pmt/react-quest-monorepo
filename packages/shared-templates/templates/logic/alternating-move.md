@@ -7,7 +7,7 @@ difficulty: 3
 tags: ["logic", "parity", "even_odd"]
 author: system
 version: 1
-description: "Alternate between walking and jumping (Step, Jump, Step, Jump...)"
+description: "Alternate between walking and jumping, collecting crystals"
 ---
 
 # Alternating Move
@@ -21,18 +21,18 @@ A pattern that changes action based on whether the step count is Odd or Even.
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 4;
-var _MAX_STEPS_ = 8;
-var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
+var MIN_PAIRS = 2;
+var MAX_PAIRS = 4;
+var STEPS = 2 * random(MIN_PAIRS, MAX_PAIRS);
 
 // Solution
-for (let i = 0; i < STEPS; i++) {
-  if (i % 2 == 0) {
-    // Even: Walk
-    moveForward();
-  } else {
-    // Odd: Jump
-    jump();
-  }
+for (let i = 0; i < STEPS / 2; i++) {
+  // Even: Walk
+  moveForward();
+  collectItem();
+  
+  // Odd: Jump
+  jump();
+  collectItem();
 }
 ```

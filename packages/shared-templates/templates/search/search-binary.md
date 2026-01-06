@@ -31,11 +31,16 @@ for(let i=0; i<DIST; i++) moveForward();
 
 // 2. Check (Simulated split)
 // Random decision for the template trace
-if (random(0, 1) == 0) {
+// 2. Check
+// We use 'crystalAhead' to determine which way to go (Generative decision)
+if (crystalAhead()) {
+   // Found indicator: Go Left
+   collectItem(); // Collect indicator
    turnLeft();
    for(let j=0; j<DIST/2; j++) moveForward();
    collectItem();
 } else {
+   // No indicator: Go Right
    turnRight();
    for(let j=0; j<DIST/2; j++) moveForward();
    collectItem();

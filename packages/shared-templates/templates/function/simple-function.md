@@ -23,12 +23,12 @@ Learn to define and call functions to organize your code.
 
 ```js
 // Parameters
-var _MIN_PER_CALL_ = 1;
-var _MAX_PER_CALL_ = 3;
-var _MIN_CALLS_ = 2;
-var _MAX_CALLS_ = 4;
-var PER_CALL = random(_MIN_PER_CALL_, _MAX_PER_CALL_);
-var CALLS = random(_MIN_CALLS_, _MAX_CALLS_);
+var MIN_PER_CALL = 1;
+var MAX_PER_CALL = 3;
+var MIN_CALLS = 2;
+var MAX_CALLS = 4;
+var PER_CALL = random(MIN_PER_CALL, MAX_PER_CALL);
+var CALLS = random(MIN_CALLS, MAX_CALLS);
 
 // Solution
 function collectItems() {

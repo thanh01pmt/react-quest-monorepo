@@ -7,7 +7,7 @@ difficulty: 4
 tags: ["repeat", "turn", "zigzag"]
 author: system
 version: 1
-description: "Navigate a zigzag path with turning pattern"
+description: "Navigate a zigzag path and collect crystals at turns"
 ---
 
 # Zigzag Path
@@ -15,7 +15,7 @@ description: "Navigate a zigzag path with turning pattern"
 Navigate through a zigzag path by repeating the turn-forward pattern.
 
 ## Learning Goals
-- Use repeat with multiple commands
+- Use repeat with multiple commands  
 - Understand turn directions
 - Recognize zigzag pattern
 
@@ -23,13 +23,13 @@ Navigate through a zigzag path by repeating the turn-forward pattern.
 
 ```js
 // Parameters
-var _MIN_ZIG_COUNT_ = 3;
-var _MAX_ZIG_COUNT_ = 5;
-var ZIG_COUNT = random(_MIN_ZIG_COUNT_, _MAX_ZIG_COUNT_);
+var MIN_ZIG_COUNT = 3;
+var MAX_ZIG_COUNT = 5;
+var ZIG_COUNT = random(MIN_ZIG_COUNT, MAX_ZIG_COUNT);
 
-var _MIN_SEGMENT_LENGTH_ = 2;
-var _MAX_SEGMENT_LENGTH_ = 4;
-var SEGMENT_LENGTH = random(_MIN_SEGMENT_LENGTH_, _MAX_SEGMENT_LENGTH_);
+var MIN_SEGMENT_LENGTH = 2;
+var MAX_SEGMENT_LENGTH = 4;
+var SEGMENT_LENGTH = random(MIN_SEGMENT_LENGTH, MAX_SEGMENT_LENGTH);
 
 // Solution
 // Navigate zigzag
@@ -39,10 +39,12 @@ for (let i = 0; i < ZIG_COUNT; i++) {
   for (let j = 0; j < SEGMENT_LENGTH; j++) {
     moveForward();
   }
+  collectItem();
   turnRight();
   moveForward();
   turnLeft();
 }
 
+collectItem();
 moveForward();
 ```

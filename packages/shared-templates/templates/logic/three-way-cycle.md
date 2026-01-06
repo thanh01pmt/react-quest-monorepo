@@ -23,9 +23,9 @@ A pattern that repeats every 3 steps, teaching Modulo 3 logic.
 
 ```js
 // Parameters
-var _MIN_CYCLES_ = 2;
-var _MAX_CYCLES_ = 4;
-var CYCLES = random(_MIN_CYCLES_, _MAX_CYCLES_);
+var MIN_CYCLES = 2;
+var MAX_CYCLES = 4;
+var CYCLES = random(MIN_CYCLES, MAX_CYCLES);
 var STEPS = CYCLES * 3;
 
 // Solution

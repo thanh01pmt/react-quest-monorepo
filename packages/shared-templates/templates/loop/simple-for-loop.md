@@ -23,13 +23,10 @@ Learn to use a FOR loop to repeat actions a specific number of times.
 
 ```js
 // Parameters
-var _MIN_CRYSTAL_NUM_ = 3;
-var _MAX_CRYSTAL_NUM_ = 6;
-var CRYSTAL_NUM = random(_MIN_CRYSTAL_NUM_, _MAX_CRYSTAL_NUM_);
-var _SPACE_ = 1; // Default spacing
-// In difficult mode, we might want more spacing
-// We can use a random variable for spacing if needed
-var SPACE = random(1, 2);
+var MIN_CRYSTAL_NUM = 3;
+var MAX_CRYSTAL_NUM = 6;
+var CRYSTAL_NUM = random(MIN_CRYSTAL_NUM, MAX_CRYSTAL_NUM);
+var SPACE = 1; // Default spacing
 
 // Solution
 // Collect crystals using a loop

@@ -22,23 +22,26 @@ A "convergence" pattern where movements get smaller and smaller.
 
 ```js
 // Parameters
-var _MIN_START_LEN_ = 4;
-var _MAX_START_LEN_ = 6;
-var START_LEN = random(_MIN_START_LEN_, _MAX_START_LEN_);
+var MIN_START_LEN = 4;
+var MAX_START_LEN = 6;
+var START_LEN = random(MIN_START_LEN, MAX_START_LEN);
 
 var STEP = 1;
 
 // Solution
-let currentLen = START_LEN;
+// Number of segments to draw
+let TURNS = START_LEN / STEP;
 
-while (currentLen > 0) {
-  // Atom: Move Segment
-  for (let i = 0; i < currentLen; i++) {
-    moveForward();
-  }
-  collectItem();
-  turnLeft();
+for (let t = 0; t < TURNS; t++) {
+  // Logic: currentLen = START_LEN - t * STEP
+  let len = START_LEN - t * STEP;
   
-  currentLen = currentLen - STEP;
+  if (len > 0) {
+      for (let i = 0; i < len; i++) {
+        moveForward();
+      }
+      collectItem();
+      turnLeft();
+  }
 }
 ```

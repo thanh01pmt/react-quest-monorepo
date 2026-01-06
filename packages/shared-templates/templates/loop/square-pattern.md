@@ -23,9 +23,9 @@ Use nested loops to walk around a square, collecting items along the way.
 
 ```js
 // Parameters
-var _MIN_SIDE_ = 2;
-var _MAX_SIDE_ = 4;
-var SIDE = random(_MIN_SIDE_, _MAX_SIDE_);
+var MIN_SIDE = 2;
+var MAX_SIDE = 4;
+var SIDE = random(MIN_SIDE, MAX_SIDE);
 
 // Solution
 // Square pattern

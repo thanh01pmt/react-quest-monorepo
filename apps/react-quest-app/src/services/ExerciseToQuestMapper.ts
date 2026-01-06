@@ -98,11 +98,10 @@ moveForward();
 for (let i = 0; i < PATH_LENGTH; i++) {
   // Deterministic alternating pattern to ensure safe map generation
   // (Avoids isOnCrystal() which may not be supported in generator context)
-  if (i % 2 == 0) {
-    collectItem();
-  } else {
-    toggleSwitch();
-  }
+  // Deterministic pattern: Turn every step
+  collectItem();
+  turnRight();
+  turnLeft();
   moveForward();
 }
 `,
@@ -131,67 +130,68 @@ moveForward();
 const DEFAULT_TEMPLATE = CONCEPT_TEMPLATES.sequential;
 
 // Parameter ranges based on difficulty
-// Keys are computed variable names (without _UNDERSCORE_ wrapper)
-const DIFFICULTY_PARAMS: Record<DifficultyLevel, Record<string, number>> = {
+// Values are [min, max] tuples for variety
+type ParamRange = number | [number, number]; // Single value or [min, max] range
+const DIFFICULTY_PARAMS: Record<DifficultyLevel, Record<string, ParamRange>> = {
   very_easy: {
-    CRYSTAL_NUM: 2,
-    SEGMENT1: 2,
-    SEGMENT2: 2,
-    COLS: 2,
-    ROWS: 2,
-    PATH_LENGTH: 3,
-    PER_CALL: 1,
-    CALLS: 2,
-    STEPS: 2,
-    SIDE: 2,
+    CRYSTAL_NUM: [2, 3],
+    SEGMENT1: [2, 3],
+    SEGMENT2: [1, 2],
+    COLS: [2, 2],
+    ROWS: [2, 2],
+    PATH_LENGTH: [2, 3],
+    PER_CALL: [1, 2],
+    CALLS: [2, 2],
+    STEPS: [2, 3],
+    SIDE: [2, 2],
   },
   easy: {
-    CRYSTAL_NUM: 3,
-    SEGMENT1: 3,
-    SEGMENT2: 2,
-    COLS: 3,
-    ROWS: 2,
-    PATH_LENGTH: 4,
-    PER_CALL: 2,
-    CALLS: 2,
-    STEPS: 3,
-    SIDE: 2,
+    CRYSTAL_NUM: [3, 4],
+    SEGMENT1: [3, 4],
+    SEGMENT2: [2, 3],
+    COLS: [2, 3],
+    ROWS: [2, 2],
+    PATH_LENGTH: [3, 5],
+    PER_CALL: [2, 3],
+    CALLS: [2, 3],
+    STEPS: [3, 4],
+    SIDE: [2, 3],
   },
   medium: {
-    CRYSTAL_NUM: 4,
-    SEGMENT1: 4,
-    SEGMENT2: 3,
-    COLS: 4,
-    ROWS: 2,
-    PATH_LENGTH: 5,
-    PER_CALL: 2,
-    CALLS: 3,
-    STEPS: 4,
-    SIDE: 3,
+    CRYSTAL_NUM: [4, 5],
+    SEGMENT1: [4, 5],
+    SEGMENT2: [3, 4],
+    COLS: [3, 4],
+    ROWS: [2, 3],
+    PATH_LENGTH: [4, 6],
+    PER_CALL: [2, 3],
+    CALLS: [3, 4],
+    STEPS: [4, 5],
+    SIDE: [3, 4],
   },
   hard: {
-    CRYSTAL_NUM: 5,
-    SEGMENT1: 5,
-    SEGMENT2: 4,
-    COLS: 5,
-    ROWS: 3,
-    PATH_LENGTH: 6,
-    PER_CALL: 3,
-    CALLS: 3,
-    STEPS: 5,
-    SIDE: 4,
+    CRYSTAL_NUM: [5, 6],
+    SEGMENT1: [5, 6],
+    SEGMENT2: [4, 5],
+    COLS: [4, 5],
+    ROWS: [3, 4],
+    PATH_LENGTH: [5, 7],
+    PER_CALL: [3, 4],
+    CALLS: [3, 4],
+    STEPS: [5, 6],
+    SIDE: [4, 5],
   },
   very_hard: {
-    CRYSTAL_NUM: 6,
-    SEGMENT1: 6,
-    SEGMENT2: 5,
-    COLS: 6,
-    ROWS: 3,
-    PATH_LENGTH: 7,
-    PER_CALL: 3,
-    CALLS: 4,
-    STEPS: 6,
-    SIDE: 5,
+    CRYSTAL_NUM: [6, 8],
+    SEGMENT1: [6, 7],
+    SEGMENT2: [5, 6],
+    COLS: [5, 6],
+    ROWS: [3, 4],
+    PATH_LENGTH: [6, 8],
+    PER_CALL: [3, 4],
+    CALLS: [4, 5],
+    STEPS: [6, 7],
+    SIDE: [5, 6],
   },
 };
 
@@ -204,13 +204,17 @@ function getDifficultyLevel(difficulty: number): DifficultyLevel {
   return 'very_hard';
 }
 
-// Resolve template parameters based on difficulty
+// Resolve template parameters based on difficulty (picks random from ranges)
 function resolveTemplateCode(templateCode: string, difficulty: number): string {
   const level = getDifficultyLevel(difficulty);
   const params = DIFFICULTY_PARAMS[level];
   
   let code = templateCode;
-  for (const [param, value] of Object.entries(params)) {
+  for (const [param, range] of Object.entries(params)) {
+    // Pick random value from range, or use fixed value
+    const value = Array.isArray(range) 
+      ? Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0]
+      : range;
     const pattern = new RegExp(param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
     code = code.replace(pattern, String(value));
   }
@@ -270,6 +274,10 @@ const PRACTICE_TOOLBOX = {
   ],
 };
 
+// Debug: Log available templates on module load
+console.log('[ExerciseToQuestMapper] BUNDLED_TEMPLATES loaded:', BUNDLED_TEMPLATES.length, 'templates');
+console.log('[ExerciseToQuestMapper] Template IDs:', BUNDLED_TEMPLATES.map(t => t.metadata.id).join(', '));
+
 /**
  * Convert GeneratedExercise to Quest format using SolutionDrivenGenerator
  */
@@ -284,9 +292,13 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
   
   // ROBUST FAILSAFE: If registry is empty/missed (race condition), check BUNDLED_TEMPLATES directly
   if (!registryTemplate) {
+      console.log(`[ExerciseToQuest] Registry lookup failed. Searching BUNDLED_TEMPLATES for: "${exercise.templateId}"`);
       registryTemplate = BUNDLED_TEMPLATES.find(t => t.metadata.id === exercise.templateId);
       if (registryTemplate) {
-          console.log(`[ExerciseToQuest] Found in BUNDLED_TEMPLATES fallback:`, exercise.templateId);
+          console.log(`[ExerciseToQuest] ✓ Found in BUNDLED_TEMPLATES:`, exercise.templateId);
+      } else {
+          console.warn(`[ExerciseToQuest] ✗ NOT FOUND in BUNDLED_TEMPLATES. Available IDs:`, 
+            BUNDLED_TEMPLATES.slice(0, 5).map(t => t.metadata.id), '...');
       }
   }
 
@@ -401,6 +413,10 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
   // 5. Build Quest object
   const title = exercise.hints[0] || `Bài tập ${index + 1}`;
   
+  // Calculate maxBlocks based on solution with buffer (1.5x optimal, min 10, max 50)
+  const optimalBlockCount = solution.optimalBlocks || 10;
+  const calculatedMaxBlocks = Math.min(50, Math.max(10, Math.ceil(optimalBlockCount * 1.5)));
+  
   return {
     id: exercise.id,
     gameType: 'maze',
@@ -422,7 +438,7 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
     },
     blocklyConfig: {
       toolbox: PRACTICE_TOOLBOX,
-      maxBlocks: 35,
+      maxBlocks: calculatedMaxBlocks,
       startBlocks: '<xml><block type="maze_start" deletable="false" movable="false"></block></xml>',
     },
     gameConfig: {

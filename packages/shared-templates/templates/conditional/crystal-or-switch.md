@@ -23,9 +23,9 @@ Learn to make decisions based on what's in front of you.
 
 ```js
 // Parameters
-var _MIN_PATH_LENGTH_ = 3;
-var _MAX_PATH_LENGTH_ = 6;
-var PATH_LENGTH = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);
+var MIN_PATH_LENGTH = 3;
+var MAX_PATH_LENGTH = 6;
+var PATH_LENGTH = random(MIN_PATH_LENGTH, MAX_PATH_LENGTH);
 
 // Solution
 moveForward();

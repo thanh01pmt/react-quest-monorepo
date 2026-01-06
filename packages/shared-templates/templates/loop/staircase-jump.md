@@ -23,9 +23,9 @@ Use the jump command to climb a staircase while collecting items.
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 3;
-var _MAX_STEPS_ = 6;
-var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
+var MIN_STEPS = 3;
+var MAX_STEPS = 6;
+var STEPS = random(MIN_STEPS, MAX_STEPS);
 
 // Solution
 // Staircase

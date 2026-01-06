@@ -23,12 +23,12 @@ Master nested loops by creating a grid pattern with zigzag movement.
 
 ```js
 // Parameters
-var _MIN_ROWS_ = 2;
-var _MAX_ROWS_ = 3;
-var _MIN_COLS_ = 3;
-var _MAX_COLS_ = 5;
-var ROWS = random(_MIN_ROWS_, _MAX_ROWS_);
-var COLS = random(_MIN_COLS_, _MAX_COLS_);
+var MIN_ROWS = 2;
+var MAX_ROWS = 3;
+var MIN_COLS = 3;
+var MAX_COLS = 5;
+var ROWS = random(MIN_ROWS, MAX_ROWS);
+var COLS = random(MIN_COLS, MAX_COLS);
 
 // Solution
 // Zigzag grid pattern

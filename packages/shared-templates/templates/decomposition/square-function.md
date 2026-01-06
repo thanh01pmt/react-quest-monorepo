@@ -23,9 +23,9 @@ Decompose the square into 4 identical sides.
 
 ```js
 // Parameters
-var _MIN_LEN_ = 2;
-var _MAX_LEN_ = 4;
-var LEN = random(_MIN_LEN_, _MAX_LEN_);
+var MIN_LEN = 2;
+var MAX_LEN = 4;
+var LEN = random(MIN_LEN, MAX_LEN);
 
 // Solution
 function drawSide() {

@@ -7,7 +7,7 @@ difficulty: 5
 tags: ["memory", "undo", "switch"]
 author: system
 version: 1
-description: "Turn switches ON while going forward, TURN them OFF while returning"
+description: "Collect crystals and activate switches, then undo the switches"
 ---
 
 # Undo Operations
@@ -22,15 +22,15 @@ A conceptual task: "Leave everything as you found it".
 
 ```js
 // Parameters
-var _MIN_COUNT_ = 3;
-var _MAX_COUNT_ = 5;
-var COUNT = random(_MIN_COUNT_, _MAX_COUNT_);
+var MIN_COUNT = 3;
+var MAX_COUNT = 5;
+var COUNT = random(MIN_COUNT, MAX_COUNT);
 
 // Solution
-// 1. Activate
-// 1. Activate
+// 1. Activate and Collect
 for (let i = 0; i < COUNT; i++) {
   moveForward();
+  collectItem();
   toggleSwitch();
 }
 
@@ -39,10 +39,7 @@ turnAround();
 
 // 3. Deactivate (Undo)
 for (let i = 0; i < COUNT; i++) {
-  toggleSwitch(); // Order: Toggle (at current pos) then Move back? 
-  // Wait, if we moved forward then toggle, we are ON the switch.
-  // After turn around, we are still ON the switch.
-  // So: Toggle, then Move.
+  toggleSwitch();
   moveForward();
 }
 ```

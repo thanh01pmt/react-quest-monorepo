@@ -16,6 +16,8 @@ import {
   IfStatementNode,
   WhileLoopNode,
   FunctionDefNode,
+  VariableDeclNode,
+  AssignmentNode,
   ConditionNode,
   ConditionType,
   Direction,
@@ -46,6 +48,8 @@ enum TokenType {
   FUNCTION = 'FUNCTION',
   NOT = 'NOT',
   
+  VAR = 'VAR',
+  
   // Literals
   NUMBER = 'NUMBER',
   IDENTIFIER = 'IDENTIFIER',
@@ -60,6 +64,17 @@ enum TokenType {
   DECREMENT = 'DECREMENT', // --
   PLUS = 'PLUS',           // +
   MINUS = 'MINUS',         // -
+  STAR = 'STAR',           // *
+  SLASH = 'SLASH',         // /
+  MODULO = 'MODULO',       // %
+  EQUAL_EQUAL = 'EQUAL_EQUAL', // ==
+  
+  AND = 'AND',
+  OR = 'OR',
+  
+  // Compatibility aliases
+  LESS = 'LT',
+  GREATER = 'GT',
   
   // Punctuation
   LBRACE = 'LBRACE',
@@ -90,7 +105,10 @@ const KEYWORDS: Record<string, TokenType> = {
   'while': TokenType.WHILE,
   'func': TokenType.FUNC,
   'function': TokenType.FUNCTION,
-  'not': TokenType.NOT
+  'not': TokenType.NOT,
+  'var': TokenType.VAR,
+  'and': TokenType.AND,
+  'or': TokenType.OR
 };
 
 class Lexer {
@@ -164,19 +182,32 @@ class Lexer {
           tokens.push(this.makeToken(TokenType.COMMA, ','));
           break;
         case '=':
-          tokens.push(this.makeToken(TokenType.ASSIGN, '='));
+          if (this.input[this.position + 1] === '=') {
+             tokens.push(this.makeDoubleToken(TokenType.EQUAL_EQUAL, '=='));
+          } else {
+             tokens.push(this.makeToken(TokenType.ASSIGN, '='));
+          }
           break;
         case '<':
-          tokens.push(this.makeToken(TokenType.LT, '<'));
+          tokens.push(this.makeToken(TokenType.LESS, '<'));
           break;
         case '>':
-          tokens.push(this.makeToken(TokenType.GT, '>'));
+          tokens.push(this.makeToken(TokenType.GREATER, '>'));
           break;
         case '+':
           tokens.push(this.makeToken(TokenType.PLUS, '+'));
           break;
         case '-':
           tokens.push(this.makeToken(TokenType.MINUS, '-'));
+          break;
+        case '*':
+          tokens.push(this.makeToken(TokenType.STAR, '*'));
+          break;
+        case '/':
+          tokens.push(this.makeToken(TokenType.SLASH, '/'));
+          break;
+        case '%':
+          tokens.push(this.makeToken(TokenType.MODULO, '%'));
           break;
         case '!':
           tokens.push(this.makeToken(TokenType.NOT, '!'));
@@ -291,13 +322,19 @@ class Parser {
     if (this.check(TokenType.FUNC) || this.check(TokenType.FUNCTION)) {
       return this.parseFunctionDef();
     }
-    if (this.check(TokenType.LET) || this.check(TokenType.CONST)) {
-      // Skip variable declarations (not needed for map generation)
-      while (!this.check(TokenType.SEMICOLON) && !this.isAtEnd()) this.advance();
-      if (this.check(TokenType.SEMICOLON)) this.advance();
-      return null;
+    if (this.check(TokenType.FUNC) || this.check(TokenType.FUNCTION)) {
+      return this.parseFunctionDef();
+    }
+    if (this.check(TokenType.LET) || this.check(TokenType.CONST) || this.check(TokenType.VAR)) {
+      return this.parseVariableDecl();
     }
     if (this.check(TokenType.IDENTIFIER)) {
+      // Could be function call OR assignment
+      // Lookahead
+      const next = this.lookahead(1);
+      if (next && next.type === TokenType.ASSIGN) {
+         return this.parseAssignment();
+      }
       return this.parseFunctionCall();
     }
     // Skip unknown tokens
@@ -322,9 +359,9 @@ class Parser {
     // Simple syntax: for i in 1 to N { ... }
     const variable = this.consume(TokenType.IDENTIFIER, 'Expected variable name').value;
     this.consume(TokenType.IN, 'Expected "in"');
-    const start = this.consume(TokenType.NUMBER, 'Expected start number').value;
+    const start = this.parseExpression(); // Allow expression
     this.consume(TokenType.TO, 'Expected "to"');
-    const end = this.consume(TokenType.NUMBER, 'Expected end number').value;
+    const end = this.parseExpression();   // Allow expression
     this.consume(TokenType.LBRACE, 'Expected "{"');
     const body = this.parseBlock();
     this.consume(TokenType.RBRACE, 'Expected "}"');
@@ -336,21 +373,22 @@ class Parser {
    * Parse TypeScript-style FOR loop:
    * for (let i = 1; i <= N; i++) { ... }
    * for (let i = 0; i < N; i++) { ... }
+   * for (let i = 0; i < CRYSTAL_NUM; i++) { ... }  // VARIABLE SUPPORT
    */
   private parseTypeScriptForLoop(): ForLoopNode {
     this.consume(TokenType.LPAREN, 'Expected "("');
     
-    // Initialization: let i = 1 | const i = 1 | i = 1
-    if (this.check(TokenType.LET) || this.check(TokenType.CONST)) {
-      this.advance(); // skip let/const
+    // Initialization: let i = 1 | const i = 1 | var i = 1 | i = 1
+    if (this.check(TokenType.LET) || this.check(TokenType.CONST) || this.check(TokenType.VAR)) {
+      this.advance(); // skip let/const/var
     }
     const variable = this.consume(TokenType.IDENTIFIER, 'Expected variable name').value;
     this.consume(TokenType.ASSIGN, 'Expected "="');
-    const start = this.consume(TokenType.NUMBER, 'Expected start number').value;
+    const start = this.parseExpression(); // Allow expressions
     this.consume(TokenType.SEMICOLON, 'Expected ";"');
     
-    // Condition: i <= N | i < N
-    this.consume(TokenType.IDENTIFIER, 'Expected variable in condition'); // Skip variable name
+    // Condition: i <= N | i < N | i < VARIABLE
+    this.consume(TokenType.IDENTIFIER, 'Expected variable in condition'); // Skip loop variable
     let isLessThanEqual = true;
     if (this.check(TokenType.LTE)) {
       this.advance();
@@ -360,7 +398,7 @@ class Parser {
     } else {
       throw new Error('Expected "<=" or "<" in for loop condition');
     }
-    const endValue = this.consume(TokenType.NUMBER, 'Expected end number').value;
+    const endExpr = this.parseExpression(); // Allow expressions (variables, math, etc.)
     this.consume(TokenType.SEMICOLON, 'Expected ";"');
     
     // Increment: i++ | i--
@@ -376,10 +414,14 @@ class Parser {
     const body = this.parseBlock();
     this.consume(TokenType.RBRACE, 'Expected "}"');
 
-    // Adjust end value based on comparison operator
-    // for (let i = 0; i < 5; i++) means 0,1,2,3,4 (5 iterations starting at 0)
-    // for (let i = 1; i <= 5; i++) means 1,2,3,4,5 (5 iterations starting at 1)
-    const end = isLessThanEqual ? endValue : endValue - 1;
+    // Store isLessThanEqual flag for Interpreter to adjust end value
+    // We wrap endExpr in a special node or pass metadata
+    // Simplest: Create an adjusted expression: if i < N, end = N - 1
+    // But we can't do math on AST nodes here. Let's store metadata.
+    // Hack: Store as { type: 'ForLoopEnd', expr: endExpr, isLessThan: !isLessThanEqual }
+    const end = isLessThanEqual 
+      ? endExpr 
+      : { type: 'BinaryOp', operator: TokenType.MINUS, left: endExpr, right: { type: 'Literal', value: 1 } };
 
     return { type: 'ForLoop', variable, start, end, body };
   }
@@ -486,6 +528,106 @@ class Parser {
     return { type: 'FunctionDef', name, parameters, body };
   }
 
+  private parseVariableDecl(): ASTNode {
+    // Consume var/let/const
+    this.advance(); 
+    
+    const nameToken = this.consume(TokenType.IDENTIFIER, 'Expected variable name');
+    this.consume(TokenType.ASSIGN, 'Expected =');
+    
+    const value = this.parseExpression();
+    this.consume(TokenType.SEMICOLON, 'Expected ; after variable declaration');
+    
+    return {
+      type: 'VariableDecl',
+      name: nameToken.value,
+      value: value
+    } as any;
+  }
+
+  private parseAssignment(): ASTNode {
+    const nameToken = this.consume(TokenType.IDENTIFIER, 'Expected variable name');
+    this.consume(TokenType.ASSIGN, 'Expected =');
+    const value = this.parseExpression();
+    if (this.check(TokenType.SEMICOLON)) this.advance();
+    
+    return {
+      type: 'Assignment',
+      name: nameToken.value,
+      value: value
+    } as any;
+  }
+
+  private parseExpression(): any {
+      let left = this.parseTerm();
+
+      while (this.check(TokenType.PLUS) || this.check(TokenType.MINUS)) {
+          const operator = this.advance().type;
+          const right = this.parseTerm();
+          left = { type: 'BinaryOp', operator, left, right };
+      }
+      return left;
+  }
+
+  private parseTerm(): any {
+      let left = this.parseFactor();
+
+      while (this.check(TokenType.STAR) || this.check(TokenType.SLASH) || this.check(TokenType.MODULO)) {
+          const operator = this.advance().type;
+          const right = this.parseFactor();
+          left = { type: 'BinaryOp', operator, left, right };
+      }
+      return left;
+  }
+
+  private parseFactor(): any {
+      if (this.check(TokenType.NUMBER)) {
+          return { type: 'Literal', value: parseFloat(this.advance().value) };
+      }
+      if (this.check(TokenType.IDENTIFIER)) {
+          const token = this.peek();
+          const next = this.lookahead(1);
+          if (next && next.type === TokenType.LPAREN) {
+               return this.parseFunctionCallExpression();
+          }
+          this.advance();
+          return { type: 'Identifier', name: token.value };
+      }
+      if (this.check(TokenType.LPAREN)) {
+          this.advance();
+          const expr = this.parseExpression();
+          this.consume(TokenType.RPAREN, 'Expected )');
+          return expr;
+      }
+      throw new Error(`Unexpected token in expression: ${this.peek().value}`);
+  }
+
+  private parseFunctionCallExpression(): any {
+      const name = this.consume(TokenType.IDENTIFIER, 'Expected function name').value;
+      this.consume(TokenType.LPAREN, 'Expected (');
+      const args: any[] = [];
+      if (!this.check(TokenType.RPAREN)) {
+          do {
+              args.push(this.parseExpression());
+          } while (this.match(','));
+      }
+      this.consume(TokenType.RPAREN, 'Expected )');
+      return { type: 'FunctionCallExpr', name, args };
+  }
+
+  private match(char: string): boolean {
+      if (char === ',' && this.check(TokenType.COMMA)) {
+          this.advance(); 
+          return true; 
+      }
+      return false;
+  }
+
+  private lookahead(distance: number): Token | null {
+      if (this.current + distance >= this.tokens.length) return null;
+      return this.tokens[this.current + distance];
+  }
+
   private parseCondition(): ConditionNode {
     let negated = false;
     
@@ -512,22 +654,14 @@ class Parser {
 
   private mapConditionType(name: string): ConditionType {
     const mapping: Record<string, ConditionType> = {
-      'crystalahead': 'crystalAhead',
-      'crystal_ahead': 'crystalAhead',
-      'keyahead': 'keyAhead',
-      'key_ahead': 'keyAhead',
-      'atportal': 'atPortal',
-      'at_portal': 'atPortal',
-      'haskey': 'hasKey',
-      'has_key': 'hasKey',
-      'switchon': 'switchOn',
-      'switch_on': 'switchOn',
       'isoncrystal': 'isOnCrystal',
       'is_on_crystal': 'isOnCrystal',
       'isonswitch': 'isOnSwitch',
-      'is_on_switch': 'isOnSwitch'
+      'is_on_switch': 'isOnSwitch',
+      'haskey': 'hasKey',
+      'has_key': 'hasKey'
     };
-    return mapping[name] || 'crystalAhead';
+    return mapping[name] || 'isOnCrystal';
   }
 
   private parseBlock(): BlockNode {
@@ -636,7 +770,12 @@ export class TemplateInterpreter {
     const parser = new Parser(tokens);
     const ast = parser.parse();
     
-    this.executeBlock(ast);
+    try {
+      this.executeBlock(ast);
+    } catch (error) {
+       console.error('[TemplateInterpreter] Runtime Error:', error);
+       throw error;
+    }
 
     const startPos = this.pathCoords[0];
     const endPos = this.context.position;
@@ -681,14 +820,40 @@ export class TemplateInterpreter {
       case 'FunctionCall':
         this.executeFunctionCall(node);
         break;
+      case 'VariableDecl':
+        this.executeVariableDecl(node);
+        break;
+      case 'Assignment':
+        this.executeAssignment(node);
+        break;
     }
   }
 
   private executeForLoop(node: ForLoopNode): void {
-    for (let i = node.start; i <= node.end; i++) {
-      this.context.variables.set(node.variable, i);
-      this.loopIterations++;
-      this.executeBlock(node.body);
+    const start = this.evaluateExpression(node.start);
+    const end = this.evaluateExpression(node.end);
+    
+    // Determine step direction
+    const step = start <= end ? 1 : -1;
+    
+    // Safety break
+    if (Math.abs(end - start) > 1000) {
+        console.warn('[Interpreter] Loop range too large, capping at 1000 iterations');
+        return;
+    }
+
+    if (step > 0) {
+      for (let i = start; i <= end; i++) {
+        this.context.variables.set(node.variable, i);
+        this.loopIterations++;
+        this.executeBlock(node.body);
+      }
+    } else {
+      for (let i = start; i >= end; i--) {
+        this.context.variables.set(node.variable, i);
+        this.loopIterations++;
+        this.executeBlock(node.body);
+      }
     }
     this.context.variables.delete(node.variable);
   }
@@ -714,6 +879,64 @@ export class TemplateInterpreter {
     }
   }
 
+  private executeVariableDecl(node: VariableDeclNode): void {
+    const value = this.evaluateExpression(node.value);
+    this.context.variables.set(node.name, value);
+  }
+
+  private executeAssignment(node: AssignmentNode): void {
+    const value = this.evaluateExpression(node.value);
+    this.context.variables.set(node.name, value);
+  }
+
+  private evaluateExpression(node: any): any {
+    if (node.type === 'Literal') {
+      return node.value;
+    }
+    if (node.type === 'Identifier') {
+      // Lookup variable
+      if (this.context.variables.has(node.name)) {
+        return this.context.variables.get(node.name);
+      }
+      // Check overrides/params
+      // In JS, variables not in scope are ReferenceError. 
+      // But for Template, maybe params?
+      // Params are already substituted in code, so they appear as numbers.
+      // But if we missed any, or use globals?
+      console.warn(`[Interpreter] Variable '${node.name}' not found.`);
+      return 0; 
+    }
+    if (node.type === 'BinaryOp') {
+      const left = this.evaluateExpression(node.left);
+      const right = this.evaluateExpression(node.right);
+      switch (node.operator) {
+        case TokenType.PLUS: return left + right;
+        case TokenType.MINUS: return left - right;
+        case TokenType.STAR: return left * right;
+        case TokenType.SLASH: return Math.floor(left / right); // Integer division usually better for maps
+        case TokenType.MODULO: return left % right;
+        default: return 0;
+      }
+    }
+    if (node.type === 'FunctionCallExpr') {
+       return this.evaluateFunctionCallExpr(node);
+    }
+    return 0;
+  }
+
+  private evaluateFunctionCallExpr(node: any): any {
+     const name = node.name.toLowerCase();
+     if (name === 'random') {
+        const min = this.evaluateExpression(node.args[0]);
+        const max = this.evaluateExpression(node.args[1]);
+        if (this.rng) {
+            return Math.floor(this.rng.next() * (max - min + 1)) + min;
+        }
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+     }
+     return 0;
+  }
+
   private executeFunctionDef(node: FunctionDefNode): void {
     // Store function definition in context for later calls
     (this.context as any).functions = (this.context as any).functions || new Map();
@@ -728,62 +951,15 @@ export class TemplateInterpreter {
     let result: boolean;
     
     switch (condition.conditionType) {
-      case 'crystalAhead':
-        // Check if there's a crystal at the position ahead
-        const aheadPos = moveForward(this.context.position, this.context.direction);
-        result = this.items.some(item => 
-          item.type === 'crystal' && 
-          item.position[0] === aheadPos[0] && 
-          item.position[2] === aheadPos[2]
-        );
-
-        // Generative Mode: If not found, chance to create it
-        if (!result && this.rng && this.rng.nextBoolean()) {
-          this.items.push({ type: 'crystal', position: aheadPos });
-          result = true;
-        }
-        break;
-        
-      case 'keyAhead':
-        const keyAheadPos = moveForward(this.context.position, this.context.direction);
-        result = this.items.some(item => 
-          item.type === 'key' && 
-          item.position[0] === keyAheadPos[0] && 
-          item.position[2] === keyAheadPos[2]
-        );
-
-        // Generative Mode
-        if (!result && this.rng && this.rng.nextBoolean()) {
-          this.items.push({ type: 'key', position: keyAheadPos });
-          result = true;
-        }
-        break;
-        
-      case 'atPortal':
-        // For generation, we'll place a portal when this becomes true
-        result = false; // Will be placed at end of WHILE loop
-        break;
-        
-      case 'hasKey':
-        result = this.context.inventory.keys > 0;
-        break;
-        
-      case 'switchOn':
-        // Generative: If asking, maybe we are ON a switch?
-        // Note: switchOn usually checks if switch at CURRENT POS is on.
-        // If no switch exists, maybe placing one? 
-        // But logic usually 'if (isOnSwitch) toggle'.
-        // Let's defer switch generation to 'isOnSwitch' check if exists.
-        result = (this.context as any).switchOn || false;
-        break;
-
       case 'isOnCrystal':
+        // Check if crystal at current position, if not and in generative mode, place one
         result = this.items.some(item => 
           item.type === 'crystal' && 
           item.position[0] === this.context.position[0] && 
           item.position[2] === this.context.position[2]
         );
 
+        // Generative Mode: If not found, place a crystal here
         if (!result && this.rng && this.rng.nextBoolean()) {
           this.items.push({ type: 'crystal', position: [...this.context.position] as Coord });
           result = true;
@@ -791,16 +967,22 @@ export class TemplateInterpreter {
         break;
 
       case 'isOnSwitch':
+        // Check if switch at current position, if not and in generative mode, place one
         result = this.items.some(item => 
           item.type === 'switch' && 
           item.position[0] === this.context.position[0] && 
           item.position[2] === this.context.position[2]
         );
 
+        // Generative Mode: If not found, place a switch here
         if (!result && this.rng && this.rng.nextBoolean()) {
           this.items.push({ type: 'switch', position: [...this.context.position] as Coord });
           result = true;
         }
+        break;
+        
+      case 'hasKey':
+        result = this.context.inventory.keys > 0;
         break;
         
       default:

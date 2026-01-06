@@ -23,9 +23,9 @@ Learn the basics of sequential programming by executing commands in order.
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 3;
-var _MAX_STEPS_ = 5;
-var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
+var MIN_STEPS = 3;
+var MAX_STEPS = 5;
+var STEPS = random(MIN_STEPS, MAX_STEPS);
 
 // Solution
 // Simple sequence of move and collect

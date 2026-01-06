@@ -23,12 +23,12 @@ Combine FOR loops with turning to create more complex paths.
 
 ```js
 // Parameters
-var _MIN_SEGMENT1_ = 2;
-var _MAX_SEGMENT1_ = 4;
-var _MIN_SEGMENT2_ = 2;
-var _MAX_SEGMENT2_ = 4;
-var SEGMENT1 = random(_MIN_SEGMENT1_, _MAX_SEGMENT1_);
-var SEGMENT2 = random(_MIN_SEGMENT2_, _MAX_SEGMENT2_);
+var MIN_SEGMENT1 = 2;
+var MAX_SEGMENT1 = 4;
+var MIN_SEGMENT2 = 2;
+var MAX_SEGMENT2 = 4;
+var SEGMENT1 = random(MIN_SEGMENT1, MAX_SEGMENT1);
+var SEGMENT2 = random(MIN_SEGMENT2, MAX_SEGMENT2);
 
 // Solution
 // L-shape path
