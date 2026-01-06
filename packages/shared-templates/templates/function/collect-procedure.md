@@ -19,15 +19,15 @@ Create a reusable procedure for the collect-and-move pattern.
 - Call procedures to reduce code
 - Understand code reuse
 
-## Parameters
+## Solution & Parameters
 
 ```js
-var _COLLECTION_COUNT_ = 4;
-```
+// Parameters
+var _MIN_COLLECTION_COUNT_ = 3;
+var _MAX_COLLECTION_COUNT_ = 6;
+var _COLLECTION_COUNT_ = random(_MIN_COLLECTION_COUNT_, _MAX_COLLECTION_COUNT_);
 
-## Solution Code
-
-```js
+// Solution
 function collectAndMove() {
   collectItem();
   moveForward();
@@ -37,3 +37,4 @@ function collectAndMove() {
 for (let i = 0; i < _COLLECTION_COUNT_; i++) {
   collectAndMove();
 }
+```

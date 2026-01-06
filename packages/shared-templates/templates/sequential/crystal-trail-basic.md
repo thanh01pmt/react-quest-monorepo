@@ -19,15 +19,15 @@ A simple path with crystals to collect. Perfect for learning basic movement comm
 - Practice `moveForward()` command
 - Learn `collectItem()` command
 
-## Parameters
+## Solution & Parameters
 
 ```js
-var _CRYSTAL_COUNT_ = 3;
-```
+// Parameters
+var _MIN_CRYSTAL_COUNT_ = 3;
+var _MAX_CRYSTAL_COUNT_ = 8;
+var _CRYSTAL_COUNT_ = random(_MIN_CRYSTAL_COUNT_, _MAX_CRYSTAL_COUNT_);
 
-## Solution Code
-
-```js
+// Solution
 // Collect all crystals along the path
 for (let i = 0; i < _CRYSTAL_COUNT_; i++) {
   moveForward();

@@ -4,7 +4,8 @@
         "module": "ESNext",
         "moduleResolution": "bundler",
         "lib": [
-            "ES2020"
+            "ES2020",
+            "DOM"
         ],
         "declaration": true,
         "declarationMap": true,
@@ -14,6 +15,7 @@
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
+        "types": [],
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,

@@ -19,21 +19,18 @@ Climb a staircase by recognizing the repeating pattern of forward + jump.
 - Use `repeat` block effectively
 - Combine movement with jumping
 
-## Parameters
+## Solution & Parameters
 
 ```js
+// Parameters
 var _MIN_STEPS_ = 3;
-var _MAX_STEPS_ = 6;
-```
+var _MAX_STEPS_ = 8;
+var _STEPS_ = random(_MIN_STEPS_, _MAX_STEPS_);
 
-## Solution Code
-
-```js
-var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
-
-// Climb the staircase
-for (let i = 0; i < STEPS; i++) {
+// Solution
+for (let i = 0; i < _STEPS_; i++) {
   moveForward();
   jump();
 }
 moveForward();
+```

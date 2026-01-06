@@ -73,11 +73,13 @@ export const DIFFICULTY_RANGES: Record<DifficultyLevel, [number, number]> = {
 export interface TemplateParameter {
   name: string;           // e.g., "_MIN_CRYSTAL_NUM_"
   displayName: string;    // e.g., "Min Crystal Count"
-  type: 'number' | 'boolean' | 'string';
-  defaultValue: number | boolean | string;
+  type: 'number' | 'boolean' | 'string' | 'int';
+  defaultValue?: number | boolean | string;
   min?: number;
   max?: number;
   step?: number;
+  minRef?: string;
+  maxRef?: string;
 }
 
 /**

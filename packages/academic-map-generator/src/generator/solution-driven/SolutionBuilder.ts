@@ -148,9 +148,22 @@ export class SolutionBuilder {
   /**
    * Build ground blocks from path coordinates
    * Ground blocks are placed at path Y minus 1 (one level below player level)
+   * Ensures endPosition always has a ground block for the finish marker
    */
   buildGroundBlocks(trace: ExecutionTrace, modelKey: string = 'ground.earthChecker'): Block[] {
-    return trace.pathCoords.map(coord => ({
+    // Ensure endPosition is included in blocks
+    const allCoords = [...trace.pathCoords];
+    const endKey = `${trace.endPosition[0]},${trace.endPosition[1]},${trace.endPosition[2]}`;
+    const hasEndPos = allCoords.some(c => 
+      c[0] === trace.endPosition[0] && 
+      c[1] === trace.endPosition[1] && 
+      c[2] === trace.endPosition[2]
+    );
+    if (!hasEndPos) {
+      allCoords.push(trace.endPosition);
+    }
+    
+    return allCoords.map(coord => ({
       modelKey,
       position: {
         x: coord[0],

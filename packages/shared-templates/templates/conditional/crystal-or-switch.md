@@ -19,15 +19,15 @@ Learn to make decisions based on what's in front of you.
 - Detect items in the environment
 - Choose correct action based on condition
 
-## Parameters
+## Solution & Parameters
 
 ```js
-var _PATH_LENGTH_ = 5;
-```
+// Parameters
+var _MIN_PATH_LENGTH_ = 3;
+var _MAX_PATH_LENGTH_ = 6;
+var _PATH_LENGTH_ = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);
 
-## Solution Code
-
-```js
+// Solution
 for (let i = 0; i < _PATH_LENGTH_; i++) {
   if (isOnCrystal()) {
     collectItem();
@@ -36,3 +36,4 @@ for (let i = 0; i < _PATH_LENGTH_; i++) {
   }
   moveForward();
 }
+```

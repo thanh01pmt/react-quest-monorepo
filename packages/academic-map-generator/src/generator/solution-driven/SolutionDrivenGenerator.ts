@@ -9,50 +9,16 @@ import {
   SolutionDrivenResult,
   GenerationMetadata,
   Coord,
-  GradeLevel
+  GradeLevel,
+  ParameterConfig
 } from './types';
 import { TemplateInterpreter } from './TemplateInterpreter';
 import { SolutionBuilder } from './SolutionBuilder';
 import { Item, PathInfo } from '../../core';
 import { AcademicConcept } from '../../analyzer';
+import { SeededRandom } from './utils';
 
-// ============================================================================
-// SEEDED RANDOM
-// ============================================================================
 
-/**
- * Simple seeded random number generator
- */
-class SeededRandom {
-  private seed: number;
-
-  constructor(seed: string | number) {
-    if (typeof seed === 'string') {
-      this.seed = this.hashString(seed);
-    } else {
-      this.seed = seed;
-    }
-  }
-
-  private hashString(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash);
-  }
-
-  next(): number {
-    this.seed = (this.seed * 1103515245 + 12345) & 0x7fffffff;
-    return this.seed / 0x7fffffff;
-  }
-
-  nextInt(min: number, max: number): number {
-    return Math.floor(this.next() * (max - min + 1)) + min;
-  }
-}
 
 // ============================================================================
 // SOLUTION-DRIVEN GENERATOR
@@ -89,9 +55,10 @@ export class SolutionDrivenGenerator {
     seed?: string
   ): SolutionDrivenResult {
     const actualSeed = seed || this.generateSeed();
+    const rng = new SeededRandom(actualSeed);
 
     // Execute template
-    const trace = this.interpreter.execute(template, params);
+    const trace = this.interpreter.execute(template, params, rng);
     
     // Build output
     const pathInfo = this.builder.buildPathInfo(trace);
@@ -178,8 +145,13 @@ export class SolutionDrivenGenerator {
 
   private resolveParameters(template: CodeTemplate, rng: SeededRandom): Record<string, number> {
     const params: Record<string, number> = {};
+    const configs = template.parameters;
     
-    for (const [name, config] of Object.entries(template.parameters)) {
+    // Pass 1: Resolve independent parameters
+    for (const config of configs) {
+      const name = config.name;
+      if (config.minRef || config.maxRef) continue;
+
       if (config.default !== undefined) {
         params[name] = config.default;
       } else if (config.min !== undefined && config.max !== undefined) {
@@ -187,6 +159,31 @@ export class SolutionDrivenGenerator {
       } else {
         params[name] = config.min || 1;
       }
+    }
+    
+    // Pass 2: Resolve dependent parameters
+    for (const config of configs) {
+      const name = config.name;
+      if (!config.minRef && !config.maxRef) continue;
+
+      let min = config.min !== undefined ? config.min : 1;
+      let max = config.max !== undefined ? config.max : 10;
+      
+      if (config.minRef && params[config.minRef] !== undefined) {
+        min = params[config.minRef];
+      }
+      
+      if (config.maxRef && params[config.maxRef] !== undefined) {
+        max = params[config.maxRef];
+      }
+
+      if (min > max) {
+          const temp = min;
+          min = max;
+          max = temp;
+      }
+      
+      params[name] = rng.nextInt(min, max);
     }
     
     return params;
@@ -249,9 +246,9 @@ export class TemplateFactory {
     return {
       id,
       code: `for i in 1 to $N { ${body} }`,
-      parameters: {
-        N: { type: 'int', min, max }
-      },
+      parameters: [
+        { name: 'N', type: 'int', min, max }
+      ],
       concept: 'repeat_n',
       gradeLevel
     };
@@ -267,9 +264,9 @@ export class TemplateFactory {
     return {
       id,
       code: 'for i in 1 to 4 { for j in 1 to $SIDE { moveForward(); pickCrystal() } turnRight() }',
-      parameters: {
-        SIDE: { type: 'int', min: 2, max: 5 }
-      },
+      parameters: [
+        { name: 'SIDE', type: 'int', min: 2, max: 5 }
+      ],
       concept: 'nested_loop',
       gradeLevel
     };
@@ -285,10 +282,10 @@ export class TemplateFactory {
     return {
       id,
       code: 'for i in 1 to $ROWS { for j in 1 to $COLS { moveForward(); pickCrystal() } turnRight(); moveForward(); turnRight() }',
-      parameters: {
-        ROWS: { type: 'int', min: 2, max: 4 },
-        COLS: { type: 'int', min: 3, max: 6 }
-      },
+      parameters: [
+        { name: 'ROWS', type: 'int', min: 2, max: 4 },
+        { name: 'COLS', type: 'int', min: 3, max: 6 }
+      ],
       concept: 'nested_loop',
       gradeLevel
     };
@@ -312,12 +309,14 @@ export function generateFromCode(
 ): SolutionDrivenResult {
   // Auto-detect parameters from code
   const paramMatches = code.match(/\$(\w+)/g) || [];
-  const parameters: Record<string, { type: 'int'; min: number; max: number }> = {};
+  const parameters: ParameterConfig[] = [];
+  const seen = new Set<string>();
   
   for (const match of paramMatches) {
     const name = match.slice(1);
-    if (!parameters[name]) {
-      parameters[name] = { type: 'int', min: 3, max: 8 };
+    if (!seen.has(name)) {
+      seen.add(name);
+      parameters.push({ name, type: 'int', min: 3, max: 8 });
     }
   }
 

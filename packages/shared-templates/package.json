@@ -13,8 +13,8 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "node scripts/generate-templates.js && tsc",
+    "dev": "node scripts/generate-templates.js && tsc --watch",
     "clean": "rm -rf dist"
   },
   "dependencies": {
@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.7.1",
+    "@types/uuid": "^11.0.0",
     "typescript": "^5.2.2"
   }
 }

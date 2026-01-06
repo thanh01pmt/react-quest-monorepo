@@ -145,16 +145,48 @@ export class PracticeGenerator {
     // Randomize parameters based on template definitions
     const parameters: Record<string, number | boolean | string> = {};
 
+    // Pass 1: Independent parameters
     for (const param of template.parameters) {
-      if (param.type === 'number') {
-        const min = param.min ?? (param.defaultValue as number) - 2;
-        const max = param.max ?? (param.defaultValue as number) + 2;
-        parameters[param.name] = this.rng.nextInt(min, max);
+      if (param.minRef || param.maxRef) continue;
+
+      if (param.type === 'number' || param.type === 'int') {
+        const defaultVal = typeof param.defaultValue === 'number' ? param.defaultValue : 3;
+        const min = param.min ?? (defaultVal - 2);
+        const max = param.max ?? (defaultVal + 2);
+        
+        let actualMin = min;
+        let actualMax = max;
+        
+        // Safety check to ensure valid range
+        if (Number.isNaN(actualMin)) actualMin = 1;
+        if (Number.isNaN(actualMax)) actualMax = 10;
+        if (actualMin > actualMax) [actualMin, actualMax] = [actualMax, actualMin];
+
+        parameters[param.name] = this.rng.nextInt(actualMin, actualMax);
       } else if (param.type === 'boolean') {
         parameters[param.name] = this.rng.next() > 0.5;
       } else {
         parameters[param.name] = param.defaultValue;
       }
+    }
+
+    // Pass 2: Dependent parameters
+    for (const param of template.parameters) {
+      if (!param.minRef && !param.maxRef) continue;
+
+      let min = param.min ?? 1;
+      let max = param.max ?? 10;
+
+      if (param.minRef && typeof parameters[param.minRef] === 'number') {
+        min = parameters[param.minRef] as number;
+      }
+      if (param.maxRef && typeof parameters[param.maxRef] === 'number') {
+        max = parameters[param.maxRef] as number;
+      }
+
+      if (min > max) [min, max] = [max, min];
+
+      parameters[param.name] = this.rng.nextInt(min, max);
     }
 
     // Get primary concept from template

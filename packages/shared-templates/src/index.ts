@@ -9,11 +9,12 @@
 export * from './types';
 
 // Parser
-export { 
+export {
   parseTemplate, 
-  validateTemplate, 
-  applyParameters 
+  validateTemplate 
 } from './parser';
+
+export { applyParameters } from './parameters';
 
 // Registry
 export { 
@@ -21,6 +22,9 @@ export {
   templateRegistry, 
   registerBundledTemplate 
 } from './registry';
+
+// Template Content
+export { BUNDLED_TEMPLATES } from './bundled-templates';
 
 // Scoring
 export {

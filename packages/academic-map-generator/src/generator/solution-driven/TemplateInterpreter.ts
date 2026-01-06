@@ -26,6 +26,7 @@ import {
   moveForward,
   coordToKey
 } from './types';
+import { SeededRandom } from './utils';
 
 // ============================================================================
 // LEXER
@@ -480,7 +481,11 @@ class Parser {
       'haskey': 'hasKey',
       'has_key': 'hasKey',
       'switchon': 'switchOn',
-      'switch_on': 'switchOn'
+      'switch_on': 'switchOn',
+      'isoncrystal': 'isOnCrystal',
+      'is_on_crystal': 'isOnCrystal',
+      'isonswitch': 'isOnSwitch',
+      'is_on_switch': 'isOnSwitch'
     };
     return mapping[name] || 'crystalAhead';
   }
@@ -558,13 +563,15 @@ export class TemplateInterpreter {
   private loopIterations: number = 0;
   private totalMoves: number = 0;
   private totalCollects: number = 0;
+  private rng?: SeededRandom;
 
   /**
    * Execute a template with resolved parameters
    */
-  execute(template: CodeTemplate, params: Record<string, number>): ExecutionTrace {
+  execute(template: CodeTemplate, params: Record<string, number>, rng?: SeededRandom): ExecutionTrace {
     // Reset state
     this.context = createInitialContext();
+    this.rng = rng;
     this.pathCoords = [[...this.context.position] as Coord];
     this.pathSet = new Set([coordToKey(this.context.position)]);
     this.items = [];
@@ -576,7 +583,11 @@ export class TemplateInterpreter {
     // Resolve parameters in code
     let code = template.code;
     for (const [name, value] of Object.entries(params)) {
-      code = code.replace(new RegExp(`\\$${name}`, 'gi'), String(value));
+      // Replace $NAME (legacy) and NAME (if _NAME_ or similar)
+      // Use word boundary or specific patterns to avoid partial replacement if name is short
+      // But _NAME_ is distinct enough.
+      const pattern = name.startsWith('_') ? name : `\\$${name}`;
+      code = code.replace(new RegExp(pattern, 'gi'), String(value));
     }
 
     // Parse and execute
@@ -685,6 +696,12 @@ export class TemplateInterpreter {
           item.position[0] === aheadPos[0] && 
           item.position[2] === aheadPos[2]
         );
+
+        // Generative Mode: If not found, chance to create it
+        if (!result && this.rng && this.rng.nextBoolean()) {
+          this.items.push({ type: 'crystal', position: aheadPos });
+          result = true;
+        }
         break;
         
       case 'keyAhead':
@@ -694,6 +711,12 @@ export class TemplateInterpreter {
           item.position[0] === keyAheadPos[0] && 
           item.position[2] === keyAheadPos[2]
         );
+
+        // Generative Mode
+        if (!result && this.rng && this.rng.nextBoolean()) {
+          this.items.push({ type: 'key', position: keyAheadPos });
+          result = true;
+        }
         break;
         
       case 'atPortal':
@@ -706,8 +729,38 @@ export class TemplateInterpreter {
         break;
         
       case 'switchOn':
-        // For generation, assume switch is on if we've toggled it
+        // Generative: If asking, maybe we are ON a switch?
+        // Note: switchOn usually checks if switch at CURRENT POS is on.
+        // If no switch exists, maybe placing one? 
+        // But logic usually 'if (isOnSwitch) toggle'.
+        // Let's defer switch generation to 'isOnSwitch' check if exists.
         result = (this.context as any).switchOn || false;
+        break;
+
+      case 'isOnCrystal':
+        result = this.items.some(item => 
+          item.type === 'crystal' && 
+          item.position[0] === this.context.position[0] && 
+          item.position[2] === this.context.position[2]
+        );
+
+        if (!result && this.rng && this.rng.nextBoolean()) {
+          this.items.push({ type: 'crystal', position: [...this.context.position] as Coord });
+          result = true;
+        }
+        break;
+
+      case 'isOnSwitch':
+        result = this.items.some(item => 
+          item.type === 'switch' && 
+          item.position[0] === this.context.position[0] && 
+          item.position[2] === this.context.position[2]
+        );
+
+        if (!result && this.rng && this.rng.nextBoolean()) {
+          this.items.push({ type: 'switch', position: [...this.context.position] as Coord });
+          result = true;
+        }
         break;
         
       default:
@@ -851,10 +904,20 @@ export class TemplateInterpreter {
   }
 
   private doCollect(itemType: string): void {
-    this.items.push({
-      type: itemType,
-      position: [...this.context.position] as Coord
-    });
+    // Check for existing item to avoid duplicates (e.g. from generative condition)
+    const exists = this.items.some(i => 
+      i.type === itemType && 
+      i.position[0] === this.context.position[0] &&
+      i.position[1] === this.context.position[1] &&
+      i.position[2] === this.context.position[2]
+    );
+
+    if (!exists) {
+      this.items.push({
+        type: itemType,
+        position: [...this.context.position] as Coord
+      });
+    }
     this.actions.push({
       type: 'collect',
       position: [...this.context.position] as Coord,
@@ -871,10 +934,20 @@ export class TemplateInterpreter {
   }
 
   private doInteract(itemType: string): void {
-    this.items.push({
-      type: itemType,
-      position: [...this.context.position] as Coord
-    });
+    // Check for existing item
+    const exists = this.items.some(i => 
+      i.type === itemType && 
+      i.position[0] === this.context.position[0] &&
+      i.position[1] === this.context.position[1] &&
+      i.position[2] === this.context.position[2]
+    );
+
+    if (!exists) {
+      this.items.push({
+        type: itemType,
+        position: [...this.context.position] as Coord
+      });
+    }
     this.actions.push({
       type: 'interact',
       position: [...this.context.position] as Coord,

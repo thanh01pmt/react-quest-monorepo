@@ -19,16 +19,19 @@ Navigate through a zigzag path by repeating the turn-forward pattern.
 - Understand turn directions
 - Recognize zigzag pattern
 
-## Parameters
+## Solution & Parameters
 
 ```js
-var _ZIG_COUNT_ = 3;
-var _SEGMENT_LENGTH_ = 2;
-```
+// Parameters
+var _MIN_ZIG_COUNT_ = 3;
+var _MAX_ZIG_COUNT_ = 5;
+var _ZIG_COUNT_ = random(_MIN_ZIG_COUNT_, _MAX_ZIG_COUNT_);
 
-## Solution Code
+var _MIN_SEGMENT_LENGTH_ = 2;
+var _MAX_SEGMENT_LENGTH_ = 4;
+var _SEGMENT_LENGTH_ = random(_MIN_SEGMENT_LENGTH_, _MAX_SEGMENT_LENGTH_);
 
-```js
+// Solution
 // Navigate zigzag
 for (let i = 0; i < _ZIG_COUNT_; i++) {
   for (let j = 0; j < _SEGMENT_LENGTH_; j++) {
@@ -38,3 +41,4 @@ for (let i = 0; i < _ZIG_COUNT_; i++) {
   moveForward();
   turnLeft();
 }
+```

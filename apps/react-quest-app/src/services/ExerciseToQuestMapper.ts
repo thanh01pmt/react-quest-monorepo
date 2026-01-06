@@ -13,7 +13,7 @@
 
 import { generateFromCode, type SolutionDrivenResult } from '@repo/academic-map-generator';
 import type { Quest } from '@repo/quest-player';
-import type { GeneratedExercise, DifficultyLevel } from '@repo/shared-templates';
+import { templateRegistry, applyParameters, type GeneratedExercise, type DifficultyLevel } from '@repo/shared-templates';
 
 // Template code presets for each concept (same as map-builder presets)
 const CONCEPT_TEMPLATES: Record<string, { code: string; concept: string }> = {
@@ -269,21 +269,41 @@ const PRACTICE_TOOLBOX = {
  * Convert GeneratedExercise to Quest format using SolutionDrivenGenerator
  */
 export function exerciseToQuest(exercise: GeneratedExercise, index: number): Quest {
-  // 1. Get template for concept
-  const template = CONCEPT_TEMPLATES[exercise.concept] || DEFAULT_TEMPLATE;
-  
-  // 2. Resolve parameters based on difficulty
-  const resolvedCode = resolveTemplateCode(template.code, exercise.difficulty);
+  console.log(`[ExerciseToQuest] Processing exercise ${index}:`, exercise.templateId, exercise.parameters);
+
+  // 1. Try to find actual template in registry
+  const registryTemplate = templateRegistry.get(exercise.templateId);
+  let resolvedCode = '';
+
+  if (registryTemplate) {
+    // Case A: Smart Template (Loaded from registry)
+    console.log(`[ExerciseToQuest] Found registry template. Original solution:`, registryTemplate.solutionCode);
+    resolvedCode = applyParameters(registryTemplate.solutionCode, exercise.parameters);
+    console.log(`[ExerciseToQuest] Resolved code with params:`, resolvedCode);
+  } else {
+    // Case B: Legacy/Fallback (using concept presets)
+    console.warn(`[ExerciseToQuest] Template ${exercise.templateId} not found. Using fallback concept:`, exercise.concept);
+    const preset = CONCEPT_TEMPLATES[exercise.concept] || DEFAULT_TEMPLATE;
+    resolvedCode = resolveTemplateCode(preset.code, exercise.difficulty);
+  }
   
   // 3. Generate map using generateFromCode
   let result: SolutionDrivenResult;
   try {
+    console.log(`[ExerciseToQuest] Generating map from code...`);
     result = generateFromCode(resolvedCode, {
-      concept: template.concept as any,
+      concept: exercise.concept as any,
       gradeLevel: '3-5',
     });
+    console.log(`[ExerciseToQuest] Generation success. Trace:`, {
+        pathLength: result.trace.pathCoords.length,
+        items: result.trace.items.length,
+        actions: result.trace.actions.length,
+        blocks: result.gameConfig.gameConfig.blocks?.length
+    });
   } catch (err) {
-    console.error('Failed to generate map:', err);
+    console.error('[ExerciseToQuest] Failed to generate map from code:', resolvedCode);
+    console.error('[ExerciseToQuest] Error details:', err);
     // Fallback to simple sequential
     result = generateFromCode(`moveForward();collectItem();moveForward();`, {
       concept: 'sequential',
@@ -294,6 +314,23 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
   // 4. Extract gameConfig from result
   const gameConfig = result.gameConfig.gameConfig;
   const solution = result.solution;
+
+  // FAILSAFE: Ensure finish position has a ground block
+  // (Fixes issue where finish marker floats in air if trace.endPosition isn't in pathCoords)
+  const finishPos = gameConfig.finish || { x: 5, y: 1, z: 0 };
+  const hasFinishBlock = gameConfig.blocks.some((b: any) => 
+    (b.position?.x ?? b.x) === finishPos.x && 
+    (b.position?.y ?? b.y) === finishPos.y - 1 && 
+    (b.position?.z ?? b.z) === finishPos.z
+  );
+  
+  if (!hasFinishBlock && gameConfig.blocks) {
+    console.warn(`⚠️ Missing ground block for finish at [${finishPos.x}, ${finishPos.y}, ${finishPos.z}]. Adding failsafe block.`);
+    gameConfig.blocks.push({
+      modelKey: 'ground.earthChecker',
+      position: { x: finishPos.x, y: finishPos.y - 1, z: finishPos.z }
+    });
+  }
   
   // 5. Build Quest object
   const title = exercise.hints[0] || `Bài tập ${index + 1}`;

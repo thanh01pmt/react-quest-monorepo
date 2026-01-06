@@ -15,7 +15,7 @@ import {
     type QuestCompletionResult,
 } from '@repo/quest-player';
 import type { PracticeConfig, PracticeSession, GeneratedExercise, ConceptCategory } from '@repo/shared-templates';
-import { templateRegistry } from '@repo/shared-templates';
+import { templateRegistry, BUNDLED_TEMPLATES } from '@repo/shared-templates';
 import { PracticeSidebar } from '../components/PracticeSidebar';
 import { createPracticeGenerator } from '../services/PracticeGenerator';
 import { saveSession, getIncompleteSessions } from '../services/SessionStorage';
@@ -28,89 +28,7 @@ const MemoizedQuestPlayer = React.memo(QuestPlayer);
 
 type AppSettings = QuestPlayerSettings & { language: string };
 
-// Bundled templates for practice
-const BUNDLED_TEMPLATES = [
-    {
-        metadata: {
-            id: 'crystal-trail-basic',
-            name: 'Crystal Trail',
-            category: 'sequential' as const,
-            concepts: ['sequential'],
-            difficulty: 1,
-            tags: ['moveForward', 'collectItem'],
-            author: 'system',
-            version: 1,
-        },
-        parameters: [{ name: '_CRYSTAL_COUNT_', displayName: 'Crystal Count', type: 'number' as const, defaultValue: 3, min: 2, max: 6 }],
-        solutionCode: 'for (let i = 0; i < _CRYSTAL_COUNT_; i++) { moveForward(); collectItem(); }',
-        descriptionMarkdown: 'Collect crystals along a straight path',
-        rawContent: '',
-    },
-    {
-        metadata: {
-            id: 'staircase-climb',
-            name: 'Staircase Climb',
-            category: 'loop' as const,
-            concepts: ['repeat_n'],
-            difficulty: 3,
-            tags: ['repeat', 'pattern'],
-            author: 'system',
-            version: 1,
-        },
-        parameters: [{ name: '_STEPS_', displayName: 'Steps', type: 'number' as const, defaultValue: 4, min: 3, max: 7 }],
-        solutionCode: 'for (let i = 0; i < _STEPS_; i++) { moveForward(); jump(); }',
-        descriptionMarkdown: 'Climb a staircase using repeat pattern',
-        rawContent: '',
-    },
-    {
-        metadata: {
-            id: 'zigzag-path',
-            name: 'Zigzag Path',
-            category: 'loop' as const,
-            concepts: ['repeat_n'],
-            difficulty: 4,
-            tags: ['repeat', 'turn'],
-            author: 'system',
-            version: 1,
-        },
-        parameters: [{ name: '_ZIG_COUNT_', displayName: 'Zig Count', type: 'number' as const, defaultValue: 3, min: 2, max: 5 }],
-        solutionCode: 'for (let i = 0; i < _ZIG_COUNT_; i++) { moveForward(); turnRight(); moveForward(); turnLeft(); }',
-        descriptionMarkdown: 'Navigate through a zigzag path',
-        rawContent: '',
-    },
-    {
-        metadata: {
-            id: 'crystal-or-switch',
-            name: 'Crystal or Switch',
-            category: 'conditional' as const,
-            concepts: ['if_else'],
-            difficulty: 4,
-            tags: ['if', 'else'],
-            author: 'system',
-            version: 1,
-        },
-        parameters: [{ name: '_PATH_LENGTH_', displayName: 'Path Length', type: 'number' as const, defaultValue: 5, min: 3, max: 8 }],
-        solutionCode: 'for (let i = 0; i < _PATH_LENGTH_; i++) { if (isOnCrystal()) { collectItem(); } else { toggleSwitch(); } moveForward(); }',
-        descriptionMarkdown: 'Decide based on what is in front',
-        rawContent: '',
-    },
-    {
-        metadata: {
-            id: 'collect-procedure',
-            name: 'Collect Procedure',
-            category: 'function' as const,
-            concepts: ['procedure_simple'],
-            difficulty: 4,
-            tags: ['procedure', 'function'],
-            author: 'system',
-            version: 1,
-        },
-        parameters: [{ name: '_COUNT_', displayName: 'Count', type: 'number' as const, defaultValue: 4, min: 3, max: 6 }],
-        solutionCode: 'function collectAndMove() { collectItem(); moveForward(); } for (let i = 0; i < _COUNT_; i++) { collectAndMove(); }',
-        descriptionMarkdown: 'Create a reusable procedure',
-        rawContent: '',
-    },
-];
+
 
 interface PracticeContentProps {
     settings: AppSettings;

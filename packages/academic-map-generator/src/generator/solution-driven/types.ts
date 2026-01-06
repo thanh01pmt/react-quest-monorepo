@@ -24,12 +24,15 @@ export type GradeLevel = 'K-2' | '3-5' | '6-8' | '9-12';
  * Parameter configuration for template variables
  */
 export interface ParameterConfig {
+  name: string; // Added name for array usage
   type: 'int' | 'float' | 'boolean';
   min?: number;
   max?: number;
   default?: number;
   step?: number;
   description?: string;
+  minRef?: string;
+  maxRef?: string;
 }
 
 /**
@@ -43,7 +46,7 @@ export interface CodeTemplate {
   code: string;
   
   /** Parameter definitions */
-  parameters: Record<string, ParameterConfig>;
+  parameters: ParameterConfig[];
   
   /** Primary concept this template teaches */
   concept: AcademicConcept;
@@ -57,6 +60,8 @@ export interface CodeTemplate {
   /** Optional metadata */
   meta?: TemplateMeta;
 }
+
+export type TemplateConfig = CodeTemplate;
 
 /**
  * Template metadata for display
@@ -237,7 +242,9 @@ export type ConditionType =
   | 'keyAhead'
   | 'atPortal'
   | 'hasKey'
-  | 'switchOn';
+  | 'switchOn'
+  | 'isOnCrystal'
+  | 'isOnSwitch';
 
 // ============================================================================
 // OUTPUT TYPES
