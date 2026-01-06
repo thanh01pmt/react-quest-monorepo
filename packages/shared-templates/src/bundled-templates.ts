@@ -428,6 +428,70 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
   },
   {
     "metadata": {
+      "id": "micro-mixed-interact",
+      "name": "Micro Mixed Interact",
+      "category": "logic",
+      "concepts": [
+        "micropattern",
+        "crystal",
+        "switch",
+        "mixed"
+      ],
+      "difficulty": 4,
+      "tags": [
+        "logic",
+        "crystal",
+        "switch",
+        "interact"
+      ],
+      "author": "system",
+      "version": 4,
+      "description": "Collect crystals AND toggle switches with different spacing"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_REPEATS_",
+        "displayName": "Min Repeats",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MAX_REPEATS_",
+        "displayName": "Max Repeats",
+        "type": "number",
+        "defaultValue": 4
+      },
+      {
+        "name": "_MIN_SPACE_CRYSTAL_",
+        "displayName": "Min Space Crystal",
+        "type": "number",
+        "defaultValue": 0
+      },
+      {
+        "name": "_MAX_SPACE_CRYSTAL_",
+        "displayName": "Max Space Crystal",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MIN_SPACE_SWITCH_",
+        "displayName": "Min Space Switch",
+        "type": "number",
+        "defaultValue": 0
+      },
+      {
+        "name": "_MAX_SPACE_SWITCH_",
+        "displayName": "Max Space Switch",
+        "type": "number",
+        "defaultValue": 1
+      }
+    ],
+    "solutionCode": "var _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 4;\nvar _MIN_SPACE_CRYSTAL_ = 0;\nvar _MAX_SPACE_CRYSTAL_ = 2;\nvar _MIN_SPACE_SWITCH_ = 0;\nvar _MAX_SPACE_SWITCH_ = 1;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE_CRYSTAL = random(_MIN_SPACE_CRYSTAL_, _MAX_SPACE_CRYSTAL_);\nvar SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);\n\nmoveForward();\n\nfor (let i = 0; i < REPEATS; i++) {\n  // Phase 1: Crystal Spacing\n  for (let c = 0; c < SPACE_CRYSTAL + 1; c++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Phase 2: Switch Spacing\n  for (let s = 0; s < SPACE_SWITCH + 1; s++) {\n    moveForward();\n  }\n  toggleSwitch();\n  \n  turnRight();\n}\n\nmoveForward();\ncollectItem();\nmoveForward();",
+    "descriptionMarkdown": "# Micro Mixed Interact\n\nCollect crystals and toggle switches.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: micro-mixed-interact\nname: \"Micro Mixed Interact\"\ncategory: logic\nconcepts: [\"micropattern\", \"crystal\", \"switch\", \"mixed\"]\ndifficulty: 4\ntags: [\"logic\", \"crystal\", \"switch\", \"interact\"]\nauthor: system\nversion: 4\ndescription: \"Collect crystals AND toggle switches with different spacing\"\n---\n\n# Micro Mixed Interact\n\nCollect crystals and toggle switches.\n\n## Solution & Parameters\n\n```js\nvar _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 4;\nvar _MIN_SPACE_CRYSTAL_ = 0;\nvar _MAX_SPACE_CRYSTAL_ = 2;\nvar _MIN_SPACE_SWITCH_ = 0;\nvar _MAX_SPACE_SWITCH_ = 1;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE_CRYSTAL = random(_MIN_SPACE_CRYSTAL_, _MAX_SPACE_CRYSTAL_);\nvar SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);\n\nmoveForward();\n\nfor (let i = 0; i < REPEATS; i++) {\n  // Phase 1: Crystal Spacing\n  for (let c = 0; c < SPACE_CRYSTAL + 1; c++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Phase 2: Switch Spacing\n  for (let s = 0; s < SPACE_SWITCH + 1; s++) {\n    moveForward();\n  }\n  toggleSwitch();\n  \n  turnRight();\n}\n\nmoveForward();\ncollectItem();\nmoveForward();\n```\n"
+  },
+  {
+    "metadata": {
       "id": "logic-simple-parity",
       "name": "Simple Parity",
       "category": "logic",
@@ -550,6 +614,100 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
     "solutionCode": "// Parameters\nvar _MIN_SEGMENT1_ = 2;\nvar _MAX_SEGMENT1_ = 4;\nvar _MIN_SEGMENT2_ = 2;\nvar _MAX_SEGMENT2_ = 4;\nvar SEGMENT1 = random(_MIN_SEGMENT1_, _MAX_SEGMENT1_);\nvar SEGMENT2 = random(_MIN_SEGMENT2_, _MAX_SEGMENT2_);\n\n// Solution\n// L-shape path\nmoveForward();\n\nfor (let i = 0; i < SEGMENT1; i++) {\n  collectItem();\n  moveForward();\n}\n\nturnRight();\n\nfor (let i = 0; i < SEGMENT2; i++) {\n  collectItem();\n  moveForward();\n}\n\nmoveForward();",
     "descriptionMarkdown": "# FOR Loop with Turns\n\nCombine FOR loops with turning to create more complex paths.\n\n## Learning Goals\n- Use multiple FOR loops\n- Combine loops with turn commands\n- Create L-shaped paths\n\n## Solution & Parameters",
     "rawContent": "---\nid: for-with-turns\nname: \"FOR Loop with Turns\"\ncategory: loop\nconcepts: [\"repeat_n\"]\ndifficulty: 2\ntags: [\"for\", \"loop\", \"turn\", \"l-shape\"]\nauthor: system\nversion: 1\ndescription: \"Create an L-shape path using loops with turns\"\n---\n\n# FOR Loop with Turns\n\nCombine FOR loops with turning to create more complex paths.\n\n## Learning Goals\n- Use multiple FOR loops\n- Combine loops with turn commands\n- Create L-shaped paths\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_SEGMENT1_ = 2;\nvar _MAX_SEGMENT1_ = 4;\nvar _MIN_SEGMENT2_ = 2;\nvar _MAX_SEGMENT2_ = 4;\nvar SEGMENT1 = random(_MIN_SEGMENT1_, _MAX_SEGMENT1_);\nvar SEGMENT2 = random(_MIN_SEGMENT2_, _MAX_SEGMENT2_);\n\n// Solution\n// L-shape path\nmoveForward();\n\nfor (let i = 0; i < SEGMENT1; i++) {\n  collectItem();\n  moveForward();\n}\n\nturnRight();\n\nfor (let i = 0; i < SEGMENT2; i++) {\n  collectItem();\n  moveForward();\n}\n\nmoveForward();\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "micro-loop-collect",
+      "name": "Micro Loop Collect",
+      "category": "loop",
+      "concepts": [
+        "loop",
+        "repeat",
+        "spacing"
+      ],
+      "difficulty": 3,
+      "tags": [
+        "loop",
+        "crystal",
+        "repeat"
+      ],
+      "author": "system",
+      "version": 3,
+      "description": "Use a loop to collect crystals with turns and spacing"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_REPEATS_",
+        "displayName": "Min Repeats",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MAX_REPEATS_",
+        "displayName": "Max Repeats",
+        "type": "number",
+        "defaultValue": 4
+      },
+      {
+        "name": "_MIN_SPACE_",
+        "displayName": "Min Space",
+        "type": "number",
+        "defaultValue": 0
+      },
+      {
+        "name": "_MAX_SPACE_",
+        "displayName": "Max Space",
+        "type": "number",
+        "defaultValue": 2
+      }
+    ],
+    "solutionCode": "var _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 4;\nvar _MIN_SPACE_ = 0;\nvar _MAX_SPACE_ = 2;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE = random(_MIN_SPACE_, _MAX_SPACE_);\n\nmoveForward();\n\nfor (let r = 0; r < REPEATS; r++) {\n  // Pattern 1\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Pattern 2\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  turnRight();\n}\n\nmoveForward();\ncollectItem();\nmoveForward();",
+    "descriptionMarkdown": "# Micro Loop Collect\n\nA loop-based pattern that collects crystals, turns, and repeats.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: micro-loop-collect\nname: \"Micro Loop Collect\"\ncategory: loop\nconcepts: [\"loop\", \"repeat\", \"spacing\"]\ndifficulty: 3\ntags: [\"loop\", \"crystal\", \"repeat\"]\nauthor: system\nversion: 3\ndescription: \"Use a loop to collect crystals with turns and spacing\"\n---\n\n# Micro Loop Collect\n\nA loop-based pattern that collects crystals, turns, and repeats.\n\n## Solution & Parameters\n\n```js\nvar _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 4;\nvar _MIN_SPACE_ = 0;\nvar _MAX_SPACE_ = 2;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE = random(_MIN_SPACE_, _MAX_SPACE_);\n\nmoveForward();\n\nfor (let r = 0; r < REPEATS; r++) {\n  // Pattern 1\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Pattern 2\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  turnRight();\n}\n\nmoveForward();\ncollectItem();\nmoveForward();\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "micro-zigzag-collect",
+      "name": "Micro Zigzag Collect",
+      "category": "loop",
+      "concepts": [
+        "zigzag",
+        "turns",
+        "alternating"
+      ],
+      "difficulty": 4,
+      "tags": [
+        "loop",
+        "zigzag",
+        "crystal"
+      ],
+      "author": "system",
+      "version": 4,
+      "description": "Collect crystals in a zigzag pattern with alternating turns"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_PAIRS_",
+        "displayName": "Min Pairs",
+        "type": "number",
+        "defaultValue": 1
+      },
+      {
+        "name": "_MAX_PAIRS_",
+        "displayName": "Max Pairs",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_SEGMENT_LENGTH_",
+        "displayName": "Segment Length",
+        "type": "number",
+        "defaultValue": 2
+      }
+    ],
+    "solutionCode": "var _MIN_PAIRS_ = 1;\nvar _MAX_PAIRS_ = 3;\nvar _SEGMENT_LENGTH_ = 2;\n\nvar PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);\n\nmoveForward();\n\nfor (let p = 0; p < PAIRS; p++) {\n  // === Segment 1 (Right Turn) ===\n  for (let s1 = 0; s1 < _SEGMENT_LENGTH_; s1++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Turn Right Sequence\n  turnRight();\n  moveForward();\n  turnRight();\n  \n  // === Segment 2 (Left Turn) ===\n  for (let s2 = 0; s2 < _SEGMENT_LENGTH_; s2++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Turn Left Sequence (prepare for next pair, or end facing forward)\n  turnLeft();\n  moveForward();\n  turnLeft();\n}\n\nmoveForward();",
+    "descriptionMarkdown": "# Micro Zigzag Collect\n\nZigzag path with alternating left/right turns.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: micro-zigzag-collect\nname: \"Micro Zigzag Collect\"\ncategory: loop\nconcepts: [\"zigzag\", \"turns\", \"alternating\"]\ndifficulty: 4\ntags: [\"loop\", \"zigzag\", \"crystal\"]\nauthor: system\nversion: 4\ndescription: \"Collect crystals in a zigzag pattern with alternating turns\"\n---\n\n# Micro Zigzag Collect\n\nZigzag path with alternating left/right turns.\n\n## Solution & Parameters\n\n```js\nvar _MIN_PAIRS_ = 1;\nvar _MAX_PAIRS_ = 3;\nvar _SEGMENT_LENGTH_ = 2;\n\nvar PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);\n\nmoveForward();\n\nfor (let p = 0; p < PAIRS; p++) {\n  // === Segment 1 (Right Turn) ===\n  for (let s1 = 0; s1 < _SEGMENT_LENGTH_; s1++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Turn Right Sequence\n  turnRight();\n  moveForward();\n  turnRight();\n  \n  // === Segment 2 (Left Turn) ===\n  for (let s2 = 0; s2 < _SEGMENT_LENGTH_; s2++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Turn Left Sequence (prepare for next pair, or end facing forward)\n  turnLeft();\n  moveForward();\n  turnLeft();\n}\n\nmoveForward();\n```\n"
   },
   {
     "metadata": {
@@ -841,7 +999,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
       ],
       "author": "system",
       "version": 1,
-      "description": "Walk a path, collect crystal at destination, then return"
+      "description": "Walk a path, collect crystal at destination, return, then advance to finish"
     },
     "parameters": [
       {
@@ -857,9 +1015,9 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "defaultValue": 4
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_DIST_ = 2;\nvar _MAX_DIST_ = 4;\nvar D1 = random(_MIN_DIST_, _MAX_DIST_);\nvar D2 = random(_MIN_DIST_, _MAX_DIST_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// Forward Phase\nfor(let i=0; i<D1; i++) moveForward();\nturnRight();\nfor(let j=0; j<D2; j++) moveForward();\n\n// Collect at destination\ncollectItem();\n\n// Return Phase\nturnAround();\nfor(let j=0; j<D2; j++) moveForward();\nturnLeft();\nfor(let i=0; i<D1; i++) moveForward();\n\nturnAround();",
-    "descriptionMarkdown": "# Path Return\n\nWalk a random path, collect crystal at destination, turn around, and walk exactly back to the start.\n\n## Academic Concept: Inverse Operations\n- Operation: `Move` | Inverse: `Move` (after turning 180)\n- Operation: `TurnRight` | Inverse: `TurnLeft`\n- Sequence `[A, B, C]` -> Inverse Sequence `[Inv(C), Inv(B), Inv(A)]` (Stack LIFO)\n\n## Solution & Parameters",
-    "rawContent": "---\nid: mem-return\nname: \"Path Return\"\ncategory: memory\nconcepts: [\"function\", \"stack\", \"backtracking\"]\ndifficulty: 4\ntags: [\"memory\", \"pattern\", \"inverse\"]\nauthor: system\nversion: 1\ndescription: \"Walk a path, collect crystal at destination, then return\"\n---\n\n# Path Return\n\nWalk a random path, collect crystal at destination, turn around, and walk exactly back to the start.\n\n## Academic Concept: Inverse Operations\n- Operation: `Move` | Inverse: `Move` (after turning 180)\n- Operation: `TurnRight` | Inverse: `TurnLeft`\n- Sequence `[A, B, C]` -> Inverse Sequence `[Inv(C), Inv(B), Inv(A)]` (Stack LIFO)\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_DIST_ = 2;\nvar _MAX_DIST_ = 4;\nvar D1 = random(_MIN_DIST_, _MAX_DIST_);\nvar D2 = random(_MIN_DIST_, _MAX_DIST_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// Forward Phase\nfor(let i=0; i<D1; i++) moveForward();\nturnRight();\nfor(let j=0; j<D2; j++) moveForward();\n\n// Collect at destination\ncollectItem();\n\n// Return Phase\nturnAround();\nfor(let j=0; j<D2; j++) moveForward();\nturnLeft();\nfor(let i=0; i<D1; i++) moveForward();\n\nturnAround();\n```\n"
+    "solutionCode": "// Parameters\nvar _MIN_DIST_ = 2;\nvar _MAX_DIST_ = 4;\nvar D1 = random(_MIN_DIST_, _MAX_DIST_);\nvar D2 = random(_MIN_DIST_, _MAX_DIST_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// Forward Phase\nfor(let i=0; i<D1; i++) moveForward();\nturnRight();\nfor(let j=0; j<D2; j++) moveForward();\n\n// Collect at destination\ncollectItem();\n\n// Return Phase\nturnAround();\nfor(let j=0; j<D2; j++) moveForward();\nturnLeft();\nfor(let i=0; i<D1; i++) moveForward();\n\n// Advance to Finish (ensures Finish ≠ Start)\nturnLeft();\nmoveForward();\ncollectItem();\nmoveForward();",
+    "descriptionMarkdown": "# Path Return\n\nWalk a random path, collect crystal at destination, turn around, return to start, then move to finish.\n\n## Academic Concept: Inverse Operations\n- Operation: `Move` | Inverse: `Move` (after turning 180)\n- Operation: `TurnRight` | Inverse: `TurnLeft`\n- Sequence `[A, B, C]` -> Inverse Sequence `[Inv(C), Inv(B), Inv(A)]` (Stack LIFO)\n\n## Solution & Parameters",
+    "rawContent": "---\nid: mem-return\nname: \"Path Return\"\ncategory: memory\nconcepts: [\"function\", \"stack\", \"backtracking\"]\ndifficulty: 4\ntags: [\"memory\", \"pattern\", \"inverse\"]\nauthor: system\nversion: 1\ndescription: \"Walk a path, collect crystal at destination, return, then advance to finish\"\n---\n\n# Path Return\n\nWalk a random path, collect crystal at destination, turn around, return to start, then move to finish.\n\n## Academic Concept: Inverse Operations\n- Operation: `Move` | Inverse: `Move` (after turning 180)\n- Operation: `TurnRight` | Inverse: `TurnLeft`\n- Sequence `[A, B, C]` -> Inverse Sequence `[Inv(C), Inv(B), Inv(A)]` (Stack LIFO)\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_DIST_ = 2;\nvar _MAX_DIST_ = 4;\nvar D1 = random(_MIN_DIST_, _MAX_DIST_);\nvar D2 = random(_MIN_DIST_, _MAX_DIST_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// Forward Phase\nfor(let i=0; i<D1; i++) moveForward();\nturnRight();\nfor(let j=0; j<D2; j++) moveForward();\n\n// Collect at destination\ncollectItem();\n\n// Return Phase\nturnAround();\nfor(let j=0; j<D2; j++) moveForward();\nturnLeft();\nfor(let i=0; i<D1; i++) moveForward();\n\n// Advance to Finish (ensures Finish ≠ Start)\nturnLeft();\nmoveForward();\ncollectItem();\nmoveForward();\n```\n\n"
   },
   {
     "metadata": {
@@ -878,25 +1036,25 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
       ],
       "author": "system",
       "version": 1,
-      "description": "Collect crystals and activate switches, then undo the switches"
+      "description": "Collect crystals and activate switches, then undo the switches and advance to finish"
     },
     "parameters": [
       {
         "name": "_MIN_COUNT_",
         "displayName": "Min Count",
         "type": "number",
-        "defaultValue": 3
+        "defaultValue": 2
       },
       {
         "name": "_MAX_COUNT_",
         "displayName": "Max Count",
         "type": "number",
-        "defaultValue": 5
+        "defaultValue": 4
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_COUNT_ = 3;\nvar _MAX_COUNT_ = 5;\nvar COUNT = random(_MIN_COUNT_, _MAX_COUNT_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// 1. Activate and Collect\nfor (let i = 0; i < COUNT; i++) {\n  moveForward();\n  collectItem();\n  toggleSwitch();\n}\n\n// 2. Turn Around\nturnAround();\n\n// 3. Deactivate (Undo)\nfor (let i = 0; i < COUNT; i++) {\n  toggleSwitch();\n  moveForward();\n}",
-    "descriptionMarkdown": "# Undo Operations\n\nA conceptual task: \"Leave everything as you found it\".\n\n## Academic Concept: State Reversion\n- Forward: `Toggle (Off->On)`\n- Backward: `Toggle (On->Off)`\n\n## Solution & Parameters",
-    "rawContent": "---\nid: mem-undo\nname: \"Undo Operations\"\ncategory: memory\nconcepts: [\"function\", \"state_machine\"]\ndifficulty: 5\ntags: [\"memory\", \"undo\", \"switch\"]\nauthor: system\nversion: 1\ndescription: \"Collect crystals and activate switches, then undo the switches\"\n---\n\n# Undo Operations\n\nA conceptual task: \"Leave everything as you found it\".\n\n## Academic Concept: State Reversion\n- Forward: `Toggle (Off->On)`\n- Backward: `Toggle (On->Off)`\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_COUNT_ = 3;\nvar _MAX_COUNT_ = 5;\nvar COUNT = random(_MIN_COUNT_, _MAX_COUNT_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// 1. Activate and Collect\nfor (let i = 0; i < COUNT; i++) {\n  moveForward();\n  collectItem();\n  toggleSwitch();\n}\n\n// 2. Turn Around\nturnAround();\n\n// 3. Deactivate (Undo)\nfor (let i = 0; i < COUNT; i++) {\n  toggleSwitch();\n  moveForward();\n}\n```\n"
+    "solutionCode": "// Parameters\nvar _MIN_COUNT_ = 2;\nvar _MAX_COUNT_ = 4;\nvar COUNT = random(_MIN_COUNT_, _MAX_COUNT_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// 1. Activate and Collect\nfor (let i = 0; i < COUNT; i++) {\n  moveForward();\n  collectItem();\n  toggleSwitch();\n}\n\n// 2. Turn Around\nturnAround();\n\n// 3. Deactivate (Undo)\nfor (let i = 0; i < COUNT; i++) {\n  toggleSwitch();\n  moveForward();\n}\n\n// 4. Advance to Finish (ensures Finish ≠ Start)\nturnRight();\nmoveForward();\ncollectItem();\nmoveForward();",
+    "descriptionMarkdown": "# Undo Operations\n\nA conceptual task: \"Leave everything as you found it\", then proceed to finish.\n\n## Academic Concept: State Reversion\n- Forward: `Toggle (Off->On)`\n- Backward: `Toggle (On->Off)`\n\n## Solution & Parameters",
+    "rawContent": "---\nid: mem-undo\nname: \"Undo Operations\"\ncategory: memory\nconcepts: [\"function\", \"state_machine\"]\ndifficulty: 5\ntags: [\"memory\", \"undo\", \"switch\"]\nauthor: system\nversion: 1\ndescription: \"Collect crystals and activate switches, then undo the switches and advance to finish\"\n---\n\n# Undo Operations\n\nA conceptual task: \"Leave everything as you found it\", then proceed to finish.\n\n## Academic Concept: State Reversion\n- Forward: `Toggle (Off->On)`\n- Backward: `Toggle (On->Off)`\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_COUNT_ = 2;\nvar _MAX_COUNT_ = 4;\nvar COUNT = random(_MIN_COUNT_, _MAX_COUNT_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// 1. Activate and Collect\nfor (let i = 0; i < COUNT; i++) {\n  moveForward();\n  collectItem();\n  toggleSwitch();\n}\n\n// 2. Turn Around\nturnAround();\n\n// 3. Deactivate (Undo)\nfor (let i = 0; i < COUNT; i++) {\n  toggleSwitch();\n  moveForward();\n}\n\n// 4. Advance to Finish (ensures Finish ≠ Start)\nturnRight();\nmoveForward();\ncollectItem();\nmoveForward();\n```\n\n"
   },
   {
     "metadata": {
@@ -1269,6 +1427,56 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
     "solutionCode": "// Parameters\nvar _MIN_LEG1_ = 2;\nvar _MAX_LEG1_ = 5;\nvar LEG1 = random(_MIN_LEG1_, _MAX_LEG1_);\n\nvar _MIN_LEG2_ = 2;\nvar _MAX_LEG2_ = 5;\nvar LEG2 = random(_MIN_LEG2_, _MAX_LEG2_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < LEG1; i++) {\n  moveForward();\n  collectItem();\n}\nturnRight();\nfor (let i = 0; i < LEG2; i++) {\n  moveForward();\n  collectItem();\n}\n\nmoveForward();",
     "descriptionMarkdown": "# L-Shape Path\n\nNavigate a path with a single turn.\n\n## Solution & Parameters",
     "rawContent": "---\nid: l-shape-path\nname: \"L-Shape Path\"\ncategory: sequential\nconcepts: [\"sequential\"]\ndifficulty: 2\ntags: [\"moveForward\", \"turn\", \"collectItem\"]\nauthor: system\nversion: 1\ndescription: \"Follow an L-shaped path collecting crystals\"\n---\n\n# L-Shape Path\n\nNavigate a path with a single turn.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_LEG1_ = 2;\nvar _MAX_LEG1_ = 5;\nvar LEG1 = random(_MIN_LEG1_, _MAX_LEG1_);\n\nvar _MIN_LEG2_ = 2;\nvar _MAX_LEG2_ = 5;\nvar LEG2 = random(_MIN_LEG2_, _MAX_LEG2_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < LEG1; i++) {\n  moveForward();\n  collectItem();\n}\nturnRight();\nfor (let i = 0; i < LEG2; i++) {\n  moveForward();\n  collectItem();\n}\n\nmoveForward();\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "micro-collect-line",
+      "name": "Micro Collect Line",
+      "category": "sequential",
+      "concepts": [
+        "micropattern",
+        "spacing",
+        "collect"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "sequential",
+        "crystal",
+        "spacing"
+      ],
+      "author": "system",
+      "version": 3,
+      "description": "Collect crystals along a line with configurable spacing"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_CRYSTALS_",
+        "displayName": "Min Crystals",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_MAX_CRYSTALS_",
+        "displayName": "Max Crystals",
+        "type": "number",
+        "defaultValue": 5
+      },
+      {
+        "name": "_MIN_SPACE_",
+        "displayName": "Min Space",
+        "type": "number",
+        "defaultValue": 0
+      },
+      {
+        "name": "_MAX_SPACE_",
+        "displayName": "Max Space",
+        "type": "number",
+        "defaultValue": 2
+      }
+    ],
+    "solutionCode": "var _MIN_CRYSTALS_ = 3;\nvar _MAX_CRYSTALS_ = 5;\nvar _MIN_SPACE_ = 0;\nvar _MAX_SPACE_ = 2;\n\nvar CRYSTALS = random(_MIN_CRYSTALS_, _MAX_CRYSTALS_);\nvar SPACE = random(_MIN_SPACE_, _MAX_SPACE_);\n\nmoveForward();\n\nfor (let i = 0; i < CRYSTALS; i++) {\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n}\n\nmoveForward();",
+    "descriptionMarkdown": "# Micro Collect Line\n\nA simple linear path collecting crystals with random spacing between them.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: micro-collect-line\nname: \"Micro Collect Line\"\ncategory: sequential\nconcepts: [\"micropattern\", \"spacing\", \"collect\"]\ndifficulty: 2\ntags: [\"sequential\", \"crystal\", \"spacing\"]\nauthor: system\nversion: 3\ndescription: \"Collect crystals along a line with configurable spacing\"\n---\n\n# Micro Collect Line\n\nA simple linear path collecting crystals with random spacing between them.\n\n## Solution & Parameters\n\n```js\nvar _MIN_CRYSTALS_ = 3;\nvar _MAX_CRYSTALS_ = 5;\nvar _MIN_SPACE_ = 0;\nvar _MAX_SPACE_ = 2;\n\nvar CRYSTALS = random(_MIN_CRYSTALS_, _MAX_CRYSTALS_);\nvar SPACE = random(_MIN_SPACE_, _MAX_SPACE_);\n\nmoveForward();\n\nfor (let i = 0; i < CRYSTALS; i++) {\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n}\n\nmoveForward();\n```\n"
   },
   {
     "metadata": {

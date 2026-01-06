@@ -7,12 +7,12 @@ difficulty: 4
 tags: ["memory", "pattern", "inverse"]
 author: system
 version: 1
-description: "Walk a path, collect crystal at destination, then return"
+description: "Walk a path, collect crystal at destination, return, then advance to finish"
 ---
 
 # Path Return
 
-Walk a random path, collect crystal at destination, turn around, and walk exactly back to the start.
+Walk a random path, collect crystal at destination, turn around, return to start, then move to finish.
 
 ## Academic Concept: Inverse Operations
 - Operation: `Move` | Inverse: `Move` (after turning 180)
@@ -49,5 +49,10 @@ for(let j=0; j<D2; j++) moveForward();
 turnLeft();
 for(let i=0; i<D1; i++) moveForward();
 
-turnAround();
+// Advance to Finish (ensures Finish ≠ Start)
+turnLeft();
+moveForward();
+collectItem();
+moveForward();
 ```
+

@@ -7,12 +7,12 @@ difficulty: 5
 tags: ["memory", "undo", "switch"]
 author: system
 version: 1
-description: "Collect crystals and activate switches, then undo the switches"
+description: "Collect crystals and activate switches, then undo the switches and advance to finish"
 ---
 
 # Undo Operations
 
-A conceptual task: "Leave everything as you found it".
+A conceptual task: "Leave everything as you found it", then proceed to finish.
 
 ## Academic Concept: State Reversion
 - Forward: `Toggle (Off->On)`
@@ -22,8 +22,8 @@ A conceptual task: "Leave everything as you found it".
 
 ```js
 // Parameters
-var _MIN_COUNT_ = 3;
-var _MAX_COUNT_ = 5;
+var _MIN_COUNT_ = 2;
+var _MAX_COUNT_ = 4;
 var COUNT = random(_MIN_COUNT_, _MAX_COUNT_);
 
 // Helper function
@@ -48,4 +48,11 @@ for (let i = 0; i < COUNT; i++) {
   toggleSwitch();
   moveForward();
 }
+
+// 4. Advance to Finish (ensures Finish ≠ Start)
+turnRight();
+moveForward();
+collectItem();
+moveForward();
 ```
+

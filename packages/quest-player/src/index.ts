@@ -16,7 +16,11 @@ export type {
   QuestCompletionResult,
   QuestMetrics, // NEW: Export for analytics
   GameState,
-  SolutionConfig
+  SolutionConfig,
+  // Game-specific types
+  MazeConfig,
+  Collectible,
+  Interactive,
 } from './types';
 
 // NEW: Export the schema for external validation
