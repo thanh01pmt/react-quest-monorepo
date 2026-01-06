@@ -35,4 +35,6 @@ for (let i = 0; i < CRYSTAL_NUM; i++) {
   collectItem();
   moveForward();
 }
+
+moveForward();
 ```

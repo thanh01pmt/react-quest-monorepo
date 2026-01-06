@@ -28,6 +28,8 @@ var _MAX_STEPS_ = 8;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
+moveForward();
+
 for (let i = 0; i < STEPS; i++) {
   moveForward();
   jump();

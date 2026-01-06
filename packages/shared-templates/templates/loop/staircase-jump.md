@@ -29,10 +29,13 @@ var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
 // Staircase
+moveForward();
 jump();
 
 for (let step = 0; step < STEPS; step++) {
   collectItem();
   jump();
 }
+
+moveForward();
 ```

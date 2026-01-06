@@ -29,6 +29,8 @@ var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
 // Simple sequence of move and collect
+moveForward();
+
 for (let i = 0; i < STEPS; i++) {
   moveForward();
   collectItem();

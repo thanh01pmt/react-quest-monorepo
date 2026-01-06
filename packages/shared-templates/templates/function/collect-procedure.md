@@ -34,7 +34,11 @@ function collectAndMove() {
 }
 
 // Use the procedure
+moveForward();
+
 for (let i = 0; i < COLLECTION_COUNT; i++) {
   collectAndMove();
 }
+
+moveForward();
 ```

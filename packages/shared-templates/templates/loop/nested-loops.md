@@ -49,4 +49,6 @@ for (let row = 1; row < ROWS; row++) {
     moveForward();
   }
 }
+
+moveForward();
 ```

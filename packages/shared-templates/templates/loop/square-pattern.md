@@ -38,4 +38,6 @@ for (let side = 0; side < 4; side++) {
   }
   turnRight();
 }
+
+moveForward();
 ```

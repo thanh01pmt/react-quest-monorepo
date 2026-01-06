@@ -29,8 +29,12 @@ var CRYSTAL_COUNT = random(_MIN_CRYSTAL_COUNT_, _MAX_CRYSTAL_COUNT_);
 
 // Solution
 // Collect all crystals along the path
+moveForward();
+
 for (let i = 0; i < CRYSTAL_COUNT; i++) {
   moveForward();
   collectItem();
 }
+
+moveForward();
 ```

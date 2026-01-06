@@ -13,9 +13,12 @@
 
 import { generateFromCode, type SolutionDrivenResult } from '@repo/academic-map-generator';
 import type { Quest } from '@repo/quest-player';
-import { templateRegistry, applyParameters, type GeneratedExercise, type DifficultyLevel } from '@repo/shared-templates';
+import { templateRegistry, prepareTemplateCode, type GeneratedExercise, type DifficultyLevel } from '@repo/shared-templates';
 
-// Template code presets for each concept (same as map-builder presets)
+// Template code presets for each concept - FALLBACK only
+// NOTE: These should match the pattern in shared-templates:
+// - _MIN_X_, _MAX_X_ for slider params (replaced by DIFFICULTY_PARAMS)
+// - VARIABLE_NAME for computed values (no underscores around)
 const CONCEPT_TEMPLATES: Record<string, { code: string; concept: string }> = {
   // Sequential - straight line
   sequential: {
@@ -34,7 +37,7 @@ moveForward();
   repeat_n: {
     concept: 'repeat_n',
     code: `moveForward();
-for (let i = 0; i < _CRYSTAL_NUM_; i++) {
+for (let i = 0; i < CRYSTAL_NUM; i++) {
   collectItem();
   moveForward();
 }
@@ -45,12 +48,12 @@ for (let i = 0; i < _CRYSTAL_NUM_; i++) {
   repeat_until: {
     concept: 'repeat_n',
     code: `moveForward();
-for (let i = 0; i < _SEGMENT1_; i++) {
+for (let i = 0; i < SEGMENT1; i++) {
   collectItem();
   moveForward();
 }
 turnRight();
-for (let i = 0; i < _SEGMENT2_; i++) {
+for (let i = 0; i < SEGMENT2; i++) {
   collectItem();
   moveForward();
 }
@@ -61,15 +64,15 @@ for (let i = 0; i < _SEGMENT2_; i++) {
   nested_loop: {
     concept: 'nested_loop',
     code: `moveForward();
-for (let col = 0; col < _COLS_; col++) {
+for (let col = 0; col < COLS; col++) {
   collectItem();
   moveForward();
 }
-for (let row = 1; row < _ROWS_; row++) {
+for (let row = 1; row < ROWS; row++) {
   turnRight();
   moveForward();
   turnRight();
-  for (let col = 0; col < _COLS_; col++) {
+  for (let col = 0; col < COLS; col++) {
     collectItem();
     moveForward();
   }
@@ -81,7 +84,7 @@ for (let row = 1; row < _ROWS_; row++) {
   if_simple: {
     concept: 'sequential',
     code: `moveForward();
-for (let i = 0; i < _PATH_LENGTH_; i++) {
+for (let i = 0; i < PATH_LENGTH; i++) {
   collectItem();
   moveForward();
 }
@@ -91,12 +94,12 @@ for (let i = 0; i < _PATH_LENGTH_; i++) {
   if_else: {
     concept: 'sequential',
     code: `moveForward();
-for (let i = 0; i < _SEGMENT1_; i++) {
+for (let i = 0; i < SEGMENT1; i++) {
   collectItem();
   moveForward();
 }
 turnRight();
-for (let i = 0; i < _SEGMENT2_; i++) {
+for (let i = 0; i < SEGMENT2; i++) {
   collectItem();
   moveForward();
 }
@@ -107,14 +110,14 @@ for (let i = 0; i < _SEGMENT2_; i++) {
   procedure_simple: {
     concept: 'procedure_simple',
     code: `function collectItems() {
-  for (let i = 0; i < _PER_CALL_; i++) {
+  for (let i = 0; i < PER_CALL; i++) {
     collectItem();
     moveForward();
   }
 }
 
 moveForward();
-for (let c = 0; c < _CALLS_; c++) {
+for (let c = 0; c < CALLS; c++) {
   collectItems();
   turnRight();
 }
@@ -127,66 +130,67 @@ moveForward();
 const DEFAULT_TEMPLATE = CONCEPT_TEMPLATES.sequential;
 
 // Parameter ranges based on difficulty
+// Keys are computed variable names (without _UNDERSCORE_ wrapper)
 const DIFFICULTY_PARAMS: Record<DifficultyLevel, Record<string, number>> = {
   very_easy: {
-    _CRYSTAL_NUM_: 2,
-    _SEGMENT1_: 2,
-    _SEGMENT2_: 2,
-    _COLS_: 2,
-    _ROWS_: 2,
-    _PATH_LENGTH_: 3,
-    _PER_CALL_: 1,
-    _CALLS_: 2,
-    _STEPS_: 2,
-    _SIDE_: 2,
+    CRYSTAL_NUM: 2,
+    SEGMENT1: 2,
+    SEGMENT2: 2,
+    COLS: 2,
+    ROWS: 2,
+    PATH_LENGTH: 3,
+    PER_CALL: 1,
+    CALLS: 2,
+    STEPS: 2,
+    SIDE: 2,
   },
   easy: {
-    _CRYSTAL_NUM_: 3,
-    _SEGMENT1_: 3,
-    _SEGMENT2_: 2,
-    _COLS_: 3,
-    _ROWS_: 2,
-    _PATH_LENGTH_: 4,
-    _PER_CALL_: 2,
-    _CALLS_: 2,
-    _STEPS_: 3,
-    _SIDE_: 2,
+    CRYSTAL_NUM: 3,
+    SEGMENT1: 3,
+    SEGMENT2: 2,
+    COLS: 3,
+    ROWS: 2,
+    PATH_LENGTH: 4,
+    PER_CALL: 2,
+    CALLS: 2,
+    STEPS: 3,
+    SIDE: 2,
   },
   medium: {
-    _CRYSTAL_NUM_: 4,
-    _SEGMENT1_: 4,
-    _SEGMENT2_: 3,
-    _COLS_: 4,
-    _ROWS_: 2,
-    _PATH_LENGTH_: 5,
-    _PER_CALL_: 2,
-    _CALLS_: 3,
-    _STEPS_: 4,
-    _SIDE_: 3,
+    CRYSTAL_NUM: 4,
+    SEGMENT1: 4,
+    SEGMENT2: 3,
+    COLS: 4,
+    ROWS: 2,
+    PATH_LENGTH: 5,
+    PER_CALL: 2,
+    CALLS: 3,
+    STEPS: 4,
+    SIDE: 3,
   },
   hard: {
-    _CRYSTAL_NUM_: 5,
-    _SEGMENT1_: 5,
-    _SEGMENT2_: 4,
-    _COLS_: 5,
-    _ROWS_: 3,
-    _PATH_LENGTH_: 6,
-    _PER_CALL_: 3,
-    _CALLS_: 3,
-    _STEPS_: 5,
-    _SIDE_: 4,
+    CRYSTAL_NUM: 5,
+    SEGMENT1: 5,
+    SEGMENT2: 4,
+    COLS: 5,
+    ROWS: 3,
+    PATH_LENGTH: 6,
+    PER_CALL: 3,
+    CALLS: 3,
+    STEPS: 5,
+    SIDE: 4,
   },
   very_hard: {
-    _CRYSTAL_NUM_: 6,
-    _SEGMENT1_: 6,
-    _SEGMENT2_: 5,
-    _COLS_: 6,
-    _ROWS_: 3,
-    _PATH_LENGTH_: 7,
-    _PER_CALL_: 3,
-    _CALLS_: 4,
-    _STEPS_: 6,
-    _SIDE_: 5,
+    CRYSTAL_NUM: 6,
+    SEGMENT1: 6,
+    SEGMENT2: 5,
+    COLS: 6,
+    ROWS: 3,
+    PATH_LENGTH: 7,
+    PER_CALL: 3,
+    CALLS: 4,
+    STEPS: 6,
+    SIDE: 5,
   },
 };
 
@@ -269,22 +273,31 @@ const PRACTICE_TOOLBOX = {
  * Convert GeneratedExercise to Quest format using SolutionDrivenGenerator
  */
 export function exerciseToQuest(exercise: GeneratedExercise, index: number): Quest {
-  console.log(`[ExerciseToQuest] Processing exercise ${index}:`, exercise.templateId, exercise.parameters);
+  console.log(`[ExerciseToQuest] ===== Processing exercise ${index} =====`);
+  console.log(`[ExerciseToQuest] templateId: "${exercise.templateId}"`);
+  console.log(`[ExerciseToQuest] concept: "${exercise.concept}"`);
+  console.log(`[ExerciseToQuest] parameters:`, exercise.parameters);
 
   // 1. Try to find actual template in registry
   const registryTemplate = templateRegistry.get(exercise.templateId);
+  console.log(`[ExerciseToQuest] Registry lookup result:`, registryTemplate ? 'FOUND' : 'NOT FOUND');
+  console.log(`[ExerciseToQuest] Registry size:`, templateRegistry.getAll().length);
+  
   let resolvedCode = '';
 
   if (registryTemplate) {
     // Case A: Smart Template (Loaded from registry)
-    console.log(`[ExerciseToQuest] Found registry template. Original solution:`, registryTemplate.solutionCode);
-    resolvedCode = applyParameters(registryTemplate.solutionCode, exercise.parameters);
-    console.log(`[ExerciseToQuest] Resolved code with params:`, resolvedCode);
+    console.log(`[ExerciseToQuest] Using REGISTRY template. solutionCode length:`, registryTemplate.solutionCode.length);
+    console.log(`[ExerciseToQuest] Original solutionCode:\n`, registryTemplate.solutionCode);
+    resolvedCode = prepareTemplateCode(registryTemplate.solutionCode, exercise.parameters);
+    console.log(`[ExerciseToQuest] PREPARED code:\n`, resolvedCode);
   } else {
     // Case B: Legacy/Fallback (using concept presets)
-    console.warn(`[ExerciseToQuest] Template ${exercise.templateId} not found. Using fallback concept:`, exercise.concept);
+    console.warn(`[ExerciseToQuest] Template NOT found. Using FALLBACK concept: "${exercise.concept}"`);
     const preset = CONCEPT_TEMPLATES[exercise.concept] || DEFAULT_TEMPLATE;
+    console.log(`[ExerciseToQuest] Fallback preset code:\n`, preset.code);
     resolvedCode = resolveTemplateCode(preset.code, exercise.difficulty);
+    console.log(`[ExerciseToQuest] Resolved fallback code:\n`, resolvedCode);
   }
   
   // 3. Generate map using generateFromCode

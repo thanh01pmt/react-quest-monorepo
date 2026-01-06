@@ -14,7 +14,7 @@ export {
   validateTemplate 
 } from './parser';
 
-export { applyParameters } from './parameters';
+export { applyParameters, prepareTemplateCode } from './parameters';
 
 // Registry
 export { 

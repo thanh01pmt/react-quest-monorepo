@@ -28,6 +28,8 @@ var _MAX_PATH_LENGTH_ = 6;
 var PATH_LENGTH = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);
 
 // Solution
+moveForward();
+
 for (let i = 0; i < PATH_LENGTH; i++) {
   if (isOnCrystal()) {
     collectItem();
@@ -36,4 +38,6 @@ for (let i = 0; i < PATH_LENGTH; i++) {
   }
   moveForward();
 }
+
+moveForward();
 ```

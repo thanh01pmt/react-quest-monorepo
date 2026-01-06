@@ -45,4 +45,6 @@ for (let i = 0; i < SEGMENT2; i++) {
   collectItem();
   moveForward();
 }
+
+moveForward();
 ```

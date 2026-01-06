@@ -27,6 +27,8 @@ var _MAX_LEG2_ = 5;
 var LEG2 = random(_MIN_LEG2_, _MAX_LEG2_);
 
 // Solution
+moveForward();
+
 for (let i = 0; i < LEG1; i++) {
   moveForward();
   collectItem();
@@ -36,4 +38,6 @@ for (let i = 0; i < LEG2; i++) {
   moveForward();
   collectItem();
 }
+
+moveForward();
 ```

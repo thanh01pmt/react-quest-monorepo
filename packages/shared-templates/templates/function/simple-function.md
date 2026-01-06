@@ -44,4 +44,6 @@ for (let c = 0; c < CALLS; c++) {
   collectItems();
   turnRight();
 }
+
+moveForward();
 ```

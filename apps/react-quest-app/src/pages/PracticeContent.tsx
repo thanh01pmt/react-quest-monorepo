@@ -238,6 +238,7 @@ export function PracticeContent({
                     renderCompleteScreen()
                 ) : currentQuest ? (
                     <MemoizedQuestPlayer
+                        key={currentQuest.id}  // Force re-mount on exercise change
                         isStandalone={false}
                         language={i18n.language}
                         questData={currentQuest}

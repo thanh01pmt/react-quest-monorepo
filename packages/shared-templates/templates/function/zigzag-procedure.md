@@ -31,7 +31,11 @@ function zigZagStep() {
   collectItem();
 }
 
+moveForward();
+
 for (let i = 0; i < COUNT; i++) {
   zigZagStep();
 }
+
+moveForward();
 ```

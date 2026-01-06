@@ -33,6 +33,8 @@ var SEGMENT_LENGTH = random(_MIN_SEGMENT_LENGTH_, _MAX_SEGMENT_LENGTH_);
 
 // Solution
 // Navigate zigzag
+moveForward();
+
 for (let i = 0; i < ZIG_COUNT; i++) {
   for (let j = 0; j < SEGMENT_LENGTH; j++) {
     moveForward();
@@ -41,4 +43,6 @@ for (let i = 0; i < ZIG_COUNT; i++) {
   moveForward();
   turnLeft();
 }
+
+moveForward();
 ```
