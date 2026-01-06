@@ -25,16 +25,16 @@ Navigate through a zigzag path by repeating the turn-forward pattern.
 // Parameters
 var _MIN_ZIG_COUNT_ = 3;
 var _MAX_ZIG_COUNT_ = 5;
-var _ZIG_COUNT_ = random(_MIN_ZIG_COUNT_, _MAX_ZIG_COUNT_);
+var ZIG_COUNT = random(_MIN_ZIG_COUNT_, _MAX_ZIG_COUNT_);
 
 var _MIN_SEGMENT_LENGTH_ = 2;
 var _MAX_SEGMENT_LENGTH_ = 4;
-var _SEGMENT_LENGTH_ = random(_MIN_SEGMENT_LENGTH_, _MAX_SEGMENT_LENGTH_);
+var SEGMENT_LENGTH = random(_MIN_SEGMENT_LENGTH_, _MAX_SEGMENT_LENGTH_);
 
 // Solution
 // Navigate zigzag
-for (let i = 0; i < _ZIG_COUNT_; i++) {
-  for (let j = 0; j < _SEGMENT_LENGTH_; j++) {
+for (let i = 0; i < ZIG_COUNT; i++) {
+  for (let j = 0; j < SEGMENT_LENGTH; j++) {
     moveForward();
   }
   turnRight();

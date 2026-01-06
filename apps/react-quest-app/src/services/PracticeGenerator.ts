@@ -166,7 +166,7 @@ export class PracticeGenerator {
       } else if (param.type === 'boolean') {
         parameters[param.name] = this.rng.next() > 0.5;
       } else {
-        parameters[param.name] = param.defaultValue;
+        parameters[param.name] = param.defaultValue ?? '';
       }
     }
 

@@ -25,10 +25,10 @@ Learn to make decisions based on what's in front of you.
 // Parameters
 var _MIN_PATH_LENGTH_ = 3;
 var _MAX_PATH_LENGTH_ = 6;
-var _PATH_LENGTH_ = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);
+var PATH_LENGTH = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);
 
 // Solution
-for (let i = 0; i < _PATH_LENGTH_; i++) {
+for (let i = 0; i < PATH_LENGTH; i++) {
   if (isOnCrystal()) {
     collectItem();
   } else if (isOnSwitch()) {

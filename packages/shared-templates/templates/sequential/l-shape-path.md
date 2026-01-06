@@ -20,19 +20,19 @@ Navigate a path with a single turn.
 // Parameters
 var _MIN_LEG1_ = 2;
 var _MAX_LEG1_ = 5;
-var _LEG1_ = random(_MIN_LEG1_, _MAX_LEG1_);
+var LEG1 = random(_MIN_LEG1_, _MAX_LEG1_);
 
 var _MIN_LEG2_ = 2;
 var _MAX_LEG2_ = 5;
-var _LEG2_ = random(_MIN_LEG2_, _MAX_LEG2_);
+var LEG2 = random(_MIN_LEG2_, _MAX_LEG2_);
 
 // Solution
-for (let i = 0; i < _LEG1_; i++) {
+for (let i = 0; i < LEG1; i++) {
   moveForward();
   collectItem();
 }
 turnRight();
-for (let i = 0; i < _LEG2_; i++) {
+for (let i = 0; i < LEG2; i++) {
   moveForward();
   collectItem();
 }

@@ -25,10 +25,10 @@ Climb a staircase by recognizing the repeating pattern of forward + jump.
 // Parameters
 var _MIN_STEPS_ = 3;
 var _MAX_STEPS_ = 8;
-var _STEPS_ = random(_MIN_STEPS_, _MAX_STEPS_);
+var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
-for (let i = 0; i < _STEPS_; i++) {
+for (let i = 0; i < STEPS; i++) {
   moveForward();
   jump();
 }

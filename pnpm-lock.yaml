@@ -13,9 +13,6 @@ importers:
 
   .:
     devDependencies:
-      '@types/uuid':
-        specifier: ^11.0.0
-        version: 11.0.0
       prettier:
         specifier: ^3.2.5
         version: 3.6.2
@@ -46,6 +43,9 @@ importers:
       '@repo/quest-player':
         specifier: workspace:*
         version: link:../../packages/quest-player
+      '@repo/shared-templates':
+        specifier: workspace:^
+        version: link:../../packages/shared-templates
       blockly:
         specifier: 12.3.1
         version: 12.3.1
@@ -92,9 +92,6 @@ importers:
       '@types/three':
         specifier: ^0.162.0
         version: 0.162.0
-      '@types/uuid':
-        specifier: ^11.0.0
-        version: 11.0.0
       '@vitejs/plugin-react':
         specifier: ^4.2.1
         version: 4.7.0(vite@5.4.20(@types/node@20.19.21))
@@ -184,9 +181,6 @@ importers:
         specifier: ^9.0.0
         version: 9.0.1
     devDependencies:
-      '@types/uuid':
-        specifier: ^11.0.0
-        version: 11.0.0
       tsx:
         specifier: ^4.7.0
         version: 4.21.0
@@ -294,9 +288,6 @@ importers:
       '@types/node':
         specifier: ^24.7.1
         version: 24.7.1
-      '@types/uuid':
-        specifier: ^11.0.0
-        version: 11.0.0
       typescript:
         specifier: ^5.2.2
         version: 5.9.3
@@ -1315,10 +1306,6 @@ packages:
 
   '@types/three@0.162.0':
     resolution: {integrity: sha512-0j5yZcVukVIhrhSIC7+LmBPkkMoMuEJ1AfYBZfgNytdYqYREMuiyXWhYOMeZLBElTEAlJIZn7r2W3vqTIgjWlg==}
-
-  '@types/uuid@11.0.0':
-    resolution: {integrity: sha512-HVyk8nj2m+jcFRNazzqyVKiZezyhDKrGUA3jlEcg/nZ6Ms+qHwocba1Y/AaVaznJTAM9xpdFSh+ptbNrhOGvZA==}
-    deprecated: This is a stub types definition. uuid provides its own type definitions, so you do not need this installed.
 
   '@types/webxr@0.5.24':
     resolution: {integrity: sha512-h8fgEd/DpoS9CBrjEQXR+dIDraopAEfu4wYVNY2tEPwk60stPWhvZMf4Foo5FakuQ7HFZoa8WceaWFervK2Ovg==}
@@ -3781,10 +3768,6 @@ snapshots:
       '@types/webxr': 0.5.24
       fflate: 0.6.10
       meshoptimizer: 0.18.1
-
-  '@types/uuid@11.0.0':
-    dependencies:
-      uuid: 13.0.0
 
   '@types/webxr@0.5.24': {}
 

@@ -20,7 +20,7 @@ Define a function for a complex movement pattern and reuse it.
 // Parameters
 var _MIN_COUNT_ = 3;
 var _MAX_COUNT_ = 5;
-var _COUNT_ = random(_MIN_COUNT_, _MAX_COUNT_);
+var COUNT = random(_MIN_COUNT_, _MAX_COUNT_);
 
 // Solution
 function zigZagStep() {
@@ -31,7 +31,7 @@ function zigZagStep() {
   collectItem();
 }
 
-for (let i = 0; i < _COUNT_; i++) {
+for (let i = 0; i < COUNT; i++) {
   zigZagStep();
 }
 ```

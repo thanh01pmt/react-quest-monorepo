@@ -10,7 +10,15 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Code, Play, Eye, Copy, AlertTriangle, Sliders, Maximize2, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import { generateFromCode } from '@repo/academic-map-generator';
 import type { SolutionDrivenResult } from '@repo/academic-map-generator';
-import { TEMPLATE_PRESETS, getPresetById } from './presets';
+import { CUSTOM_PRESET } from './presets';
+import type { TemplatePreset } from './presets';
+import {
+    getAllTemplatesAsPresets,
+    getTemplatesGroupedByCategory,
+    getTemplateById,
+    getAvailableCategories,
+    CATEGORY_INFO,
+} from './templateAdapter';
 import { extractVariables, resolveTemplate } from './templateVariables';
 import type { TemplateVariable } from './templateVariables';
 import { FullEditorDialog } from './FullEditorDialog';
@@ -47,8 +55,27 @@ export interface TemplatePanelProps {
 
 export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePanelProps) {
     // State
+    // Get all templates including custom preset
+    const allTemplates = useMemo(() => {
+        const shared = getAllTemplatesAsPresets();
+        return [CUSTOM_PRESET, ...shared];
+    }, []);
+
+    // Templates grouped by category for optgroup display
+    const groupedTemplates = useMemo(() => getTemplatesGroupedByCategory(), []);
+    const availableCategories = useMemo(() => getAvailableCategories(), []);
+
+    // Helper to get preset by ID from all sources
+    const getPreset = useCallback((id: string): TemplatePreset | undefined => {
+        if (id === 'custom') return CUSTOM_PRESET;
+        return getTemplateById(id);
+    }, []);
+
     const [selectedPresetId, setSelectedPresetId] = useState<string>('simple-for-loop');
-    const [code, setCode] = useState<string>(getPresetById('simple-for-loop')?.code || '');
+    const [code, setCode] = useState<string>(() => {
+        const preset = getTemplateById('simple-for-loop');
+        return preset?.code || CUSTOM_PRESET.code;
+    });
     const [preview, setPreview] = useState<PreviewResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [variableValues, setVariableValues] = useState<Record<string, number>>({});
@@ -101,13 +128,13 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
     const handlePresetChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const presetId = e.target.value;
         setSelectedPresetId(presetId);
-        const preset = getPresetById(presetId);
+        const preset = getPreset(presetId);
         if (preset) {
             setCode(preset.code);
             setPreview(null);
             setVariableValues({}); // Reset variables
         }
-    }, []);
+    }, [getPreset]);
 
     // Handle code change from textarea
     const handleCodeChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -258,7 +285,7 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
     }, [getEffectiveCode]);
 
     // Current preset info
-    const currentPreset = getPresetById(selectedPresetId);
+    const currentPreset = getPreset(selectedPresetId);
 
     return (
         <div className={`template-panel ${isLoading ? 'template-panel--loading' : ''}`}>
@@ -276,11 +303,23 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
                     value={selectedPresetId}
                     onChange={handlePresetChange}
                 >
-                    {TEMPLATE_PRESETS.map(preset => (
-                        <option key={preset.id} value={preset.id}>
-                            {'⭐'.repeat(preset.difficulty)} {preset.name}
-                        </option>
-                    ))}
+                    {/* Custom Code option */}
+                    <option value="custom">⭐ {CUSTOM_PRESET.name}</option>
+
+                    {/* Grouped templates by category */}
+                    {availableCategories.map(category => {
+                        const categoryPresets = groupedTemplates.get(category.id) || [];
+                        if (categoryPresets.length === 0) return null;
+                        return (
+                            <optgroup key={category.id} label={`${category.icon} ${category.nameVi}`}>
+                                {categoryPresets.map(preset => (
+                                    <option key={preset.id} value={preset.id}>
+                                        {'⭐'.repeat(preset.difficulty)} {preset.name}
+                                    </option>
+                                ))}
+                            </optgroup>
+                        );
+                    })}
                 </select>
                 {currentPreset && (
                     <div className="template-selector__info">

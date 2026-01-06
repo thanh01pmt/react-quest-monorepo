@@ -25,11 +25,11 @@ A simple path with crystals to collect. Perfect for learning basic movement comm
 // Parameters
 var _MIN_CRYSTAL_COUNT_ = 3;
 var _MAX_CRYSTAL_COUNT_ = 8;
-var _CRYSTAL_COUNT_ = random(_MIN_CRYSTAL_COUNT_, _MAX_CRYSTAL_COUNT_);
+var CRYSTAL_COUNT = random(_MIN_CRYSTAL_COUNT_, _MAX_CRYSTAL_COUNT_);
 
 // Solution
 // Collect all crystals along the path
-for (let i = 0; i < _CRYSTAL_COUNT_; i++) {
+for (let i = 0; i < CRYSTAL_COUNT; i++) {
   moveForward();
   collectItem();
 }

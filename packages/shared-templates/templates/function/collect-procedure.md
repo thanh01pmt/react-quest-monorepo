@@ -25,7 +25,7 @@ Create a reusable procedure for the collect-and-move pattern.
 // Parameters
 var _MIN_COLLECTION_COUNT_ = 3;
 var _MAX_COLLECTION_COUNT_ = 6;
-var _COLLECTION_COUNT_ = random(_MIN_COLLECTION_COUNT_, _MAX_COLLECTION_COUNT_);
+var COLLECTION_COUNT = random(_MIN_COLLECTION_COUNT_, _MAX_COLLECTION_COUNT_);
 
 // Solution
 function collectAndMove() {
@@ -34,7 +34,7 @@ function collectAndMove() {
 }
 
 // Use the procedure
-for (let i = 0; i < _COLLECTION_COUNT_; i++) {
+for (let i = 0; i < COLLECTION_COUNT; i++) {
   collectAndMove();
 }
 ```
