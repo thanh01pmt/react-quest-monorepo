@@ -23,10 +23,10 @@ Walk a random path, collect crystal at destination, turn around, and walk exactl
 
 ```js
 // Parameters
-var MIN_DIST = 2;
-var MAX_DIST = 4;
-var D1 = random(MIN_DIST, MAX_DIST);
-var D2 = random(MIN_DIST, MAX_DIST);
+var _MIN_DIST_ = 2;
+var _MAX_DIST_ = 4;
+var D1 = random(_MIN_DIST_, _MAX_DIST_);
+var D2 = random(_MIN_DIST_, _MAX_DIST_);
 
 // Solution
 // Forward Phase

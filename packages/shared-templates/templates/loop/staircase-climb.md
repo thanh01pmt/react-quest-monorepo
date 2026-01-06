@@ -23,9 +23,9 @@ Climb a staircase by recognizing the repeating pattern of forward + jump.
 
 ```js
 // Parameters
-var MIN_STEPS = 3;
-var MAX_STEPS = 8;
-var STEPS = random(MIN_STEPS, MAX_STEPS);
+var _MIN_STEPS_ = 3;
+var _MAX_STEPS_ = 8;
+var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
 moveForward();

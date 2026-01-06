@@ -21,9 +21,9 @@ A radial pattern where the code draws a "petal" and returns to center.
 
 ```js
 // Parameters
-var MIN_LEN = 2;
-var MAX_LEN = 3;
-var LEN = random(MIN_LEN, MAX_LEN);
+var _MIN_LEN_ = 2;
+var _MAX_LEN_ = 3;
+var LEN = random(_MIN_LEN_, _MAX_LEN_);
 
 // Solution
 function drawPetal() {

@@ -21,9 +21,9 @@ A pattern that changes action based on whether the step count is Odd or Even.
 
 ```js
 // Parameters
-var MIN_PAIRS = 2;
-var MAX_PAIRS = 4;
-var STEPS = 2 * random(MIN_PAIRS, MAX_PAIRS);
+var _MIN_PAIRS_ = 2;
+var _MAX_PAIRS_ = 4;
+var STEPS = 2 * random(_MIN_PAIRS_, _MAX_PAIRS_);
 
 // Solution
 for (let i = 0; i < STEPS / 2; i++) {

@@ -22,9 +22,9 @@ A path based on the famous Fibonacci sequence found in nature.
 
 ```js
 // Parameters
-var MIN_STEPS = 4;
-var MAX_STEPS = 6;
-var STEPS = random(MIN_STEPS, MAX_STEPS);
+var _MIN_STEPS_ = 4;
+var _MAX_STEPS_ = 6;
+var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
 let a = 1;

@@ -21,9 +21,9 @@ Decompose climbing into a single "Step Up" action.
 
 ```js
 // Parameters
-var MIN_HEIGHT = 3;
-var MAX_HEIGHT = 6;
-var HEIGHT = random(MIN_HEIGHT, MAX_HEIGHT);
+var _MIN_HEIGHT_ = 3;
+var _MAX_HEIGHT_ = 6;
+var HEIGHT = random(_MIN_HEIGHT_, _MAX_HEIGHT_);
 
 // Solution
 function climbStep() {

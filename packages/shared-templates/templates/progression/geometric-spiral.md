@@ -22,15 +22,15 @@ A spiral path that expands exponentially.
 
 ```js
 // Parameters
-var MIN_START = 1;
-var MAX_START = 1;
-var START = random(MIN_START, MAX_START);
+var _MIN_START_ = 1;
+var _MAX_START_ = 1;
+var START = random(_MIN_START_, _MAX_START_);
 
 var RATIO = 2; 
 
-var MIN_TURNS = 3;
-var MAX_TURNS = 5;
-var TURNS = random(MIN_TURNS, MAX_TURNS);
+var _MIN_TURNS_ = 3;
+var _MAX_TURNS_ = 5;
+var TURNS = random(_MIN_TURNS_, _MAX_TURNS_);
 
 // Solution
 let length = START;

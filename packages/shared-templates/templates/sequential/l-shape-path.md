@@ -18,13 +18,13 @@ Navigate a path with a single turn.
 
 ```js
 // Parameters
-var MIN_LEG1 = 2;
-var MAX_LEG1 = 5;
-var LEG1 = random(MIN_LEG1, MAX_LEG1);
+var _MIN_LEG1_ = 2;
+var _MAX_LEG1_ = 5;
+var LEG1 = random(_MIN_LEG1_, _MAX_LEG1_);
 
-var MIN_LEG2 = 2;
-var MAX_LEG2 = 5;
-var LEG2 = random(MIN_LEG2, MAX_LEG2);
+var _MIN_LEG2_ = 2;
+var _MAX_LEG2_ = 5;
+var LEG2 = random(_MIN_LEG2_, _MAX_LEG2_);
 
 // Solution
 moveForward();

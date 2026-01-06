@@ -22,9 +22,9 @@ A "convergence" pattern where movements get smaller and smaller.
 
 ```js
 // Parameters
-var MIN_START_LEN = 4;
-var MAX_START_LEN = 6;
-var START_LEN = random(MIN_START_LEN, MAX_START_LEN);
+var _MIN_START_LEN_ = 4;
+var _MAX_START_LEN_ = 6;
+var START_LEN = random(_MIN_START_LEN_, _MAX_START_LEN_);
 
 var STEP = 1;
 

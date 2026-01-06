@@ -22,9 +22,9 @@ Simulates the mechanic of finding the "best" item and placing it.
 
 ```js
 // Parameters
-var MIN_ITEMS = 2;
-var MAX_ITEMS = 3;
-var ITEMS = random(MIN_ITEMS, MAX_ITEMS);
+var _MIN_ITEMS_ = 2;
+var _MAX_ITEMS_ = 3;
+var ITEMS = random(_MIN_ITEMS_, _MAX_ITEMS_);
 var UNIVERSE_SIZE = 4;
 
 // Solution

@@ -22,9 +22,9 @@ A complex task requiring the student to recognize two interleaved patterns.
 
 ```js
 // Parameters
-var MIN_PAIRS = 3;
-var MAX_PAIRS = 5;
-var PAIRS = random(MIN_PAIRS, MAX_PAIRS);
+var _MIN_PAIRS_ = 3;
+var _MAX_PAIRS_ = 5;
+var PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);
 var STEPS = PAIRS * 2;
 
 // Solution

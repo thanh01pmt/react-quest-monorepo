@@ -22,9 +22,9 @@ A conceptual task: "Leave everything as you found it".
 
 ```js
 // Parameters
-var MIN_COUNT = 3;
-var MAX_COUNT = 5;
-var COUNT = random(MIN_COUNT, MAX_COUNT);
+var _MIN_COUNT_ = 3;
+var _MAX_COUNT_ = 5;
+var COUNT = random(_MIN_COUNT_, _MAX_COUNT_);
 
 // Solution
 // 1. Activate and Collect

@@ -23,13 +23,13 @@ Navigate through a zigzag path by repeating the turn-forward pattern.
 
 ```js
 // Parameters
-var MIN_ZIG_COUNT = 3;
-var MAX_ZIG_COUNT = 5;
-var ZIG_COUNT = random(MIN_ZIG_COUNT, MAX_ZIG_COUNT);
+var _MIN_ZIG_COUNT_ = 3;
+var _MAX_ZIG_COUNT_ = 5;
+var ZIG_COUNT = random(_MIN_ZIG_COUNT_, _MAX_ZIG_COUNT_);
 
-var MIN_SEGMENT_LENGTH = 2;
-var MAX_SEGMENT_LENGTH = 4;
-var SEGMENT_LENGTH = random(MIN_SEGMENT_LENGTH, MAX_SEGMENT_LENGTH);
+var _MIN_SEGMENT_LENGTH_ = 2;
+var _MAX_SEGMENT_LENGTH_ = 4;
+var SEGMENT_LENGTH = random(_MIN_SEGMENT_LENGTH_, _MAX_SEGMENT_LENGTH_);
 
 // Solution
 // Navigate zigzag

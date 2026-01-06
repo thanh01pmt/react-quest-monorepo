@@ -22,17 +22,17 @@ A path where each segment is longer than the previous one by a fixed step.
 
 ```js
 // Parameters
-var MIN_START = 1;
-var MAX_START = 2;
-var START = random(MIN_START, MAX_START);
+var _MIN_START_ = 1;
+var _MAX_START_ = 2;
+var START = random(_MIN_START_, _MAX_START_);
 
-var MIN_STEP = 1;
-var MAX_STEP = 1;
-var STEP = random(MIN_STEP, MAX_STEP);
+var _MIN_STEP_ = 1;
+var _MAX_STEP_ = 1;
+var STEP = random(_MIN_STEP_, _MAX_STEP_);
 
-var MIN_ITERATIONS = 3;
-var MAX_ITERATIONS = 4;
-var ITERATIONS = random(MIN_ITERATIONS, MAX_ITERATIONS);
+var _MIN_ITERATIONS_ = 3;
+var _MAX_ITERATIONS_ = 4;
+var ITERATIONS = random(_MIN_ITERATIONS_, _MAX_ITERATIONS_);
 
 // Solution
 for (let i = 0; i < ITERATIONS - 1; i++) {

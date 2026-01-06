@@ -22,9 +22,9 @@ Traverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a
 
 ```js
 // Parameters
-var MIN_SIZE = 3;
-var MAX_SIZE = 4;
-var SIZE = random(MIN_SIZE, MAX_SIZE);
+var _MIN_SIZE_ = 3;
+var _MAX_SIZE_ = 4;
+var SIZE = random(_MIN_SIZE_, _MAX_SIZE_);
 
 // Solution
 // Solution
@@ -80,9 +80,9 @@ for (let r = 0; r < SIZE; r++) {
 
 ```js
 // Parameters
-var MIN_SIZE = 3;
-var MAX_SIZE = 4;
-var SIZE = random(MIN_SIZE, MAX_SIZE);
+var _MIN_SIZE_ = 3;
+var _MAX_SIZE_ = 4;
+var SIZE = random(_MIN_SIZE_, _MAX_SIZE_);
 
 // Solution
 for (let r = 0; r < SIZE; r++) {

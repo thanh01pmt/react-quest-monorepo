@@ -28,23 +28,44 @@ files.forEach(file => {
     let content = fs.readFileSync(file, 'utf-8');
     let originalContent = content;
 
-    // Regex for var _NAME_ = ...
-    // We want to revert _NAME_ to NAME
-    const varDeclRegex = /var\s+_([A-Z][A-Z0-9_]*)_\s*=/g;
-    let match;
-    const replacements = new Map();
+    // Find all var declarations that need fixing
+    // Pattern: var MIN_NAME or var MAX_NAME (without leading/trailing underscores)
+    // But NOT already _MIN_NAME_ or _MAX_NAME_
 
-    while ((match = varDeclRegex.exec(content)) !== null) {
-        const cleanName = match[1];
-        // Revert: _NAME_ -> NAME
-        const oldName = `_${cleanName}_`;
-        replacements.set(oldName, cleanName);
+    // Step 1: Fix MIN_ declarations (var MIN_X = ...)
+    // Match: MIN_WORD but not _MIN_WORD_ 
+    const minDeclRegex = /var\s+(MIN_[A-Z][A-Z0-9_]*)\s*=/g;
+    let match;
+    const minReplacements = new Map();
+
+    while ((match = minDeclRegex.exec(content)) !== null) {
+        const oldName = match[1]; // e.g., MIN_DIST
+        if (!oldName.startsWith('_')) {
+            const newName = `_${oldName}_`; // e.g., _MIN_DIST_
+            minReplacements.set(oldName, newName);
+        }
     }
 
-    if (replacements.size > 0) {
-        console.log(`Reverting ${path.basename(file)}: found ${replacements.size} vars to restore.`);
+    // Step 2: Fix MAX_ declarations (var MAX_X = ...)
+    const maxDeclRegex = /var\s+(MAX_[A-Z][A-Z0-9_]*)\s*=/g;
+    const maxReplacements = new Map();
 
-        replacements.forEach((newName, oldName) => {
+    while ((match = maxDeclRegex.exec(content)) !== null) {
+        const oldName = match[1]; // e.g., MAX_DIST
+        if (!oldName.startsWith('_')) {
+            const newName = `_${oldName}_`; // e.g., _MAX_DIST_
+            maxReplacements.set(oldName, newName);
+        }
+    }
+
+    const allReplacements = new Map([...minReplacements, ...maxReplacements]);
+
+    if (allReplacements.size > 0) {
+        console.log(`Fixing ${path.basename(file)}: found ${allReplacements.size} vars to update.`);
+
+        allReplacements.forEach((newName, oldName) => {
+            // Replace all occurrences, but be careful not to match partial words
+            // Use word boundary \b but account for underscore being part of word
             const usageRegex = new RegExp(`\\b${oldName}\\b`, 'g');
             content = content.replace(usageRegex, newName);
         });
@@ -52,8 +73,9 @@ files.forEach(file => {
         if (content !== originalContent) {
             fs.writeFileSync(file, content);
             fixedCount++;
+            console.log(`  -> Updated: ${Array.from(allReplacements.keys()).join(', ')}`);
         }
     }
 });
 
-console.log(`Fixed ${fixedCount} files.`);
+console.log(`\nFixed ${fixedCount} files.`);

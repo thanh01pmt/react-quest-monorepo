@@ -23,9 +23,9 @@ Classic search algorithm: check every item until you find what you need.
 
 ```js
 // Parameters
-var MIN_LEN = 4;
-var MAX_LEN = 6;
-var LEN = random(MIN_LEN, MAX_LEN);
+var _MIN_LEN_ = 4;
+var _MAX_LEN_ = 6;
+var LEN = random(_MIN_LEN_, _MAX_LEN_);
 
 // Solution
 for (let i = 0; i < LEN; i++) {
