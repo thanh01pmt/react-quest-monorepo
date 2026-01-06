@@ -2,283 +2,300 @@
  * ExerciseToQuestMapper
  * 
  * Converts GeneratedExercise from PracticeGenerator to Quest format
- * that QuestPlayer can consume.
+ * using the SolutionDrivenGenerator from academic-map-generator.
+ * 
+ * Flow:
+ * 1. Select template code based on concept
+ * 2. Auto-resolve parameters based on difficulty
+ * 3. Generate map with generateFromCode()
+ * 4. Convert SolutionDrivenResult to Quest format
  */
 
+import { generateFromCode, type SolutionDrivenResult } from '@repo/academic-map-generator';
 import type { Quest } from '@repo/quest-player';
-import type { GeneratedExercise } from '@repo/shared-templates';
+import type { GeneratedExercise, DifficultyLevel } from '@repo/shared-templates';
 
-// Define local types that mirror quest-player types
-interface Position3D {
-  x: number;
-  y: number;
-  z: number;
-}
-
-interface Block {
-  modelKey: string;
-  position: Position3D;
-}
-
-interface Collectible {
-  id: string;
-  type: 'crystal' | 'key';
-  position: Position3D;
-}
-
-interface ToolboxBlock {
-  kind: 'block';
-  type: string;
-  fields?: Record<string, unknown>;
-}
-
-interface ToolboxCategory {
-  kind: 'category';
-  name: string;
-  colour?: string;
-  contents?: Array<ToolboxBlock | ToolboxCategory>;
-  custom?: 'PROCEDURE' | 'VARIABLE';
-}
-
-interface ToolboxJSON {
-  kind: 'flyoutToolbox' | 'categoryToolbox';
-  contents: Array<ToolboxBlock | ToolboxCategory>;
-}
-
-interface MazeConfig {
-  type: 'maze';
-  renderer?: '2d' | '3d';
-  blocks?: Block[];
-  collectibles?: Collectible[];
-  player?: {
-    id: string;
-    start: { x: number; y: number; z?: number; direction: number };
-  };
-  finish: { x: number; y: number; z?: number };
-  introScene?: {
-    enabled: boolean;
-    type: string;
-  };
-}
-
-interface BlocklyConfig {
-  toolbox: ToolboxJSON;
-  maxBlocks?: number;
-  startBlocks?: string;
-}
-
-interface SolutionConfig {
-  type: string;
-  itemGoals?: Record<string, number>;
-  optimalBlocks?: number;
-}
-
-// Sample maze configurations for different concepts
-type MazeData = {
-  blocks: Block[];
-  collectibles: Collectible[];
-  player: { id: string; start: { x: number; y: number; z: number; direction: number } };
-  finish: { x: number; y: number; z: number };
-};
-
-const SAMPLE_MAZES: Record<string, MazeData> = {
-  // Simple straight path for sequential
-  sequential_easy: {
-    blocks: [
-      { modelKey: 'grass', position: { x: 0, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 1, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 2, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 3, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 4, y: 0, z: 0 } },
-    ],
-    collectibles: [
-      { id: 'crystal1', type: 'crystal', position: { x: 2, y: 1, z: 0 } },
-    ],
-    player: { id: 'player1', start: { x: 0, y: 1, z: 0, direction: 1 } },
-    finish: { x: 4, y: 1, z: 0 },
+// Template code presets for each concept (same as map-builder presets)
+const CONCEPT_TEMPLATES: Record<string, { code: string; concept: string }> = {
+  // Sequential - straight line
+  sequential: {
+    concept: 'sequential',
+    code: `moveForward();
+collectItem();
+moveForward();
+collectItem();
+moveForward();
+collectItem();
+moveForward();
+`,
   },
   
-  // L-shape path for turning
-  sequential_medium: {
-    blocks: [
-      { modelKey: 'grass', position: { x: 0, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 1, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 2, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 2, y: 0, z: 1 } },
-      { modelKey: 'grass', position: { x: 2, y: 0, z: 2 } },
-    ],
-    collectibles: [
-      { id: 'crystal1', type: 'crystal', position: { x: 1, y: 1, z: 0 } },
-      { id: 'crystal2', type: 'crystal', position: { x: 2, y: 1, z: 1 } },
-    ],
-    player: { id: 'player1', start: { x: 0, y: 1, z: 0, direction: 1 } },
-    finish: { x: 2, y: 1, z: 2 },
+  // Loop - For loop with crystals
+  repeat_n: {
+    concept: 'repeat_n',
+    code: `moveForward();
+for (let i = 0; i < _CRYSTAL_NUM_; i++) {
+  collectItem();
+  moveForward();
+}
+`,
   },
   
-  // Staircase for loops
-  loop_easy: {
-    blocks: [
-      { modelKey: 'grass', position: { x: 0, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 1, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 2, y: 1, z: 0 } },
-      { modelKey: 'grass', position: { x: 3, y: 1, z: 0 } },
-      { modelKey: 'grass', position: { x: 4, y: 2, z: 0 } },
-    ],
-    collectibles: [
-      { id: 'crystal1', type: 'crystal', position: { x: 1, y: 1, z: 0 } },
-      { id: 'crystal2', type: 'crystal', position: { x: 3, y: 2, z: 0 } },
-    ],
-    player: { id: 'player1', start: { x: 0, y: 1, z: 0, direction: 1 } },
-    finish: { x: 4, y: 3, z: 0 },
+  // Loop with turns
+  repeat_until: {
+    concept: 'repeat_n',
+    code: `moveForward();
+for (let i = 0; i < _SEGMENT1_; i++) {
+  collectItem();
+  moveForward();
+}
+turnRight();
+for (let i = 0; i < _SEGMENT2_; i++) {
+  collectItem();
+  moveForward();
+}
+`,
   },
   
-  // Zigzag path
-  loop_medium: {
-    blocks: [
-      { modelKey: 'grass', position: { x: 0, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 1, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 1, y: 0, z: 1 } },
-      { modelKey: 'grass', position: { x: 2, y: 0, z: 1 } },
-      { modelKey: 'grass', position: { x: 2, y: 0, z: 2 } },
-      { modelKey: 'grass', position: { x: 3, y: 0, z: 2 } },
-    ],
-    collectibles: [
-      { id: 'crystal1', type: 'crystal', position: { x: 1, y: 1, z: 0 } },
-      { id: 'crystal2', type: 'crystal', position: { x: 2, y: 1, z: 1 } },
-      { id: 'crystal3', type: 'crystal', position: { x: 2, y: 1, z: 2 } },
-    ],
-    player: { id: 'player1', start: { x: 0, y: 1, z: 0, direction: 1 } },
-    finish: { x: 3, y: 1, z: 2 },
+  // Nested loops
+  nested_loop: {
+    concept: 'nested_loop',
+    code: `moveForward();
+for (let col = 0; col < _COLS_; col++) {
+  collectItem();
+  moveForward();
+}
+for (let row = 1; row < _ROWS_; row++) {
+  turnRight();
+  moveForward();
+  turnRight();
+  for (let col = 0; col < _COLS_; col++) {
+    collectItem();
+    moveForward();
+  }
+}
+`,
   },
   
-  // Conditional path with switch
-  conditional_easy: {
-    blocks: [
-      { modelKey: 'grass', position: { x: 0, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 1, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 2, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 3, y: 0, z: 0 } },
-    ],
-    collectibles: [
-      { id: 'crystal1', type: 'crystal', position: { x: 2, y: 1, z: 0 } },
-    ],
-    player: { id: 'player1', start: { x: 0, y: 1, z: 0, direction: 1 } },
-    finish: { x: 3, y: 1, z: 0 },
+  // Conditional
+  if_simple: {
+    concept: 'sequential',
+    code: `moveForward();
+for (let i = 0; i < _PATH_LENGTH_; i++) {
+  collectItem();
+  moveForward();
+}
+`,
   },
   
-  // Function/procedure practice
-  function_easy: {
-    blocks: [
-      { modelKey: 'grass', position: { x: 0, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 1, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 2, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 3, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 4, y: 0, z: 0 } },
-      { modelKey: 'grass', position: { x: 5, y: 0, z: 0 } },
-    ],
-    collectibles: [
-      { id: 'crystal1', type: 'crystal', position: { x: 1, y: 1, z: 0 } },
-      { id: 'crystal2', type: 'crystal', position: { x: 3, y: 1, z: 0 } },
-      { id: 'crystal3', type: 'crystal', position: { x: 5, y: 1, z: 0 } },
-    ],
-    player: { id: 'player1', start: { x: 0, y: 1, z: 0, direction: 1 } },
-    finish: { x: 5, y: 1, z: 0 },
+  if_else: {
+    concept: 'sequential',
+    code: `moveForward();
+for (let i = 0; i < _SEGMENT1_; i++) {
+  collectItem();
+  moveForward();
+}
+turnRight();
+for (let i = 0; i < _SEGMENT2_; i++) {
+  collectItem();
+  moveForward();
+}
+`,
+  },
+  
+  // Function/Procedure
+  procedure_simple: {
+    concept: 'procedure_simple',
+    code: `function collectItems() {
+  for (let i = 0; i < _PER_CALL_; i++) {
+    collectItem();
+    moveForward();
+  }
+}
+
+moveForward();
+for (let c = 0; c < _CALLS_; c++) {
+  collectItems();
+  turnRight();
+}
+moveForward();
+`,
   },
 };
 
-// Toolbox for practice mode
-const PRACTICE_TOOLBOX: ToolboxJSON = {
-  kind: 'categoryToolbox',
+// Default template for unknown concepts
+const DEFAULT_TEMPLATE = CONCEPT_TEMPLATES.sequential;
+
+// Parameter ranges based on difficulty
+const DIFFICULTY_PARAMS: Record<DifficultyLevel, Record<string, number>> = {
+  very_easy: {
+    _CRYSTAL_NUM_: 2,
+    _SEGMENT1_: 2,
+    _SEGMENT2_: 2,
+    _COLS_: 2,
+    _ROWS_: 2,
+    _PATH_LENGTH_: 3,
+    _PER_CALL_: 1,
+    _CALLS_: 2,
+    _STEPS_: 2,
+    _SIDE_: 2,
+  },
+  easy: {
+    _CRYSTAL_NUM_: 3,
+    _SEGMENT1_: 3,
+    _SEGMENT2_: 2,
+    _COLS_: 3,
+    _ROWS_: 2,
+    _PATH_LENGTH_: 4,
+    _PER_CALL_: 2,
+    _CALLS_: 2,
+    _STEPS_: 3,
+    _SIDE_: 2,
+  },
+  medium: {
+    _CRYSTAL_NUM_: 4,
+    _SEGMENT1_: 4,
+    _SEGMENT2_: 3,
+    _COLS_: 4,
+    _ROWS_: 2,
+    _PATH_LENGTH_: 5,
+    _PER_CALL_: 2,
+    _CALLS_: 3,
+    _STEPS_: 4,
+    _SIDE_: 3,
+  },
+  hard: {
+    _CRYSTAL_NUM_: 5,
+    _SEGMENT1_: 5,
+    _SEGMENT2_: 4,
+    _COLS_: 5,
+    _ROWS_: 3,
+    _PATH_LENGTH_: 6,
+    _PER_CALL_: 3,
+    _CALLS_: 3,
+    _STEPS_: 5,
+    _SIDE_: 4,
+  },
+  very_hard: {
+    _CRYSTAL_NUM_: 6,
+    _SEGMENT1_: 6,
+    _SEGMENT2_: 5,
+    _COLS_: 6,
+    _ROWS_: 3,
+    _PATH_LENGTH_: 7,
+    _PER_CALL_: 3,
+    _CALLS_: 4,
+    _STEPS_: 6,
+    _SIDE_: 5,
+  },
+};
+
+// Map difficulty number (1-10) to DifficultyLevel
+function getDifficultyLevel(difficulty: number): DifficultyLevel {
+  if (difficulty <= 2) return 'very_easy';
+  if (difficulty <= 4) return 'easy';
+  if (difficulty <= 6) return 'medium';
+  if (difficulty <= 8) return 'hard';
+  return 'very_hard';
+}
+
+// Resolve template parameters based on difficulty
+function resolveTemplateCode(templateCode: string, difficulty: number): string {
+  const level = getDifficultyLevel(difficulty);
+  const params = DIFFICULTY_PARAMS[level];
+  
+  let code = templateCode;
+  for (const [param, value] of Object.entries(params)) {
+    const pattern = new RegExp(param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+    code = code.replace(pattern, String(value));
+  }
+  
+  return code;
+}
+
+// Blockly toolbox with proper i18n keys
+const PRACTICE_TOOLBOX = {
+  kind: 'categoryToolbox' as const,
   contents: [
     {
-      kind: 'category',
-      name: 'Di chuyển',
-      colour: '#5C81A6',
+      kind: 'category' as const,
+      name: '%{BKY_GAMES_CATMOVEMENT}',
+      categorystyle: 'movement_category',
       contents: [
-        { kind: 'block', type: 'maze_moveForward' },
-        { kind: 'block', type: 'maze_turn', fields: { DIR: 'turnLeft' } },
-        { kind: 'block', type: 'maze_turn', fields: { DIR: 'turnRight' } },
-        { kind: 'block', type: 'maze_jump' },
+        { kind: 'block' as const, type: 'maze_moveForward' },
+        { kind: 'block' as const, type: 'maze_turn' },
+        { kind: 'block' as const, type: 'maze_jump' },
       ],
     },
     {
-      kind: 'category',
-      name: 'Hành động',
-      colour: '#A65C5C',
+      kind: 'category' as const,
+      name: '%{BKY_GAMES_CATACTIONS}',
+      categorystyle: 'actions_category',
       contents: [
-        { kind: 'block', type: 'maze_collect' },
+        { kind: 'block' as const, type: 'maze_collect' },
+        { kind: 'block' as const, type: 'maze_toggle_switch' },
       ],
     },
     {
-      kind: 'category',
-      name: 'Vòng lặp',
-      colour: '#5CA65C',
+      kind: 'category' as const,
+      name: '%{BKY_GAMES_CATLOOPS}',
+      categorystyle: 'loops_category',
       contents: [
-        { kind: 'block', type: 'maze_repeat' },
-        { kind: 'block', type: 'controls_repeat_ext' },
+        {
+          kind: 'block' as const,
+          type: 'maze_repeat',
+          inputs: {
+            TIMES: {
+              shadow: {
+                type: 'math_number',
+                fields: { NUM: 4 },
+              },
+            },
+          },
+        },
       ],
     },
+    { kind: 'sep' as const },
     {
-      kind: 'category',
-      name: 'Hàm',
-      colour: '#995BA5',
-      custom: 'PROCEDURE',
+      kind: 'category' as const,
+      name: '%{BKY_GAMES_CATPROCEDURES}',
+      custom: 'PROCEDURE' as const,
+      categorystyle: 'procedure_category',
     },
   ],
 };
 
 /**
- * Get sample maze configuration based on concept and difficulty
- */
-function getMazeConfig(concept: string, difficulty: number): MazeData {
-  // Map concept to category
-  let category = 'sequential';
-  if (concept.includes('loop') || concept.includes('repeat')) {
-    category = 'loop';
-  } else if (concept.includes('if') || concept.includes('conditional')) {
-    category = 'conditional';
-  } else if (concept.includes('function') || concept.includes('procedure')) {
-    category = 'function';
-  }
-  
-  // Map difficulty to easy/medium
-  const level = difficulty <= 2 ? 'easy' : 'medium';
-  const key = `${category}_${level}`;
-  
-  return SAMPLE_MAZES[key] || SAMPLE_MAZES.sequential_easy;
-}
-
-/**
- * Convert GeneratedExercise to Quest format
+ * Convert GeneratedExercise to Quest format using SolutionDrivenGenerator
  */
 export function exerciseToQuest(exercise: GeneratedExercise, index: number): Quest {
-  const mazeData = getMazeConfig(exercise.concept, exercise.difficulty);
+  // 1. Get template for concept
+  const template = CONCEPT_TEMPLATES[exercise.concept] || DEFAULT_TEMPLATE;
   
-  const gameConfig: MazeConfig = {
-    type: 'maze',
-    renderer: '3d',
-    blocks: mazeData.blocks,
-    collectibles: mazeData.collectibles,
-    player: mazeData.player,
-    finish: mazeData.finish,
-    introScene: {
-      enabled: false,
-      type: 'dronie',
-    },
-  };
+  // 2. Resolve parameters based on difficulty
+  const resolvedCode = resolveTemplateCode(template.code, exercise.difficulty);
   
-  const blocklyConfig: BlocklyConfig = {
-    toolbox: PRACTICE_TOOLBOX,
-    maxBlocks: 20,
-    startBlocks: '<xml><block type="maze_start" deletable="false" movable="false"></block></xml>',
-  };
+  // 3. Generate map using generateFromCode
+  let result: SolutionDrivenResult;
+  try {
+    result = generateFromCode(resolvedCode, {
+      concept: template.concept as any,
+      gradeLevel: '3-5',
+    });
+  } catch (err) {
+    console.error('Failed to generate map:', err);
+    // Fallback to simple sequential
+    result = generateFromCode(`moveForward();collectItem();moveForward();`, {
+      concept: 'sequential',
+      gradeLevel: '3-5',
+    });
+  }
   
-  const solution: SolutionConfig = {
-    type: 'reach_target',
-    itemGoals: { crystal: mazeData.collectibles?.length || 0 },
-    optimalBlocks: Math.max(5, (mazeData.collectibles?.length || 0) + 3),
-  };
+  // 4. Extract gameConfig from result
+  const gameConfig = result.gameConfig.gameConfig;
+  const solution = result.solution;
   
+  // 5. Build Quest object
   const title = exercise.hints[0] || `Bài tập ${index + 1}`;
   
   return {
@@ -300,9 +317,29 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
         [`practice_${exercise.id}_desc`]: exercise.hints[0] || 'Hoàn thành mê cung',
       },
     },
-    blocklyConfig,
-    gameConfig: gameConfig as Quest['gameConfig'],
-    solution: solution as Quest['solution'],
+    blocklyConfig: {
+      toolbox: PRACTICE_TOOLBOX,
+      maxBlocks: 35,
+      startBlocks: '<xml><block type="maze_start" deletable="false" movable="false"></block></xml>',
+    },
+    gameConfig: {
+      type: 'maze',
+      renderer: '3d',
+      blocks: gameConfig.blocks || [],
+      collectibles: gameConfig.collectibles || [],
+      player: gameConfig.players?.[0] || {
+        id: 'player1',
+        start: { x: 0, y: 1, z: 0, direction: 1 },
+      },
+      finish: gameConfig.finish || { x: 5, y: 1, z: 0 },
+    } as Quest['gameConfig'],
+    solution: {
+      type: 'reach_target',
+      itemGoals: { crystal: gameConfig.collectibles?.length || 0 },
+      optimalBlocks: solution.optimalBlocks || 10,
+      rawActions: solution.rawActions || [],
+      structuredSolution: solution.structuredSolution,
+    } as Quest['solution'],
   };
 }
 
@@ -312,12 +349,12 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
 export function createDemoQuest(): Quest {
   const demoExercise: GeneratedExercise = {
     id: 'demo-quest',
-    templateId: 'crystal-trail-basic',
-    concept: 'sequential',
-    difficulty: 1,
+    templateId: 'simple-for-loop',
+    concept: 'repeat_n',
+    difficulty: 3,
     parameters: {},
     mapData: null,
-    hints: ['Di chuyển tới mục tiêu và thu thập tất cả pha lê!'],
+    hints: ['Thu thập tất cả pha lê và đến đích!'],
   };
   return exerciseToQuest(demoExercise, 0);
 }

@@ -13,6 +13,9 @@ importers:
 
   .:
     devDependencies:
+      '@types/uuid':
+        specifier: ^11.0.0
+        version: 11.0.0
       prettier:
         specifier: ^3.2.5
         version: 3.6.2
@@ -113,6 +116,9 @@ importers:
 
   apps/react-quest-app:
     dependencies:
+      '@repo/academic-map-generator':
+        specifier: workspace:*
+        version: link:../../packages/academic-map-generator
       '@repo/quest-player':
         specifier: workspace:*
         version: link:../../packages/quest-player
