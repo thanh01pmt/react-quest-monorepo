@@ -497,7 +497,10 @@ export class MazeEngine implements IMazeEngine {
   }
 
   private getNextPosition(x: number, z: number, direction: Direction): { x: number, z: number } {
-    if (direction === 0) z--; else if (direction === 1) x++; else if (direction === 2) z++; else if (direction === 3) x--;
+    if (direction === 0) z--;      // South (-Z)
+    else if (direction === 1) x++; // West (+X)
+    else if (direction === 2) z++; // North (+Z)
+    else if (direction === 3) x--; // East (-X)
     return { x, z };
   }
   

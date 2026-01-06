@@ -1558,12 +1558,12 @@ function calculateTurnActions(currentState: GameState, nextPos: Position, lastAc
     const dx = nextPos.x - currentState.position.x;
     const dz = nextPos.z - currentState.position.z;
     
-    // FIX: Updated mapping for new convention: 0=+X(East), 1=+Z(North), 2=-X(West), 3=-Z(South)
+    // FIX: Updated mapping to match COORDINATE_SYSTEM.md: 0=-Z(South), 1=+X(West), 2=+Z(North), 3=-X(East)
     let targetDir: number;
-    if (dx === 1 && dz === 0) targetDir = 0;       // +X -> East (was 1)
-    else if (dx === -1 && dz === 0) targetDir = 2; // -X -> West (was 3)
-    else if (dx === 0 && dz === 1) targetDir = 1;  // +Z -> North (was 2)
-    else if (dx === 0 && dz === -1) targetDir = 3; // -Z -> South (was 0)
+    if (dx === 0 && dz === -1) targetDir = 0;       // -Z -> South
+    else if (dx === 1 && dz === 0) targetDir = 1;   // +X -> West
+    else if (dx === 0 && dz === 1) targetDir = 2;   // +Z -> North
+    else if (dx === -1 && dz === 0) targetDir = 3;  // -X -> East
     else targetDir = currentState.direction;
 
     if (targetDir !== currentState.direction) {

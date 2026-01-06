@@ -606,7 +606,7 @@ export class TemplateInterpreter {
       items: this.items,
       actions: this.actions,
       startPosition: startPos,
-      startDirection: 1, // East default
+      startDirection: 1, // Default to East (1) as used in legacy
       endPosition: endPos,
       endDirection: this.context.direction,
       totalMoves: this.totalMoves,

@@ -91,22 +91,21 @@ export interface GenerationConstraints {
 
 /**
  * Direction values (matching game format)
- * 0 = North (+Z), 1 = East (+X), 2 = South (-Z), 3 = West (-X)
  */
 export type Direction = 0 | 1 | 2 | 3;
 
 export const DIRECTION_NAMES: Record<Direction, string> = {
-  0: 'North',
+  0: 'South',
   1: 'East', 
-  2: 'South',
+  2: 'North',
   3: 'West'
 };
 
 export const DIRECTION_DELTAS: Record<Direction, { x: number; z: number }> = {
-  0: { x: 0, z: 1 },   // North: +Z
-  1: { x: 1, z: 0 },   // East: +X
-  2: { x: 0, z: -1 },  // South: -Z
-  3: { x: -1, z: 0 }   // West: -X
+  0: { x: 0, z: -1 },  // South (-Z)
+  1: { x: 1, z: 0 },   // East (+X)
+  2: { x: 0, z: 1 },   // North (+Z)
+  3: { x: -1, z: 0 }   // West (-X)
 };
 
 /**
@@ -413,7 +412,7 @@ export function coordToVector3(coord: Coord): Vector3Object {
  */
 export function createInitialContext(
   startPos: Coord = [0, 1, 0],
-  startDir: Direction = 1
+  startDir: Direction = 0
 ): ExecutionContext {
   return {
     position: [...startPos] as Coord,

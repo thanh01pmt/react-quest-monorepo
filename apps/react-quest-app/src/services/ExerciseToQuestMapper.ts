@@ -379,7 +379,7 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
       collectibles: gameConfig.collectibles || [],
       player: gameConfig.players?.[0] || {
         id: 'player1',
-        start: { x: 0, y: 1, z: 0, direction: 1 },
+        start: { x: 0, y: 1, z: 0, direction: 0 },
       },
       finish: gameConfig.finish || { x: 5, y: 1, z: 0 },
     } as Quest['gameConfig'],
