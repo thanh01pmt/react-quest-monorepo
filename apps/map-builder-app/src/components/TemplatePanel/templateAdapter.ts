@@ -19,14 +19,48 @@ export interface CategoryInfo {
   icon: string;
 }
 
-export const CATEGORY_INFO: CategoryInfo[] = [
-  { id: 'sequential', name: 'Sequential', nameVi: 'Tuần tự', icon: '📚' },
-  { id: 'loop', name: 'Loop', nameVi: 'Vòng lặp', icon: '🔁' },
-  { id: 'conditional', name: 'Conditional', nameVi: 'Điều kiện', icon: '🔀' },
-  { id: 'function', name: 'Function', nameVi: 'Hàm', icon: '📦' },
-  { id: 'variable', name: 'Variable', nameVi: 'Biến', icon: '📝' },
-  { id: 'advanced', name: 'Advanced', nameVi: 'Nâng cao', icon: '🚀' },
-];
+/**
+ * Category display metadata (static defaults for known categories)
+ */
+const CATEGORY_DISPLAY: Record<string, { name: string; nameVi: string; icon: string }> = {
+  sequential: { name: 'Sequential', nameVi: 'Tuần tự', icon: '📚' },
+  loop: { name: 'Loop', nameVi: 'Vòng lặp', icon: '🔁' },
+  conditional: { name: 'Conditional', nameVi: 'Điều kiện', icon: '🔀' },
+  function: { name: 'Function', nameVi: 'Hàm', icon: '📦' },
+  variable: { name: 'Variable', nameVi: 'Biến', icon: '📊' },
+  progression: { name: 'Progression', nameVi: 'Tiến trình', icon: '📈' },
+  logic: { name: 'Logic', nameVi: 'Logic', icon: '🧠' },
+  memory: { name: 'Memory', nameVi: 'Bộ nhớ', icon: '💾' },
+  decomposition: { name: 'Decomposition', nameVi: 'Phân rã', icon: '🧩' },
+  search: { name: 'Search', nameVi: 'Tìm kiếm', icon: '🔍' },
+  advanced: { name: 'Advanced', nameVi: 'Nâng cao', icon: '🚀' },
+};
+
+/**
+ * Generate CATEGORY_INFO dynamically from BUNDLED_TEMPLATES
+ */
+function generateCategoryInfo(): CategoryInfo[] {
+  const uniqueCategories = new Set<ConceptCategory>();
+  for (const template of BUNDLED_TEMPLATES) {
+    uniqueCategories.add(template.metadata.category);
+  }
+  
+  return Array.from(uniqueCategories).map(id => {
+    const display = CATEGORY_DISPLAY[id] || { name: id, nameVi: id, icon: '📄' };
+    return { id, ...display };
+  }).sort((a, b) => {
+    // Sort by predefined order or alphabetically
+    const order = Object.keys(CATEGORY_DISPLAY);
+    const idxA = order.indexOf(a.id);
+    const idxB = order.indexOf(b.id);
+    if (idxA >= 0 && idxB >= 0) return idxA - idxB;
+    if (idxA >= 0) return -1;
+    if (idxB >= 0) return 1;
+    return a.id.localeCompare(b.id);
+  });
+}
+
+export const CATEGORY_INFO: CategoryInfo[] = generateCategoryInfo();
 
 /**
  * Get Vietnamese name for a concept
@@ -86,13 +120,16 @@ export function convertToPreset(template: TemplateConfig): TemplatePreset {
  * Get all templates as presets, sorted by category and difficulty
  */
 export function getAllTemplatesAsPresets(): TemplatePreset[] {
-  // Sort by category order, then by difficulty
-  const categoryOrder: ConceptCategory[] = ['sequential', 'loop', 'conditional', 'function', 'variable', 'advanced'];
+  // Use dynamic category order from CATEGORY_INFO
+  const categoryOrder = CATEGORY_INFO.map(c => c.id);
   
   const sorted = [...BUNDLED_TEMPLATES].sort((a, b) => {
     const catA = categoryOrder.indexOf(a.metadata.category);
     const catB = categoryOrder.indexOf(b.metadata.category);
-    if (catA !== catB) return catA - catB;
+    // Put unknown categories at the end
+    const effectiveA = catA >= 0 ? catA : categoryOrder.length;
+    const effectiveB = catB >= 0 ? catB : categoryOrder.length;
+    if (effectiveA !== effectiveB) return effectiveA - effectiveB;
     return a.metadata.difficulty - b.metadata.difficulty;
   });
   
