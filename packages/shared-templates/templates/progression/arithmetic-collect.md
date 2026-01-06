@@ -37,11 +37,13 @@ var GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);
 // Solution
 moveForward();
 
-for (var i = 0; i < GROUPS; i++) {
-  var count = START + i * STEP;
+for (let i = 0; i < GROUPS; i++) {
+  let count = START + i * STEP;
+  // Collect 'count' items
+  // They are placed in a row
   
   // Atom: Collect Sequence
-  for (var j = 0; j < count; j++) {
+  for (let j = 0; j < count; j++) {
     collectItem();
     moveForward();
   }

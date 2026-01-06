@@ -30,15 +30,15 @@ var D2 = random(_MIN_DIST_, _MAX_DIST_);
 
 // Solution
 // Forward Phase
-for(var i=0; i<D1; i++) moveForward();
+for(let i=0; i<D1; i++) moveForward();
 turnRight();
-for(var j=0; j<D2; j++) moveForward();
+for(let j=0; j<D2; j++) moveForward();
 
 // Return Phase
 turnAround();
-for(var j=0; j<D2; j++) moveForward();
+for(let j=0; j<D2; j++) moveForward();
 turnLeft(); // Inverse of TurnRight (viewed from return path is tricky, geometrically: Right -> 180 -> Left returns to origin vec)
-for(var i=0; i<D1; i++) moveForward();
+for(let i=0; i<D1; i++) moveForward();
 
 turnAround(); // Restore original facing
 ```

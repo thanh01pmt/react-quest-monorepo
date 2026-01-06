@@ -83,7 +83,8 @@ export function prepareTemplateCode(
 
   // Step 3: Remove var declarations (now they're just "var 5 = 5;" etc)
   // Must match multiline: lines that start with var <number> = ...
-  execCode = execCode.replace(/^\s*var\s+\d+\s*=\s*[^;]+;\s*$/gm, '');
+  // Must match multiline: lines that start with var <number> = ... and optionally have comments
+  execCode = execCode.replace(/^\s*var\s+\d+\s*=\s*[^;]+;.*$/gm, '');
 
   // Remove empty lines resulted from removals
   execCode = execCode.replace(/^\s*\n/gm, '');

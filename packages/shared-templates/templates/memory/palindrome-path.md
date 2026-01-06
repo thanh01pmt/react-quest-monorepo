@@ -29,7 +29,7 @@ jump();
 moveForward();
 
 // Middle (B repeated)
-for(var i=0; i<MID_LENGTH; i++) {
+for(let i=0; i<MID_LENGTH; i++) {
   collectItem();
   moveForward();
 }
@@ -40,7 +40,7 @@ moveForward();
 turnRight(); // U-Turn effect (conceptually) or just a pivot point in path
 
 // Middle Mirror (B repeated)
-for(var i=0; i<MID_LENGTH; i++) {
+for(let i=0; i<MID_LENGTH; i++) {
   collectItem();
   moveForward();
 }

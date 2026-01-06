@@ -28,7 +28,7 @@ var _MAX_LEN_ = 6;
 var LEN = random(_MIN_LEN_, _MAX_LEN_);
 
 // Solution
-for (var i = 0; i < LEN; i++) {
+for (let i = 0; i < LEN; i++) {
   // Check condition (Simulated look)
   if (isPathRight()) { // Simulated "Found Target" logic -> Turn
      turnRight();
@@ -47,7 +47,7 @@ for (var i = 0; i < LEN; i++) {
 Since we don't have `isPathRight` sensors everywhere, we can simulate "Searching for a specific item count or marker".
 ```js
 // Solution
-for(var i=0; i<LEN; i++) {
+for(let i=0; i<LEN; i++) {
   moveForward();
   // Simulated: If we see item, pick it up.
   // The generator will place items.
@@ -57,7 +57,7 @@ for(var i=0; i<LEN; i++) {
 Let's stick to a visual "Scan Row" pattern.
 ```js
 // Solution
-for(var i=0; i<LEN; i++) {
+for(let i=0; i<LEN; i++) {
    moveForward();
    // Check THIS spot
    turnRight(); // Look

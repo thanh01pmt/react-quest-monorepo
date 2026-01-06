@@ -34,7 +34,7 @@ function climbStep() {
 }
 
 // Main
-for(var i=0; i<HEIGHT; i++) {
+for(let i=0; i<HEIGHT; i++) {
   climbStep();
 }
 ```

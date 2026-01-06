@@ -29,7 +29,8 @@ const DIFFICULTY_COLORS: Record<DifficultyLevel, string> = {
 
 // Available categories
 const AVAILABLE_CATEGORIES: ConceptCategory[] = [
-    'sequential', 'loop', 'conditional', 'function', 'variable'
+    'sequential', 'loop', 'conditional', 'function', 'variable',
+    'progression', 'logic', 'memory', 'decomposition', 'search'
 ];
 
 const CATEGORY_INFO: Record<ConceptCategory, { icon: string; nameKey: string }> = {
@@ -39,6 +40,11 @@ const CATEGORY_INFO: Record<ConceptCategory, { icon: string; nameKey: string }> 
     function: { icon: '📦', nameKey: 'Practice.category_function' },
     variable: { icon: '📊', nameKey: 'Practice.category_variable' },
     advanced: { icon: '🚀', nameKey: 'Practice.category_advanced' },
+    progression: { icon: '📈', nameKey: 'Practice.category_progression' },
+    logic: { icon: '🧠', nameKey: 'Practice.category_logic' },
+    memory: { icon: '💾', nameKey: 'Practice.category_memory' },
+    decomposition: { icon: '🧩', nameKey: 'Practice.category_decomposition' },
+    search: { icon: '🔍', nameKey: 'Practice.category_search' },
 };
 
 // Inline DifficultySlider component

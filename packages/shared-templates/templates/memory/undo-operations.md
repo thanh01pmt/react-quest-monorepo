@@ -28,7 +28,8 @@ var COUNT = random(_MIN_COUNT_, _MAX_COUNT_);
 
 // Solution
 // 1. Activate
-for (var i = 0; i < COUNT; i++) {
+// 1. Activate
+for (let i = 0; i < COUNT; i++) {
   moveForward();
   toggleSwitch();
 }
@@ -37,7 +38,7 @@ for (var i = 0; i < COUNT; i++) {
 turnAround();
 
 // 3. Deactivate (Undo)
-for (var i = 0; i < COUNT; i++) {
+for (let i = 0; i < COUNT; i++) {
   toggleSwitch(); // Order: Toggle (at current pos) then Move back? 
   // Wait, if we moved forward then toggle, we are ON the switch.
   // After turn around, we are still ON the switch.

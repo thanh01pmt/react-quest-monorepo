@@ -29,11 +29,11 @@ var START_LEN = random(_MIN_START_LEN_, _MAX_START_LEN_);
 var STEP = 1;
 
 // Solution
-var currentLen = START_LEN;
+let currentLen = START_LEN;
 
 while (currentLen > 0) {
   // Atom: Move Segment
-  for (var i = 0; i < currentLen; i++) {
+  for (let i = 0; i < currentLen; i++) {
     moveForward();
   }
   collectItem();

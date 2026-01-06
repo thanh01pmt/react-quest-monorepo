@@ -32,6 +32,11 @@ const CATEGORY_INFO: Record<ConceptCategory, { icon: string; nameKey: string }> 
     conditional: { icon: '🔀', nameKey: 'Practice.category_conditional' },
     function: { icon: '📦', nameKey: 'Practice.category_function' },
     variable: { icon: '📊', nameKey: 'Practice.category_variable' },
+    search: { icon: '🔍', nameKey: 'Practice.category_search' },
+    progression: { icon: '📈', nameKey: 'Practice.category_progression' },
+    logic: { icon: '🧠', nameKey: 'Practice.category_logic' },
+    memory: { icon: '💾', nameKey: 'Practice.category_memory' },
+    decomposition: { icon: '🧩', nameKey: 'Practice.category_decomposition' },
     advanced: { icon: '🚀', nameKey: 'Practice.category_advanced' },
 };
 

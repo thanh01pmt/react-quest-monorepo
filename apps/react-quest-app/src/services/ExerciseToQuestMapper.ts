@@ -13,7 +13,7 @@
 
 import { generateFromCode, type SolutionDrivenResult } from '@repo/academic-map-generator';
 import type { Quest } from '@repo/quest-player';
-import { templateRegistry, prepareTemplateCode, type GeneratedExercise, type DifficultyLevel } from '@repo/shared-templates';
+import { templateRegistry, BUNDLED_TEMPLATES, prepareTemplateCode, type GeneratedExercise, type DifficultyLevel } from '@repo/shared-templates';
 
 // Template code presets for each concept - FALLBACK only
 // NOTE: These should match the pattern in shared-templates:
@@ -92,15 +92,17 @@ for (let i = 0; i < PATH_LENGTH; i++) {
   },
   
   if_else: {
-    concept: 'sequential',
-    code: `moveForward();
-for (let i = 0; i < SEGMENT1; i++) {
-  collectItem();
-  moveForward();
-}
-turnRight();
-for (let i = 0; i < SEGMENT2; i++) {
-  collectItem();
+    concept: 'if_else',
+    code: `// Fallback If-Else
+moveForward();
+for (let i = 0; i < PATH_LENGTH; i++) {
+  // Deterministic alternating pattern to ensure safe map generation
+  // (Avoids isOnCrystal() which may not be supported in generator context)
+  if (i % 2 == 0) {
+    collectItem();
+  } else {
+    toggleSwitch();
+  }
   moveForward();
 }
 `,
@@ -109,17 +111,16 @@ for (let i = 0; i < SEGMENT2; i++) {
   // Function/Procedure
   procedure_simple: {
     concept: 'procedure_simple',
-    code: `function collectItems() {
-  for (let i = 0; i < PER_CALL; i++) {
-    collectItem();
-    moveForward();
-  }
+    code: `// Fallback Procedure
+function doAction() {
+  collectItem();
+  moveForward();
+  moveForward(); // Spacing
 }
 
 moveForward();
 for (let c = 0; c < CALLS; c++) {
-  collectItems();
-  turnRight();
+  doAction();
 }
 moveForward();
 `,
@@ -278,19 +279,25 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
   console.log(`[ExerciseToQuest] concept: "${exercise.concept}"`);
   console.log(`[ExerciseToQuest] parameters:`, exercise.parameters);
 
-  // 1. Try to find actual template in registry
-  const registryTemplate = templateRegistry.get(exercise.templateId);
-  console.log(`[ExerciseToQuest] Registry lookup result:`, registryTemplate ? 'FOUND' : 'NOT FOUND');
-  console.log(`[ExerciseToQuest] Registry size:`, templateRegistry.getAll().length);
+  // 1. Try to find actual template in registry or bundled fallback
+  let registryTemplate = templateRegistry.get(exercise.templateId);
+  
+  // ROBUST FAILSAFE: If registry is empty/missed (race condition), check BUNDLED_TEMPLATES directly
+  if (!registryTemplate) {
+      registryTemplate = BUNDLED_TEMPLATES.find(t => t.metadata.id === exercise.templateId);
+      if (registryTemplate) {
+          console.log(`[ExerciseToQuest] Found in BUNDLED_TEMPLATES fallback:`, exercise.templateId);
+      }
+  }
+
+  console.log(`[ExerciseToQuest] Template lookup result:`, registryTemplate ? 'FOUND' : 'NOT FOUND');
   
   let resolvedCode = '';
 
   if (registryTemplate) {
-    // Case A: Smart Template (Loaded from registry)
-    console.log(`[ExerciseToQuest] Using REGISTRY template. solutionCode length:`, registryTemplate.solutionCode.length);
-    console.log(`[ExerciseToQuest] Original solutionCode:\n`, registryTemplate.solutionCode);
+    // Case A: Smart Template (Loaded from registry/bundle)
+    console.log(`[ExerciseToQuest] Using TEMPLATE. solutionCode length:`, registryTemplate.solutionCode.length);
     resolvedCode = prepareTemplateCode(registryTemplate.solutionCode, exercise.parameters);
-    console.log(`[ExerciseToQuest] PREPARED code:\n`, resolvedCode);
   } else {
     // Case B: Legacy/Fallback (using concept presets)
     console.warn(`[ExerciseToQuest] Template NOT found. Using FALLBACK concept: "${exercise.concept}"`);
@@ -301,23 +308,69 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
   }
   
   // 3. Generate map using generateFromCode
-  let result: SolutionDrivenResult;
-  try {
-    console.log(`[ExerciseToQuest] Generating map from code...`);
-    result = generateFromCode(resolvedCode, {
-      concept: exercise.concept as any,
-      gradeLevel: '3-5',
-    });
-    console.log(`[ExerciseToQuest] Generation success. Trace:`, {
-        pathLength: result.trace.pathCoords.length,
-        items: result.trace.items.length,
-        actions: result.trace.actions.length,
-        blocks: result.gameConfig.gameConfig.blocks?.length
-    });
-  } catch (err) {
-    console.error('[ExerciseToQuest] Failed to generate map from code:', resolvedCode);
-    console.error('[ExerciseToQuest] Error details:', err);
-    // Fallback to simple sequential
+  let result: SolutionDrivenResult | null = null;
+  const MAX_RETRIES = 5; // Aggressive retry count to avoid fallback
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      let candidateCode = '';
+      
+      try {
+        // ... (existing logic)
+        // ... (existing logic)
+
+        /* logic moved up */
+        // Re-resolve code for each attempt to get fresh random values
+        if (registryTemplate) {
+           resolvedCode = prepareTemplateCode(registryTemplate.solutionCode, exercise.parameters);
+        } else {
+           // Preset logic
+        }
+        
+        let attemptCode = resolvedCode;
+        if (!registryTemplate) {
+            attemptCode = prepareTemplateCode(resolvedCode, {});
+        }
+
+        console.log(`[ExerciseToQuest] Generation Attempt ${attempt}/${MAX_RETRIES}...`);
+        
+        candidateCode = attemptCode;
+        
+        result = generateFromCode(candidateCode, {
+          concept: exercise.concept as any,
+          gradeLevel: '3-5',
+        });
+  
+        // Basic validation: Must have items and actions
+        if (result.trace.items.length === 0 && result.trace.actions.length < 5) {
+           console.warn("[ExerciseToQuest] Generated map is trivial/empty. Code:", candidateCode);
+           throw new Error("Generated map is too empty/trivial");
+        }
+  
+        console.log(`[ExerciseToQuest] Generation SUCCESS at attempt ${attempt}. Trace:`, {
+            pathLength: result.trace.pathCoords.length,
+            items: result.trace.items.length,
+        });
+        
+        break; // Success!
+      } catch (err) {
+        console.warn(`[ExerciseToQuest] Attempt ${attempt}/${MAX_RETRIES} failed for Template: ${exercise.templateId}`);
+        console.warn(`[ExerciseToQuest] Reason: ${(err as any).message}`);
+        
+        if (attempt === MAX_RETRIES) {
+          console.error('[ExerciseToQuest] ALL RETRIES FAILED.');
+          console.error(`[ExerciseToQuest] Context - Template: ${exercise.templateId}, Concept: ${exercise.concept}, Diff: ${exercise.difficulty}`);
+          console.error('[ExerciseToQuest] FINAL FAILED CODE:', candidateCode || resolvedCode);
+          console.error('[ExerciseToQuest] Stack Trace:', err);
+        }
+      }
+  }
+
+  // Final Fallback if all retries failed
+  if (!result) {
+    console.error('[ExerciseToQuest] CRITICAL FAILURE: Initiating Ultimate Fallback (Default Sequential).');
+    console.error(`[ExerciseToQuest] This indicates that template "${exercise.templateId}" is chemically unstable or invalid.`);
+    console.warn(`[ExerciseToQuest] Failed Concept: ${exercise.concept}, Difficulty: ${exercise.difficulty}`);
+    
     result = generateFromCode(`moveForward();collectItem();moveForward();`, {
       concept: 'sequential',
       gradeLevel: '3-5',

@@ -55,6 +55,7 @@ export function PracticeContent({
     const currentExercise = session?.exercises[currentExerciseIndex];
 
     // Convert current exercise to Quest format for QuestPlayer
+    // Convert current exercise to Quest format for QuestPlayer
     const currentQuest: Quest | null = useMemo(() => {
         if (!currentExercise) return null;
         return exerciseToQuest(currentExercise, currentExerciseIndex);
@@ -91,7 +92,10 @@ export function PracticeContent({
 
     // Handle "Challenge Me" button
     const handleChallengeMe = useCallback(async () => {
-        const categories = ['sequential', 'loop', 'conditional', 'function', 'variable'] as const;
+        const categories = [
+            'sequential', 'loop', 'conditional', 'function', 'variable',
+            'progression', 'logic', 'memory', 'decomposition', 'search'
+        ] as const;
         const shuffled = [...categories].sort(() => Math.random() - 0.5);
         const selected = shuffled.slice(0, 2 + Math.floor(Math.random() * 3));
 
@@ -238,7 +242,7 @@ export function PracticeContent({
                     renderCompleteScreen()
                 ) : currentQuest ? (
                     <MemoizedQuestPlayer
-                        key={currentQuest.id}  // Force re-mount on exercise change
+                        key={currentQuest.id}
                         isStandalone={false}
                         language={i18n.language}
                         questData={currentQuest}

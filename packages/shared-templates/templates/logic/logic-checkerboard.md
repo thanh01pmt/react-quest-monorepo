@@ -28,8 +28,8 @@ var SIZE = random(_MIN_SIZE_, _MAX_SIZE_);
 
 // Solution
 // Simple snake traversal Logic
-for (var row = 0; row < SIZE; row++) {
-  for (var col = 0; col < SIZE; col++) {
+for (let row = 0; row < SIZE; row++) {
+  for (let col = 0; col < SIZE; col++) {
     
     // Check Parity
     if ((row + col) % 2 == 1) {
@@ -60,8 +60,8 @@ for (var row = 0; row < SIZE; row++) {
 **Alternative simpler logic for template**:
 ```js
 // Solution
-for (var r = 0; r < SIZE; r++) {
-  for (var c = 0; c < SIZE; c++) {
+for (let r = 0; r < SIZE; r++) {
+  for (let c = 0; c < SIZE; c++) {
     if ((r + c) % 2 == 1) {
        collectItem();
     }
@@ -70,7 +70,7 @@ for (var r = 0; r < SIZE; r++) {
   
   // Return to start of row (Raster scan style)
   turnAround();
-  for(var k=0; k<SIZE-1; k++) moveForward();
+  for(let k=0; k<SIZE-1; k++) moveForward();
   turnLeft();
   moveForward(); // Next row
   turnLeft();
@@ -85,8 +85,8 @@ var _MAX_SIZE_ = 4;
 var SIZE = random(_MIN_SIZE_, _MAX_SIZE_);
 
 // Solution
-for (var r = 0; r < SIZE; r++) {
-  for (var c = 0; c < SIZE; c++) {
+for (let r = 0; r < SIZE; r++) {
+  for (let c = 0; c < SIZE; c++) {
     if ((r + c) % 2 == 1) {
        collectItem();
     }
@@ -96,7 +96,7 @@ for (var r = 0; r < SIZE; r++) {
   // Prepare for next row (if not last)
   if (r < SIZE - 1) {
     turnAround();
-    for(var k=0; k<SIZE-1; k++) moveForward();
+    for(let k=0; k<SIZE-1; k++) moveForward();
     turnLeft();
     moveForward();
     turnLeft();

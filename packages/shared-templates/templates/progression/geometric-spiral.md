@@ -33,11 +33,11 @@ var _MAX_TURNS_ = 5;
 var TURNS = random(_MIN_TURNS_, _MAX_TURNS_);
 
 // Solution
-var length = START;
+let length = START;
 
-for (var i = 0; i < TURNS; i++) {
+for (let i = 0; i < TURNS; i++) {
   // Atom: Move Side
-  for (var j = 0; j < length; j++) {
+  for (let j = 0; j < length; j++) {
     collectItem(); // Dense interaction for spiral
     moveForward();
   }

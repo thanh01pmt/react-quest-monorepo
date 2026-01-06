@@ -27,8 +27,8 @@ var _MAX_STEPS_ = 6;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
-var a = 1;
-var b = 1;
+let a = 1;
+let b = 1;
 
 // First step (1)
 moveForward();
@@ -40,11 +40,11 @@ moveForward();
 collectItem();
 turnRight();
 
-for (var i = 2; i < STEPS; i++) {
-  var next = a + b;
+for (let i = 2; i < STEPS; i++) {
+  let next = a + b;
   
   // Atom: Move Fibonacci Dist
-  for (var j = 0; j < next; j++) {
+  for (let j = 0; j < next; j++) {
     moveForward();
   }
   collectItem();

@@ -29,7 +29,7 @@ var LEN = random(_MIN_LEN_, _MAX_LEN_);
 
 // Solution
 function drawSide() {
-  for(var i=0; i<LEN; i++) {
+  for(let i=0; i<LEN; i++) {
     collectItem();
     moveForward();
   }
@@ -37,7 +37,7 @@ function drawSide() {
 }
 
 // Main logic
-for(var k=0; k<4; k++) {
+for(let k=0; k<4; k++) {
   drawSide();
 }
 ```

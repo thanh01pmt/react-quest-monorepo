@@ -26,7 +26,7 @@ var _MAX_STEPS_ = 8;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
-for (var i = 0; i < STEPS; i++) {
+for (let i = 0; i < STEPS; i++) {
   if (i % 2 == 0) {
     // Even: Walk
     moveForward();

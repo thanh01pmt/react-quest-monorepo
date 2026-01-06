@@ -27,17 +27,17 @@ var DIST = 4; // Simplified for visual clarity
 
 // Solution
 // 1. Go to Middle
-for(var i=0; i<DIST; i++) moveForward();
+for(let i=0; i<DIST; i++) moveForward();
 
 // 2. Check (Simulated split)
 // Random decision for the template trace
 if (random(0, 1) == 0) {
    turnLeft();
-   for(var j=0; j<DIST/2; j++) moveForward();
+   for(let j=0; j<DIST/2; j++) moveForward();
    collectItem();
 } else {
    turnRight();
-   for(var j=0; j<DIST/2; j++) moveForward();
+   for(let j=0; j<DIST/2; j++) moveForward();
    collectItem();
 }
 ```

@@ -386,7 +386,20 @@ class Parser {
 
   private parseIfStatement(): IfStatementNode {
     this.consume(TokenType.IF, 'Expected "if"');
+    
+    // Support ( condition )
+    let hasParen = false;
+    if (this.check(TokenType.LPAREN)) {
+      this.advance();
+      hasParen = true;
+    }
+
     const condition = this.parseCondition();
+
+    if (hasParen) {
+      this.consume(TokenType.RPAREN, 'Expected ")" after condition');
+    }
+
     this.consume(TokenType.LBRACE, 'Expected "{"');
     const thenBranch = this.parseBlock();
     this.consume(TokenType.RBRACE, 'Expected "}"');
@@ -394,9 +407,17 @@ class Parser {
     let elseBranch: BlockNode | undefined;
     if (this.check(TokenType.ELSE)) {
       this.advance(); // consume 'else'
-      this.consume(TokenType.LBRACE, 'Expected "{"');
-      elseBranch = this.parseBlock();
-      this.consume(TokenType.RBRACE, 'Expected "}"');
+      
+      // Handle 'else if' recursively
+      if (this.check(TokenType.IF)) {
+         // Create a synthetic block for the else-if
+         const ifStmt = this.parseIfStatement();
+         elseBranch = { type: 'Block', statements: [ifStmt] };
+      } else {
+         this.consume(TokenType.LBRACE, 'Expected "{"');
+         elseBranch = this.parseBlock();
+         this.consume(TokenType.RBRACE, 'Expected "}"');
+      }
     }
 
     return { type: 'IfStatement', condition, thenBranch, elseBranch };
@@ -404,7 +425,20 @@ class Parser {
 
   private parseWhileLoop(): WhileLoopNode {
     this.consume(TokenType.WHILE, 'Expected "while"');
+    
+    // Support ( condition )
+    let hasParen = false;
+    if (this.check(TokenType.LPAREN)) {
+      this.advance();
+      hasParen = true;
+    }
+
     const condition = this.parseCondition();
+
+    if (hasParen) {
+      this.consume(TokenType.RPAREN, 'Expected ")" after condition');
+    }
+
     this.consume(TokenType.LBRACE, 'Expected "{"');
     const body = this.parseBlock();
     this.consume(TokenType.RBRACE, 'Expected "}"');
@@ -463,6 +497,12 @@ class Parser {
     
     // Parse condition identifier
     const conditionName = this.consume(TokenType.IDENTIFIER, 'Expected condition').value.toLowerCase();
+    
+    // Support function call syntax: isOnCrystal()
+    if (this.check(TokenType.LPAREN)) {
+        this.advance();
+        this.consume(TokenType.RPAREN, 'Expected ")" after condition function call');
+    }
     
     // Map to ConditionType
     const conditionType = this.mapConditionType(conditionName);

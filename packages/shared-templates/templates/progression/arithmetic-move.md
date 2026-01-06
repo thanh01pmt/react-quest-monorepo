@@ -35,11 +35,13 @@ var _MAX_ITERATIONS_ = 4;
 var ITERATIONS = random(_MIN_ITERATIONS_, _MAX_ITERATIONS_);
 
 // Solution
-for (var i = 0; i < ITERATIONS; i++) {
-  var dist = START + i * STEP;
+for (let i = 0; i < ITERATIONS; i++) {
+  let dist = START + i * STEP;
+  // Move 'dist' steps
+  // e.g. 2, 4, 6...
   
   // Atom: Move
-  for (var j = 0; j < dist; j++) {
+  for (let j = 0; j < dist; j++) {
     moveForward();
   }
   

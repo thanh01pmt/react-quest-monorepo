@@ -28,9 +28,9 @@ var ITEMS = random(_MIN_ITEMS_, _MAX_ITEMS_);
 var UNIVERSE_SIZE = 4;
 
 // Solution
-for (var i = 0; i < ITEMS; i++) {
+for (let i = 0; i < ITEMS; i++) {
   // 1. Search Phase (Go out)
-  for(var k=0; k<UNIVERSE_SIZE; k++) {
+  for(let k=0; k<UNIVERSE_SIZE; k++) {
      moveForward();
   }
   
@@ -39,7 +39,7 @@ for (var i = 0; i < ITEMS; i++) {
   turnAround();
   
   // 3. Return Phase (Place)
-  for(var k=0; k<UNIVERSE_SIZE; k++) {
+  for(let k=0; k<UNIVERSE_SIZE; k++) {
      moveForward();
   }
   

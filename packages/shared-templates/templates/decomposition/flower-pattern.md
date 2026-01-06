@@ -28,13 +28,13 @@ var LEN = random(_MIN_LEN_, _MAX_LEN_);
 // Solution
 function drawPetal() {
   // Go out
-  for(var i=0; i<LEN; i++) { 
+  for(let i=0; i<LEN; i++) { 
     moveForward(); 
     collectItem(); 
   }
   // Return
   turnAround();
-  for(var i=0; i<LEN; i++) { 
+  for(let i=0; i<LEN; i++) { 
     moveForward(); 
   }
   // Face next direction (90 deg rot)
@@ -43,7 +43,7 @@ function drawPetal() {
 }
 
 // Main
-for(var k=0; k<4; k++) {
+for(let k=0; k<4; k++) {
   drawPetal();
 }
 ```

@@ -29,16 +29,15 @@ var CYCLES = random(_MIN_CYCLES_, _MAX_CYCLES_);
 var STEPS = CYCLES * 3;
 
 // Solution
-for (var i = 0; i < STEPS; i++) {
-  var mod = i % 3;
+for (let i = 0; i < CYCLES; i++) {
+  // Case 0: Move
+  moveForward();
   
-  if (mod == 0) {
-    moveForward();
-  } else if (mod == 1) {
-    jump();
-  } else {
-    collectItem();
-    moveForward(); // Post-collect move to keep flow
-  }
+  // Case 1: Jump
+  jump();
+  
+  // Case 2: Collect & Move
+  collectItem();
+  moveForward();
 }
 ```

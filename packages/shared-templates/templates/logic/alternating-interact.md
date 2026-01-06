@@ -28,13 +28,13 @@ var PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);
 var STEPS = PAIRS * 2;
 
 // Solution
-for (var i = 0; i < STEPS; i++) {
+for (let i = 0; i < PAIRS; i++) {
+  // Even Step (Crystal)
   moveForward();
+  collectItem();
   
-  if (i % 2 == 0) {
-    collectItem();
-  } else {
-    toggleSwitch();
-  }
+  // Odd Step (Switch)
+  moveForward();
+  toggleSwitch();
 }
 ```

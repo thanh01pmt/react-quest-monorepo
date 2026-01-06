@@ -26,6 +26,10 @@ Learn to use a FOR loop to repeat actions a specific number of times.
 var _MIN_CRYSTAL_NUM_ = 3;
 var _MAX_CRYSTAL_NUM_ = 6;
 var CRYSTAL_NUM = random(_MIN_CRYSTAL_NUM_, _MAX_CRYSTAL_NUM_);
+var _SPACE_ = 1; // Default spacing
+// In difficult mode, we might want more spacing
+// We can use a random variable for spacing if needed
+var SPACE = random(1, 2);
 
 // Solution
 // Collect crystals using a loop
@@ -33,7 +37,17 @@ moveForward();
 
 for (let i = 0; i < CRYSTAL_NUM; i++) {
   collectItem();
+  
+  // Zig-Zag movement
+  turnLeft();
   moveForward();
+  turnRight();
+  moveForward();
+  
+  // Extra Spacing if needed
+  for(let j=0; j<SPACE; j++) {
+    moveForward();
+  }
 }
 
 moveForward();
