@@ -27,6 +27,12 @@ var _MAX_ITEMS_ = 3;
 var ITEMS = random(_MIN_ITEMS_, _MAX_ITEMS_);
 var UNIVERSE_SIZE = 4;
 
+// Helper function
+function turnAround() {
+  turnRight();
+  turnRight();
+}
+
 // Solution
 for (let i = 0; i < ITEMS; i++) {
   // 1. Search Phase (Go out)

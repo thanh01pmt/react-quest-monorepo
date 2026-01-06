@@ -25,6 +25,12 @@ var _MIN_LEN_ = 2;
 var _MAX_LEN_ = 3;
 var LEN = random(_MIN_LEN_, _MAX_LEN_);
 
+// Helper function
+function turnAround() {
+  turnRight();
+  turnRight();
+}
+
 // Solution
 function drawPetal() {
   // Go out

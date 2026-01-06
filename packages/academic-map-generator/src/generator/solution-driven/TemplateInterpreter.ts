@@ -996,9 +996,8 @@ export class TemplateInterpreter {
     const name = node.name.toLowerCase();
     
     switch (name) {
-      // === Movement Commands (Quest Player compatible) ===
+      // === Movement Commands (Quest Player standard) ===
       case 'moveforward':
-      case 'move_forward':
         this.doMoveForward();
         break;
       
@@ -1007,44 +1006,25 @@ export class TemplateInterpreter {
         break;
       
       case 'turnleft':
-      case 'turn_left':
         this.doTurnLeft();
         break;
       
       case 'turnright':
-      case 'turn_right':
         this.doTurnRight();
         break;
       
-      // === Item Commands (Quest Player compatible) ===
-      // Primary: collectItem() - matches Quest Player exactly
+      // === Item Commands (Quest Player standard) ===
       case 'collectitem':
-      case 'collect_item':
-        this.doCollect('crystal'); // Default to crystal
-        break;
-      
-      // Legacy aliases for backward compatibility
-      case 'pickcrystal':
-      case 'pick_crystal':
-      case 'collectcrystal':
-      case 'collect':
         this.doCollect('crystal');
         break;
       
-      case 'pickkey':
-      case 'pick_key':
-      case 'collectkey':
-        this.doCollect('key');
-        break;
-      
-      // === Switch Commands (Quest Player compatible) ===
+      // === Switch Commands (Quest Player standard) ===
       case 'toggleswitch':
-      case 'toggle_switch':
         this.doInteract('switch');
         break;
       
       default:
-        // Check for user-defined functions
+        // User-defined functions (e.g., turnAround, collectItems)
         this.callUserFunction(name);
         break;
     }

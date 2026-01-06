@@ -26,6 +26,12 @@ var _MIN_SIZE_ = 3;
 var _MAX_SIZE_ = 4;
 var SIZE = random(_MIN_SIZE_, _MAX_SIZE_);
 
+// Helper function
+function turnAround() {
+  turnRight();
+  turnRight();
+}
+
 // Solution
 // Solution
 for (let r = 0; r < SIZE; r++) {

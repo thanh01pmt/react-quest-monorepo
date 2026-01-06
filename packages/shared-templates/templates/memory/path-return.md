@@ -28,6 +28,12 @@ var _MAX_DIST_ = 4;
 var D1 = random(_MIN_DIST_, _MAX_DIST_);
 var D2 = random(_MIN_DIST_, _MAX_DIST_);
 
+// Helper function
+function turnAround() {
+  turnRight();
+  turnRight();
+}
+
 // Solution
 // Forward Phase
 for(let i=0; i<D1; i++) moveForward();
