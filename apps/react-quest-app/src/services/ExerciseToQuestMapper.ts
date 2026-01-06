@@ -222,6 +222,88 @@ function resolveTemplateCode(templateCode: string, difficulty: number): string {
   return code;
 }
 
+// Helper to create coordinate key for comparison
+function coordKey(x: number, y: number, z: number): string {
+  return `${x},${y},${z}`;
+}
+
+/**
+ * Validate generated map result for position collisions
+ * Returns { valid: boolean, reason?: string }
+ */
+function validateMapResult(result: SolutionDrivenResult): { valid: boolean; reason?: string } {
+  const gameConfig = result.gameConfig.gameConfig;
+  const trace = result.trace;
+  
+  // Helper to extract coordinates from various position formats
+  const getCoords = (pos: any): [number, number, number] => {
+    if (Array.isArray(pos)) {
+      return [pos[0] ?? 0, pos[1] ?? 1, pos[2] ?? 0];
+    }
+    return [pos?.x ?? 0, pos?.y ?? 1, pos?.z ?? 0];
+  };
+  
+  // Get start and finish positions
+  const startPos = gameConfig.players?.[0]?.start || { x: 0, y: 1, z: 0 };
+  const finishPos = gameConfig.finish || trace.endPosition;
+  
+  const [sx, sy, sz] = getCoords(startPos);
+  const [fx, fy, fz] = getCoords(finishPos);
+  
+  const startKey = coordKey(sx, sy, sz);
+  const finishKey = coordKey(fx, fy, fz);
+  
+  // Rule 1: Start and Finish must not overlap
+  if (startKey === finishKey) {
+    return { valid: false, reason: 'Start and Finish positions overlap' };
+  }
+  
+  // Collect all item positions
+  const itemPositions = new Set<string>();
+  const collectibles = gameConfig.collectibles || [];
+  const items = trace.items || [];
+  
+  // Check items from gameConfig
+  for (const item of collectibles) {
+    const pos = item.position || item;
+    const [ix, iy, iz] = getCoords(pos);
+    const key = coordKey(ix, iy, iz);
+    
+    // Rule 2: Start/Finish must not overlap with items
+    if (key === startKey) {
+      return { valid: false, reason: `Item at start position: ${key}` };
+    }
+    if (key === finishKey) {
+      return { valid: false, reason: `Item at finish position: ${key}` };
+    }
+    
+    // Rule 3: Items must not overlap with each other
+    if (itemPositions.has(key)) {
+      return { valid: false, reason: `Duplicate item position: ${key}` };
+    }
+    itemPositions.add(key);
+  }
+  
+  // Also check trace items
+  for (const item of items) {
+    const [ix, iy, iz] = getCoords(item.position);
+    const key = coordKey(ix, iy, iz);
+    
+    if (key === startKey) {
+      return { valid: false, reason: `Trace item at start position: ${key}` };
+    }
+    if (key === finishKey) {
+      return { valid: false, reason: `Trace item at finish position: ${key}` };
+    }
+    if (itemPositions.has(key)) {
+      return { valid: false, reason: `Duplicate trace item position: ${key}` };
+    }
+    itemPositions.add(key);
+  }
+  
+  return { valid: true };
+}
+
 // Blockly toolbox with proper i18n keys
 const PRACTICE_TOOLBOX = {
   kind: 'categoryToolbox' as const,
@@ -356,6 +438,13 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
         if (result.trace.items.length === 0 && result.trace.actions.length < 5) {
            console.warn("[ExerciseToQuest] Generated map is trivial/empty. Code:", candidateCode);
            throw new Error("Generated map is too empty/trivial");
+        }
+        
+        // Position collision validation
+        const validation = validateMapResult(result);
+        if (!validation.valid) {
+           console.warn("[ExerciseToQuest] Map validation failed:", validation.reason);
+           throw new Error(`Position collision: ${validation.reason}`);
         }
   
         console.log(`[ExerciseToQuest] Generation SUCCESS at attempt ${attempt}. Trace:`, {

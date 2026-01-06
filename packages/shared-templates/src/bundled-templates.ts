@@ -43,6 +43,42 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
   },
   {
     "metadata": {
+      "id": "if-simple",
+      "name": "Simple If",
+      "category": "conditional",
+      "concepts": [
+        "if_simple"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "conditional",
+        "if",
+        "decision"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Use simple if statement to collect crystals"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_PATH_",
+        "displayName": "Min Path",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_MAX_PATH_",
+        "displayName": "Max Path",
+        "type": "number",
+        "defaultValue": 5
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_PATH_ = 3;\nvar _MAX_PATH_ = 5;\nvar PATH_LEN = random(_MIN_PATH_, _MAX_PATH_);\n\n// Solution\n// Walk path and collect at each step\nmoveForward();\n\nfor (let i = 0; i < PATH_LEN; i++) {\n  // Simple if - always collect (condition is true)\n  if (isOnCrystal()) {\n    collectItem();\n  }\n  moveForward();\n}",
+    "descriptionMarkdown": "# Simple If\n\nLearn to use a simple if statement to make decisions.\n\n## Learning Goals\n- Understand if statement\n- Make conditional decisions\n- Check conditions\n\n## Solution & Parameters",
+    "rawContent": "---\nid: if-simple\nname: \"Simple If\"\ncategory: conditional\nconcepts: [\"if_simple\"]\ndifficulty: 2\ntags: [\"conditional\", \"if\", \"decision\"]\nauthor: system\nversion: 1\ndescription: \"Use simple if statement to collect crystals\"\n---\n\n# Simple If\n\nLearn to use a simple if statement to make decisions.\n\n## Learning Goals\n- Understand if statement\n- Make conditional decisions\n- Check conditions\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_PATH_ = 3;\nvar _MAX_PATH_ = 5;\nvar PATH_LEN = random(_MIN_PATH_, _MAX_PATH_);\n\n// Solution\n// Walk path and collect at each step\nmoveForward();\n\nfor (let i = 0; i < PATH_LEN; i++) {\n  // Simple if - always collect (condition is true)\n  if (isOnCrystal()) {\n    collectItem();\n  }\n  moveForward();\n}\n```\n"
+  },
+  {
+    "metadata": {
       "id": "decomp-flower",
       "name": "Flower Pattern",
       "category": "decomposition",
@@ -389,6 +425,43 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
     "solutionCode": "// Solution\nfor (let r = 0; r < SIZE; r++) {\n  for (let c = 0; c < SIZE; c++) {\n    if ((r + c) % 2 == 1) {\n       collectItem();\n    }\n    if (c < SIZE - 1) moveForward();\n  }\n  \n  // Return to start of row (Raster scan style)\n  turnAround();\n  for(let k=0; k<SIZE-1; k++) moveForward();\n  turnLeft();\n  moveForward(); // Next row\n  turnLeft();\n}",
     "descriptionMarkdown": "# Logic Checkerboard\n\nTraverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a parity condition.\n\n## Academic Concept: 2D Parity\n- White square: `(row + col) % 2 == 0`\n- Black square: `(row + col) % 2 == 1`\n\n## Solution & Parameters\n\n\n\n**Alternative simpler logic for template**:\n\n*Refining for final Markdown*:",
     "rawContent": "---\nid: logic-checkerboard\nname: \"Logic Checkerboard\"\ncategory: logic\nconcepts: [\"nested_loop\", \"conditional\", \"coordinates\"]\ndifficulty: 5\ntags: [\"logic\", \"grid\", \"checkerboard\", \"2d_array\"]\nauthor: system\nversion: 1\ndescription: \"Traverse a grid and interact only on 'Black' squares (checkerboard pattern)\"\n---\n\n# Logic Checkerboard\n\nTraverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a parity condition.\n\n## Academic Concept: 2D Parity\n- White square: `(row + col) % 2 == 0`\n- Black square: `(row + col) % 2 == 1`\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_SIZE_ = 3;\nvar _MAX_SIZE_ = 4;\nvar SIZE = random(_MIN_SIZE_, _MAX_SIZE_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// Solution\nfor (let r = 0; r < SIZE; r++) {\n  // Row Traversal\n  for (let c = 0; c < SIZE; c++) {\n    // Check if current spot has item\n    if (isOnCrystal()) {\n      collectItem();\n    }\n    \n    if (c < SIZE - 1) {\n      moveForward();\n    }\n  }\n  \n  // Return to start of row (Raster scan)\n  turnAround();\n  for(let k=0; k<SIZE-1; k++) {\n    moveForward();\n  }\n  turnAround(); // Face right again\n  \n  // Move to next row if not last\n  if (r < SIZE - 1) {\n    turnRight();\n    moveForward();\n    turnLeft();\n  }\n}\n```\n\n**Alternative simpler logic for template**:\n```js\n// Solution\nfor (let r = 0; r < SIZE; r++) {\n  for (let c = 0; c < SIZE; c++) {\n    if ((r + c) % 2 == 1) {\n       collectItem();\n    }\n    if (c < SIZE - 1) moveForward();\n  }\n  \n  // Return to start of row (Raster scan style)\n  turnAround();\n  for(let k=0; k<SIZE-1; k++) moveForward();\n  turnLeft();\n  moveForward(); // Next row\n  turnLeft();\n}\n```\n*Refining for final Markdown*:\n\n```js\n// Parameters\nvar _MIN_SIZE_ = 3;\nvar _MAX_SIZE_ = 4;\nvar SIZE = random(_MIN_SIZE_, _MAX_SIZE_);\n\n// Solution\nfor (let r = 0; r < SIZE; r++) {\n  for (let c = 0; c < SIZE; c++) {\n    if ((r + c) % 2 == 1) {\n       collectItem();\n    }\n    if (c < SIZE - 1) moveForward();\n  }\n  \n  // Prepare for next row (if not last)\n  if (r < SIZE - 1) {\n    turnAround();\n    for(let k=0; k<SIZE-1; k++) moveForward();\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "logic-simple-parity",
+      "name": "Simple Parity",
+      "category": "logic",
+      "concepts": [
+        "conditional",
+        "modulo"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "logic",
+        "parity",
+        "even_odd"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Simple alternating pattern - collect every other step"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_STEPS_",
+        "displayName": "Min Steps",
+        "type": "number",
+        "defaultValue": 4
+      },
+      {
+        "name": "_MAX_STEPS_",
+        "displayName": "Max Steps",
+        "type": "number",
+        "defaultValue": 6
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Collect at every other position\nmoveForward();\n\nfor (let i = 0; i < STEPS; i++) {\n  collectItem();\n  moveForward();\n  moveForward();\n}",
+    "descriptionMarkdown": "# Simple Parity\n\nA simple introduction to parity (even/odd) logic.\n\n## Learning Goals\n- Understand even/odd pattern\n- Recognize alternating sequences\n\n## Solution & Parameters",
+    "rawContent": "---\nid: logic-simple-parity\nname: \"Simple Parity\"\ncategory: logic\nconcepts: [\"conditional\", \"modulo\"]\ndifficulty: 2\ntags: [\"logic\", \"parity\", \"even_odd\"]\nauthor: system\nversion: 1\ndescription: \"Simple alternating pattern - collect every other step\"\n---\n\n# Simple Parity\n\nA simple introduction to parity (even/odd) logic.\n\n## Learning Goals\n- Understand even/odd pattern\n- Recognize alternating sequences\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Collect at every other position\nmoveForward();\n\nfor (let i = 0; i < STEPS; i++) {\n  collectItem();\n  moveForward();\n  moveForward();\n}\n```\n"
   },
   {
     "metadata": {
@@ -1078,117 +1151,40 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
   },
   {
     "metadata": {
-      "id": "search-binary",
-      "name": "Binary Search Sim",
-      "category": "search",
+      "id": "prog-simple-increase",
+      "name": "Simple Increase",
+      "category": "progression",
       "concepts": [
-        "loop",
-        "search",
-        "divide_conquer"
+        "variable",
+        "arithmetic_progression"
       ],
-      "difficulty": 5,
+      "difficulty": 2,
       "tags": [
-        "search",
-        "algorithm",
-        "binary",
-        "logarithmic"
+        "math",
+        "progression",
+        "increment"
       ],
       "author": "system",
       "version": 1,
-      "description": "Go to middle, turn, then collect - simulating binary search"
+      "description": "Simple increasing pattern (1, 2, 3 steps)"
     },
     "parameters": [
       {
-        "name": "_MIN_DIST_",
-        "displayName": "Min Dist",
-        "type": "number",
-        "defaultValue": 3
-      },
-      {
-        "name": "_MAX_DIST_",
-        "displayName": "Max Dist",
-        "type": "number",
-        "defaultValue": 5
-      }
-    ],
-    "solutionCode": "// Parameters\nvar _MIN_DIST_ = 3;\nvar _MAX_DIST_ = 5;\nvar DIST = random(_MIN_DIST_, _MAX_DIST_);\n\n// Solution\n// 1. Go to Middle\nfor (let i = 0; i < DIST; i++) {\n  moveForward();\n}\ncollectItem();\n\n// 2. Turn and go to sub-section\nturnRight();\nfor (let j = 0; j < DIST / 2; j++) {\n  moveForward();\n}\ncollectItem();",
-    "descriptionMarkdown": "# Binary Search Simulation\n\nA physical representation of the Binary Search logic.\n\n## Academic Concept: Binary Search ($O(log N)$)\n- Go to middle.\n- Check and collect.\n- Go to sub-section.\n\n## Solution & Parameters",
-    "rawContent": "---\nid: search-binary\nname: \"Binary Search Sim\"\ncategory: search\nconcepts: [\"loop\", \"search\", \"divide_conquer\"]\ndifficulty: 5\ntags: [\"search\", \"algorithm\", \"binary\", \"logarithmic\"]\nauthor: system\nversion: 1\ndescription: \"Go to middle, turn, then collect - simulating binary search\"\n---\n\n# Binary Search Simulation\n\nA physical representation of the Binary Search logic.\n\n## Academic Concept: Binary Search ($O(log N)$)\n- Go to middle.\n- Check and collect.\n- Go to sub-section.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_DIST_ = 3;\nvar _MAX_DIST_ = 5;\nvar DIST = random(_MIN_DIST_, _MAX_DIST_);\n\n// Solution\n// 1. Go to Middle\nfor (let i = 0; i < DIST; i++) {\n  moveForward();\n}\ncollectItem();\n\n// 2. Turn and go to sub-section\nturnRight();\nfor (let j = 0; j < DIST / 2; j++) {\n  moveForward();\n}\ncollectItem();\n```\n"
-  },
-  {
-    "metadata": {
-      "id": "search-linear",
-      "name": "Linear Search",
-      "category": "search",
-      "concepts": [
-        "loop",
-        "search"
-      ],
-      "difficulty": 4,
-      "tags": [
-        "search",
-        "algorithm",
-        "linear"
-      ],
-      "author": "system",
-      "version": 1,
-      "description": "Move along a line, checking each spot and collecting crystals"
-    },
-    "parameters": [
-      {
-        "name": "_MIN_LEN_",
-        "displayName": "Min Len",
-        "type": "number",
-        "defaultValue": 4
-      },
-      {
-        "name": "_MAX_LEN_",
-        "displayName": "Max Len",
-        "type": "number",
-        "defaultValue": 6
-      }
-    ],
-    "solutionCode": "// Parameters\nvar _MIN_LEN_ = 4;\nvar _MAX_LEN_ = 6;\nvar LEN = random(_MIN_LEN_, _MAX_LEN_);\n\n// Solution\n// Walk the path and collect crystals along the way\nfor (let i = 0; i < LEN; i++) {\n  moveForward();\n  collectItem();\n}",
-    "descriptionMarkdown": "# Linear Search\n\nClassic search algorithm: check every item until you find what you need.\n\n## Academic Concept: Linear Search ($O(N)$)\n- Iterate through array/path.\n- Check condition at each step.\n- Collect if found.\n\n## Solution & Parameters",
-    "rawContent": "---\nid: search-linear\nname: \"Linear Search\"\ncategory: search\nconcepts: [\"loop\", \"search\"]\ndifficulty: 4\ntags: [\"search\", \"algorithm\", \"linear\"]\nauthor: system\nversion: 1\ndescription: \"Move along a line, checking each spot and collecting crystals\"\n---\n\n# Linear Search\n\nClassic search algorithm: check every item until you find what you need.\n\n## Academic Concept: Linear Search ($O(N)$)\n- Iterate through array/path.\n- Check condition at each step.\n- Collect if found.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_LEN_ = 4;\nvar _MAX_LEN_ = 6;\nvar LEN = random(_MIN_LEN_, _MAX_LEN_);\n\n// Solution\n// Walk the path and collect crystals along the way\nfor (let i = 0; i < LEN; i++) {\n  moveForward();\n  collectItem();\n}\n```\n"
-  },
-  {
-    "metadata": {
-      "id": "sort-selection",
-      "name": "Selection Sort Sim",
-      "category": "search",
-      "concepts": [
-        "nested_loop",
-        "search",
-        "sorting"
-      ],
-      "difficulty": 6,
-      "tags": [
-        "sorting",
-        "algorithm",
-        "selection"
-      ],
-      "author": "system",
-      "version": 1,
-      "description": "Scan row, find item, bring it back. Repeat."
-    },
-    "parameters": [
-      {
-        "name": "_MIN_ITEMS_",
-        "displayName": "Min Items",
+        "name": "_MIN_GROUPS_",
+        "displayName": "Min Groups",
         "type": "number",
         "defaultValue": 2
       },
       {
-        "name": "_MAX_ITEMS_",
-        "displayName": "Max Items",
+        "name": "_MAX_GROUPS_",
+        "displayName": "Max Groups",
         "type": "number",
         "defaultValue": 3
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_ITEMS_ = 2;\nvar _MAX_ITEMS_ = 3;\nvar ITEMS = random(_MIN_ITEMS_, _MAX_ITEMS_);\nvar UNIVERSE_SIZE = 4;\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\nfor (let i = 0; i < ITEMS; i++) {\n  // 1. Search Phase (Go out)\n  for(let k=0; k<UNIVERSE_SIZE; k++) {\n     moveForward();\n  }\n  \n  // 2. Action (Simulate \"Select\")\n  collectItem();\n  turnAround();\n  \n  // 3. Return Phase (Place)\n  for(let k=0; k<UNIVERSE_SIZE; k++) {\n     moveForward();\n  }\n  \n  // 4. Next Iteration setup\n  turnAround();\n}",
-    "descriptionMarkdown": "# Selection Sort Simulation\n\nSimulates the mechanic of finding the \"best\" item and placing it.\n\n## Academic Concept: Selection Sort ($O(N^2)$)\n- Find min/max in unsorted part.\n- Swap/Move to sorted part.\n\n## Solution & Parameters",
-    "rawContent": "---\nid: sort-selection\nname: \"Selection Sort Sim\"\ncategory: search\nconcepts: [\"nested_loop\", \"search\", \"sorting\"]\ndifficulty: 6\ntags: [\"sorting\", \"algorithm\", \"selection\"]\nauthor: system\nversion: 1\ndescription: \"Scan row, find item, bring it back. Repeat.\"\n---\n\n# Selection Sort Simulation\n\nSimulates the mechanic of finding the \"best\" item and placing it.\n\n## Academic Concept: Selection Sort ($O(N^2)$)\n- Find min/max in unsorted part.\n- Swap/Move to sorted part.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_ITEMS_ = 2;\nvar _MAX_ITEMS_ = 3;\nvar ITEMS = random(_MIN_ITEMS_, _MAX_ITEMS_);\nvar UNIVERSE_SIZE = 4;\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\nfor (let i = 0; i < ITEMS; i++) {\n  // 1. Search Phase (Go out)\n  for(let k=0; k<UNIVERSE_SIZE; k++) {\n     moveForward();\n  }\n  \n  // 2. Action (Simulate \"Select\")\n  collectItem();\n  turnAround();\n  \n  // 3. Return Phase (Place)\n  for(let k=0; k<UNIVERSE_SIZE; k++) {\n     moveForward();\n  }\n  \n  // 4. Next Iteration setup\n  turnAround();\n}\n```\n"
+    "solutionCode": "// Parameters\nvar _MIN_GROUPS_ = 2;\nvar _MAX_GROUPS_ = 3;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Solution\n// Walk 1 step, then 2 steps, then 3 steps\nmoveForward();\n\nfor (let group = 1; group <= GROUPS; group++) {\n  for (let step = 0; step < group; step++) {\n    collectItem();\n    moveForward();\n  }\n  turnRight();\n  moveForward();\n  turnLeft();\n}",
+    "descriptionMarkdown": "# Simple Increase\n\nA simple introduction to increasing patterns.\n\n## Learning Goals\n- Recognize increasing sequences\n- Understand progression\n\n## Solution & Parameters",
+    "rawContent": "---\nid: prog-simple-increase\nname: \"Simple Increase\"\ncategory: progression\nconcepts: [\"variable\", \"arithmetic_progression\"]\ndifficulty: 2\ntags: [\"math\", \"progression\", \"increment\"]\nauthor: system\nversion: 1\ndescription: \"Simple increasing pattern (1, 2, 3 steps)\"\n---\n\n# Simple Increase\n\nA simple introduction to increasing patterns.\n\n## Learning Goals\n- Recognize increasing sequences\n- Understand progression\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_GROUPS_ = 2;\nvar _MAX_GROUPS_ = 3;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Solution\n// Walk 1 step, then 2 steps, then 3 steps\nmoveForward();\n\nfor (let group = 1; group <= GROUPS; group++) {\n  for (let step = 0; step < group; step++) {\n    collectItem();\n    moveForward();\n  }\n  turnRight();\n  moveForward();\n  turnLeft();\n}\n```\n"
   },
   {
     "metadata": {
@@ -1310,5 +1306,79 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
     "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 5;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Simple sequence of move and collect\nmoveForward();\n\nfor (let i = 0; i < STEPS; i++) {\n  moveForward();\n  collectItem();\n}\nmoveForward();",
     "descriptionMarkdown": "# Simple Sequence\n\nLearn the basics of sequential programming by executing commands in order.\n\n## Learning Goals\n- Understand sequential execution\n- Practice basic commands\n- Learn that each command runs one after another\n\n## Solution & Parameters",
     "rawContent": "---\nid: simple-sequence\nname: \"Simple Sequence\"\ncategory: sequential\nconcepts: [\"sequential\"]\ndifficulty: 1\ntags: [\"moveForward\", \"collectItem\", \"basic\", \"sequence\"]\nauthor: system\nversion: 1\ndescription: \"Sequential commands without loops - basic movement and collection\"\n---\n\n# Simple Sequence\n\nLearn the basics of sequential programming by executing commands in order.\n\n## Learning Goals\n- Understand sequential execution\n- Practice basic commands\n- Learn that each command runs one after another\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 5;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Simple sequence of move and collect\nmoveForward();\n\nfor (let i = 0; i < STEPS; i++) {\n  moveForward();\n  collectItem();\n}\nmoveForward();\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "var-accumulator",
+      "name": "Accumulator Variable",
+      "category": "variable",
+      "concepts": [
+        "accumulator",
+        "variable"
+      ],
+      "difficulty": 3,
+      "tags": [
+        "variable",
+        "sum",
+        "accumulator"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Use an accumulator to collect increasing amounts"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_ROUNDS_",
+        "displayName": "Min Rounds",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MAX_ROUNDS_",
+        "displayName": "Max Rounds",
+        "type": "number",
+        "defaultValue": 4
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_ROUNDS_ = 2;\nvar _MAX_ROUNDS_ = 4;\nvar ROUNDS = random(_MIN_ROUNDS_, _MAX_ROUNDS_);\n\n// Solution\n// Collect 1, then 2, then 3 crystals per round\nmoveForward();\n\nfor (let round = 1; round <= ROUNDS; round++) {\n  for (let i = 0; i < round; i++) {\n    collectItem();\n    moveForward();\n  }\n  turnRight();\n}",
+    "descriptionMarkdown": "# Accumulator Variable\n\nUse a variable to accumulate values (like sum = sum + i).\n\n## Learning Goals\n- Understand accumulator pattern\n- Update variable inside loop\n- Track running total\n\n## Solution & Parameters",
+    "rawContent": "---\nid: var-accumulator\nname: \"Accumulator Variable\"\ncategory: variable\nconcepts: [\"accumulator\", \"variable\"]\ndifficulty: 3\ntags: [\"variable\", \"sum\", \"accumulator\"]\nauthor: system\nversion: 1\ndescription: \"Use an accumulator to collect increasing amounts\"\n---\n\n# Accumulator Variable\n\nUse a variable to accumulate values (like sum = sum + i).\n\n## Learning Goals\n- Understand accumulator pattern\n- Update variable inside loop\n- Track running total\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_ROUNDS_ = 2;\nvar _MAX_ROUNDS_ = 4;\nvar ROUNDS = random(_MIN_ROUNDS_, _MAX_ROUNDS_);\n\n// Solution\n// Collect 1, then 2, then 3 crystals per round\nmoveForward();\n\nfor (let round = 1; round <= ROUNDS; round++) {\n  for (let i = 0; i < round; i++) {\n    collectItem();\n    moveForward();\n  }\n  turnRight();\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "var-counter",
+      "name": "Counter Variable",
+      "category": "variable",
+      "concepts": [
+        "counter",
+        "variable"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "variable",
+        "counter",
+        "accumulator"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Use a counter variable to track collected crystals"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_COUNT_",
+        "displayName": "Min Count",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_MAX_COUNT_",
+        "displayName": "Max Count",
+        "type": "number",
+        "defaultValue": 5
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_COUNT_ = 3;\nvar _MAX_COUNT_ = 5;\nvar COUNT = random(_MIN_COUNT_, _MAX_COUNT_);\n\n// Solution\n// Use counter to collect COUNT items\nmoveForward();\n\nfor (let i = 0; i < COUNT; i++) {\n  collectItem();\n  moveForward();\n}",
+    "descriptionMarkdown": "# Counter Variable\n\nLearn to use a variable as a counter to track progress.\n\n## Learning Goals\n- Understand variable concept\n- Increment a counter\n- Use counter in loop\n\n## Solution & Parameters",
+    "rawContent": "---\nid: var-counter\nname: \"Counter Variable\"\ncategory: variable\nconcepts: [\"counter\", \"variable\"]\ndifficulty: 2\ntags: [\"variable\", \"counter\", \"accumulator\"]\nauthor: system\nversion: 1\ndescription: \"Use a counter variable to track collected crystals\"\n---\n\n# Counter Variable\n\nLearn to use a variable as a counter to track progress.\n\n## Learning Goals\n- Understand variable concept\n- Increment a counter\n- Use counter in loop\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_COUNT_ = 3;\nvar _MAX_COUNT_ = 5;\nvar COUNT = random(_MIN_COUNT_, _MAX_COUNT_);\n\n// Solution\n// Use counter to collect COUNT items\nmoveForward();\n\nfor (let i = 0; i < COUNT; i++) {\n  collectItem();\n  moveForward();\n}\n```\n"
   }
 ];

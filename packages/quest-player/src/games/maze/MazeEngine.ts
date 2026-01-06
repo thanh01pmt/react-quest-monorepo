@@ -61,6 +61,9 @@ export class MazeEngine implements IMazeEngine {
   private interpreter: any | null = null;
   private highlightedBlockId: string | null = null;
   private executedAction: boolean = false;
+  
+  // Item goals for Random Item Mode (itemGoals < totalItems)
+  private itemGoals: { crystal?: number; key?: number } = {};
 
   constructor(gameConfig: GameConfig) {
     const config = gameConfig as MazeConfig;
@@ -225,6 +228,21 @@ export class MazeEngine implements IMazeEngine {
     return this.notDone();
   }
 
+  /** Set item goals for Random Item Mode (when itemGoals < totalItems on map) */
+  public setItemGoals(goals: { crystal?: number; key?: number }): void {
+    this.itemGoals = goals;
+  }
+
+  /** Get remaining items to collect (goal - collected). Only meaningful when itemGoals < totalItems. */
+  public countItemsRemaining(itemType: 'any' | 'crystal' | 'key' = 'crystal'): number {
+    const totalOnMap = this.initialGameState.collectibles.filter(
+      c => itemType === 'any' || c.type === itemType
+    ).length;
+    const goal = this.itemGoals[itemType as 'crystal' | 'key'] ?? totalOnMap;
+    const collected = this.getItemCount(itemType);
+    return Math.max(0, goal - collected);
+  }
+
   // ============================================
   // OOP-Lite API for multi-character support (Phase 3)
   // ============================================
@@ -315,6 +333,7 @@ export class MazeEngine implements IMazeEngine {
       interpreter.setProperty(globalObject, 'collectItem', createWrapper(this.collectItem.bind(this), true));
       interpreter.setProperty(globalObject, 'isItemPresent', createWrapper(this.isItemPresent.bind(this), false));
       interpreter.setProperty(globalObject, 'getItemCount', createWrapper(this.getItemCount.bind(this), false));
+      interpreter.setProperty(globalObject, 'countItemsRemaining', createWrapper(this.countItemsRemaining.bind(this), false));
       interpreter.setProperty(globalObject, 'placeBlock', createWrapper(() => {}, true));
       interpreter.setProperty(globalObject, 'removeBlock', createWrapper(() => {}, true));
       interpreter.setProperty(globalObject, 'toggleSwitch', createWrapper(this.toggleSwitch.bind(this), true));

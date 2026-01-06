@@ -206,6 +206,13 @@ export function init(t: TFunction) {
       "style": "math_blocks",
       "tooltip": "Returns the number of collected items of the specified type.",
     },
+    {
+      "type": "maze_items_remaining",
+      "message0": t('Maze.itemsRemaining', 'items remaining'),
+      "output": "Number",
+      "style": "math_blocks",
+      "tooltip": "Returns how many more items need to be collected to complete the goal.",
+    },
   ]);
 
   // Start block - Remove leading indentation from statementToCode output
