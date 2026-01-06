@@ -43,6 +43,118 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
   },
   {
     "metadata": {
+      "id": "decomp-flower",
+      "name": "Flower Pattern",
+      "category": "decomposition",
+      "concepts": [
+        "function",
+        "geometry",
+        "nested_loop"
+      ],
+      "difficulty": 5,
+      "tags": [
+        "function",
+        "pattern",
+        "radial"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Draw petals around a center point"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_LEN_",
+        "displayName": "Min Len",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MAX_LEN_",
+        "displayName": "Max Len",
+        "type": "number",
+        "defaultValue": 3
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_LEN_ = 2;\nvar _MAX_LEN_ = 3;\nvar LEN = random(_MIN_LEN_, _MAX_LEN_);\n\n// Solution\nfunction drawPetal() {\n  // Go out\n  for(var i=0; i<LEN; i++) { \n    moveForward(); \n    collectItem(); \n  }\n  // Return\n  turnAround();\n  for(var i=0; i<LEN; i++) { \n    moveForward(); \n  }\n  // Face next direction (90 deg rot)\n  turnAround();\n  turnRight();\n}\n\n// Main\nfor(var k=0; k<4; k++) {\n  drawPetal();\n}",
+    "descriptionMarkdown": "# Flower Pattern\n\nA radial pattern where the code draws a \"petal\" and returns to center.\n\n## Academic Concept: Radial Symmetry / Reset State\n- Function must Perform Action AND Return to initial state (Center, Facing Out) to be reusable in a loop.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: decomp-flower\nname: \"Flower Pattern\"\ncategory: decomposition\nconcepts: [\"function\", \"geometry\", \"nested_loop\"]\ndifficulty: 5\ntags: [\"function\", \"pattern\", \"radial\"]\nauthor: system\nversion: 1\ndescription: \"Draw petals around a center point\"\n---\n\n# Flower Pattern\n\nA radial pattern where the code draws a \"petal\" and returns to center.\n\n## Academic Concept: Radial Symmetry / Reset State\n- Function must Perform Action AND Return to initial state (Center, Facing Out) to be reusable in a loop.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_LEN_ = 2;\nvar _MAX_LEN_ = 3;\nvar LEN = random(_MIN_LEN_, _MAX_LEN_);\n\n// Solution\nfunction drawPetal() {\n  // Go out\n  for(var i=0; i<LEN; i++) { \n    moveForward(); \n    collectItem(); \n  }\n  // Return\n  turnAround();\n  for(var i=0; i<LEN; i++) { \n    moveForward(); \n  }\n  // Face next direction (90 deg rot)\n  turnAround();\n  turnRight();\n}\n\n// Main\nfor(var k=0; k<4; k++) {\n  drawPetal();\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "decomp-square",
+      "name": "Square Function",
+      "category": "decomposition",
+      "concepts": [
+        "function",
+        "geometry"
+      ],
+      "difficulty": 3,
+      "tags": [
+        "function",
+        "reuse",
+        "square"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Use a 'Side' function to draw a square"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_LEN_",
+        "displayName": "Min Len",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MAX_LEN_",
+        "displayName": "Max Len",
+        "type": "number",
+        "defaultValue": 4
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_LEN_ = 2;\nvar _MAX_LEN_ = 4;\nvar LEN = random(_MIN_LEN_, _MAX_LEN_);\n\n// Solution\nfunction drawSide() {\n  for(var i=0; i<LEN; i++) {\n    collectItem();\n    moveForward();\n  }\n  turnRight();\n}\n\n// Main logic\nfor(var k=0; k<4; k++) {\n  drawSide();\n}",
+    "descriptionMarkdown": "# Square Function\n\nDecompose the square into 4 identical sides.\n\n## Academic Concept: Decomposition\n- Complex Task: Draw Square\n- Sub-Task: Draw Line + Turn\n- Composition: Repeat(Sub-Task, 4)\n\n## Solution & Parameters",
+    "rawContent": "---\nid: decomp-square\nname: \"Square Function\"\ncategory: decomposition\nconcepts: [\"function\", \"geometry\"]\ndifficulty: 3\ntags: [\"function\", \"reuse\", \"square\"]\nauthor: system\nversion: 1\ndescription: \"Use a 'Side' function to draw a square\"\n---\n\n# Square Function\n\nDecompose the square into 4 identical sides.\n\n## Academic Concept: Decomposition\n- Complex Task: Draw Square\n- Sub-Task: Draw Line + Turn\n- Composition: Repeat(Sub-Task, 4)\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_LEN_ = 2;\nvar _MAX_LEN_ = 4;\nvar LEN = random(_MIN_LEN_, _MAX_LEN_);\n\n// Solution\nfunction drawSide() {\n  for(var i=0; i<LEN; i++) {\n    collectItem();\n    moveForward();\n  }\n  turnRight();\n}\n\n// Main logic\nfor(var k=0; k<4; k++) {\n  drawSide();\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "decomp-stair",
+      "name": "Staircase Function",
+      "category": "decomposition",
+      "concepts": [
+        "function",
+        "procedure"
+      ],
+      "difficulty": 3,
+      "tags": [
+        "function",
+        "staircase",
+        "automation"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Use a 'Step' function to climb a staircase"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_HEIGHT_",
+        "displayName": "Min Height",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_MAX_HEIGHT_",
+        "displayName": "Max Height",
+        "type": "number",
+        "defaultValue": 6
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_HEIGHT_ = 3;\nvar _MAX_HEIGHT_ = 6;\nvar HEIGHT = random(_MIN_HEIGHT_, _MAX_HEIGHT_);\n\n// Solution\nfunction climbStep() {\n  moveForward();\n  jump();\n  moveForward();\n  collectItem();\n}\n\n// Main\nfor(var i=0; i<HEIGHT; i++) {\n  climbStep();\n}",
+    "descriptionMarkdown": "# Staircase Function\n\nDecompose climbing into a single \"Step Up\" action.\n\n## Academic Concept: Procedural Abstraction\n- Abstract \"Move, Jump, Move\" into \"ClimbStep()\"\n\n## Solution & Parameters",
+    "rawContent": "---\nid: decomp-stair\nname: \"Staircase Function\"\ncategory: decomposition\nconcepts: [\"function\", \"procedure\"]\ndifficulty: 3\ntags: [\"function\", \"staircase\", \"automation\"]\nauthor: system\nversion: 1\ndescription: \"Use a 'Step' function to climb a staircase\"\n---\n\n# Staircase Function\n\nDecompose climbing into a single \"Step Up\" action.\n\n## Academic Concept: Procedural Abstraction\n- Abstract \"Move, Jump, Move\" into \"ClimbStep()\"\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_HEIGHT_ = 3;\nvar _MAX_HEIGHT_ = 6;\nvar HEIGHT = random(_MIN_HEIGHT_, _MAX_HEIGHT_);\n\n// Solution\nfunction climbStep() {\n  moveForward();\n  jump();\n  moveForward();\n  collectItem();\n}\n\n// Main\nfor(var i=0; i<HEIGHT; i++) {\n  climbStep();\n}\n```\n"
+  },
+  {
+    "metadata": {
       "id": "collect-procedure",
       "name": "Collect Procedure",
       "category": "function",
@@ -161,6 +273,161 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
     "solutionCode": "// Parameters\nvar _MIN_COUNT_ = 3;\nvar _MAX_COUNT_ = 5;\nvar COUNT = random(_MIN_COUNT_, _MAX_COUNT_);\n\n// Solution\nfunction zigZagStep() {\n  moveForward();\n  turnRight();\n  moveForward();\n  turnLeft();\n  collectItem();\n}\n\nmoveForward();\n\nfor (let i = 0; i < COUNT; i++) {\n  zigZagStep();\n}\n\nmoveForward();",
     "descriptionMarkdown": "# Zigzag Procedure\n\nDefine a function for a complex movement pattern and reuse it.\n\n## Solution & Parameters",
     "rawContent": "---\nid: zigzag-procedure\nname: \"Zigzag Procedure\"\ncategory: function\nconcepts: [\"procedure_simple\"]\ndifficulty: 4\ntags: [\"procedure\", \"function\", \"zigzag\"]\nauthor: system\nversion: 1\ndescription: \"Create a reusable function to move in a zigzag\"\n---\n\n# Zigzag Procedure\n\nDefine a function for a complex movement pattern and reuse it.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_COUNT_ = 3;\nvar _MAX_COUNT_ = 5;\nvar COUNT = random(_MIN_COUNT_, _MAX_COUNT_);\n\n// Solution\nfunction zigZagStep() {\n  moveForward();\n  turnRight();\n  moveForward();\n  turnLeft();\n  collectItem();\n}\n\nmoveForward();\n\nfor (let i = 0; i < COUNT; i++) {\n  zigZagStep();\n}\n\nmoveForward();\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "logic-alt-interact",
+      "name": "Alternating Interaction",
+      "category": "logic",
+      "concepts": [
+        "loop",
+        "conditional",
+        "modulo"
+      ],
+      "difficulty": 4,
+      "tags": [
+        "logic",
+        "parity",
+        "switch",
+        "collect"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Alternate between collecting Item and toggling Switch"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_PAIRS_",
+        "displayName": "Min Pairs",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_MAX_PAIRS_",
+        "displayName": "Max Pairs",
+        "type": "number",
+        "defaultValue": 5
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_PAIRS_ = 3;\nvar _MAX_PAIRS_ = 5;\nvar PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);\nvar STEPS = PAIRS * 2;\n\n// Solution\nfor (var i = 0; i < STEPS; i++) {\n  moveForward();\n  \n  if (i % 2 == 0) {\n    collectItem();\n  } else {\n    toggleSwitch();\n  }\n}",
+    "descriptionMarkdown": "# Alternating Interaction\n\nA complex task requiring the student to recognize two interleaved patterns.\n\n## Academic Concept: Parity (Modulo 2)\n- Even steps: Collect Crystal\n- Odd steps: Toggle Switch\n\n## Solution & Parameters",
+    "rawContent": "---\nid: logic-alt-interact\nname: \"Alternating Interaction\"\ncategory: logic\nconcepts: [\"loop\", \"conditional\", \"modulo\"]\ndifficulty: 4\ntags: [\"logic\", \"parity\", \"switch\", \"collect\"]\nauthor: system\nversion: 1\ndescription: \"Alternate between collecting Item and toggling Switch\"\n---\n\n# Alternating Interaction\n\nA complex task requiring the student to recognize two interleaved patterns.\n\n## Academic Concept: Parity (Modulo 2)\n- Even steps: Collect Crystal\n- Odd steps: Toggle Switch\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_PAIRS_ = 3;\nvar _MAX_PAIRS_ = 5;\nvar PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);\nvar STEPS = PAIRS * 2;\n\n// Solution\nfor (var i = 0; i < STEPS; i++) {\n  moveForward();\n  \n  if (i % 2 == 0) {\n    collectItem();\n  } else {\n    toggleSwitch();\n  }\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "logic-alt-move",
+      "name": "Alternating Move",
+      "category": "logic",
+      "concepts": [
+        "loop",
+        "conditional",
+        "modulo"
+      ],
+      "difficulty": 3,
+      "tags": [
+        "logic",
+        "parity",
+        "even_odd"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Alternate between walking and jumping (Step, Jump, Step, Jump...)"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_STEPS_",
+        "displayName": "Min Steps",
+        "type": "number",
+        "defaultValue": 4
+      },
+      {
+        "name": "_MAX_STEPS_",
+        "displayName": "Max Steps",
+        "type": "number",
+        "defaultValue": 8
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 8;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nfor (var i = 0; i < STEPS; i++) {\n  if (i % 2 == 0) {\n    // Even: Walk\n    moveForward();\n  } else {\n    // Odd: Jump\n    jump();\n  }\n}",
+    "descriptionMarkdown": "# Alternating Move\n\nA pattern that changes action based on whether the step count is Odd or Even.\n\n## Academic Concept: Parity (Modulo 2)\n- Logic: `if (i % 2 == 0) ActionA else ActionB`\n\n## Solution & Parameters",
+    "rawContent": "---\nid: logic-alt-move\nname: \"Alternating Move\"\ncategory: logic\nconcepts: [\"loop\", \"conditional\", \"modulo\"]\ndifficulty: 3\ntags: [\"logic\", \"parity\", \"even_odd\"]\nauthor: system\nversion: 1\ndescription: \"Alternate between walking and jumping (Step, Jump, Step, Jump...)\"\n---\n\n# Alternating Move\n\nA pattern that changes action based on whether the step count is Odd or Even.\n\n## Academic Concept: Parity (Modulo 2)\n- Logic: `if (i % 2 == 0) ActionA else ActionB`\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 8;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nfor (var i = 0; i < STEPS; i++) {\n  if (i % 2 == 0) {\n    // Even: Walk\n    moveForward();\n  } else {\n    // Odd: Jump\n    jump();\n  }\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "logic-checkerboard",
+      "name": "Logic Checkerboard",
+      "category": "logic",
+      "concepts": [
+        "nested_loop",
+        "conditional",
+        "coordinates"
+      ],
+      "difficulty": 5,
+      "tags": [
+        "logic",
+        "grid",
+        "checkerboard",
+        "2d_array"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Traverse a grid and interact only on 'Black' squares (checkerboard pattern)"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_SIZE_",
+        "displayName": "Min Size",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_MAX_SIZE_",
+        "displayName": "Max Size",
+        "type": "number",
+        "defaultValue": 4
+      }
+    ],
+    "solutionCode": "// Solution\nfor (var r = 0; r < SIZE; r++) {\n  for (var c = 0; c < SIZE; c++) {\n    if ((r + c) % 2 == 1) {\n       collectItem();\n    }\n    if (c < SIZE - 1) moveForward();\n  }\n  \n  // Return to start of row (Raster scan style)\n  turnAround();\n  for(var k=0; k<SIZE-1; k++) moveForward();\n  turnLeft();\n  moveForward(); // Next row\n  turnLeft();\n}",
+    "descriptionMarkdown": "# Logic Checkerboard\n\nTraverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a parity condition.\n\n## Academic Concept: 2D Parity\n- White square: `(row + col) % 2 == 0`\n- Black square: `(row + col) % 2 == 1`\n\n## Solution & Parameters\n\n\n\n**Alternative simpler logic for template**:\n\n*Refining for final Markdown*:",
+    "rawContent": "---\nid: logic-checkerboard\nname: \"Logic Checkerboard\"\ncategory: logic\nconcepts: [\"nested_loop\", \"conditional\", \"coordinates\"]\ndifficulty: 5\ntags: [\"logic\", \"grid\", \"checkerboard\", \"2d_array\"]\nauthor: system\nversion: 1\ndescription: \"Traverse a grid and interact only on 'Black' squares (checkerboard pattern)\"\n---\n\n# Logic Checkerboard\n\nTraverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a parity condition.\n\n## Academic Concept: 2D Parity\n- White square: `(row + col) % 2 == 0`\n- Black square: `(row + col) % 2 == 1`\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_SIZE_ = 3;\nvar _MAX_SIZE_ = 4;\nvar SIZE = random(_MIN_SIZE_, _MAX_SIZE_);\n\n// Solution\n// Simple snake traversal Logic\nfor (var row = 0; row < SIZE; row++) {\n  for (var col = 0; col < SIZE; col++) {\n    \n    // Check Parity\n    if ((row + col) % 2 == 1) {\n      collectItem();\n    }\n    \n    if (col < SIZE - 1) {\n      moveForward();\n    }\n  }\n  \n  // Turn for next row (Snake pattern simplified for template)\n  if (row < SIZE - 1) {\n    turnRight();\n    moveForward();\n    turnRight();\n    moveForward(); // Re-align (This mimics snake return or creates a simple raster scan with flyback if we don't snake perfectly. For specific \"Snake\", we need logic to alternate turns. Let's keep it simple: Raster Scan - walk back)\n    turnAround(); \n    // Wait, Raster Scan with walk back is safer for solution generator without snaking logic complexity\n    // ACTUALLY: Let's use clean Move/Turn logic for grid\n  }\n}\n\n// NOTE: The above logic for turns is tricky in 1D code. \n// Let's us a simpler \"Row Clearing\" function approach to ensure valid path.\n```\n\n**Alternative simpler logic for template**:\n```js\n// Solution\nfor (var r = 0; r < SIZE; r++) {\n  for (var c = 0; c < SIZE; c++) {\n    if ((r + c) % 2 == 1) {\n       collectItem();\n    }\n    if (c < SIZE - 1) moveForward();\n  }\n  \n  // Return to start of row (Raster scan style)\n  turnAround();\n  for(var k=0; k<SIZE-1; k++) moveForward();\n  turnLeft();\n  moveForward(); // Next row\n  turnLeft();\n}\n```\n*Refining for final Markdown*:\n\n```js\n// Parameters\nvar _MIN_SIZE_ = 3;\nvar _MAX_SIZE_ = 4;\nvar SIZE = random(_MIN_SIZE_, _MAX_SIZE_);\n\n// Solution\nfor (var r = 0; r < SIZE; r++) {\n  for (var c = 0; c < SIZE; c++) {\n    if ((r + c) % 2 == 1) {\n       collectItem();\n    }\n    if (c < SIZE - 1) moveForward();\n  }\n  \n  // Prepare for next row (if not last)\n  if (r < SIZE - 1) {\n    turnAround();\n    for(var k=0; k<SIZE-1; k++) moveForward();\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "logic-3-way",
+      "name": "Three-Way Cycle",
+      "category": "logic",
+      "concepts": [
+        "loop",
+        "conditional",
+        "modulo"
+      ],
+      "difficulty": 5,
+      "tags": [
+        "logic",
+        "modulo",
+        "cycle",
+        "pattern"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "A repeating cycle of 3 actions: Move -> Jump -> Collect"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_CYCLES_",
+        "displayName": "Min Cycles",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MAX_CYCLES_",
+        "displayName": "Max Cycles",
+        "type": "number",
+        "defaultValue": 4
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_CYCLES_ = 2;\nvar _MAX_CYCLES_ = 4;\nvar CYCLES = random(_MIN_CYCLES_, _MAX_CYCLES_);\nvar STEPS = CYCLES * 3;\n\n// Solution\nfor (var i = 0; i < STEPS; i++) {\n  var mod = i % 3;\n  \n  if (mod == 0) {\n    moveForward();\n  } else if (mod == 1) {\n    jump();\n  } else {\n    collectItem();\n    moveForward(); // Post-collect move to keep flow\n  }\n}",
+    "descriptionMarkdown": "# Three-Way Cycle\n\nA pattern that repeats every 3 steps, teaching Modulo 3 logic.\n\n## Academic Concept: Modulo N\n- Case 0: Action A\n- Case 1: Action B\n- Case 2: Action C\n\n## Solution & Parameters",
+    "rawContent": "---\nid: logic-3-way\nname: \"Three-Way Cycle\"\ncategory: logic\nconcepts: [\"loop\", \"conditional\", \"modulo\"]\ndifficulty: 5\ntags: [\"logic\", \"modulo\", \"cycle\", \"pattern\"]\nauthor: system\nversion: 1\ndescription: \"A repeating cycle of 3 actions: Move -> Jump -> Collect\"\n---\n\n# Three-Way Cycle\n\nA pattern that repeats every 3 steps, teaching Modulo 3 logic.\n\n## Academic Concept: Modulo N\n- Case 0: Action A\n- Case 1: Action B\n- Case 2: Action C\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_CYCLES_ = 2;\nvar _MAX_CYCLES_ = 4;\nvar CYCLES = random(_MIN_CYCLES_, _MAX_CYCLES_);\nvar STEPS = CYCLES * 3;\n\n// Solution\nfor (var i = 0; i < STEPS; i++) {\n  var mod = i % 3;\n  \n  if (mod == 0) {\n    moveForward();\n  } else if (mod == 1) {\n    jump();\n  } else {\n    collectItem();\n    moveForward(); // Post-collect move to keep flow\n  }\n}\n```\n"
   },
   {
     "metadata": {
@@ -458,6 +725,458 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
     "solutionCode": "// Parameters\nvar _MIN_ZIG_COUNT_ = 3;\nvar _MAX_ZIG_COUNT_ = 5;\nvar ZIG_COUNT = random(_MIN_ZIG_COUNT_, _MAX_ZIG_COUNT_);\n\nvar _MIN_SEGMENT_LENGTH_ = 2;\nvar _MAX_SEGMENT_LENGTH_ = 4;\nvar SEGMENT_LENGTH = random(_MIN_SEGMENT_LENGTH_, _MAX_SEGMENT_LENGTH_);\n\n// Solution\n// Navigate zigzag\nmoveForward();\n\nfor (let i = 0; i < ZIG_COUNT; i++) {\n  for (let j = 0; j < SEGMENT_LENGTH; j++) {\n    moveForward();\n  }\n  turnRight();\n  moveForward();\n  turnLeft();\n}\n\nmoveForward();",
     "descriptionMarkdown": "# Zigzag Path\n\nNavigate through a zigzag path by repeating the turn-forward pattern.\n\n## Learning Goals\n- Use repeat with multiple commands\n- Understand turn directions\n- Recognize zigzag pattern\n\n## Solution & Parameters",
     "rawContent": "---\nid: zigzag-path\nname: \"Zigzag Path\"\ncategory: loop\nconcepts: [\"repeat_n\"]\ndifficulty: 4\ntags: [\"repeat\", \"turn\", \"zigzag\"]\nauthor: system\nversion: 1\ndescription: \"Navigate a zigzag path with turning pattern\"\n---\n\n# Zigzag Path\n\nNavigate through a zigzag path by repeating the turn-forward pattern.\n\n## Learning Goals\n- Use repeat with multiple commands\n- Understand turn directions\n- Recognize zigzag pattern\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_ZIG_COUNT_ = 3;\nvar _MAX_ZIG_COUNT_ = 5;\nvar ZIG_COUNT = random(_MIN_ZIG_COUNT_, _MAX_ZIG_COUNT_);\n\nvar _MIN_SEGMENT_LENGTH_ = 2;\nvar _MAX_SEGMENT_LENGTH_ = 4;\nvar SEGMENT_LENGTH = random(_MIN_SEGMENT_LENGTH_, _MAX_SEGMENT_LENGTH_);\n\n// Solution\n// Navigate zigzag\nmoveForward();\n\nfor (let i = 0; i < ZIG_COUNT; i++) {\n  for (let j = 0; j < SEGMENT_LENGTH; j++) {\n    moveForward();\n  }\n  turnRight();\n  moveForward();\n  turnLeft();\n}\n\nmoveForward();\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "mem-palindrome",
+      "name": "Palindrome Path",
+      "category": "memory",
+      "concepts": [
+        "pattern_recognition",
+        "string_logic"
+      ],
+      "difficulty": 4,
+      "tags": [
+        "pattern",
+        "palindrome",
+        "symmetry"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Execute a symmetrical sequence of actions (e.g., Jump-Move-Jump)"
+    },
+    "parameters": [],
+    "solutionCode": "// Parameters\nvar MID_LENGTH = random(1, 3);\n\n// Solution\n// Start (A)\njump();\nmoveForward();\n\n// Middle (B repeated)\nfor(var i=0; i<MID_LENGTH; i++) {\n  collectItem();\n  moveForward();\n}\n\n// Pivot (C)\nturnRight();\nmoveForward();\nturnRight(); // U-Turn effect (conceptually) or just a pivot point in path\n\n// Middle Mirror (B repeated)\nfor(var i=0; i<MID_LENGTH; i++) {\n  collectItem();\n  moveForward();\n}\n\n// End Mirror (A)\njump();\nmoveForward();",
+    "descriptionMarkdown": "# Palindrome Path\n\nA path where the action sequence reads the same backwards and forwards.\n\n## Academic Concept: Palindrome / Symmetry\n- Sequence: $A, B, C, B, A$\n\n## Solution & Parameters",
+    "rawContent": "---\nid: mem-palindrome\nname: \"Palindrome Path\"\ncategory: memory\nconcepts: [\"pattern_recognition\", \"string_logic\"]\ndifficulty: 4\ntags: [\"pattern\", \"palindrome\", \"symmetry\"]\nauthor: system\nversion: 1\ndescription: \"Execute a symmetrical sequence of actions (e.g., Jump-Move-Jump)\"\n---\n\n# Palindrome Path\n\nA path where the action sequence reads the same backwards and forwards.\n\n## Academic Concept: Palindrome / Symmetry\n- Sequence: $A, B, C, B, A$\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar MID_LENGTH = random(1, 3);\n\n// Solution\n// Start (A)\njump();\nmoveForward();\n\n// Middle (B repeated)\nfor(var i=0; i<MID_LENGTH; i++) {\n  collectItem();\n  moveForward();\n}\n\n// Pivot (C)\nturnRight();\nmoveForward();\nturnRight(); // U-Turn effect (conceptually) or just a pivot point in path\n\n// Middle Mirror (B repeated)\nfor(var i=0; i<MID_LENGTH; i++) {\n  collectItem();\n  moveForward();\n}\n\n// End Mirror (A)\njump();\nmoveForward();\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "mem-return",
+      "name": "Path Return",
+      "category": "memory",
+      "concepts": [
+        "function",
+        "stack",
+        "backtracking"
+      ],
+      "difficulty": 4,
+      "tags": [
+        "memory",
+        "pattern",
+        "inverse"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Walk a path then return to the start (A -> B -> A)"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_DIST_",
+        "displayName": "Min Dist",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MAX_DIST_",
+        "displayName": "Max Dist",
+        "type": "number",
+        "defaultValue": 4
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_DIST_ = 2;\nvar _MAX_DIST_ = 4;\nvar D1 = random(_MIN_DIST_, _MAX_DIST_);\nvar D2 = random(_MIN_DIST_, _MAX_DIST_);\n\n// Solution\n// Forward Phase\nfor(var i=0; i<D1; i++) moveForward();\nturnRight();\nfor(var j=0; j<D2; j++) moveForward();\n\n// Return Phase\nturnAround();\nfor(var j=0; j<D2; j++) moveForward();\nturnLeft(); // Inverse of TurnRight (viewed from return path is tricky, geometrically: Right -> 180 -> Left returns to origin vec)\nfor(var i=0; i<D1; i++) moveForward();\n\nturnAround(); // Restore original facing",
+    "descriptionMarkdown": "# Path Return\n\nWalk a random path, stop, turn around, and walk exactly back to the start.\n\n## Academic Concept: Inverse Operations\n- Operation: `Move` | Inverse: `Move` (after turning 180)\n- Operation: `TurnRight` | Inverse: `TurnLeft`\n- Sequence `[A, B, C]` -> Inverse Sequence `[Inv(C), Inv(B), Inv(A)]` (Stack LIFO)\n\n## Solution & Parameters",
+    "rawContent": "---\nid: mem-return\nname: \"Path Return\"\ncategory: memory\nconcepts: [\"function\", \"stack\", \"backtracking\"]\ndifficulty: 4\ntags: [\"memory\", \"pattern\", \"inverse\"]\nauthor: system\nversion: 1\ndescription: \"Walk a path then return to the start (A -> B -> A)\"\n---\n\n# Path Return\n\nWalk a random path, stop, turn around, and walk exactly back to the start.\n\n## Academic Concept: Inverse Operations\n- Operation: `Move` | Inverse: `Move` (after turning 180)\n- Operation: `TurnRight` | Inverse: `TurnLeft`\n- Sequence `[A, B, C]` -> Inverse Sequence `[Inv(C), Inv(B), Inv(A)]` (Stack LIFO)\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_DIST_ = 2;\nvar _MAX_DIST_ = 4;\nvar D1 = random(_MIN_DIST_, _MAX_DIST_);\nvar D2 = random(_MIN_DIST_, _MAX_DIST_);\n\n// Solution\n// Forward Phase\nfor(var i=0; i<D1; i++) moveForward();\nturnRight();\nfor(var j=0; j<D2; j++) moveForward();\n\n// Return Phase\nturnAround();\nfor(var j=0; j<D2; j++) moveForward();\nturnLeft(); // Inverse of TurnRight (viewed from return path is tricky, geometrically: Right -> 180 -> Left returns to origin vec)\nfor(var i=0; i<D1; i++) moveForward();\n\nturnAround(); // Restore original facing\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "mem-undo",
+      "name": "Undo Operations",
+      "category": "memory",
+      "concepts": [
+        "function",
+        "state_machine"
+      ],
+      "difficulty": 5,
+      "tags": [
+        "memory",
+        "undo",
+        "switch"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Turn switches ON while going forward, TURN them OFF while returning"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_COUNT_",
+        "displayName": "Min Count",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_MAX_COUNT_",
+        "displayName": "Max Count",
+        "type": "number",
+        "defaultValue": 5
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_COUNT_ = 3;\nvar _MAX_COUNT_ = 5;\nvar COUNT = random(_MIN_COUNT_, _MAX_COUNT_);\n\n// Solution\n// 1. Activate\nfor (var i = 0; i < COUNT; i++) {\n  moveForward();\n  toggleSwitch();\n}\n\n// 2. Turn Around\nturnAround();\n\n// 3. Deactivate (Undo)\nfor (var i = 0; i < COUNT; i++) {\n  toggleSwitch(); // Order: Toggle (at current pos) then Move back? \n  // Wait, if we moved forward then toggle, we are ON the switch.\n  // After turn around, we are still ON the switch.\n  // So: Toggle, then Move.\n  moveForward();\n}",
+    "descriptionMarkdown": "# Undo Operations\n\nA conceptual task: \"Leave everything as you found it\".\n\n## Academic Concept: State Reversion\n- Forward: `Toggle (Off->On)`\n- Backward: `Toggle (On->Off)`\n\n## Solution & Parameters",
+    "rawContent": "---\nid: mem-undo\nname: \"Undo Operations\"\ncategory: memory\nconcepts: [\"function\", \"state_machine\"]\ndifficulty: 5\ntags: [\"memory\", \"undo\", \"switch\"]\nauthor: system\nversion: 1\ndescription: \"Turn switches ON while going forward, TURN them OFF while returning\"\n---\n\n# Undo Operations\n\nA conceptual task: \"Leave everything as you found it\".\n\n## Academic Concept: State Reversion\n- Forward: `Toggle (Off->On)`\n- Backward: `Toggle (On->Off)`\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_COUNT_ = 3;\nvar _MAX_COUNT_ = 5;\nvar COUNT = random(_MIN_COUNT_, _MAX_COUNT_);\n\n// Solution\n// 1. Activate\nfor (var i = 0; i < COUNT; i++) {\n  moveForward();\n  toggleSwitch();\n}\n\n// 2. Turn Around\nturnAround();\n\n// 3. Deactivate (Undo)\nfor (var i = 0; i < COUNT; i++) {\n  toggleSwitch(); // Order: Toggle (at current pos) then Move back? \n  // Wait, if we moved forward then toggle, we are ON the switch.\n  // After turn around, we are still ON the switch.\n  // So: Toggle, then Move.\n  moveForward();\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "arithmetic-collect",
+      "name": "Arithmetic Collect",
+      "category": "progression",
+      "concepts": [
+        "loop",
+        "variable",
+        "arithmetic_progression",
+        "nested_loop"
+      ],
+      "difficulty": 4,
+      "tags": [
+        "math",
+        "progression",
+        "collect"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Collect increasing numbers of items (1, 2, 3...)"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_START_",
+        "displayName": "Min Start",
+        "type": "number",
+        "defaultValue": 1
+      },
+      {
+        "name": "_MAX_START_",
+        "displayName": "Max Start",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MIN_STEP_",
+        "displayName": "Min Step",
+        "type": "number",
+        "defaultValue": 1
+      },
+      {
+        "name": "_MAX_STEP_",
+        "displayName": "Max Step",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MIN_GROUPS_",
+        "displayName": "Min Groups",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_MAX_GROUPS_",
+        "displayName": "Max Groups",
+        "type": "number",
+        "defaultValue": 4
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_START_ = 1;\nvar _MAX_START_ = 2;\nvar START = random(_MIN_START_, _MAX_START_);\n\nvar _MIN_STEP_ = 1;\nvar _MAX_STEP_ = 2;\nvar STEP = random(_MIN_STEP_, _MAX_STEP_);\n\nvar _MIN_GROUPS_ = 3;\nvar _MAX_GROUPS_ = 4;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Solution\nmoveForward();\n\nfor (var i = 0; i < GROUPS; i++) {\n  var count = START + i * STEP;\n  \n  // Atom: Collect Sequence\n  for (var j = 0; j < count; j++) {\n    collectItem();\n    moveForward();\n  }\n  \n  if (i < GROUPS - 1) {\n    turnRight();\n    moveForward(); // Space between groups\n    turnRight();\n  }\n}",
+    "descriptionMarkdown": "# Arithmetic Collect\n\nCollect items where the count increases linearly each time.\n\n## Academic Concept: Arithmetic Progression\n- Sequence: $a, a+d, a+2d, ...$\n- Here: Number of items to collect increases by `STEP`.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: arithmetic-collect\nname: \"Arithmetic Collect\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"arithmetic_progression\", \"nested_loop\"]\ndifficulty: 4\ntags: [\"math\", \"progression\", \"collect\"]\nauthor: system\nversion: 1\ndescription: \"Collect increasing numbers of items (1, 2, 3...)\"\n---\n\n# Arithmetic Collect\n\nCollect items where the count increases linearly each time.\n\n## Academic Concept: Arithmetic Progression\n- Sequence: $a, a+d, a+2d, ...$\n- Here: Number of items to collect increases by `STEP`.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_START_ = 1;\nvar _MAX_START_ = 2;\nvar START = random(_MIN_START_, _MAX_START_);\n\nvar _MIN_STEP_ = 1;\nvar _MAX_STEP_ = 2;\nvar STEP = random(_MIN_STEP_, _MAX_STEP_);\n\nvar _MIN_GROUPS_ = 3;\nvar _MAX_GROUPS_ = 4;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Solution\nmoveForward();\n\nfor (var i = 0; i < GROUPS; i++) {\n  var count = START + i * STEP;\n  \n  // Atom: Collect Sequence\n  for (var j = 0; j < count; j++) {\n    collectItem();\n    moveForward();\n  }\n  \n  if (i < GROUPS - 1) {\n    turnRight();\n    moveForward(); // Space between groups\n    turnRight();\n  }\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "arithmetic-move",
+      "name": "Arithmetic Move",
+      "category": "progression",
+      "concepts": [
+        "loop",
+        "variable",
+        "arithmetic_progression"
+      ],
+      "difficulty": 3,
+      "tags": [
+        "math",
+        "progression",
+        "variable_step"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Move distances that increase linearly (1, 2, 3...)"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_START_",
+        "displayName": "Min Start",
+        "type": "number",
+        "defaultValue": 1
+      },
+      {
+        "name": "_MAX_START_",
+        "displayName": "Max Start",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MIN_STEP_",
+        "displayName": "Min Step",
+        "type": "number",
+        "defaultValue": 1
+      },
+      {
+        "name": "_MAX_STEP_",
+        "displayName": "Max Step",
+        "type": "number",
+        "defaultValue": 1
+      },
+      {
+        "name": "_MIN_ITERATIONS_",
+        "displayName": "Min Iterations",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_MAX_ITERATIONS_",
+        "displayName": "Max Iterations",
+        "type": "number",
+        "defaultValue": 4
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_START_ = 1;\nvar _MAX_START_ = 2;\nvar START = random(_MIN_START_, _MAX_START_);\n\nvar _MIN_STEP_ = 1;\nvar _MAX_STEP_ = 1;\nvar STEP = random(_MIN_STEP_, _MAX_STEP_);\n\nvar _MIN_ITERATIONS_ = 3;\nvar _MAX_ITERATIONS_ = 4;\nvar ITERATIONS = random(_MIN_ITERATIONS_, _MAX_ITERATIONS_);\n\n// Solution\nfor (var i = 0; i < ITERATIONS; i++) {\n  var dist = START + i * STEP;\n  \n  // Atom: Move\n  for (var j = 0; j < dist; j++) {\n    moveForward();\n  }\n  \n  if (i < ITERATIONS - 1) {\n    turnRight();\n  }\n}",
+    "descriptionMarkdown": "# Arithmetic Move\n\nA path where each segment is longer than the previous one by a fixed step.\n\n## Academic Concept: Arithmetic Progression\n- Sequence: $a, a+d, a+2d, ...$\n- Here: Move distance increases by `STEP` each time.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: arithmetic-move\nname: \"Arithmetic Move\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"arithmetic_progression\"]\ndifficulty: 3\ntags: [\"math\", \"progression\", \"variable_step\"]\nauthor: system\nversion: 1\ndescription: \"Move distances that increase linearly (1, 2, 3...)\"\n---\n\n# Arithmetic Move\n\nA path where each segment is longer than the previous one by a fixed step.\n\n## Academic Concept: Arithmetic Progression\n- Sequence: $a, a+d, a+2d, ...$\n- Here: Move distance increases by `STEP` each time.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_START_ = 1;\nvar _MAX_START_ = 2;\nvar START = random(_MIN_START_, _MAX_START_);\n\nvar _MIN_STEP_ = 1;\nvar _MAX_STEP_ = 1;\nvar STEP = random(_MIN_STEP_, _MAX_STEP_);\n\nvar _MIN_ITERATIONS_ = 3;\nvar _MAX_ITERATIONS_ = 4;\nvar ITERATIONS = random(_MIN_ITERATIONS_, _MAX_ITERATIONS_);\n\n// Solution\nfor (var i = 0; i < ITERATIONS; i++) {\n  var dist = START + i * STEP;\n  \n  // Atom: Move\n  for (var j = 0; j < dist; j++) {\n    moveForward();\n  }\n  \n  if (i < ITERATIONS - 1) {\n    turnRight();\n  }\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "decaying-path",
+      "name": "Decaying Path",
+      "category": "progression",
+      "concepts": [
+        "loop",
+        "variable",
+        "arithmetic_progression"
+      ],
+      "difficulty": 4,
+      "tags": [
+        "math",
+        "decay",
+        "subtraction"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Start with long segments and decrease length each turn"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_START_LEN_",
+        "displayName": "Min Start Len",
+        "type": "number",
+        "defaultValue": 4
+      },
+      {
+        "name": "_MAX_START_LEN_",
+        "displayName": "Max Start Len",
+        "type": "number",
+        "defaultValue": 6
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_START_LEN_ = 4;\nvar _MAX_START_LEN_ = 6;\nvar START_LEN = random(_MIN_START_LEN_, _MAX_START_LEN_);\n\nvar STEP = 1;\n\n// Solution\nvar currentLen = START_LEN;\n\nwhile (currentLen > 0) {\n  // Atom: Move Segment\n  for (var i = 0; i < currentLen; i++) {\n    moveForward();\n  }\n  collectItem();\n  turnLeft();\n  \n  currentLen = currentLen - STEP;\n}",
+    "descriptionMarkdown": "# Decaying Path\n\nA \"convergence\" pattern where movements get smaller and smaller.\n\n## Academic Concept: Arithmetic Decay\n- Sequence: $a, a-d, a-2d, ...$\n- Logic: `dist = MAX - i*STEP`\n\n## Solution & Parameters",
+    "rawContent": "---\nid: decaying-path\nname: \"Decaying Path\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"arithmetic_progression\"]\ndifficulty: 4\ntags: [\"math\", \"decay\", \"subtraction\"]\nauthor: system\nversion: 1\ndescription: \"Start with long segments and decrease length each turn\"\n---\n\n# Decaying Path\n\nA \"convergence\" pattern where movements get smaller and smaller.\n\n## Academic Concept: Arithmetic Decay\n- Sequence: $a, a-d, a-2d, ...$\n- Logic: `dist = MAX - i*STEP`\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_START_LEN_ = 4;\nvar _MAX_START_LEN_ = 6;\nvar START_LEN = random(_MIN_START_LEN_, _MAX_START_LEN_);\n\nvar STEP = 1;\n\n// Solution\nvar currentLen = START_LEN;\n\nwhile (currentLen > 0) {\n  // Atom: Move Segment\n  for (var i = 0; i < currentLen; i++) {\n    moveForward();\n  }\n  collectItem();\n  turnLeft();\n  \n  currentLen = currentLen - STEP;\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "fibonacci-path",
+      "name": "Fibonacci Path",
+      "category": "progression",
+      "concepts": [
+        "loop",
+        "variable",
+        "fibonacci"
+      ],
+      "difficulty": 5,
+      "tags": [
+        "math",
+        "fibonacci",
+        "nature"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Walk distances following the Fibonacci sequence (1, 1, 2, 3, 5...)"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_STEPS_",
+        "displayName": "Min Steps",
+        "type": "number",
+        "defaultValue": 4
+      },
+      {
+        "name": "_MAX_STEPS_",
+        "displayName": "Max Steps",
+        "type": "number",
+        "defaultValue": 6
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nvar a = 1;\nvar b = 1;\n\n// First step (1)\nmoveForward();\ncollectItem();\nturnRight();\n\n// Second step (1)\nmoveForward();\ncollectItem();\nturnRight();\n\nfor (var i = 2; i < STEPS; i++) {\n  var next = a + b;\n  \n  // Atom: Move Fibonacci Dist\n  for (var j = 0; j < next; j++) {\n    moveForward();\n  }\n  collectItem();\n  turnRight();\n  \n  // Update sequence\n  a = b;\n  b = next;\n}",
+    "descriptionMarkdown": "# Fibonacci Path\n\nA path based on the famous Fibonacci sequence found in nature.\n\n## Academic Concept: Fibonacci Sequence\n- $F_0=0, F_1=1, F_n = F_{n-1} + F_{n-2}$\n- Sequence: 1, 1, 2, 3, 5, 8...\n\n## Solution & Parameters",
+    "rawContent": "---\nid: fibonacci-path\nname: \"Fibonacci Path\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"fibonacci\"]\ndifficulty: 5\ntags: [\"math\", \"fibonacci\", \"nature\"]\nauthor: system\nversion: 1\ndescription: \"Walk distances following the Fibonacci sequence (1, 1, 2, 3, 5...)\"\n---\n\n# Fibonacci Path\n\nA path based on the famous Fibonacci sequence found in nature.\n\n## Academic Concept: Fibonacci Sequence\n- $F_0=0, F_1=1, F_n = F_{n-1} + F_{n-2}$\n- Sequence: 1, 1, 2, 3, 5, 8...\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nvar a = 1;\nvar b = 1;\n\n// First step (1)\nmoveForward();\ncollectItem();\nturnRight();\n\n// Second step (1)\nmoveForward();\ncollectItem();\nturnRight();\n\nfor (var i = 2; i < STEPS; i++) {\n  var next = a + b;\n  \n  // Atom: Move Fibonacci Dist\n  for (var j = 0; j < next; j++) {\n    moveForward();\n  }\n  collectItem();\n  turnRight();\n  \n  // Update sequence\n  a = b;\n  b = next;\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "geometric-spiral",
+      "name": "Geometric Spiral",
+      "category": "progression",
+      "concepts": [
+        "loop",
+        "variable",
+        "geometric_progression"
+      ],
+      "difficulty": 5,
+      "tags": [
+        "math",
+        "spiral",
+        "exponential"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Walk a spiral where side lengths double (1, 2, 4...)"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_START_",
+        "displayName": "Min Start",
+        "type": "number",
+        "defaultValue": 1
+      },
+      {
+        "name": "_MAX_START_",
+        "displayName": "Max Start",
+        "type": "number",
+        "defaultValue": 1
+      },
+      {
+        "name": "_MIN_TURNS_",
+        "displayName": "Min Turns",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_MAX_TURNS_",
+        "displayName": "Max Turns",
+        "type": "number",
+        "defaultValue": 5
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_START_ = 1;\nvar _MAX_START_ = 1;\nvar START = random(_MIN_START_, _MAX_START_);\n\nvar RATIO = 2; \n\nvar _MIN_TURNS_ = 3;\nvar _MAX_TURNS_ = 5;\nvar TURNS = random(_MIN_TURNS_, _MAX_TURNS_);\n\n// Solution\nvar length = START;\n\nfor (var i = 0; i < TURNS; i++) {\n  // Atom: Move Side\n  for (var j = 0; j < length; j++) {\n    collectItem(); // Dense interaction for spiral\n    moveForward();\n  }\n  \n  turnRight();\n  length = length * RATIO;\n}",
+    "descriptionMarkdown": "# Geometric Spiral\n\nA spiral path that expands exponentially.\n\n## Academic Concept: Geometric Progression\n- Sequence: $a, ar, ar^2, ...$\n- Here: Side length multiplies by `RATIO` (usually 2) each turn.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: geometric-spiral\nname: \"Geometric Spiral\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"geometric_progression\"]\ndifficulty: 5\ntags: [\"math\", \"spiral\", \"exponential\"]\nauthor: system\nversion: 1\ndescription: \"Walk a spiral where side lengths double (1, 2, 4...)\"\n---\n\n# Geometric Spiral\n\nA spiral path that expands exponentially.\n\n## Academic Concept: Geometric Progression\n- Sequence: $a, ar, ar^2, ...$\n- Here: Side length multiplies by `RATIO` (usually 2) each turn.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_START_ = 1;\nvar _MAX_START_ = 1;\nvar START = random(_MIN_START_, _MAX_START_);\n\nvar RATIO = 2; \n\nvar _MIN_TURNS_ = 3;\nvar _MAX_TURNS_ = 5;\nvar TURNS = random(_MIN_TURNS_, _MAX_TURNS_);\n\n// Solution\nvar length = START;\n\nfor (var i = 0; i < TURNS; i++) {\n  // Atom: Move Side\n  for (var j = 0; j < length; j++) {\n    collectItem(); // Dense interaction for spiral\n    moveForward();\n  }\n  \n  turnRight();\n  length = length * RATIO;\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "search-binary",
+      "name": "Binary Search Sim",
+      "category": "search",
+      "concepts": [
+        "conditional",
+        "search",
+        "divide_conquer"
+      ],
+      "difficulty": 5,
+      "tags": [
+        "search",
+        "algorithm",
+        "binary",
+        "logarithmic"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Go to middle, check, then go Left or Right (Simulated)"
+    },
+    "parameters": [],
+    "solutionCode": "// Parameters\nvar DIST = 4; // Simplified for visual clarity\n\n// Solution\n// 1. Go to Middle\nfor(var i=0; i<DIST; i++) moveForward();\n\n// 2. Check (Simulated split)\n// Random decision for the template trace\nif (random(0, 1) == 0) {\n   turnLeft();\n   for(var j=0; j<DIST/2; j++) moveForward();\n   collectItem();\n} else {\n   turnRight();\n   for(var j=0; j<DIST/2; j++) moveForward();\n   collectItem();\n}",
+    "descriptionMarkdown": "# Binary Search Simulation\n\nA physical representation of the Binary Search logic.\n\n## Academic Concept: Binary Search ($O(log N)$)\n- Go to middle.\n- If target < current: Go Left.\n- If target > current: Go Right.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: search-binary\nname: \"Binary Search Sim\"\ncategory: search\nconcepts: [\"conditional\", \"search\", \"divide_conquer\"]\ndifficulty: 5\ntags: [\"search\", \"algorithm\", \"binary\", \"logarithmic\"]\nauthor: system\nversion: 1\ndescription: \"Go to middle, check, then go Left or Right (Simulated)\"\n---\n\n# Binary Search Simulation\n\nA physical representation of the Binary Search logic.\n\n## Academic Concept: Binary Search ($O(log N)$)\n- Go to middle.\n- If target < current: Go Left.\n- If target > current: Go Right.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar DIST = 4; // Simplified for visual clarity\n\n// Solution\n// 1. Go to Middle\nfor(var i=0; i<DIST; i++) moveForward();\n\n// 2. Check (Simulated split)\n// Random decision for the template trace\nif (random(0, 1) == 0) {\n   turnLeft();\n   for(var j=0; j<DIST/2; j++) moveForward();\n   collectItem();\n} else {\n   turnRight();\n   for(var j=0; j<DIST/2; j++) moveForward();\n   collectItem();\n}\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "search-linear",
+      "name": "Linear Search",
+      "category": "search",
+      "concepts": [
+        "loop",
+        "conditional",
+        "search"
+      ],
+      "difficulty": 4,
+      "tags": [
+        "search",
+        "algorithm",
+        "linear"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Move along a line and stop when you find the target item"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_LEN_",
+        "displayName": "Min Len",
+        "type": "number",
+        "defaultValue": 4
+      },
+      {
+        "name": "_MAX_LEN_",
+        "displayName": "Max Len",
+        "type": "number",
+        "defaultValue": 6
+      }
+    ],
+    "solutionCode": "// Solution\nfor(var i=0; i<LEN; i++) {\n  moveForward();\n  // Simulated: If we see item, pick it up.\n  // The generator will place items.\n  collectItem(); \n}",
+    "descriptionMarkdown": "# Linear Search\n\nClassic search algorithm: check every item until you find what you need.\n\n## Academic Concept: Linear Search ($O(N)$)\n- Iterate through array/path.\n- Check condition at each step.\n- Stop if found.\n\n## Solution & Parameters\n\n\n**Refined Logic for Generation**:\nSince we don't have `isPathRight` sensors everywhere, we can simulate \"Searching for a specific item count or marker\".\n\nLet's stick to a visual \"Scan Row\" pattern.",
+    "rawContent": "---\nid: search-linear\nname: \"Linear Search\"\ncategory: search\nconcepts: [\"loop\", \"conditional\", \"search\"]\ndifficulty: 4\ntags: [\"search\", \"algorithm\", \"linear\"]\nauthor: system\nversion: 1\ndescription: \"Move along a line and stop when you find the target item\"\n---\n\n# Linear Search\n\nClassic search algorithm: check every item until you find what you need.\n\n## Academic Concept: Linear Search ($O(N)$)\n- Iterate through array/path.\n- Check condition at each step.\n- Stop if found.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_LEN_ = 4;\nvar _MAX_LEN_ = 6;\nvar LEN = random(_MIN_LEN_, _MAX_LEN_);\n\n// Solution\nfor (var i = 0; i < LEN; i++) {\n  // Check condition (Simulated look)\n  if (isPathRight()) { // Simulated \"Found Target\" logic -> Turn\n     turnRight();\n     collectItem();\n     break; // Found it!\n  }\n  \n  // If not found, keep moving/searching\n  moveForward();\n  \n  // Note: In real generation, we'd ensure one spot has the \"Target\" property\n  // For template simplicity, we just walk the line.\n}\n```\n**Refined Logic for Generation**:\nSince we don't have `isPathRight` sensors everywhere, we can simulate \"Searching for a specific item count or marker\".\n```js\n// Solution\nfor(var i=0; i<LEN; i++) {\n  moveForward();\n  // Simulated: If we see item, pick it up.\n  // The generator will place items.\n  collectItem(); \n}\n```\nLet's stick to a visual \"Scan Row\" pattern.\n```js\n// Solution\nfor(var i=0; i<LEN; i++) {\n   moveForward();\n   // Check THIS spot\n   turnRight(); // Look\n   turnLeft(); // Look back\n}\ncollectItem(); // Assume found at end\n```\n"
+  },
+  {
+    "metadata": {
+      "id": "sort-selection",
+      "name": "Selection Sort Sim",
+      "category": "search",
+      "concepts": [
+        "nested_loop",
+        "search",
+        "sorting"
+      ],
+      "difficulty": 6,
+      "tags": [
+        "sorting",
+        "algorithm",
+        "selection"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Scan row, find item, bring it back. Repeat."
+    },
+    "parameters": [
+      {
+        "name": "_MIN_ITEMS_",
+        "displayName": "Min Items",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_MAX_ITEMS_",
+        "displayName": "Max Items",
+        "type": "number",
+        "defaultValue": 3
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_ITEMS_ = 2;\nvar _MAX_ITEMS_ = 3;\nvar ITEMS = random(_MIN_ITEMS_, _MAX_ITEMS_);\nvar UNIVERSE_SIZE = 4;\n\n// Solution\nfor (var i = 0; i < ITEMS; i++) {\n  // 1. Search Phase (Go out)\n  for(var k=0; k<UNIVERSE_SIZE; k++) {\n     moveForward();\n  }\n  \n  // 2. Action (Simulate \"Select\")\n  collectItem();\n  turnAround();\n  \n  // 3. Return Phase (Place)\n  for(var k=0; k<UNIVERSE_SIZE; k++) {\n     moveForward();\n  }\n  \n  // 4. Next Iteration setup\n  turnAround();\n}",
+    "descriptionMarkdown": "# Selection Sort Simulation\n\nSimulates the mechanic of finding the \"best\" item and placing it.\n\n## Academic Concept: Selection Sort ($O(N^2)$)\n- Find min/max in unsorted part.\n- Swap/Move to sorted part.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: sort-selection\nname: \"Selection Sort Sim\"\ncategory: search\nconcepts: [\"nested_loop\", \"search\", \"sorting\"]\ndifficulty: 6\ntags: [\"sorting\", \"algorithm\", \"selection\"]\nauthor: system\nversion: 1\ndescription: \"Scan row, find item, bring it back. Repeat.\"\n---\n\n# Selection Sort Simulation\n\nSimulates the mechanic of finding the \"best\" item and placing it.\n\n## Academic Concept: Selection Sort ($O(N^2)$)\n- Find min/max in unsorted part.\n- Swap/Move to sorted part.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_ITEMS_ = 2;\nvar _MAX_ITEMS_ = 3;\nvar ITEMS = random(_MIN_ITEMS_, _MAX_ITEMS_);\nvar UNIVERSE_SIZE = 4;\n\n// Solution\nfor (var i = 0; i < ITEMS; i++) {\n  // 1. Search Phase (Go out)\n  for(var k=0; k<UNIVERSE_SIZE; k++) {\n     moveForward();\n  }\n  \n  // 2. Action (Simulate \"Select\")\n  collectItem();\n  turnAround();\n  \n  // 3. Return Phase (Place)\n  for(var k=0; k<UNIVERSE_SIZE; k++) {\n     moveForward();\n  }\n  \n  // 4. Next Iteration setup\n  turnAround();\n}\n```\n"
   },
   {
     "metadata": {

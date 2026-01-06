@@ -17,7 +17,12 @@ export type ConceptCategory =
   | 'conditional'
   | 'function'
   | 'variable'
-  | 'advanced';
+  | 'advanced'
+  | 'progression'
+  | 'logic'
+  | 'memory'
+  | 'decomposition'
+  | 'search';
 
 /**
  * Academic concepts - common subset used in practice mode
