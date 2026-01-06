@@ -123,6 +123,27 @@
   margin-bottom: 0;
 }
 
+/* Random Mode Badge - special highlight */
+.random-mode-badge {
+  background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: help;
+  animation: subtle-pulse 2s ease-in-out infinite;
+}
+
+@keyframes subtle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
 /* Các style nút bấm cơ bản */
 .primaryButton {
   padding: 8px 16px;

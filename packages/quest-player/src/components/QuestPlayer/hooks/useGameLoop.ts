@@ -221,6 +221,30 @@ export const useGameLoop = (
     frameIndex.current = 0;
     lastStepTime.current = 0;
     
+    // === Random Item Mode: Randomize items before each run ===
+    if (questData?.gameConfig.type === 'maze') {
+      const mazeConfig = questData.gameConfig as MazeConfig;
+      const mazeEngine = engine as IMazeEngine;
+      
+      if (mazeConfig.mode === 'random' && mazeConfig.collectibles) {
+        const maxCrystals = mazeConfig.itemPool?.crystal ?? mazeConfig.collectibles.length;
+        const minCrystals = Math.max(1, Math.floor(maxCrystals / 2));
+        
+        // Target count: random between [min, max)
+        const targetCrystals = maxCrystals > minCrystals
+          ? Math.floor(Math.random() * (maxCrystals - minCrystals)) + minCrystals
+          : maxCrystals;
+        
+        // Set item goals so countItemsRemaining() works correctly
+        if ('setItemGoals' in mazeEngine && typeof mazeEngine.setItemGoals === 'function') {
+          mazeEngine.setItemGoals({ crystal: targetCrystals });
+        }
+        
+        console.log(`[RandomMode] Run with ${targetCrystals}/${maxCrystals} crystals target`);
+      }
+    }
+    // === End Random Item Mode ===
+    
     if (precomputedLog) {
       // Playback mode for Python/Lua (pre-calculated)
       setExecutionLog(precomputedLog);
@@ -241,7 +265,7 @@ export const useGameLoop = (
     }
 
     setPlayerStatus('running');
-  }, [engineRef, playerStatus, setHighlightedBlockId]);
+  }, [engineRef, playerStatus, setHighlightedBlockId, questData]);
 
   const resetGame = useCallback(() => {
     if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);

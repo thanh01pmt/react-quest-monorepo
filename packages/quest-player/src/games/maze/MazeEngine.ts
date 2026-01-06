@@ -20,8 +20,11 @@ export interface IMazeEngine extends IGameEngine {
   doToggleSwitch(): void;
   checkIsPath(direction: 0 | 1 | 3): boolean;
   checkIsItemPresent(): boolean;
-  checkIsItemPresent(): boolean;
   checkNotDone(): boolean;
+  
+  // Random Item Mode API
+  setItemGoals(goals: { crystal?: number; key?: number }): void;
+  countItemsRemaining(itemType?: 'any' | 'crystal' | 'key'): number;
   
   // Speech API
   doSay(characterId: string, text: string): void;

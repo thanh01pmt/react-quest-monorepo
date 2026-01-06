@@ -831,6 +831,12 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                     environment={settings.environment || 'night'}
                   />
                   <div className="stats-overlay">
+                    {/* Random Mode Badge */}
+                    {questData.gameConfig.type === 'maze' && (questData.gameConfig as MazeConfig).mode === 'random' && (
+                      <div className="stat-item random-mode-badge" title={t('UI.RandomModeTooltip', 'Items randomized each run')}>
+                        🎲 {t('UI.RandomMode', 'Random')}
+                      </div>
+                    )}
                     {displayStats.blockCount != null && displayStats.maxBlocks != null && (
                       <div className="stat-item">
                         {t('UI.StatsBlocks')}: {displayStats.blockCount} / {displayStats.maxBlocks}
