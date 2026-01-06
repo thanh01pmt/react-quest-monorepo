@@ -2482,9 +2482,7 @@ function App() {
   }, []); // Không có dependencies vì chỉ reset state
   const handleGenerateMap = (newObjects: PlacedObject[], metadataUpdate?: Record<string, any>) => {
     // Confirm if not empty
-    if (placedObjects.length > 0 && !window.confirm("Generating a new map will replace current objects. Continue?")) {
-      return;
-    }
+    // FIX: Redundant confirmation removed
 
     // RESET user edit state for generated map
     setHasUserEdit(false);

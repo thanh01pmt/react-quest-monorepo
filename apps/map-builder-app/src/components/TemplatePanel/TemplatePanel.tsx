@@ -228,6 +228,7 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
     // Generate map
     const handleGenerate = useCallback(() => {
         // Confirm if existing map
+        /* 
         if (hasExistingMap) {
             const confirmed = window.confirm(
                 'This will replace the current map. Continue?\n' +
@@ -235,6 +236,7 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
             );
             if (!confirmed) return;
         }
+        */
 
         setIsLoading(true);
 
