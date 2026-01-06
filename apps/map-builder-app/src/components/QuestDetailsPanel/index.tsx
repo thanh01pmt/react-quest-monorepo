@@ -460,6 +460,63 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       </CollapsibleSection>
 
       {/* ============================================================ */}
+      {/* GAME MODE SECTION */}
+      {/* ============================================================ */}
+      <CollapsibleSection
+        title="Game Mode"
+        icon={<Settings size={16} />}
+        defaultOpen={false}
+        badge={getDeepValue(metadata, 'gameConfig.mode') === 'random' ? '🎲 Random' : undefined}
+        badgeColor="blue"
+      >
+        <div className="field-row">
+          <label>Item Mode</label>
+          <select
+            className="custom-select"
+            value={getDeepValue(metadata, 'gameConfig.mode') || 'fixed'}
+            onChange={(e) => handleComplexChange({ path: 'gameConfig.mode', value: e.target.value })}
+          >
+            <option value="fixed">Fixed (Default)</option>
+            <option value="random">Random (Hide items each run)</option>
+          </select>
+        </div>
+
+        {getDeepValue(metadata, 'gameConfig.mode') === 'random' && (
+          <>
+            <div className="info-box" style={{
+              backgroundColor: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid #8b5cf6',
+              borderRadius: '6px',
+              padding: '8px',
+              marginTop: '8px',
+              fontSize: '12px',
+              color: '#c4b5fd'
+            }}>
+              <span style={{ marginRight: '6px' }}>🎲</span>
+              <strong>Random Mode:</strong> Each run will hide a random number of items.
+              Player must use sensors to find items.
+            </div>
+
+            <div className="field-row" style={{ marginTop: '12px' }}>
+              <label>Max Crystals (Pool)</label>
+              <input
+                type="number"
+                min={1}
+                value={getDeepValue(metadata, 'gameConfig.itemPool.crystal') || metadata?.gameConfig?.collectibles?.length || 0}
+                onChange={(e) => handleComplexChange({
+                  path: 'gameConfig.itemPool.crystal',
+                  value: parseInt(e.target.value, 10) || 1
+                })}
+              />
+            </div>
+            <small style={{ color: '#888', fontSize: '11px' }}>
+              Each run selects [50%, 100%) of this count
+            </small>
+          </>
+        )}
+      </CollapsibleSection>
+
+      {/* ============================================================ */}
       {/* BLOCKLY CONFIG SECTION */}
       {/* ============================================================ */}
       <CollapsibleSection
