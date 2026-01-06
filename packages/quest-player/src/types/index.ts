@@ -163,6 +163,15 @@ export interface MazeConfig {
   finish: { x: number, y: number, z?: number };
   /** Cấu hình intro scene camera animation (chỉ áp dụng cho 3D renderer) */
   introScene?: IntroSceneConfig;
+  
+  // Random Item Mode configuration
+  /** Mode xác định cách hiển thị items: fixed (mặc định) hoặc random (ẩn ngẫu nhiên mỗi Run) */
+  mode?: 'fixed' | 'random';
+  /** Pool các items có sẵn - dùng khi mode='random' để xác định max items */
+  itemPool?: {
+    crystal?: number;  // Max crystals trong pool
+    key?: number;      // Max keys trong pool
+  };
 }
 
 export interface TurtleConfig {

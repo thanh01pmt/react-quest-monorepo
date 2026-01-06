@@ -251,6 +251,11 @@ export function init(t: TFunction) {
     return [code, Order.FUNCTION_CALL];
   };
 
+  javascriptGenerator.forBlock['maze_items_remaining'] = function(block: Blockly.Block) {
+    const code = `countItemsRemaining('block_id_${block.id}')`;
+    return [code, Order.FUNCTION_CALL];
+  };
+
   javascriptGenerator.forBlock['maze_forever'] = function(block: Blockly.Block) {
     let branch = javascriptGenerator.statementToCode(block, 'DO');
     return `while (notDone('block_id_${block.id}')) {\n${branch}}\n`;
