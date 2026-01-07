@@ -149,6 +149,13 @@ function App() {
 
   // State mới để lưư trữ siêu dữ liệu của quest
   const [questMetadata, setQuestMetadata] = useState<Record<string, any> | null>(null);
+
+  // REF: Keep track of latest metadata for async/stale closure access (e.g. solveMaze callbacks)
+  const questMetadataRef = useRef(questMetadata);
+  useEffect(() => {
+    questMetadataRef.current = questMetadata;
+  }, [questMetadata]);
+
   // SỬA LỖI: State cho theme hiện tại, được khởi tạo với theme mặc định.
   const [mapTheme, setMapTheme] = useState<MapTheme>(Themes.COMPREHENSIVE_THEMES[0]);
   const [isWelcomeModalVisible, setIsWelcomeModalVisible] = useState(false); // THÊM MỚI: State cho modal hướng dẫn
@@ -1282,6 +1289,12 @@ function App() {
 
   // --- NEW LOGIC: TỰ ĐỘNG TÍNH LẠI ĐƯỜNG ĐI ---
   const recalculatePathForObjects = (objects: PlacedObject[]) => {
+    // FIX: Check Ref to ensure we don't run generic solver on template maps (even if called from stale effects)
+    if (questMetadataRef.current?.pathInfo?.topology === 'template_generated') {
+      console.log('[recalculatePathForObjects] Skipped (template_generated)');
+      return;
+    }
+
     // 1. Chuẩn bị dữ liệu cho solver
     const blocks = objects.filter((o: PlacedObject) => o.asset.type === 'block').map((o: PlacedObject) => ({ modelKey: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
     const collectibles = objects.filter((o: PlacedObject) =>
@@ -1392,6 +1405,11 @@ function App() {
   useEffect(() => {
     // Only recalculate if we have questMetadata (meaning a map was generated or loaded)
     if (!questMetadata?.pathInfo) return;
+
+    // FIX: Do NOT auto-recalculate if map is template-generated. Trust the template's trace.
+    if (questMetadata.pathInfo.topology === 'template_generated') {
+      return;
+    }
 
     // Get current collectibles and interactibles
     const collectibles = placedObjects.filter(o => o.asset.type === 'collectible');
@@ -2405,6 +2423,9 @@ function App() {
     // SỬA LỖI: Tái cấu trúc để không cần nhấn "Render from JSON" trước khi giải.
     // Hàm này sẽ tự động tạo gameConfig mới nhất từ `placedObjects` hiện tại.
     try {
+      // USE REF: Use current metadata from ref to avoid stale closures (e.g. from timeouts)
+      const currentMetadata = questMetadataRef.current || questMetadata;
+
       // 1. Tạo gameConfig mới nhất từ trạng thái `placedObjects` trên màn hình.
       const blocks = placedObjects.filter(o => o.asset.type === 'block').map(o => ({ modelKey: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
       const collectibles = placedObjects.filter(o => o.asset.type === 'collectible').map((o, i) => ({ id: `c${i + 1}`, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
@@ -2440,7 +2461,7 @@ function App() {
       }
       const finish = { x: finishObject.position[0], y: finishObject.position[1], z: finishObject.position[2] };
       const currentGC = {
-        ...(questMetadata?.gameConfig || {}), // Preserve existing config (mode, seed, etc.)
+        ...(currentMetadata?.gameConfig || {}), // Preserve existing config (mode, seed, etc.)
         type: "maze",
         renderer: "3d",
         blocks,
@@ -2451,8 +2472,8 @@ function App() {
       };
 
       // 2. Lấy các config khác từ state
-      let currentSC = questMetadata?.solution || {};
-      const currentBC = _.cloneDeep(questMetadata?.blocklyConfig || {});
+      let currentSC = currentMetadata?.solution || {};
+      const currentBC = _.cloneDeep(currentMetadata?.blocklyConfig || {});
 
       // --- CẢI TIẾN CHO SOLVER ---
       // Trích xuất các khối lệnh được phép từ toolbox và thêm vào config cho solver.
@@ -2483,10 +2504,10 @@ function App() {
       // If the map is generated from a template, we trust the template's execution trace as the source of truth.
       // We do NOT want to use the generic BFS solver because it might find a different (shortcut) path 
       // or fail to match the specific pedagogical pattern (e.g. zigzag) intended by the template.
-      if (questMetadata?.pathInfo?.topology === 'template_generated' && questMetadata?.rawSolution && questMetadata.rawSolution.length > 0) {
+      if (currentMetadata?.pathInfo?.topology === 'template_generated' && currentMetadata?.rawSolution && currentMetadata.rawSolution.length > 0) {
         console.log('[handleSolveMaze] Using Template-Generated Solution Trace');
 
-        const rawActions = questMetadata.rawSolution;
+        const rawActions = currentMetadata.rawSolution;
         const toolboxJson = JSON.stringify(currentBC.toolbox || {});
         const hasLoops = toolboxJson.includes('controls_repeat') || toolboxJson.includes('maze_repeat');
         const hasFunctions = toolboxJson.includes('procedures_defnoreturn');
@@ -2500,8 +2521,8 @@ function App() {
         let structuredMain = [...basicMain];
 
         // Priority: Use pre-calculated Structured Solution (from Transpiler) if available
-        if (questMetadata.structuredSolution?.main?.length > 0) {
-          structuredMain = questMetadata.structuredSolution.main;
+        if (currentMetadata.structuredSolution?.main?.length > 0) {
+          structuredMain = currentMetadata.structuredSolution.main;
           console.log('[handleSolveMaze] Using pre-calculated structured solution from template.');
         } else if (hasLoops) {
           // Improved Pattern Matcher: Look for repeated sequences with support for Prefix/Suffix (Pre/Post-roll)
@@ -2664,7 +2685,7 @@ function App() {
         // --- NEW: VALIDATION REPORT ---
         let report = "Validation Successful!\n- Map is solvable.";
 
-        const strategy = questMetadata?.pathInfo?.strategy;
+        const strategy = currentMetadata?.pathInfo?.strategy;
         if (strategy === 'loop_logic') {
           const hasLoop = JSON.stringify(solution.structuredSolution).includes('maze_repeat') || JSON.stringify(solution.structuredSolution).includes('maze_forever');
           if (!hasLoop) {
@@ -2819,15 +2840,15 @@ function App() {
     alert(`Added ${suggestedObjects.length} items to the selected segment.`);
   };
 
-  // NEW REF: Keep track of metadata to use in effects without triggering re-runs
-  const questMetadataRef = useRef(questMetadata);
-  useEffect(() => {
-    questMetadataRef.current = questMetadata;
-  }, [questMetadata]);
-
   // AUTO-SOLVE EFFECT: Trigger solver when placedObjects change (Debounced)
   useEffect(() => {
     if (placedObjects.length === 0) return;
+
+    // FIX: Completely disable auto-solver for Template Generator mode.
+    // User reported performance freezes. The solution should only update when the script is regenerated.
+    if (questMetadata?.pathInfo?.topology === 'template_generated') {
+      return;
+    }
 
     // Only auto-solve if in Topology (Auto validation) mode or if we want it generally active
     // The user screenshot showed "Map Inspector Auto", so we should support it.
@@ -2855,6 +2876,14 @@ function App() {
   // NEW: Real-time path calculation effect
   useEffect(() => {
     if (!hasUserEdit) return; // Only verify path if user has edited the map
+
+    // FIX: If map is generated from a Template, we strictly respect the Template Trace.
+    // We do NOT want the generic BFS solver to override the visual path with a shortest path,
+    // because templates often have specific pedagogical patterns (loops, zigzags) that the BFS ignores.
+    if (questMetadata?.pathInfo?.topology === 'template_generated') {
+      setDynamicPathCoords(null); // Ensure fallback to questMetadata.pathInfo.path_coords
+      return;
+    }
 
     // Debounce slightly to avoid too many calcs during drag
     const timer = setTimeout(() => {
@@ -2946,7 +2975,7 @@ function App() {
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timer);
-  }, [placedObjects]);
+  }, [placedObjects, hasUserEdit, questMetadata]);
 
   const solutionPath = useMemo(() => {
     // PRIORITY 1: If user has edited the map, use real-time BFS result
