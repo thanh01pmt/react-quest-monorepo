@@ -3704,6 +3704,7 @@ function App() {
 
                   console.log('Created PlacedObjects:', newObjects.length);
                   console.log('First object:', JSON.stringify(newObjects[0], null, 2));
+                  console.log('[Template Debug] All data.items:', data.items.map(i => ({ type: i.type, pos: i.position })));
 
                   // Use path coordinates from trace (path level) for visualization
                   // Also include placement_coords (ground level blocks) for item placement
@@ -3742,6 +3743,22 @@ function App() {
                       ...newGameConfig.itemPool,
                       crystal: totalCrystals > 0 ? totalCrystals : undefined
                     };
+                  }
+
+                  // Extract interactibles (switches) from generated items
+                  const generatedInteractibles = data.items
+                    .filter(i => i.type === 'switch')
+                    .map((sw, idx) => ({
+                      id: `switch_${idx}`,
+                      type: 'switch' as const,
+                      position: { x: sw.position.x, y: sw.position.y, z: sw.position.z },
+                      initialState: 'off' as const // Default state for generated switches
+                    }));
+
+                  // Add interactibles to gameConfig
+                  if (generatedInteractibles.length > 0) {
+                    newGameConfig.interactibles = generatedInteractibles;
+                    console.log('[Template] Generated interactibles:', generatedInteractibles.length);
                   }
 
                   console.log('[Template] Auto-selected toolbox:', suggestedToolboxKey, 'from tags:', data.templateMeta?.tags);

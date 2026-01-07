@@ -1151,6 +1151,7 @@ export class TemplateInterpreter {
 
         // Generative Mode: If not found, place a crystal here
         if (!result && this.rng && this.rng.nextBoolean()) {
+          console.log('[Interpreter] Placing crystal at position:', this.context.position);
           this.items.push({ type: 'crystal', position: [...this.context.position] as Coord });
           result = true;
         }
@@ -1166,8 +1167,11 @@ export class TemplateInterpreter {
 
         // Generative Mode: If not found, place a switch here
         if (!result && this.rng && this.rng.nextBoolean()) {
+          console.log('[Interpreter] Placing switch at position:', this.context.position);
           this.items.push({ type: 'switch', position: [...this.context.position] as Coord });
           result = true;
+        } else {
+          console.log('[Interpreter] isOnSwitch evaluated:', result, 'rng:', this.rng ? 'exists' : 'null', 'at:', this.context.position);
         }
         break;
         

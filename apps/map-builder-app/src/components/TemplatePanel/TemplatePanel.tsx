@@ -648,14 +648,27 @@ function convertToMapData(result: SolutionDrivenResult): GeneratedMapData {
             z: b.position?.z ?? b.z ?? 0,
             model: b.modelKey || 'grass'
         })),
-        items: gameConfig.gameConfig.collectibles.map((c: any) => ({
-            type: c.type,
-            position: {
-                x: c.position?.x ?? c.x ?? 0,
-                y: c.position?.y ?? c.y ?? 0,
-                z: c.position?.z ?? c.z ?? 0
-            }
-        })),
+        // Combine collectibles AND interactibles into items
+        items: [
+            // Collectibles (crystals, keys)
+            ...(gameConfig.gameConfig.collectibles || []).map((c: any) => ({
+                type: c.type,
+                position: {
+                    x: c.position?.x ?? c.x ?? 0,
+                    y: c.position?.y ?? c.y ?? 0,
+                    z: c.position?.z ?? c.z ?? 0
+                }
+            })),
+            // Interactibles (switches, portals)
+            ...(gameConfig.gameConfig.interactibles || []).map((i: any) => ({
+                type: i.type,
+                position: {
+                    x: i.position?.x ?? i.x ?? 0,
+                    y: i.position?.y ?? i.y ?? 0,
+                    z: i.position?.z ?? i.z ?? 0
+                }
+            }))
+        ],
         playerStart: {
             x: gameConfig.gameConfig.players[0].start.x,
             y: gameConfig.gameConfig.players[0].start.y,
