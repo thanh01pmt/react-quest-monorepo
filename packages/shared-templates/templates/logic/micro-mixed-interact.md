@@ -6,7 +6,7 @@ concepts: ["micropattern", "crystal", "switch", "mixed"]
 difficulty: 4
 tags: ["logic", "crystal", "switch", "interact"]
 author: system
-version: 4
+version: 5
 description: "Collect crystals AND toggle switches with different spacing"
 ---
 
@@ -18,7 +18,7 @@ Collect crystals and toggle switches.
 
 ```js
 var _MIN_REPEATS_ = 2;
-var _MAX_REPEATS_ = 4;
+var _MAX_REPEATS_ = 3;
 var _MIN_SPACE_CRYSTAL_ = 0;
 var _MAX_SPACE_CRYSTAL_ = 2;
 var _MIN_SPACE_SWITCH_ = 0;
@@ -30,6 +30,7 @@ var SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);
 
 moveForward();
 
+// Zigzag pattern to avoid circular path
 for (let i = 0; i < REPEATS; i++) {
   // Phase 1: Crystal Spacing
   for (let c = 0; c < SPACE_CRYSTAL + 1; c++) {
@@ -43,10 +44,19 @@ for (let i = 0; i < REPEATS; i++) {
   }
   toggleSwitch();
   
-  turnRight();
+  // Alternate turn direction
+  if (i % 2 == 0) {
+    turnRight();
+    moveForward();
+    turnRight();
+  } else {
+    turnLeft();
+    moveForward();
+    turnLeft();
+  }
 }
 
-moveForward();
+// Final exit
 collectItem();
 moveForward();
 ```

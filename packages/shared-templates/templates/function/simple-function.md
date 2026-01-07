@@ -6,7 +6,7 @@ concepts: ["procedure_simple"]
 difficulty: 3
 tags: ["function", "procedure", "reuse", "define"]
 author: system
-version: 1
+version: 2
 description: "Define and call a simple function"
 ---
 
@@ -26,7 +26,7 @@ Learn to define and call functions to organize your code.
 var _MIN_PER_CALL_ = 1;
 var _MAX_PER_CALL_ = 3;
 var _MIN_CALLS_ = 2;
-var _MAX_CALLS_ = 4;
+var _MAX_CALLS_ = 3;
 var PER_CALL = random(_MIN_PER_CALL_, _MAX_PER_CALL_);
 var CALLS = random(_MIN_CALLS_, _MAX_CALLS_);
 
@@ -40,10 +40,22 @@ function collectItems() {
 
 moveForward();
 
+// Zigzag pattern to avoid circular path
 for (let c = 0; c < CALLS; c++) {
   collectItems();
-  turnRight();
+  
+  if (c % 2 == 0) {
+    turnRight();
+    moveForward();
+    turnRight();
+  } else {
+    turnLeft();
+    moveForward();
+    turnLeft();
+  }
 }
 
+// Final segment
+collectItems();
 moveForward();
 ```

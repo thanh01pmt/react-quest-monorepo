@@ -6,7 +6,7 @@ concepts: ["loop", "repeat", "spacing"]
 difficulty: 3
 tags: ["loop", "crystal", "repeat"]
 author: system
-version: 3
+version: 4
 description: "Use a loop to collect crystals with turns and spacing"
 ---
 
@@ -18,7 +18,7 @@ A loop-based pattern that collects crystals, turns, and repeats.
 
 ```js
 var _MIN_REPEATS_ = 2;
-var _MAX_REPEATS_ = 4;
+var _MAX_REPEATS_ = 3;
 var _MIN_SPACE_ = 0;
 var _MAX_SPACE_ = 2;
 
@@ -27,23 +27,32 @@ var SPACE = random(_MIN_SPACE_, _MAX_SPACE_);
 
 moveForward();
 
+// Zigzag pattern to avoid circular path
 for (let r = 0; r < REPEATS; r++) {
-  // Pattern 1
+  // Collect phase
   for (let s = 0; s < SPACE + 1; s++) {
     moveForward();
   }
   collectItem();
   
-  // Pattern 2
   for (let s = 0; s < SPACE + 1; s++) {
     moveForward();
   }
   collectItem();
   
-  turnRight();
+  // Alternate turn direction
+  if (r % 2 == 0) {
+    turnRight();
+    moveForward();
+    turnRight();
+  } else {
+    turnLeft();
+    moveForward();
+    turnLeft();
+  }
 }
 
-moveForward();
+// Final exit
 collectItem();
 moveForward();
 ```
