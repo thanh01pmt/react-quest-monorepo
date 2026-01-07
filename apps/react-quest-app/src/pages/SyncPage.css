@@ -8,17 +8,30 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: var(--background-color);
+  color: var(--text-color);
   padding: 20px;
   box-sizing: border-box;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Dark Theme Specifics for Page Background */
+.sync-page.theme-dark {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
 }
 
 .sync-container {
-  background: rgba(30, 30, 46, 0.95);
+  background: var(--visualization-bg);
   border-radius: 16px;
   padding: 40px;
   max-width: 500px;
   width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+}
+
+.sync-page.theme-dark .sync-container {
+  background: rgba(30, 30, 46, 0.95);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -31,33 +44,51 @@
 .sync-header h1 {
   margin: 0 0 12px 0;
   font-size: 28px;
+  color: var(--text-color);
+}
+
+.sync-page.theme-dark .sync-header h1 {
   color: #fff;
 }
 
 .sync-mode-badge {
   display: inline-block;
   padding: 6px 14px;
-  background: rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
+  background: var(--button-bg-color);
+  color: var(--text-color);
   border-radius: 20px;
   font-size: 13px;
   font-weight: 500;
 }
 
+.sync-page.theme-dark .sync-mode-badge {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+}
+
 /* Quest Info Card */
 .quest-info-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--button-bg-color);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+}
+
+.sync-page.theme-dark .quest-info-card {
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .quest-info-card h2 {
   margin: 0 0 12px 0;
   font-size: 18px;
-  color: #fff;
+  color: var(--text-color);
   word-break: break-all;
+}
+
+.sync-page.theme-dark .quest-info-card h2 {
+  color: #fff;
 }
 
 .quest-meta {
@@ -68,10 +99,20 @@
 
 .meta-item {
   font-size: 13px;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.sync-page.theme-dark .meta-item {
   color: #a0a0b0;
+  opacity: 1;
 }
 
 .meta-item strong {
+  color: var(--text-color);
+}
+
+.sync-page.theme-dark .meta-item strong {
   color: #c0c0d0;
 }
 
@@ -108,12 +149,23 @@
 }
 
 .sync-btn.secondary {
+  background: var(--button-bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.sync-btn.secondary:hover {
+  background: var(--button-hover-bg-color);
+  border-color: var(--border-color);
+}
+
+.sync-page.theme-dark .sync-btn.secondary {
   background: rgba(255, 255, 255, 0.08);
   color: #c0c0d0;
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.sync-btn.secondary:hover {
+.sync-page.theme-dark .sync-btn.secondary:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.25);
 }
@@ -123,7 +175,13 @@
   margin-top: 20px;
   text-align: center;
   font-size: 13px;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.sync-page.theme-dark .sync-hint {
   color: #808090;
+  opacity: 1;
 }
 
 /* Error State */
@@ -142,7 +200,8 @@
 .sync-loading {
   text-align: center;
   padding: 40px;
-  color: #a0a0b0;
+  color: var(--text-color);
+  opacity: 0.6;
   font-size: 16px;
 }
 
@@ -155,6 +214,8 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--background-color);
+  color: var(--text-color);
 }
 
 .sync-player-header {
@@ -162,22 +223,38 @@
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
+  background: var(--visualization-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sync-player-wrapper.theme-dark .sync-player-header {
   background: #1e1e2e;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sync-back-btn {
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--button-bg-color);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
-  color: #c0c0d0;
+  color: var(--text-color);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .sync-back-btn:hover {
+  background: var(--button-hover-bg-color);
+  border-color: var(--border-color);
+}
+
+.sync-player-wrapper.theme-dark .sync-back-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #c0c0d0;
+}
+
+.sync-player-wrapper.theme-dark .sync-back-btn:hover {
   background: rgba(255, 255, 255, 0.12);
 }
 
