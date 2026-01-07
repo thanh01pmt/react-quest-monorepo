@@ -30,3 +30,6 @@ export { GameAssets } from './games/maze/config/gameAssets'; // Giữ lại expo
 // SỬA LẠI: Export trực tiếp từ các file định nghĩa của game maze
 export { init as initMazeBlocks } from './games/maze/blocks'; // <-- Đổi tên export ở đây
 export { mazeTheme } from '../theme'; // Trỏ đến file theme ở gốc /packages/quest-player/theme.ts
+
+// Export Toolbox helpers
+export { getToolboxPreset, getToolboxPresetWithFallback, toolboxPresets, type ToolboxPresetKey } from './config/toolboxPresets';

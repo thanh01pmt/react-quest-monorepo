@@ -11,6 +11,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { loadBuilderQuest, clearBuilderQuest, type QuestData } from '../services/QuestLoaderService';
 import { QuestPlayer, type Quest, type QuestPlayerSettings, Dialog, type QuestCompletionResult, type QuestMetrics } from '@repo/quest-player';
+import { convertSolutionToXml } from '@repo/academic-map-generator';
 import './SyncPage.css';
 
 interface SyncPageProps {
@@ -41,6 +42,35 @@ export function SyncPage({ settings, onSettingsChange }: SyncPageProps) {
         stars?: number;
     }>({ isOpen: false, title: '', message: '' });
 
+    // Compute theme class for container based on settings
+    const themeClass = settings.colorSchemeMode === 'dark'
+        ? 'theme-dark'
+        : settings.colorSchemeMode === 'light'
+            ? 'theme-light'
+            : (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'theme-dark' : 'theme-light');
+
+    // Apply theme to document.body for CSS variables to cascade properly (mirrors App.tsx)
+    useEffect(() => {
+        const applyTheme = (isDarkMode: boolean) => {
+            const newColorScheme = isDarkMode ? 'dark' : 'light';
+            document.body.classList.remove('theme-light', 'theme-dark');
+            document.body.classList.add(`theme-${newColorScheme}`);
+        };
+
+        const handleChange = (e: MediaQueryListEvent) => {
+            if (settings.colorSchemeMode === 'auto') {
+                applyTheme(e.matches);
+            }
+        };
+
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const effectiveIsDark = settings.colorSchemeMode === 'auto' ? mediaQuery.matches : settings.colorSchemeMode === 'dark';
+        applyTheme(effectiveIsDark);
+
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, [settings.colorSchemeMode]);
+
     // Load quest on mount
     useEffect(() => {
         try {
@@ -70,17 +100,32 @@ export function SyncPage({ settings, onSettingsChange }: SyncPageProps) {
 
         // If "Show Solution" is OFF, we verify if we need to clear the answer.
         // Usually builder sends the "answer" in startBlocks.
-        if (!showSolution && finalQuest.blocklyConfig?.startBlocks) {
-            // Check if startBlocks contains more than just maze_start to consider it a "solution"
-            // For now, if toggle is OFF, we force a simple empty start block
-            return {
-                ...finalQuest,
-                blocklyConfig: {
-                    ...finalQuest.blocklyConfig,
-                    // Only reset start blocks, keep toolboxes
-                    startBlocks: '<xml><block type="maze_start" deletable="false" movable="false"><statement name="DO"></statement></block></xml>'
+        if (finalQuest.blocklyConfig?.startBlocks) {
+            if (showSolution) {
+                // FIX: Generate full XML solution from structuredSolution if available
+                if ((finalQuest as any).solution?.structuredSolution) {
+                    const solutionXml = convertSolutionToXml((finalQuest as any).solution.structuredSolution);
+                    return {
+                        ...finalQuest,
+                        blocklyConfig: {
+                            ...finalQuest.blocklyConfig,
+                            startBlocks: solutionXml
+                        }
+                    };
                 }
-            };
+                // If no structured solution, fallback to existing startBlocks (might be answer or empty)
+                return finalQuest;
+            } else {
+                // If toggle is OFF, force empty start blocks (or keep original default)
+                return {
+                    ...finalQuest,
+                    blocklyConfig: {
+                        ...finalQuest.blocklyConfig,
+                        // Only reset start blocks, keep toolboxes
+                        startBlocks: '<xml><block type="maze_start" deletable="false" movable="false"><statement name="DO"></statement></block></xml>'
+                    }
+                };
+            }
         }
 
         return finalQuest;
@@ -158,7 +203,7 @@ export function SyncPage({ settings, onSettingsChange }: SyncPageProps) {
     // If playing, show the QuestPlayer
     if (isPlaying && questForPlayer) {
         return (
-            <div className="sync-player-wrapper">
+            <div className={`sync-player-wrapper ${themeClass}`}>
                 <Dialog
                     isOpen={dialogState.isOpen}
                     title={dialogState.title}
@@ -198,7 +243,7 @@ export function SyncPage({ settings, onSettingsChange }: SyncPageProps) {
 
     // Show sync page
     return (
-        <div className="sync-page">
+        <div className={`sync-page ${themeClass}`}>
             <div className="sync-container">
                 <div className="sync-header">
                     <h1>🔗 Builder Sync</h1>

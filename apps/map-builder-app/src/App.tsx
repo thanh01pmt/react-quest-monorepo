@@ -23,6 +23,8 @@ import { useMapValidation } from './hooks/useMapValidation';
 import { KeyboardShortcutsPanel } from './components/KeyboardShortcutsPanel';
 import { SolutionDebugPanel } from './components/SolutionDebugPanel';
 import { PlacementSelector } from './components/PlacementSelector';
+
+import { convertSolutionToXml } from '@repo/academic-map-generator';
 import { PatternSelector } from './components/PatternSelector';
 import { TemplateManager } from './components/TemplateManager';
 import { PlacementVariants } from './components/PlacementVariants';
@@ -2613,12 +2615,49 @@ function App() {
           blocklyConfig: {
             ...(prev?.blocklyConfig || {}),
             maxBlocks: newMaxBlocks,
+            // FIX: Preserve existing structuredSolution if it has procedures
+            // The auto-solver generates empty procedures, but template may have rich ones
+            startBlocks: (() => {
+              // Check if current solution has procedures we should preserve
+              const existingStructured = currentSC?.structuredSolution;
+              const newStructured = solution.structuredSolution;
+
+              // If existing solution has procedures but new one doesn't, preserve existing
+              if (existingStructured?.procedures &&
+                Object.keys(existingStructured.procedures).length > 0 &&
+                (!newStructured?.procedures || Object.keys(newStructured.procedures).length === 0)) {
+                // Merge: Use new main but preserve existing procedures
+                const merged = {
+                  main: newStructured?.main || existingStructured.main,
+                  procedures: existingStructured.procedures
+                };
+                return convertSolutionToXml(merged);
+              }
+
+              // Otherwise use new solution
+              return newStructured ? convertSolutionToXml(newStructured) : undefined;
+            })(),
           },
           // Hợp nhất solution config cũ với kết quả mới từ solver
           solution: {
             ...currentSC,
             type: 'reach_target', // SỬA LỖI: Đảm bảo trường type luôn tồn tại
             ...solution,
+            // FIX: Preserve existing structuredSolution procedures if new one is empty
+            structuredSolution: (() => {
+              const existingStructured = currentSC?.structuredSolution;
+              const newStructured = solution.structuredSolution;
+
+              if (existingStructured?.procedures &&
+                Object.keys(existingStructured.procedures).length > 0 &&
+                (!newStructured?.procedures || Object.keys(newStructured.procedures).length === 0)) {
+                return {
+                  main: newStructured?.main || existingStructured.main,
+                  procedures: existingStructured.procedures
+                };
+              }
+              return newStructured;
+            })(),
             basicSolution: basicSolution // Lưu lời giải cơ bản vào metadata
           },
         }));
@@ -3776,10 +3815,14 @@ function App() {
                       topology: 'template_generated',
                       params: {}
                     },
-                    // Auto-set blocklyConfig with suggested toolbox
+                    // Auto-set blocklyConfig with suggested toolbox AND GENERATED START BLOCKS
                     blocklyConfig: {
                       toolboxPresetKey: suggestedToolboxKey,
-                      toolbox: toolboxPresets[suggestedToolboxKey]
+                      toolbox: toolboxPresets[suggestedToolboxKey],
+                      // FIX: Generate XML for startBlocks to ensure Procedure Definitions are included
+                      startBlocks: data.solutionConfig?.structuredSolution
+                        ? convertSolutionToXml(data.solutionConfig.structuredSolution)
+                        : undefined
                     }
                   };
 

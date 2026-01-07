@@ -306,7 +306,7 @@ export interface QuestPlayerSettings {
    * Selected toolbox preset key. When set, overrides the quest's toolbox configuration.
    * Set to 'default' to use the quest's original toolbox.
    */
-  toolboxPresetKey?: 'default' | 'basic_movement' | 'with_actions' | 'with_loops' | 'with_functions' | 'with_conditionals' | 'full';
+  toolboxPresetKey?: 'default' | 'basic_movement' | 'with_actions' | 'with_loops' | 'with_functions' | 'with_conditionals' | 'full_toolbox' | (string & {});
   environment?: 'day' | 'night';
   displayLanguage?: CodeLanguage;
 }

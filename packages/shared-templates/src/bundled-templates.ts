@@ -241,7 +241,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "define"
       ],
       "author": "system",
-      "version": 1,
+      "version": 2,
       "description": "Define and call a simple function"
     },
     "parameters": [
@@ -267,12 +267,12 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MAX_CALLS_",
         "displayName": "Max Calls",
         "type": "number",
-        "defaultValue": 4
+        "defaultValue": 3
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_PER_CALL_ = 1;\nvar _MAX_PER_CALL_ = 3;\nvar _MIN_CALLS_ = 2;\nvar _MAX_CALLS_ = 4;\nvar PER_CALL = random(_MIN_PER_CALL_, _MAX_PER_CALL_);\nvar CALLS = random(_MIN_CALLS_, _MAX_CALLS_);\n\n// Solution\nfunction collectItems() {\n  for (let i = 0; i < PER_CALL; i++) {\n    collectItem();\n    moveForward();\n  }\n}\n\nmoveForward();\n\nfor (let c = 0; c < CALLS; c++) {\n  collectItems();\n  turnRight();\n}\n\nmoveForward();",
+    "solutionCode": "// Parameters\nvar _MIN_PER_CALL_ = 1;\nvar _MAX_PER_CALL_ = 3;\nvar _MIN_CALLS_ = 2;\nvar _MAX_CALLS_ = 3;\nvar PER_CALL = random(_MIN_PER_CALL_, _MAX_PER_CALL_);\nvar CALLS = random(_MIN_CALLS_, _MAX_CALLS_);\n\n// Solution\nfunction collectItems() {\n  for (let i = 0; i < PER_CALL; i++) {\n    collectItem();\n    moveForward();\n  }\n}\n\nmoveForward();\n\n// Zigzag pattern to avoid circular path\nfor (let c = 0; c < CALLS; c++) {\n  collectItems();\n  \n  if (c % 2 == 0) {\n    turnRight();\n    moveForward();\n    turnRight();\n  } else {\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n\n// Final segment\ncollectItems();\nmoveForward();",
     "descriptionMarkdown": "# Simple Function\n\nLearn to define and call functions to organize your code.\n\n## Learning Goals\n- Define a function\n- Call a function multiple times\n- Understand code reuse\n\n## Solution & Parameters",
-    "rawContent": "---\nid: simple-function\nname: \"Simple Function\"\ncategory: function\nconcepts: [\"procedure_simple\"]\ndifficulty: 3\ntags: [\"function\", \"procedure\", \"reuse\", \"define\"]\nauthor: system\nversion: 1\ndescription: \"Define and call a simple function\"\n---\n\n# Simple Function\n\nLearn to define and call functions to organize your code.\n\n## Learning Goals\n- Define a function\n- Call a function multiple times\n- Understand code reuse\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_PER_CALL_ = 1;\nvar _MAX_PER_CALL_ = 3;\nvar _MIN_CALLS_ = 2;\nvar _MAX_CALLS_ = 4;\nvar PER_CALL = random(_MIN_PER_CALL_, _MAX_PER_CALL_);\nvar CALLS = random(_MIN_CALLS_, _MAX_CALLS_);\n\n// Solution\nfunction collectItems() {\n  for (let i = 0; i < PER_CALL; i++) {\n    collectItem();\n    moveForward();\n  }\n}\n\nmoveForward();\n\nfor (let c = 0; c < CALLS; c++) {\n  collectItems();\n  turnRight();\n}\n\nmoveForward();\n```\n"
+    "rawContent": "---\nid: simple-function\nname: \"Simple Function\"\ncategory: function\nconcepts: [\"procedure_simple\"]\ndifficulty: 3\ntags: [\"function\", \"procedure\", \"reuse\", \"define\"]\nauthor: system\nversion: 2\ndescription: \"Define and call a simple function\"\n---\n\n# Simple Function\n\nLearn to define and call functions to organize your code.\n\n## Learning Goals\n- Define a function\n- Call a function multiple times\n- Understand code reuse\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_PER_CALL_ = 1;\nvar _MAX_PER_CALL_ = 3;\nvar _MIN_CALLS_ = 2;\nvar _MAX_CALLS_ = 3;\nvar PER_CALL = random(_MIN_PER_CALL_, _MAX_PER_CALL_);\nvar CALLS = random(_MIN_CALLS_, _MAX_CALLS_);\n\n// Solution\nfunction collectItems() {\n  for (let i = 0; i < PER_CALL; i++) {\n    collectItem();\n    moveForward();\n  }\n}\n\nmoveForward();\n\n// Zigzag pattern to avoid circular path\nfor (let c = 0; c < CALLS; c++) {\n  collectItems();\n  \n  if (c % 2 == 0) {\n    turnRight();\n    moveForward();\n    turnRight();\n  } else {\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n\n// Final segment\ncollectItems();\nmoveForward();\n```\n"
   },
   {
     "metadata": {
@@ -457,7 +457,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "interact"
       ],
       "author": "system",
-      "version": 4,
+      "version": 5,
       "description": "Collect crystals AND toggle switches with different spacing"
     },
     "parameters": [
@@ -471,7 +471,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MAX_REPEATS_",
         "displayName": "Max Repeats",
         "type": "number",
-        "defaultValue": 4
+        "defaultValue": 3
       },
       {
         "name": "_MIN_SPACE_CRYSTAL_",
@@ -498,9 +498,9 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "defaultValue": 1
       }
     ],
-    "solutionCode": "var _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 4;\nvar _MIN_SPACE_CRYSTAL_ = 0;\nvar _MAX_SPACE_CRYSTAL_ = 2;\nvar _MIN_SPACE_SWITCH_ = 0;\nvar _MAX_SPACE_SWITCH_ = 1;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE_CRYSTAL = random(_MIN_SPACE_CRYSTAL_, _MAX_SPACE_CRYSTAL_);\nvar SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);\n\nmoveForward();\n\nfor (let i = 0; i < REPEATS; i++) {\n  // Phase 1: Crystal Spacing\n  for (let c = 0; c < SPACE_CRYSTAL + 1; c++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Phase 2: Switch Spacing\n  for (let s = 0; s < SPACE_SWITCH + 1; s++) {\n    moveForward();\n  }\n  toggleSwitch();\n  \n  turnRight();\n}\n\nmoveForward();\ncollectItem();\nmoveForward();",
+    "solutionCode": "var _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 3;\nvar _MIN_SPACE_CRYSTAL_ = 0;\nvar _MAX_SPACE_CRYSTAL_ = 2;\nvar _MIN_SPACE_SWITCH_ = 0;\nvar _MAX_SPACE_SWITCH_ = 1;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE_CRYSTAL = random(_MIN_SPACE_CRYSTAL_, _MAX_SPACE_CRYSTAL_);\nvar SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);\n\nmoveForward();\n\n// Zigzag pattern to avoid circular path\nfor (let i = 0; i < REPEATS; i++) {\n  // Phase 1: Crystal Spacing\n  for (let c = 0; c < SPACE_CRYSTAL + 1; c++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Phase 2: Switch Spacing\n  for (let s = 0; s < SPACE_SWITCH + 1; s++) {\n    moveForward();\n  }\n  toggleSwitch();\n  \n  // Alternate turn direction\n  if (i % 2 == 0) {\n    turnRight();\n    moveForward();\n    turnRight();\n  } else {\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n\n// Final exit\ncollectItem();\nmoveForward();",
     "descriptionMarkdown": "# Micro Mixed Interact\n\nCollect crystals and toggle switches.\n\n## Solution & Parameters",
-    "rawContent": "---\nid: micro-mixed-interact\nname: \"Micro Mixed Interact\"\ncategory: logic\nconcepts: [\"micropattern\", \"crystal\", \"switch\", \"mixed\"]\ndifficulty: 4\ntags: [\"logic\", \"crystal\", \"switch\", \"interact\"]\nauthor: system\nversion: 4\ndescription: \"Collect crystals AND toggle switches with different spacing\"\n---\n\n# Micro Mixed Interact\n\nCollect crystals and toggle switches.\n\n## Solution & Parameters\n\n```js\nvar _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 4;\nvar _MIN_SPACE_CRYSTAL_ = 0;\nvar _MAX_SPACE_CRYSTAL_ = 2;\nvar _MIN_SPACE_SWITCH_ = 0;\nvar _MAX_SPACE_SWITCH_ = 1;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE_CRYSTAL = random(_MIN_SPACE_CRYSTAL_, _MAX_SPACE_CRYSTAL_);\nvar SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);\n\nmoveForward();\n\nfor (let i = 0; i < REPEATS; i++) {\n  // Phase 1: Crystal Spacing\n  for (let c = 0; c < SPACE_CRYSTAL + 1; c++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Phase 2: Switch Spacing\n  for (let s = 0; s < SPACE_SWITCH + 1; s++) {\n    moveForward();\n  }\n  toggleSwitch();\n  \n  turnRight();\n}\n\nmoveForward();\ncollectItem();\nmoveForward();\n```\n"
+    "rawContent": "---\nid: micro-mixed-interact\nname: \"Micro Mixed Interact\"\ncategory: logic\nconcepts: [\"micropattern\", \"crystal\", \"switch\", \"mixed\"]\ndifficulty: 4\ntags: [\"logic\", \"crystal\", \"switch\", \"interact\"]\nauthor: system\nversion: 5\ndescription: \"Collect crystals AND toggle switches with different spacing\"\n---\n\n# Micro Mixed Interact\n\nCollect crystals and toggle switches.\n\n## Solution & Parameters\n\n```js\nvar _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 3;\nvar _MIN_SPACE_CRYSTAL_ = 0;\nvar _MAX_SPACE_CRYSTAL_ = 2;\nvar _MIN_SPACE_SWITCH_ = 0;\nvar _MAX_SPACE_SWITCH_ = 1;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE_CRYSTAL = random(_MIN_SPACE_CRYSTAL_, _MAX_SPACE_CRYSTAL_);\nvar SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);\n\nmoveForward();\n\n// Zigzag pattern to avoid circular path\nfor (let i = 0; i < REPEATS; i++) {\n  // Phase 1: Crystal Spacing\n  for (let c = 0; c < SPACE_CRYSTAL + 1; c++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Phase 2: Switch Spacing\n  for (let s = 0; s < SPACE_SWITCH + 1; s++) {\n    moveForward();\n  }\n  toggleSwitch();\n  \n  // Alternate turn direction\n  if (i % 2 == 0) {\n    turnRight();\n    moveForward();\n    turnRight();\n  } else {\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n\n// Final exit\ncollectItem();\nmoveForward();\n```\n"
   },
   {
     "metadata": {
@@ -644,7 +644,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "repeat"
       ],
       "author": "system",
-      "version": 3,
+      "version": 4,
       "description": "Use a loop to collect crystals with turns and spacing"
     },
     "parameters": [
@@ -658,7 +658,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MAX_REPEATS_",
         "displayName": "Max Repeats",
         "type": "number",
-        "defaultValue": 4
+        "defaultValue": 3
       },
       {
         "name": "_MIN_SPACE_",
@@ -673,9 +673,9 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "defaultValue": 2
       }
     ],
-    "solutionCode": "var _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 4;\nvar _MIN_SPACE_ = 0;\nvar _MAX_SPACE_ = 2;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE = random(_MIN_SPACE_, _MAX_SPACE_);\n\nmoveForward();\n\nfor (let r = 0; r < REPEATS; r++) {\n  // Pattern 1\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Pattern 2\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  turnRight();\n}\n\nmoveForward();\ncollectItem();\nmoveForward();",
+    "solutionCode": "var _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 3;\nvar _MIN_SPACE_ = 0;\nvar _MAX_SPACE_ = 2;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE = random(_MIN_SPACE_, _MAX_SPACE_);\n\nmoveForward();\n\n// Zigzag pattern to avoid circular path\nfor (let r = 0; r < REPEATS; r++) {\n  // Collect phase\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Alternate turn direction\n  if (r % 2 == 0) {\n    turnRight();\n    moveForward();\n    turnRight();\n  } else {\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n\n// Final exit\ncollectItem();\nmoveForward();",
     "descriptionMarkdown": "# Micro Loop Collect\n\nA loop-based pattern that collects crystals, turns, and repeats.\n\n## Solution & Parameters",
-    "rawContent": "---\nid: micro-loop-collect\nname: \"Micro Loop Collect\"\ncategory: loop\nconcepts: [\"loop\", \"repeat\", \"spacing\"]\ndifficulty: 3\ntags: [\"loop\", \"crystal\", \"repeat\"]\nauthor: system\nversion: 3\ndescription: \"Use a loop to collect crystals with turns and spacing\"\n---\n\n# Micro Loop Collect\n\nA loop-based pattern that collects crystals, turns, and repeats.\n\n## Solution & Parameters\n\n```js\nvar _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 4;\nvar _MIN_SPACE_ = 0;\nvar _MAX_SPACE_ = 2;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE = random(_MIN_SPACE_, _MAX_SPACE_);\n\nmoveForward();\n\nfor (let r = 0; r < REPEATS; r++) {\n  // Pattern 1\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Pattern 2\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  turnRight();\n}\n\nmoveForward();\ncollectItem();\nmoveForward();\n```\n"
+    "rawContent": "---\nid: micro-loop-collect\nname: \"Micro Loop Collect\"\ncategory: loop\nconcepts: [\"loop\", \"repeat\", \"spacing\"]\ndifficulty: 3\ntags: [\"loop\", \"crystal\", \"repeat\"]\nauthor: system\nversion: 4\ndescription: \"Use a loop to collect crystals with turns and spacing\"\n---\n\n# Micro Loop Collect\n\nA loop-based pattern that collects crystals, turns, and repeats.\n\n## Solution & Parameters\n\n```js\nvar _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 3;\nvar _MIN_SPACE_ = 0;\nvar _MAX_SPACE_ = 2;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE = random(_MIN_SPACE_, _MAX_SPACE_);\n\nmoveForward();\n\n// Zigzag pattern to avoid circular path\nfor (let r = 0; r < REPEATS; r++) {\n  // Collect phase\n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  for (let s = 0; s < SPACE + 1; s++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Alternate turn direction\n  if (r % 2 == 0) {\n    turnRight();\n    moveForward();\n    turnRight();\n  } else {\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n\n// Final exit\ncollectItem();\nmoveForward();\n```\n"
   },
   {
     "metadata": {
@@ -1261,7 +1261,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "nature"
       ],
       "author": "system",
-      "version": 2,
+      "version": 3,
       "description": "Walk distances following the Fibonacci sequence (1, 1, 2, 3, 5...)"
     },
     "parameters": [
@@ -1269,18 +1269,18 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MIN_STEPS_",
         "displayName": "Min Steps",
         "type": "number",
-        "defaultValue": 3
+        "defaultValue": 2
       },
       {
         "name": "_MAX_STEPS_",
         "displayName": "Max Steps",
         "type": "number",
-        "defaultValue": 5
+        "defaultValue": 3
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 5;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nlet a = 1;\nlet b = 1;\n\n// Initial entry\nmoveForward();\n\n// First step (1)\nmoveForward();\ncollectItem();\nturnRight();\n\n// Second step (1)\nmoveForward();\ncollectItem();\nturnRight();\n\nfor (let i = 2; i < STEPS; i++) {\n  let next = a + b;\n  \n  // Move Fibonacci distance\n  for (let j = 0; j < next; j++) {\n    moveForward();\n  }\n  collectItem();\n  turnRight();\n  \n  // Update sequence\n  a = b;\n  b = next;\n}\n\n// Final exit\nmoveForward();",
+    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 2;\nvar _MAX_STEPS_ = 3;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nlet a = 1;\nlet b = 1;\n\n// Initial entry\nmoveForward();\n\n// First step (distance 1)\nmoveForward();\ncollectItem();\nturnRight();\n\n// Second step (distance 1)\nmoveForward();\ncollectItem();\nturnRight();\n\n// Additional Fibonacci steps\nfor (let i = 2; i < STEPS + 1; i++) {\n  let next = a + b;\n  \n  // Move Fibonacci distance\n  for (let j = 0; j < next; j++) {\n    moveForward();\n  }\n  collectItem();\n  turnRight();\n  \n  // Update sequence\n  a = b;\n  b = next;\n}\n\n// Final exit segment (no turn, just continue forward)\nfor (let j = 0; j < b; j++) {\n  collectItem();\n  moveForward();\n}\n\nmoveForward();",
     "descriptionMarkdown": "# Fibonacci Path\n\nA path based on the famous Fibonacci sequence found in nature.\n\n## Academic Concept: Fibonacci Sequence\n- $F_0=0, F_1=1, F_n = F_{n-1} + F_{n-2}$\n- Sequence: 1, 1, 2, 3, 5, 8...\n\n## Solution & Parameters",
-    "rawContent": "---\nid: fibonacci-path\nname: \"Fibonacci Path\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"fibonacci\"]\ndifficulty: 5\ntags: [\"math\", \"fibonacci\", \"nature\"]\nauthor: system\nversion: 2\ndescription: \"Walk distances following the Fibonacci sequence (1, 1, 2, 3, 5...)\"\n---\n\n# Fibonacci Path\n\nA path based on the famous Fibonacci sequence found in nature.\n\n## Academic Concept: Fibonacci Sequence\n- $F_0=0, F_1=1, F_n = F_{n-1} + F_{n-2}$\n- Sequence: 1, 1, 2, 3, 5, 8...\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 5;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nlet a = 1;\nlet b = 1;\n\n// Initial entry\nmoveForward();\n\n// First step (1)\nmoveForward();\ncollectItem();\nturnRight();\n\n// Second step (1)\nmoveForward();\ncollectItem();\nturnRight();\n\nfor (let i = 2; i < STEPS; i++) {\n  let next = a + b;\n  \n  // Move Fibonacci distance\n  for (let j = 0; j < next; j++) {\n    moveForward();\n  }\n  collectItem();\n  turnRight();\n  \n  // Update sequence\n  a = b;\n  b = next;\n}\n\n// Final exit\nmoveForward();\n```\n"
+    "rawContent": "---\nid: fibonacci-path\nname: \"Fibonacci Path\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"fibonacci\"]\ndifficulty: 5\ntags: [\"math\", \"fibonacci\", \"nature\"]\nauthor: system\nversion: 3\ndescription: \"Walk distances following the Fibonacci sequence (1, 1, 2, 3, 5...)\"\n---\n\n# Fibonacci Path\n\nA path based on the famous Fibonacci sequence found in nature.\n\n## Academic Concept: Fibonacci Sequence\n- $F_0=0, F_1=1, F_n = F_{n-1} + F_{n-2}$\n- Sequence: 1, 1, 2, 3, 5, 8...\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 2;\nvar _MAX_STEPS_ = 3;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nlet a = 1;\nlet b = 1;\n\n// Initial entry\nmoveForward();\n\n// First step (distance 1)\nmoveForward();\ncollectItem();\nturnRight();\n\n// Second step (distance 1)\nmoveForward();\ncollectItem();\nturnRight();\n\n// Additional Fibonacci steps\nfor (let i = 2; i < STEPS + 1; i++) {\n  let next = a + b;\n  \n  // Move Fibonacci distance\n  for (let j = 0; j < next; j++) {\n    moveForward();\n  }\n  collectItem();\n  turnRight();\n  \n  // Update sequence\n  a = b;\n  b = next;\n}\n\n// Final exit segment (no turn, just continue forward)\nfor (let j = 0; j < b; j++) {\n  collectItem();\n  moveForward();\n}\n\nmoveForward();\n```\n"
   },
   {
     "metadata": {
@@ -1299,7 +1299,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "exponential"
       ],
       "author": "system",
-      "version": 2,
+      "version": 3,
       "description": "Walk a spiral where side lengths double (1, 2, 4...)"
     },
     "parameters": [
@@ -1313,12 +1313,12 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MAX_TURNS_",
         "displayName": "Max Turns",
         "type": "number",
-        "defaultValue": 4
+        "defaultValue": 3
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_TURNS_ = 2;\nvar _MAX_TURNS_ = 4;\nvar TURNS = random(_MIN_TURNS_, _MAX_TURNS_);\nvar RATIO = 2;\n\n// Solution\nmoveForward();\n\nlet length = 1;\n\nfor (let i = 0; i < TURNS; i++) {\n  // Move side and collect\n  for (let j = 0; j < length; j++) {\n    collectItem();\n    moveForward();\n  }\n  \n  turnRight();\n  length = length * RATIO;\n}\n\nmoveForward();",
+    "solutionCode": "// Parameters\nvar _MIN_TURNS_ = 2;\nvar _MAX_TURNS_ = 3;\nvar TURNS = random(_MIN_TURNS_, _MAX_TURNS_);\nvar RATIO = 2;\n\n// Solution\nmoveForward();\n\nlet length = 1;\n\nfor (let i = 0; i < TURNS; i++) {\n  // Move side and collect\n  for (let j = 0; j < length; j++) {\n    collectItem();\n    moveForward();\n  }\n  \n  turnRight();\n  length = length * RATIO;\n}\n\n// Final side without turn (exit)\nfor (let j = 0; j < length; j++) {\n  collectItem();\n  moveForward();\n}\n\nmoveForward();",
     "descriptionMarkdown": "# Geometric Spiral\n\nA spiral path that expands exponentially.\n\n## Academic Concept: Geometric Progression\n- Sequence: $a, ar, ar^2, ...$\n- Here: Side length multiplies by `RATIO` (usually 2) each turn.\n\n## Solution & Parameters",
-    "rawContent": "---\nid: geometric-spiral\nname: \"Geometric Spiral\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"geometric_progression\"]\ndifficulty: 5\ntags: [\"math\", \"spiral\", \"exponential\"]\nauthor: system\nversion: 2\ndescription: \"Walk a spiral where side lengths double (1, 2, 4...)\"\n---\n\n# Geometric Spiral\n\nA spiral path that expands exponentially.\n\n## Academic Concept: Geometric Progression\n- Sequence: $a, ar, ar^2, ...$\n- Here: Side length multiplies by `RATIO` (usually 2) each turn.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_TURNS_ = 2;\nvar _MAX_TURNS_ = 4;\nvar TURNS = random(_MIN_TURNS_, _MAX_TURNS_);\nvar RATIO = 2;\n\n// Solution\nmoveForward();\n\nlet length = 1;\n\nfor (let i = 0; i < TURNS; i++) {\n  // Move side and collect\n  for (let j = 0; j < length; j++) {\n    collectItem();\n    moveForward();\n  }\n  \n  turnRight();\n  length = length * RATIO;\n}\n\nmoveForward();\n```\n"
+    "rawContent": "---\nid: geometric-spiral\nname: \"Geometric Spiral\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"geometric_progression\"]\ndifficulty: 5\ntags: [\"math\", \"spiral\", \"exponential\"]\nauthor: system\nversion: 3\ndescription: \"Walk a spiral where side lengths double (1, 2, 4...)\"\n---\n\n# Geometric Spiral\n\nA spiral path that expands exponentially.\n\n## Academic Concept: Geometric Progression\n- Sequence: $a, ar, ar^2, ...$\n- Here: Side length multiplies by `RATIO` (usually 2) each turn.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_TURNS_ = 2;\nvar _MAX_TURNS_ = 3;\nvar TURNS = random(_MIN_TURNS_, _MAX_TURNS_);\nvar RATIO = 2;\n\n// Solution\nmoveForward();\n\nlet length = 1;\n\nfor (let i = 0; i < TURNS; i++) {\n  // Move side and collect\n  for (let j = 0; j < length; j++) {\n    collectItem();\n    moveForward();\n  }\n  \n  turnRight();\n  length = length * RATIO;\n}\n\n// Final side without turn (exit)\nfor (let j = 0; j < length; j++) {\n  collectItem();\n  moveForward();\n}\n\nmoveForward();\n```\n"
   },
   {
     "metadata": {

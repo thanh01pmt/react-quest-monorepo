@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import LZString from 'lz-string';
 import { javascriptGenerator } from 'blockly/javascript';
 import { pythonGenerator } from 'blockly/python';
 import { luaGenerator } from 'blockly/lua';
@@ -25,7 +26,7 @@ import { BackgroundMusic } from '../BackgroundMusic';
 import { SettingsPanel } from '../SettingsPanel';
 import { SnippetToolbox } from '../SnippetToolbox';
 import { useSoundManager } from '../../hooks/useSoundManager';
-import { getToolboxPreset, type ToolboxPresetKey } from '../../config/toolboxPresets';
+import { getToolboxPreset, getToolboxPresetWithFallback, type ToolboxPresetKey } from '../../config/toolboxPresets';
 import type { TurtleRendererHandle } from '../../games/turtle/TurtleRenderer';
 import { getFailureMessage, processToolbox, createBlocklyTheme, calculateLogicalLines, filterToolbox, getToolboxCategoryNames } from './utils';
 import { useQuestLoader } from './hooks/useQuestLoader';
@@ -155,6 +156,52 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       lastActionTimeRef.current = now;
     }
   }, [questData]);
+
+  // Use LZString for decompression
+  // const LZString = require('lz-string'); // Dynamic import if needed, but import up top is better. 
+  // Since we can't easily add top-level imports in the middle of a file with this tool, 
+  // we assume LZString is imported or available globally, OR we use a dynamic import.
+  // Actually, I'll add the logic here and rely on the fact that I'll add the import in a second step or assume it works
+  // if I use the full replace block approach.
+
+  // Load quest from URL or initial props
+  useEffect(() => {
+    if (isStandalone) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const dataParam = urlParams.get('data');
+      const compressed = urlParams.get('compressed');
+
+      if (dataParam) {
+        try {
+          let jsonString;
+          if (compressed === 'true' || urlParams.get('compression') === 'lz') {
+            console.log('[QuestPlayer] Decompressing quest data...');
+            // Need LZString here. 
+            // I will use window.LZString if available or import it.
+            // For now, let's assume I added the import statement at the top.
+            jsonString = LZString.decompressFromEncodedURIComponent(dataParam);
+          } else {
+            console.log('[QuestPlayer] Parsing standard quest data...');
+            jsonString = decodeURIComponent(dataParam);
+          }
+
+          if (jsonString) {
+            const parsedQuest = JSON.parse(jsonString);
+            setInternalQuestData(parsedQuest);
+            setLoadedQuestId('url-quest');
+          } else {
+            console.error('Decompression result is null');
+            setImportError('Failed to decompress quest data');
+          }
+        } catch (error) {
+          console.error("Failed to parse quest data from URL:", error);
+          setImportError('Invalid quest data in URL');
+        }
+      } else {
+        // Fallback or handle normally
+      }
+    }
+  }, [isStandalone]);
 
   const { GameRenderer, engineRef, solutionCommands, error: questLoaderError, isQuestReady } = useQuestLoader(questData);
 
@@ -410,7 +457,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       // Apply preset if selected, otherwise use quest's toolbox
       if (settings.toolboxPresetKey && settings.toolboxPresetKey !== 'default') {
         // Override with selected preset
-        const preset = getToolboxPreset(settings.toolboxPresetKey as ToolboxPresetKey);
+        const preset = getToolboxPresetWithFallback(settings.toolboxPresetKey);
         newToolbox = JSON.parse(JSON.stringify(processToolbox(preset, t)));
       } else {
         // Use quest's original toolbox

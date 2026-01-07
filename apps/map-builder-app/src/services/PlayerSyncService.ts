@@ -6,6 +6,9 @@
  * - Production (cross-origin): Uses URL-encoded quest data
  */
 
+import { toolboxPresets } from '../config/toolboxPresets';
+import LZString from 'lz-string';
+
 // Quest type for sync (simplified - we pass the full JSON object)
 export type QuestData = Record<string, unknown>;
 
@@ -73,32 +76,63 @@ export function isLocalSync(playerUrl?: string): boolean {
 export function stripQuestForSync(quest: QuestData): QuestData {
   // Deep clone to avoid mutation
   const stripped = JSON.parse(JSON.stringify(quest)) as Record<string, any>;
-  
-  // Fields to REMOVE (debug only, not needed for gameplay)
+
+  // Debug only fields to remove
   const fieldsToRemove = [
-    'rawSolution',        // Debug only - raw action trace
-    'basicSolution',      // Alternative solution format (debug)
-    // 'structuredSolution' - KEEP for answer comparison/hints
+    'rawSolution',
+    'basicSolution',
+    // 'structuredSolution' - KEEP for answer comparison if small enough
   ];
   
   fieldsToRemove.forEach(field => {
     delete stripped[field];
   });
   
-  // Strip redundant placement_coords from pathInfo (blocks already has this data)
-  if (stripped.pathInfo) {
-    delete stripped.pathInfo.placement_coords;
-    delete stripped.pathInfo.params; // Empty params object
+  // Strip redundant placement_coords and path metadata (Builder only)
+  delete stripped.pathInfo;
+  
+  // Strip large metadata
+  delete stripped.templateMeta;
+  
+  // Handle Toolbox Stripping
+  if (stripped.blocklyConfig) {
+    if (!stripped.blocklyConfig.toolboxPresetKey && stripped.blocklyConfig.toolbox) {
+      try {
+        const currentToolboxStr = JSON.stringify(stripped.blocklyConfig.toolbox);
+        for (const [key, preset] of Object.entries(toolboxPresets)) {
+          if (JSON.stringify(preset) === currentToolboxStr) {
+            stripped.blocklyConfig.toolboxPresetKey = key;
+            break;
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (stripped.blocklyConfig.toolboxPresetKey && stripped.blocklyConfig.toolbox) {
+       delete stripped.blocklyConfig.toolbox;
+    }
   }
   
-  // Strip verbose solution data (keep only essential)
+  // Strip solution debug data
   if (stripped.solution) {
-    // Keep: itemGoals (for scoring), optimalBlocks (for star rating)
-    // Remove: rawActions (debug)
     delete stripped.solution.rawActions;
+    // structuredSolution is PRESERVED as per user request
   }
+
+  // Minify startBlocks XML if present
+  if (stripped.blocklyConfig?.startBlocks) {
+    stripped.blocklyConfig.startBlocks = stripped.blocklyConfig.startBlocks.replace(/>\s+</g, '><').trim();
+  }
+
+  // LOG SIZES OF REMAINING FIELDS to debug
+  console.log('--- Payload Composition ---');
+  Object.keys(stripped).forEach(key => {
+    console.log(`${key}: ~${JSON.stringify(stripped[key]).length} chars`);
+  });
   
-  // Remove empty or null values to reduce size
+  // Recursive cleanup of null/empty values
   const cleanEmpty = (obj: Record<string, any>): Record<string, any> => {
     for (const key in obj) {
       if (obj[key] === null || obj[key] === undefined) {
@@ -120,15 +154,15 @@ export function stripQuestForSync(quest: QuestData): QuestData {
 
 /**
  * Compress and encode quest data for URL transmission
- * Uses base64 encoding (pako gzip can be added later for larger quests)
+ * Uses LZString for high compression ratio
  */
 export function compressQuest(quest: QuestData): string {
   try {
     const jsonString = JSON.stringify(quest);
-    // Use base64 encoding - URL safe variant
-    const base64 = btoa(unescape(encodeURIComponent(jsonString)));
-    // Make it URL-safe by replacing + with - and / with _
-    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    // Use compressToEncodedURIComponent for URL safety and better compactness than base64
+    const compressed = LZString.compressToEncodedURIComponent(jsonString);
+    console.log(`[Sync] Compression: ${jsonString.length} chars -> ${compressed.length} chars (${Math.round(compressed.length/jsonString.length*100)}%)`);
+    return compressed;
   } catch (error) {
     console.error('Failed to compress quest:', error);
     throw new Error('Failed to encode quest data');
@@ -140,16 +174,12 @@ export function compressQuest(quest: QuestData): string {
  */
 export function decompressQuest(encoded: string): QuestData {
   try {
-    // Restore base64 from URL-safe format
-    let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
-    // Add padding if needed
-    while (base64.length % 4) {
-      base64 += '=';
-    }
-    const jsonString = decodeURIComponent(escape(atob(base64)));
+    const jsonString = LZString.decompressFromEncodedURIComponent(encoded);
+    if (!jsonString) throw new Error('Decompression result is null');
     return JSON.parse(jsonString);
   } catch (error) {
     console.error('Failed to decompress quest:', error);
+    // Fallback? No, if we use LZString we must decompress with it.
     throw new Error('Failed to decode quest data');
   }
 }
@@ -159,7 +189,9 @@ export function decompressQuest(encoded: string): QuestData {
  */
 export function saveQuestToLocalStorage(quest: QuestData): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.BUILDER_QUEST, JSON.stringify(quest));
+    // For local storage we can use compressToUTF16 which is most efficient for storage
+    const compressed = LZString.compressToUTF16(JSON.stringify(quest));
+    localStorage.setItem(STORAGE_KEYS.BUILDER_QUEST, compressed);
   } catch (error) {
     console.error('Failed to save quest to localStorage:', error);
     throw new Error('Failed to save quest locally');
@@ -172,7 +204,20 @@ export function saveQuestToLocalStorage(quest: QuestData): void {
 export function loadQuestFromLocalStorage(): QuestData | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.BUILDER_QUEST);
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) return null;
+    
+    // Try decompressing from UTF16 first
+    const decompressed = LZString.decompressFromUTF16(stored);
+    if (decompressed) {
+        return JSON.parse(decompressed);
+    }
+    
+    // Fallback for legacy uncompressed data
+    try {
+        return JSON.parse(stored);
+    } catch {
+        return null;
+    }
   } catch (error) {
     console.error('Failed to load quest from localStorage:', error);
     return null;
@@ -200,7 +245,8 @@ export function buildSyncUrl(playerUrl: string, quest?: QuestData): string {
   // Always encode if quest is provided (caller decides whether to pass quest or save to localstorage)
   if (quest) {
     const encoded = compressQuest(quest);
-    return `${syncPath}?quest=${encoded}`;
+    // Add extra params to help player identify compression
+    return `${syncPath}?data=${encoded}&compression=lz`;
   }
   
   return syncPath;
@@ -225,8 +271,7 @@ export function syncToPlayer(quest: QuestData, playerUrl?: string): { success: b
     if (isTrulySameOrigin) {
       // Only use localStorage if truly same origin
       saveQuestToLocalStorage(strippedQuest);
-      const syncUrl = buildSyncUrl(url);
-      window.open(syncUrl, '_blank');
+      window.open(url, '_blank');
       return { success: true };
     } else {
       // Cross-origin (different ports or domains): MUST use URL param
@@ -238,7 +283,7 @@ export function syncToPlayer(quest: QuestData, playerUrl?: string): { success: b
       if (syncUrl.length > 30000) {
         return { 
           success: false, 
-          error: `Quest too large for URL sync (${syncUrl.length} chars). Try reducing map size or using shorter variable names.` 
+          error: `Quest too large for URL sync (${syncUrl.length} chars). Try reducing map size or use 'Export JSON' instead.` 
         };
       }
       

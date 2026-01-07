@@ -106,6 +106,8 @@ export {
   addVectors, areVectorsEqual, vectorToString
 } from './core';
 
+export * from './utils/xmlGenerator';
+
 // Segment utilities
 export {
   computeSegments,

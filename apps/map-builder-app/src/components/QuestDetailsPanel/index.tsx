@@ -133,7 +133,9 @@ const jsonToXml = (structuredSolution: any): string => {
         block.appendChild(statement);
       } else if (action.type === 'procedures_callnoreturn') {
         const mutation = doc.createElement('mutation');
-        mutation.setAttribute('name', action.mutation.name);
+        // Handle both direct name property and mutation object format
+        const functionName = action.mutation?.name || action.name || 'unnamed_function';
+        mutation.setAttribute('name', functionName);
         block.appendChild(mutation);
       }
 
