@@ -6,7 +6,7 @@ concepts: ["loop", "conditional", "modulo"]
 difficulty: 5
 tags: ["logic", "modulo", "cycle", "pattern"]
 author: system
-version: 1
+version: 2
 description: "A repeating cycle of 3 actions: Move -> Jump -> Collect"
 ---
 
@@ -24,20 +24,23 @@ A pattern that repeats every 3 steps, teaching Modulo 3 logic.
 ```js
 // Parameters
 var _MIN_CYCLES_ = 2;
-var _MAX_CYCLES_ = 4;
+var _MAX_CYCLES_ = 3;
 var CYCLES = random(_MIN_CYCLES_, _MAX_CYCLES_);
-var STEPS = CYCLES * 3;
 
 // Solution
+moveForward();
+
 for (let i = 0; i < CYCLES; i++) {
   // Case 0: Move
   moveForward();
   
-  // Case 1: Jump
-  jump();
+  // Case 1: Jump Up
+  jumpUp();
   
   // Case 2: Collect & Move
   collectItem();
   moveForward();
 }
+
+moveForward();
 ```

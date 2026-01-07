@@ -6,7 +6,7 @@ concepts: ["loop", "variable", "arithmetic_progression"]
 difficulty: 4
 tags: ["math", "decay", "subtraction"]
 author: system
-version: 1
+version: 2
 description: "Start with long segments and decrease length each turn"
 ---
 
@@ -22,26 +22,25 @@ A "convergence" pattern where movements get smaller and smaller.
 
 ```js
 // Parameters
-var _MIN_START_LEN_ = 4;
-var _MAX_START_LEN_ = 6;
+var _MIN_START_LEN_ = 3;
+var _MAX_START_LEN_ = 5;
 var START_LEN = random(_MIN_START_LEN_, _MAX_START_LEN_);
-
 var STEP = 1;
 
 // Solution
-// Number of segments to draw
-let TURNS = START_LEN / STEP;
+moveForward();
 
-for (let t = 0; t < TURNS; t++) {
-  // Logic: currentLen = START_LEN - t * STEP
+for (let t = 0; t < START_LEN; t++) {
   let len = START_LEN - t * STEP;
   
   if (len > 0) {
-      for (let i = 0; i < len; i++) {
-        moveForward();
-      }
-      collectItem();
-      turnLeft();
+    for (let i = 0; i < len; i++) {
+      moveForward();
+    }
+    collectItem();
+    turnLeft();
   }
 }
+
+moveForward();
 ```

@@ -6,7 +6,7 @@ concepts: ["loop", "variable", "fibonacci"]
 difficulty: 5
 tags: ["math", "fibonacci", "nature"]
 author: system
-version: 1
+version: 2
 description: "Walk distances following the Fibonacci sequence (1, 1, 2, 3, 5...)"
 ---
 
@@ -22,13 +22,16 @@ A path based on the famous Fibonacci sequence found in nature.
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 4;
-var _MAX_STEPS_ = 6;
+var _MIN_STEPS_ = 3;
+var _MAX_STEPS_ = 5;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
 let a = 1;
 let b = 1;
+
+// Initial entry
+moveForward();
 
 // First step (1)
 moveForward();
@@ -43,7 +46,7 @@ turnRight();
 for (let i = 2; i < STEPS; i++) {
   let next = a + b;
   
-  // Atom: Move Fibonacci Dist
+  // Move Fibonacci distance
   for (let j = 0; j < next; j++) {
     moveForward();
   }
@@ -54,4 +57,7 @@ for (let i = 2; i < STEPS; i++) {
   a = b;
   b = next;
 }
+
+// Final exit
+moveForward();
 ```

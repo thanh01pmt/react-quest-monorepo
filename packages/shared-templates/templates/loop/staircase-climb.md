@@ -6,7 +6,7 @@ concepts: ["repeat_n", "pattern_recognition"]
 difficulty: 3
 tags: ["repeat", "pattern", "staircase"]
 author: system
-version: 1
+version: 2
 description: "Climb a staircase and collect crystals at each step"
 ---
 
@@ -23,8 +23,8 @@ Climb a staircase by recognizing the repeating pattern of forward + jump.
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 3;
-var _MAX_STEPS_ = 8;
+var _MIN_STEPS_ = 2;
+var _MAX_STEPS_ = 5;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
@@ -33,8 +33,9 @@ moveForward();
 for (let i = 0; i < STEPS; i++) {
   collectItem();
   moveForward();
-  jump();
+  jumpUp();
 }
+
 collectItem();
 moveForward();
 ```

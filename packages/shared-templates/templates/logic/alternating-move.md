@@ -6,7 +6,7 @@ concepts: ["loop", "conditional", "modulo"]
 difficulty: 3
 tags: ["logic", "parity", "even_odd"]
 author: system
-version: 1
+version: 2
 description: "Alternate between walking and jumping, collecting crystals"
 ---
 
@@ -23,16 +23,20 @@ A pattern that changes action based on whether the step count is Odd or Even.
 // Parameters
 var _MIN_PAIRS_ = 2;
 var _MAX_PAIRS_ = 4;
-var STEPS = 2 * random(_MIN_PAIRS_, _MAX_PAIRS_);
+var PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);
 
 // Solution
-for (let i = 0; i < STEPS / 2; i++) {
+moveForward();
+
+for (let i = 0; i < PAIRS; i++) {
   // Even: Walk
   moveForward();
   collectItem();
   
-  // Odd: Jump
-  jump();
+  // Odd: Jump Up
+  jumpUp();
   collectItem();
 }
+
+moveForward();
 ```

@@ -6,7 +6,7 @@ concepts: ["conditional", "modulo"]
 difficulty: 2
 tags: ["logic", "parity", "even_odd"]
 author: system
-version: 1
+version: 2
 description: "Simple alternating pattern - collect every other step"
 ---
 
@@ -22,17 +22,19 @@ A simple introduction to parity (even/odd) logic.
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 4;
-var _MAX_STEPS_ = 6;
+var _MIN_STEPS_ = 3;
+var _MAX_STEPS_ = 5;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
-// Collect at every other position
+// Collect at every other position (skip one step between each)
 moveForward();
 
 for (let i = 0; i < STEPS; i++) {
   collectItem();
   moveForward();
-  moveForward();
+  moveForward();  // Skip one position
 }
+
+moveForward();
 ```

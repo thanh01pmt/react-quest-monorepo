@@ -6,7 +6,7 @@ concepts: ["variable", "arithmetic_progression"]
 difficulty: 2
 tags: ["math", "progression", "increment"]
 author: system
-version: 1
+version: 2
 description: "Simple increasing pattern (1, 2, 3 steps)"
 ---
 
@@ -23,11 +23,11 @@ A simple introduction to increasing patterns.
 ```js
 // Parameters
 var _MIN_GROUPS_ = 2;
-var _MAX_GROUPS_ = 3;
+var _MAX_GROUPS_ = 4;
 var GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);
 
 // Solution
-// Walk 1 step, then 2 steps, then 3 steps
+// Walk 1 step, then 2 steps, then 3 steps, etc.
 moveForward();
 
 for (let group = 1; group <= GROUPS; group++) {
@@ -35,8 +35,14 @@ for (let group = 1; group <= GROUPS; group++) {
     collectItem();
     moveForward();
   }
-  turnRight();
-  moveForward();
-  turnLeft();
+  
+  // Turn for next group (except last)
+  if (group < GROUPS) {
+    turnRight();
+    moveForward();
+    turnLeft();
+  }
 }
+
+moveForward();
 ```

@@ -6,7 +6,7 @@ concepts: ["pattern_recognition", "string_logic"]
 difficulty: 4
 tags: ["pattern", "palindrome", "symmetry"]
 author: system
-version: 1
+version: 2
 description: "Execute a symmetrical sequence of actions (e.g., Jump-Move-Jump)"
 ---
 
@@ -21,15 +21,17 @@ A path where the action sequence reads the same backwards and forwards.
 
 ```js
 // Parameters
-var MID_LENGTH = random(1, 3);
+var _MIN_MID_LENGTH_ = 1;
+var _MAX_MID_LENGTH_ = 3;
+var MID_LENGTH = random(_MIN_MID_LENGTH_, _MAX_MID_LENGTH_);
 
 // Solution
 // Start (A)
-jump();
 moveForward();
+jumpUp();
 
 // Middle (B repeated)
-for(let i=0; i<MID_LENGTH; i++) {
+for (let i = 0; i < MID_LENGTH; i++) {
   collectItem();
   moveForward();
 }
@@ -37,15 +39,15 @@ for(let i=0; i<MID_LENGTH; i++) {
 // Pivot (C)
 turnRight();
 moveForward();
-turnRight(); // U-Turn effect (conceptually) or just a pivot point in path
+turnRight();
 
 // Middle Mirror (B repeated)
-for(let i=0; i<MID_LENGTH; i++) {
+for (let i = 0; i < MID_LENGTH; i++) {
   collectItem();
   moveForward();
 }
 
 // End Mirror (A)
-jump();
+jumpDown();
 moveForward();
 ```

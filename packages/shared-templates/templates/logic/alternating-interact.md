@@ -6,7 +6,7 @@ concepts: ["loop", "conditional", "modulo"]
 difficulty: 4
 tags: ["logic", "parity", "switch", "collect"]
 author: system
-version: 1
+version: 2
 description: "Alternate between collecting Item and toggling Switch"
 ---
 
@@ -22,19 +22,30 @@ A complex task requiring the student to recognize two interleaved patterns.
 
 ```js
 // Parameters
-var _MIN_PAIRS_ = 3;
-var _MAX_PAIRS_ = 5;
+var _MIN_PAIRS_ = 2;
+var _MAX_PAIRS_ = 4;
+var _MIN_SPACE_ = 0;
+var _MAX_SPACE_ = 1;
+
 var PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);
-var STEPS = PAIRS * 2;
+var SPACE = random(_MIN_SPACE_, _MAX_SPACE_);
 
 // Solution
+moveForward();
+
 for (let i = 0; i < PAIRS; i++) {
-  // Even Step (Crystal)
-  moveForward();
+  // Phase 1: Crystal
+  for (let s = 0; s < SPACE + 1; s++) {
+    moveForward();
+  }
   collectItem();
   
-  // Odd Step (Switch)
-  moveForward();
+  // Phase 2: Switch
+  for (let s = 0; s < SPACE + 1; s++) {
+    moveForward();
+  }
   toggleSwitch();
 }
+
+moveForward();
 ```

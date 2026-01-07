@@ -6,7 +6,7 @@ concepts: ["repeat_n"]
 difficulty: 4
 tags: ["loop", "jump", "staircase", "elevated"]
 author: system
-version: 1
+version: 2
 description: "Create elevated terrain using jump command"
 ---
 
@@ -23,19 +23,21 @@ Use the jump command to climb a staircase while collecting items.
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 3;
-var _MAX_STEPS_ = 6;
+var _MIN_STEPS_ = 2;
+var _MAX_STEPS_ = 5;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
-// Staircase
+// Initial entry
 moveForward();
-jump();
+jumpUp();
 
 for (let step = 0; step < STEPS; step++) {
   collectItem();
-  jump();
+  jumpUp();
 }
 
+// Final exit
+collectItem();
 moveForward();
 ```

@@ -6,7 +6,7 @@ concepts: ["loop", "variable", "geometric_progression"]
 difficulty: 5
 tags: ["math", "spiral", "exponential"]
 author: system
-version: 1
+version: 2
 description: "Walk a spiral where side lengths double (1, 2, 4...)"
 ---
 
@@ -22,27 +22,26 @@ A spiral path that expands exponentially.
 
 ```js
 // Parameters
-var _MIN_START_ = 1;
-var _MAX_START_ = 1;
-var START = random(_MIN_START_, _MAX_START_);
-
-var RATIO = 2; 
-
-var _MIN_TURNS_ = 3;
-var _MAX_TURNS_ = 5;
+var _MIN_TURNS_ = 2;
+var _MAX_TURNS_ = 4;
 var TURNS = random(_MIN_TURNS_, _MAX_TURNS_);
+var RATIO = 2;
 
 // Solution
-let length = START;
+moveForward();
+
+let length = 1;
 
 for (let i = 0; i < TURNS; i++) {
-  // Atom: Move Side
+  // Move side and collect
   for (let j = 0; j < length; j++) {
-    collectItem(); // Dense interaction for spiral
+    collectItem();
     moveForward();
   }
   
   turnRight();
   length = length * RATIO;
 }
+
+moveForward();
 ```

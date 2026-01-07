@@ -6,7 +6,7 @@ concepts: ["function", "procedure"]
 difficulty: 3
 tags: ["function", "staircase", "automation"]
 author: system
-version: 1
+version: 2
 description: "Use a 'Step' function to climb a staircase"
 ---
 
@@ -21,20 +21,23 @@ Decompose climbing into a single "Step Up" action.
 
 ```js
 // Parameters
-var _MIN_HEIGHT_ = 3;
-var _MAX_HEIGHT_ = 6;
+var _MIN_HEIGHT_ = 2;
+var _MAX_HEIGHT_ = 4;
 var HEIGHT = random(_MIN_HEIGHT_, _MAX_HEIGHT_);
 
 // Solution
 function climbStep() {
   moveForward();
-  jump();
-  moveForward();
+  jumpUp();
   collectItem();
 }
 
 // Main
-for(let i=0; i<HEIGHT; i++) {
+moveForward();
+
+for(let i = 0; i < HEIGHT; i++) {
   climbStep();
 }
+
+moveForward();
 ```
