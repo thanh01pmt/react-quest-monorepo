@@ -18,6 +18,9 @@ export interface TemplatePreset {
   difficulty: 1 | 2 | 3 | 4 | 5;
   concept: string;
   code: string;
+  // Optional: for toolbox auto-selection
+  tags?: string[];
+  category?: string;
 }
 
 /**

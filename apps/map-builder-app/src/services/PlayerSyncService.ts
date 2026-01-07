@@ -61,6 +61,64 @@ export function isLocalSync(playerUrl?: string): boolean {
 }
 
 /**
+ * Strip unnecessary fields from quest before sync.
+ * Keeps only essential data for: map rendering, scoring, and hints.
+ * Removes: builder-only debugging fields, redundant path data.
+ * 
+ * KEEPS:
+ * - structuredSolution: Needed for answer comparison/hints in Player
+ * - blocklyConfig.startBlocks: Pre-placed blocks for practice
+ * - solution.itemGoals + optimalBlocks: Scoring
+ */
+export function stripQuestForSync(quest: QuestData): QuestData {
+  // Deep clone to avoid mutation
+  const stripped = JSON.parse(JSON.stringify(quest)) as Record<string, any>;
+  
+  // Fields to REMOVE (debug only, not needed for gameplay)
+  const fieldsToRemove = [
+    'rawSolution',        // Debug only - raw action trace
+    'basicSolution',      // Alternative solution format (debug)
+    // 'structuredSolution' - KEEP for answer comparison/hints
+  ];
+  
+  fieldsToRemove.forEach(field => {
+    delete stripped[field];
+  });
+  
+  // Strip redundant placement_coords from pathInfo (blocks already has this data)
+  if (stripped.pathInfo) {
+    delete stripped.pathInfo.placement_coords;
+    delete stripped.pathInfo.params; // Empty params object
+  }
+  
+  // Strip verbose solution data (keep only essential)
+  if (stripped.solution) {
+    // Keep: itemGoals (for scoring), optimalBlocks (for star rating)
+    // Remove: rawActions (debug)
+    delete stripped.solution.rawActions;
+  }
+  
+  // Remove empty or null values to reduce size
+  const cleanEmpty = (obj: Record<string, any>): Record<string, any> => {
+    for (const key in obj) {
+      if (obj[key] === null || obj[key] === undefined) {
+        delete obj[key];
+      } else if (typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+        cleanEmpty(obj[key]);
+        if (Object.keys(obj[key]).length === 0) {
+          delete obj[key];
+        }
+      } else if (Array.isArray(obj[key]) && obj[key].length === 0) {
+        delete obj[key];
+      }
+    }
+    return obj;
+  };
+  
+  return cleanEmpty(stripped);
+}
+
+/**
  * Compress and encode quest data for URL transmission
  * Uses base64 encoding (pako gzip can be added later for larger quests)
  */
@@ -157,19 +215,22 @@ export function buildSyncUrl(playerUrl: string, quest?: QuestData): string {
 export function syncToPlayer(quest: QuestData, playerUrl?: string): { success: boolean; error?: string } {
   const url = playerUrl || getPlayerUrl();
   
+  // Strip unnecessary fields before sync to reduce payload size
+  const strippedQuest = stripQuestForSync(quest);
+  
   try {
     // Check if truly same origin (same protocol, domain, AND PORT)
     const isTrulySameOrigin = new URL(url).origin === window.location.origin;
 
     if (isTrulySameOrigin) {
       // Only use localStorage if truly same origin
-      saveQuestToLocalStorage(quest);
+      saveQuestToLocalStorage(strippedQuest);
       const syncUrl = buildSyncUrl(url);
       window.open(syncUrl, '_blank');
       return { success: true };
     } else {
       // Cross-origin (different ports or domains): MUST use URL param
-      const syncUrl = buildSyncUrl(url, quest);
+      const syncUrl = buildSyncUrl(url, strippedQuest);
       
       // Check URL length - most browsers support ~8000 chars
       if (syncUrl.length > 7500) {

@@ -34,6 +34,9 @@ interface CollapsibleSectionProps {
   children: React.ReactNode;
   badge?: React.ReactNode;
   badgeColor?: 'green' | 'orange' | 'red' | 'blue';
+  // Controlled mode for accordion behavior
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
 function CollapsibleSection({
@@ -42,15 +45,21 @@ function CollapsibleSection({
   defaultOpen = true,
   children,
   badge,
-  badgeColor = 'blue'
+  badgeColor = 'blue',
+  isOpen: controlledIsOpen,
+  onToggle
 }: CollapsibleSectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+
+  // Use controlled or uncontrolled mode
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalOpen;
+  const handleToggle = onToggle || (() => setInternalOpen(!internalOpen));
 
   return (
     <div className={`collapsible-section ${isOpen ? 'open' : 'closed'}`}>
       <button
         className="section-header"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
       >
         <span className="section-icon">{icon}</span>
         <span className="section-title">{title}</span>
@@ -246,6 +255,10 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
   // Cache hash to avoid re-solving when path/placement haven't changed
   const [lastSolveHash, setLastSolveHash] = useState<string>('');
 
+  // Accordion state: only one section open at a time
+  type SectionId = 'questInfo' | 'gameMode' | 'blocklyConfig' | 'solution' | 'importExport' | null;
+  const [openSection, setOpenSection] = useState<SectionId>(null);
+
   // Local state for editable fields
   const [localRawActions, setLocalRawActions] = useState('');
   const [localBasicSolution, setLocalBasicSolution] = useState('');
@@ -411,7 +424,12 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       {/* ============================================================ */}
       {/* QUEST INFO SECTION */}
       {/* ============================================================ */}
-      <CollapsibleSection title="Quest Info" icon={<ClipboardList size={16} />} defaultOpen={true}>
+      <CollapsibleSection
+        title="Quest Info"
+        icon={<ClipboardList size={16} />}
+        isOpen={openSection === 'questInfo'}
+        onToggle={() => setOpenSection(openSection === 'questInfo' ? null : 'questInfo')}
+      >
         <div className="field-row">
           <label>ID</label>
           <input
@@ -468,7 +486,8 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       <CollapsibleSection
         title="Game Mode"
         icon={<Settings size={16} />}
-        defaultOpen={false}
+        isOpen={openSection === 'gameMode'}
+        onToggle={() => setOpenSection(openSection === 'gameMode' ? null : 'gameMode')}
         badge={getDeepValue(metadata, 'gameConfig.mode') === 'random' ? '🎲 Random' : undefined}
         badgeColor="blue"
       >
@@ -525,7 +544,8 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       <CollapsibleSection
         title="Blockly Config"
         icon={<Puzzle size={16} />}
-        defaultOpen={true}
+        isOpen={openSection === 'blocklyConfig'}
+        onToggle={() => setOpenSection(openSection === 'blocklyConfig' ? null : 'blocklyConfig')}
         badge={blockCount > 0 ? `${blockCount} blocks` : undefined}
         badgeColor="blue"
       >
@@ -570,8 +590,9 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       <CollapsibleSection
         title="Solution"
         icon={<Target size={16} />}
-        defaultOpen={true}
-        badge={hasSolution ? <span><CheckCircle size={12} className="inline-icon" /> Solved</span> : <span><AlertTriangle size={12} className="inline-icon" /> Not solved</span>}
+        isOpen={openSection === 'solution'}
+        onToggle={() => setOpenSection(openSection === 'solution' ? null : 'solution')}
+        badge={hasSolution ? (metadata.solution?.type || 'Standard') : <span><AlertTriangle size={12} className="inline-icon" /> Not solved</span>}
         badgeColor={hasSolution ? 'green' : 'orange'}
       >
         {/* Gen Raw Action button - primary action */}
@@ -756,12 +777,49 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
       {/* ============================================================ */}
       {/* IMPORT/EXPORT SECTION */}
       {/* ============================================================ */}
-      <CollapsibleSection title="Import / Export" icon={<FileJson size={16} />} defaultOpen={false}>
+      <CollapsibleSection
+        title="Import / Export"
+        icon={<FileJson size={16} />}
+        isOpen={openSection === 'importExport'}
+        onToggle={() => setOpenSection(openSection === 'importExport' ? null : 'importExport')}
+      >
+        {/* Load from Project */}
+        {onLoadMapFromUrl && mapList && Object.keys(mapList).length > 0 && (
+          <div className="field-row" style={{ marginTop: '12px' }}>
+            <label>Load from Project:</label>
+            <select
+              className="custom-select"
+              onChange={(e) => {
+                const mapPath = e.target.value;
+                if (mapPath) {
+                  // Remove /public prefix - Vite serves public folder at root
+                  const correctedPath = mapPath.replace(/^\/public/, '');
+                  onLoadMapFromUrl(correctedPath);
+                  e.target.value = "";
+                }
+              }}
+              defaultValue=""
+            >
+              <option value="" disabled>-- Choose a map --</option>
+              {Object.keys(mapList).map(path => (
+                <option key={path} value={path}>{path.split('/').pop()}</option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="button-group vertical">
-          <label className="action-btn secondary full-width">
+          <button
+            className="action-btn secondary full-width"
+            onClick={() => {
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.accept = '.json';
+              input.onchange = (e) => handleFileChange(e as any);
+              input.click();
+            }}
+          >
             <span className="icon"><FolderOpen size={16} /></span> Import JSON Map
-            <input type="file" accept=".json" onChange={handleFileChange} hidden />
-          </label>
+          </button>
           <button
             className="action-btn secondary full-width"
             onClick={() => {
@@ -827,31 +885,6 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
             </div>
           )}
         </div>
-
-        {/* Load from Project */}
-        {onLoadMapFromUrl && mapList && Object.keys(mapList).length > 0 && (
-          <div className="field-row" style={{ marginTop: '12px' }}>
-            <label>Load from Project:</label>
-            <select
-              className="custom-select"
-              onChange={(e) => {
-                const mapPath = e.target.value;
-                if (mapPath) {
-                  // Remove /public prefix - Vite serves public folder at root
-                  const correctedPath = mapPath.replace(/^\/public/, '');
-                  onLoadMapFromUrl(correctedPath);
-                  e.target.value = "";
-                }
-              }}
-              defaultValue=""
-            >
-              <option value="" disabled>-- Choose a map --</option>
-              {Object.keys(mapList).map(path => (
-                <option key={path} value={path}>{path.split('/').pop()}</option>
-              ))}
-            </select>
-          </div>
-        )}
       </CollapsibleSection>
     </aside>
   );

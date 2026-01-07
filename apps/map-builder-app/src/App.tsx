@@ -2164,6 +2164,68 @@ function App() {
     config.toolbox = _.cloneDeep(toolboxPresets['full_toolbox']);
   };
 
+  // --- AUTO-SELECT TOOLBOX FROM TEMPLATE TAGS ---
+  // Maps template tags/concepts to the minimal ("vừa đủ") toolbox preset
+  const getToolboxFromTemplateTags = (
+    tags: string[] = [],
+    concepts: string[] = [],
+    category?: string
+  ): string => {
+    const allTags = [...tags, ...concepts, category || ''].map(t => t.toLowerCase());
+
+    // Priority 1: Check for specific advanced features
+    const hasFunction = allTags.some(t => ['function', 'procedure', 'decomposition'].includes(t));
+    const hasLoop = allTags.some(t => ['loop', 'for', 'repeat', 'while', 'iteration'].includes(t));
+    const hasConditional = allTags.some(t => ['if', 'conditional', 'logic', 'branch'].includes(t));
+    const hasVariable = allTags.some(t => ['variable', 'var', 'counter'].includes(t));
+    const hasCollect = allTags.some(t => ['collect', 'crystal', 'item'].includes(t));
+    const hasSwitch = allTags.some(t => ['switch', 'toggle', 'interact'].includes(t));
+    const hasTurn = allTags.some(t => ['turn', 'l-shape', 'zigzag'].includes(t));
+    const hasJump = allTags.some(t => ['jump', 'hop', 'gap'].includes(t));
+
+    // Priority 2: Map to "vừa đủ" preset based on features
+    // Complex combinations → fuller presets
+    if (hasFunction && hasLoop) {
+      return 'loops_l3_functions_integration'; // Loops + Functions
+    }
+    if (hasConditional && hasLoop) {
+      return 'conditionals_l2_interaction_sensing'; // Conditionals with actions
+    }
+    if (hasVariable) {
+      return hasCollect || hasSwitch ? 'variables_l2_calculation' : 'variables_l1_basic_assignment';
+    }
+    if (hasFunction) {
+      return hasCollect && hasSwitch ? 'functions_l4_comprehensive' :
+        hasCollect ? 'functions_l2_collect_gem' :
+          hasSwitch ? 'functions_l3_toggle_switch' : 'functions_l1_movement_only';
+    }
+    if (hasLoop) {
+      return hasCollect || hasSwitch ? 'loops_l2_with_actions' : 'loops_l1_basic_movement';
+    }
+    if (hasConditional) {
+      return 'conditionals_l1_movement_sensing';
+    }
+
+    // Sequential/basic patterns
+    if (hasCollect && hasSwitch) {
+      return 'commands_l6_comprehensive';
+    }
+    if (hasCollect) {
+      return 'commands_l4_collect';
+    }
+    if (hasSwitch) {
+      return 'commands_l5_switch';
+    }
+    if (hasJump) {
+      return 'commands_l3_jump';
+    }
+    if (hasTurn) {
+      return 'commands_l2_turn';
+    }
+
+    // Fallback: Full toolbox if cannot determine
+    return 'full_toolbox';
+  };
   // --- HÀM TIỆN ÍCH MỚI: Trích xuất các khối lệnh có sẵn từ toolbox ---
   const getAvailableBlocksFromToolbox = (toolbox: any): string[] => {
     const allowedBlocks: Set<string> = new Set();
@@ -3616,7 +3678,19 @@ function App() {
 
                   // Use path coordinates from trace (path level) for visualization
                   // Also include placement_coords (ground level blocks) for item placement
-                  const metadataUpdate = {
+
+                  // AUTO-SELECT TOOLBOX based on template tags
+                  const suggestedToolboxKey = data.templateMeta
+                    ? getToolboxFromTemplateTags(
+                      data.templateMeta.tags,
+                      data.templateMeta.concepts,
+                      data.templateMeta.category
+                    )
+                    : 'full_toolbox';
+
+                  console.log('[Template] Auto-selected toolbox:', suggestedToolboxKey, 'from tags:', data.templateMeta?.tags);
+
+                  const metadataUpdate: Record<string, any> = {
                     rawSolution: data.rawActions,
                     solution: data.solutionConfig, // Store initial solution with ItemGoals
                     structuredSolution: data.solutionConfig?.structuredSolution, // Transpiled solution for optimal display
@@ -3627,6 +3701,11 @@ function App() {
                       target_pos: [data.finish.x, data.finish.y, data.finish.z] as [number, number, number],
                       topology: 'template_generated',
                       params: {}
+                    },
+                    // Auto-set blocklyConfig with suggested toolbox
+                    blocklyConfig: {
+                      toolboxPresetKey: suggestedToolboxKey,
+                      toolbox: toolboxPresets[suggestedToolboxKey]
                     }
                   };
 

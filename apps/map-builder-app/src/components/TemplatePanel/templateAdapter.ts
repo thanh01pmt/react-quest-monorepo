@@ -113,6 +113,9 @@ export function convertToPreset(template: TemplateConfig): TemplatePreset {
     difficulty: mapDifficulty(template.metadata.difficulty),
     concept: concept,
     code: template.solutionCode,
+    // Add for toolbox auto-selection
+    tags: template.metadata.tags || [],
+    category: template.metadata.category,
   };
 }
 

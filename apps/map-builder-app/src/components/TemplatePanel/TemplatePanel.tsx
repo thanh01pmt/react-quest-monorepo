@@ -35,6 +35,12 @@ interface GeneratedMapData {
     gameConfig: any;
     pathCoords: Array<[number, number, number]>; // Path level coordinates for visualization
     solutionConfig?: any;
+    // Template metadata for auto-toolbox selection
+    templateMeta?: {
+        tags?: string[];
+        concepts?: string[];
+        category?: string;
+    };
 }
 
 interface PreviewResult {
@@ -248,6 +254,14 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
             });
 
             const mapData = convertToMapData(result);
+            // Add template metadata for toolbox auto-selection
+            if (currentPreset) {
+                mapData.templateMeta = {
+                    tags: currentPreset.tags || [],
+                    concepts: currentPreset.concept ? [currentPreset.concept] : [],
+                    category: currentPreset.category
+                };
+            }
             onGenerate(mapData);
 
             // Update preview
