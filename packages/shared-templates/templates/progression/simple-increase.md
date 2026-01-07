@@ -6,7 +6,7 @@ concepts: ["variable", "arithmetic_progression"]
 difficulty: 2
 tags: ["math", "progression", "increment"]
 author: system
-version: 2
+version: 3
 description: "Simple increasing pattern (1, 2, 3 steps)"
 ---
 
@@ -30,14 +30,15 @@ var GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);
 // Walk 1 step, then 2 steps, then 3 steps, etc.
 moveForward();
 
-for (let group = 1; group <= GROUPS; group++) {
-  for (let step = 0; step < group; step++) {
+for (let group = 0; group < GROUPS; group++) {
+  let stepsInGroup = group + 1;
+  for (let step = 0; step < stepsInGroup; step++) {
     collectItem();
     moveForward();
   }
   
   // Turn for next group (except last)
-  if (group < GROUPS) {
+  if (group < GROUPS - 1) {
     turnRight();
     moveForward();
     turnLeft();

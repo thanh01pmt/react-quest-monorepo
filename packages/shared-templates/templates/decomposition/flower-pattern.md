@@ -6,7 +6,7 @@ concepts: ["function", "geometry", "nested_loop"]
 difficulty: 5
 tags: ["function", "pattern", "radial"]
 author: system
-version: 1
+version: 2
 description: "Draw petals around a center point"
 ---
 
@@ -34,13 +34,13 @@ function turnAround() {
 // Solution
 function drawPetal() {
   // Go out
-  for(let i=0; i<LEN; i++) { 
+  for (let i = 0; i < LEN; i++) { 
     moveForward(); 
     collectItem(); 
   }
   // Return
   turnAround();
-  for(let i=0; i<LEN; i++) { 
+  for (let i = 0; i < LEN; i++) { 
     moveForward(); 
   }
   // Face next direction (90 deg rot)
@@ -48,8 +48,13 @@ function drawPetal() {
   turnRight();
 }
 
-// Main
-for(let k=0; k<4; k++) {
+// Main - draw 4 petals
+for (let k = 0; k < 4; k++) {
   drawPetal();
 }
+
+// Exit path (move away from center to ensure finish != start)
+moveForward();
+collectItem();
+moveForward();
 ```

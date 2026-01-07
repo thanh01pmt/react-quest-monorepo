@@ -34,6 +34,10 @@ var X = random(_MIN_X_, _MAX_X_);  // Runtime random selection
 > - Trong **template code**: Dùng `jumpUp()` hoặc `jumpDown()` để hệ thống hiểu và tạo đúng độ cao block.
 > - Trong **solution code** (output cho player): Tự động chuyển về `jump()` để tương thích ngược.
 
+> **⚠️ Parser Limitations**:
+> - **KHÔNG dùng** toán tử `<=` hoặc `>=`. Parser chỉ hỗ trợ `<`, `>`, `==`, `!=`.
+> - Thay `i <= N` bằng `i < N + 1` hoặc đổi logic loop (bắt đầu từ 0).
+
 #### Sensing Conditions (Item Generation)
 Use these functions to dynamically generate items:
 
@@ -150,6 +154,14 @@ moveForward();
 ```
 
 **Why Initial/Final Move?** Creates buffer space before/after the pattern, ensuring player starts at spawn and ends at target.
+
+#### 5. Avoid Circular Paths (Start ≠ Finish)
+**Problem**: Nếu tổng số lần turn = 4 (hoặc bội của 4), nhân vật sẽ quay lại điểm xuất phát.
+
+**Solutions**:
+- **Zigzag Turn**: Xen kẽ `turnRight` và `turnLeft` để tránh vòng tròn.
+- **Partial Loop**: Chỉ làm 3 sides của square, không làm side thứ 4.
+- **Exit Segment**: Thêm đoạn thoát ra khỏi vùng trung tâm sau khi hoàn thành pattern.
 
 ---
 
