@@ -2226,6 +2226,26 @@ function App() {
     // Fallback: Full toolbox if cannot determine
     return 'full_toolbox';
   };
+
+  // --- AUTO-FORCE RANDOM MODE ---
+  // Returns true if template requires sensing logic (conditional + collect/switch)
+  const shouldForceRandomMode = (
+    tags: string[] = [],
+    concepts: string[] = [],
+    category?: string
+  ): boolean => {
+    const allTags = [...tags, ...concepts, category || ''].map(t => t.toLowerCase());
+
+    // Check for sensing requirements
+    const hasConditional = allTags.some(t => ['if', 'conditional', 'logic', 'sensing', 'branch'].includes(t));
+    const hasInteract = allTags.some(t => ['collect', 'switch', 'crystal', 'item'].includes(t));
+    const isLogicCategory = category === 'logic' || category === 'conditional';
+
+    // Force random if:
+    // 1. Explicit sensing/logic tag
+    // 2. Conditional + Interaction (e.g. "If path blocked", "If on crystal")
+    return hasConditional && hasInteract || isLogicCategory;
+  };
   // --- HÀM TIỆN ÍCH MỚI: Trích xuất các khối lệnh có sẵn từ toolbox ---
   const getAvailableBlocksFromToolbox = (toolbox: any): string[] => {
     const allowedBlocks: Set<string> = new Set();
@@ -2559,7 +2579,7 @@ function App() {
       if (solution && solution.rawActions) {
         // --- START: CẬP NHẬT METADATA VỚI LỜI GIẢI MỚI ---
         const newOptimalBlocks = solution.optimalBlocks || 0;
-        const newMaxBlocks = newOptimalBlocks + 5;
+        const newMaxBlocks = Math.round(newOptimalBlocks + 5);
 
         // THÊM MỚI: Tạo đối tượng "lời giải cơ bản" từ rawActions.
         // Đây là một cấu trúc JSON đơn giản chỉ chứa các hành động tuần tự.
@@ -3688,12 +3708,40 @@ function App() {
                     )
                     : 'full_toolbox';
 
+                  // AUTO-FORCE RANDOM MODE for sensing/logic tasks
+                  // This prevents hardcoding solutions by hiding items
+                  const forceRandomMode = data.templateMeta
+                    ? shouldForceRandomMode(
+                      data.templateMeta.tags,
+                      data.templateMeta.concepts,
+                      data.templateMeta.category
+                    )
+                    : false;
+
+                  const newGameConfig = { ...data.gameConfig };
+
+                  if (forceRandomMode) {
+                    console.log('[Template] Auto-enforcing Random Mode for sensing task');
+                    newGameConfig.mode = 'random';
+
+                    // Count total collectibles for pool size
+                    const totalCrystals = data.items.filter(i => i.type === 'crystal').length;
+                    const totalSwitches = data.items.filter(i => i.type === 'switch').length;
+
+                    // Set pool to ensure high randomness (e.g. at least 1, max total)
+                    newGameConfig.itemPool = {
+                      ...newGameConfig.itemPool,
+                      crystal: totalCrystals > 0 ? totalCrystals : undefined
+                    };
+                  }
+
                   console.log('[Template] Auto-selected toolbox:', suggestedToolboxKey, 'from tags:', data.templateMeta?.tags);
 
                   const metadataUpdate: Record<string, any> = {
                     rawSolution: data.rawActions,
                     solution: data.solutionConfig, // Store initial solution with ItemGoals
                     structuredSolution: data.solutionConfig?.structuredSolution, // Transpiled solution for optimal display
+                    gameConfig: newGameConfig, // Apply random mode if needed
                     pathInfo: {
                       path_coords: data.pathCoords, // Path level coordinates from trace
                       placement_coords: data.blocks.map(b => [b.x, b.y, b.z] as [number, number, number]), // Ground blocks
