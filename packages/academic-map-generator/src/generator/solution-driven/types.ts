@@ -214,14 +214,14 @@ export interface FunctionCallNode {
 
 export interface IfStatementNode {
   type: 'IfStatement';
-  condition: ConditionNode;
+  condition: any; // ConditionNode | Expression
   thenBranch: BlockNode;
   elseBranch?: BlockNode;
 }
 
 export interface WhileLoopNode {
   type: 'WhileLoop';
-  condition: ConditionNode;
+  condition: any; // ConditionNode | Expression
   body: BlockNode;
 }
 

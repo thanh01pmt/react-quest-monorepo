@@ -431,17 +431,16 @@ class Parser {
   private parseIfStatement(): IfStatementNode {
     this.consume(TokenType.IF, 'Expected "if"');
     
+    let condition: any;
+
     // Support ( condition )
-    let hasParen = false;
     if (this.check(TokenType.LPAREN)) {
       this.advance();
-      hasParen = true;
-    }
-
-    const condition = this.parseCondition();
-
-    if (hasParen) {
+      condition = this.parseExpression(); // Parse general expression
       this.consume(TokenType.RPAREN, 'Expected ")" after condition');
+    } else {
+       // Legacy condition support
+       condition = this.parseCondition(); 
     }
 
     this.consume(TokenType.LBRACE, 'Expected "{"');
@@ -470,17 +469,15 @@ class Parser {
   private parseWhileLoop(): WhileLoopNode {
     this.consume(TokenType.WHILE, 'Expected "while"');
     
+    let condition: any;
+
     // Support ( condition )
-    let hasParen = false;
     if (this.check(TokenType.LPAREN)) {
       this.advance();
-      hasParen = true;
-    }
-
-    const condition = this.parseCondition();
-
-    if (hasParen) {
+      condition = this.parseExpression();
       this.consume(TokenType.RPAREN, 'Expected ")" after condition');
+    } else {
+        condition = this.parseCondition();
     }
 
     this.consume(TokenType.LBRACE, 'Expected "{"');
@@ -561,6 +558,37 @@ class Parser {
   }
 
   private parseExpression(): any {
+      return this.parseEquality();
+  }
+
+  private parseEquality(): any {
+      let left = this.parseComparison();
+
+      while (this.check(TokenType.EQUAL_EQUAL) || this.check(TokenType.NOT)) { // TODO: Add NEQ if supported, leveraging NOT for now if separate token
+          // Actually NOT is unary. EQUAL_EQUAL is binary.
+          if (this.check(TokenType.EQUAL_EQUAL)) {
+             const operator = this.advance().type;
+             const right = this.parseComparison();
+             left = { type: 'BinaryOp', operator, left, right };
+          } else {
+             break; 
+          }
+      }
+      return left;
+  }
+
+  private parseComparison(): any {
+      let left = this.parseAdditive();
+
+      while (this.check(TokenType.GREATER) || this.check(TokenType.GTE) || this.check(TokenType.LESS) || this.check(TokenType.LTE)) {
+          const operator = this.advance().type;
+          const right = this.parseAdditive();
+          left = { type: 'BinaryOp', operator, left, right };
+      }
+      return left;
+  }
+
+  private parseAdditive(): any {
       let left = this.parseTerm();
 
       while (this.check(TokenType.PLUS) || this.check(TokenType.MINUS)) {
@@ -1049,7 +1077,16 @@ export class TemplateInterpreter {
   }
 
   private executeIfStatement(node: IfStatementNode): void {
-    const conditionResult = this.evaluateCondition(node.condition);
+    let conditionResult: boolean;
+    
+    // Check if it's a legacy ConditionNode
+    if (node.condition.type === 'Condition') {
+        conditionResult = this.evaluateCondition(node.condition);
+    } else {
+        // Evaluate as expression (truthy/falsy)
+        const val = this.evaluateExpression(node.condition);
+        conditionResult = !!val;
+    }
     
     if (conditionResult) {
       this.executeBlock(node.thenBranch);
@@ -1062,7 +1099,15 @@ export class TemplateInterpreter {
     const MAX_ITERATIONS = 1000; // Safety limit
     let iterations = 0;
     
-    while (this.evaluateCondition(node.condition) && iterations < MAX_ITERATIONS) {
+    while (true) {
+       let conditionResult: boolean;
+       if (node.condition.type === 'Condition') {
+          conditionResult = this.evaluateCondition(node.condition);
+       } else {
+          conditionResult = !!this.evaluateExpression(node.condition);
+       }
+
+       if (!conditionResult || iterations >= MAX_ITERATIONS) break;
       this.loopIterations++;
       iterations++;
       this.executeBlock(node.body);
@@ -1105,6 +1150,12 @@ export class TemplateInterpreter {
         case TokenType.STAR: return left * right;
         case TokenType.SLASH: return Math.floor(left / right); // Integer division usually better for maps
         case TokenType.MODULO: return left % right;
+        // Comparisons
+        case TokenType.EQUAL_EQUAL: return left === right ? true : false;
+        case TokenType.GREATER: return left > right ? true : false;
+        case TokenType.GTE: return left >= right ? true : false;
+        case TokenType.LESS: return left < right ? true : false;
+        case TokenType.LTE: return left <= right ? true : false;
         default: return 0;
       }
     }
