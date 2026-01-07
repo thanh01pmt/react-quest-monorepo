@@ -1459,8 +1459,10 @@ export const toolboxPresets: Record<string, any> = {
         ]},
         { "kind": "category", "name": "%{BKY_GAMES_CATLOOPS}", "categorystyle": "loops_category", "contents": [
             { "kind": "block", "type": "maze_forever" },
-            { "kind": "block", "type": "controls_whileUntil" },
-            { "kind": "block", "type": "maze_repeat", "inputs": { "TIMES": { "shadow": { "type": "math_number", "fields": { "NUM": 5 }}}}}
+            { "kind": "block", "type": "maze_repeat", "inputs": { "TIMES": { "shadow": { "type": "math_number", "fields": { "NUM": 5 }}}}},
+            { "kind": "block", "type": "maze_while" },
+            { "kind": "block", "type": "maze_until" },
+            { "kind": "block", "type": "controls_whileUntil" }
         ]},
         {
             "kind": "category",
@@ -1480,12 +1482,17 @@ export const toolboxPresets: Record<string, any> = {
         },
         { "kind": "category", "name": "%{BKY_GAMES_CATACTIONS}", "categorystyle": "actions_category", "contents": [
             { "kind": "block", "type": "maze_collect" },
-            { "kind": "block", "type": "maze_toggle_switch" }
+            { "kind": "block", "type": "maze_toggle_switch" },
+            { "kind": "block", "type": "maze_say" },
+            { "kind": "block", "type": "maze_say_for" },
+            { "kind": "block", "type": "maze_wait" }
         ]},
         { "kind": "category", "name": "%{BKY_GAMES_CATMATH}", "categorystyle": "math_category", "contents": [
             { "kind": "block", "type": "maze_item_count" },
+            { "kind": "block", "type": "maze_items_remaining" },
             { "kind": "block", "type": "math_number" },
-            { "kind": "block", "type": "math_arithmetic", "inputs": { "A": { "shadow": { "type": "math_number", "fields": { "NUM": 1 }}}, "B": { "shadow": { "type": "math_number", "fields": { "NUM": 1 }}} }}
+            { "kind": "block", "type": "math_arithmetic", "inputs": { "A": { "shadow": { "type": "math_number", "fields": { "NUM": 1 }}}, "B": { "shadow": { "type": "math_number", "fields": { "NUM": 1 }}} }},
+            { "kind": "block", "type": "text" }
         ]},
         { "kind": "sep" },
         { "kind": "category", "name": "%{BKY_GAMES_CATVARIABLES}", "custom": "VARIABLE", "categorystyle": "variable_category" },

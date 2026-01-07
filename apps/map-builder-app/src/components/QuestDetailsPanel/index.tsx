@@ -108,16 +108,19 @@ const jsonToXml = (structuredSolution: any): string => {
         }
         block.appendChild(value);
 
-        if (action.actions && action.actions.length > 0) {
+        // Support both 'do' (transpiler output) and 'actions' (legacy format) for loop body
+        const loopBody = action.do || action.actions;
+        if (loopBody && loopBody.length > 0) {
           const statement = doc.createElement('statement');
           statement.setAttribute('name', 'DO');
-          jsonToXmlRecursive(action.actions, statement);
+          jsonToXmlRecursive(loopBody, statement);
           block.appendChild(statement);
         }
       } else if (action.type === 'maze_forever') {
         const statement = doc.createElement('statement');
         statement.setAttribute('name', 'DO');
-        jsonToXmlRecursive(action.actions || [], statement);
+        const foreverBody = action.do || action.actions || [];
+        jsonToXmlRecursive(foreverBody, statement);
         block.appendChild(statement);
       } else if (action.type === 'procedures_callnoreturn') {
         const mutation = doc.createElement('mutation');

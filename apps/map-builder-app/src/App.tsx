@@ -2159,9 +2159,9 @@ function App() {
       return;
     }
 
-    // Fallback: Nếu không thể xác định, đặt giá trị mặc định
-    config.toolboxPresetKey = 'commands_l1_move';
-    config.toolbox = _.cloneDeep(toolboxPresets['commands_l1_move']);
+    // Fallback: Nếu không thể xác định, đặt giá trị mặc định là Full Toolbox
+    config.toolboxPresetKey = 'full_toolbox';
+    config.toolbox = _.cloneDeep(toolboxPresets['full_toolbox']);
   };
 
   // --- HÀM TIỆN ÍCH MỚI: Trích xuất các khối lệnh có sẵn từ toolbox ---
@@ -2384,8 +2384,116 @@ function App() {
       // --- END: CẬP NHẬT ITEMGOALS TỰ ĐỘNG ---
 
       // 3. Chạy bộ giải với gameConfig vừa được tạo.
-      const solution = solveMaze(currentGC, currentSC, currentBC);
+      let solution: any = null;
 
+      // SPECIFIC LOGIC FOR TEMPLATE GENERATOR
+      // If the map is generated from a template, we trust the template's execution trace as the source of truth.
+      // We do NOT want to use the generic BFS solver because it might find a different (shortcut) path 
+      // or fail to match the specific pedagogical pattern (e.g. zigzag) intended by the template.
+      if (questMetadata?.pathInfo?.topology === 'template_generated' && questMetadata?.rawSolution && questMetadata.rawSolution.length > 0) {
+        console.log('[handleSolveMaze] Using Template-Generated Solution Trace');
+
+        const rawActions = questMetadata.rawSolution;
+        const toolboxJson = JSON.stringify(currentBC.toolbox || {});
+        const hasLoops = toolboxJson.includes('controls_repeat') || toolboxJson.includes('maze_repeat');
+        const hasFunctions = toolboxJson.includes('procedures_defnoreturn');
+
+        // Build Basic Solution (Unrolled)
+        const basicMain = rawActions.map((action: string) =>
+          typeof action === 'string' ? { type: action.startsWith('maze_') ? action : `maze_${action}` } : action
+        );
+
+        // Build Optimal Solution (Pattern Matching if loops allowed)
+        let structuredMain = [...basicMain];
+
+        // Priority: Use pre-calculated Structured Solution (from Transpiler) if available
+        if (questMetadata.structuredSolution?.main?.length > 0) {
+          structuredMain = questMetadata.structuredSolution.main;
+          console.log('[handleSolveMaze] Using pre-calculated structured solution from template.');
+        } else if (hasLoops) {
+          // Improved Pattern Matcher: Look for repeated sequences with support for Prefix/Suffix (Pre/Post-roll)
+          const detectPattern = (actions: any[]) => {
+            if (actions.length < 2) return null;
+
+            let bestMatch = null;
+            let maxCoverage = 0;
+
+            // Iterate through possible start positions (Prefix length)
+            for (let start = 0; start < actions.length - 1; start++) {
+              // Iterate through possible pattern lengths
+              // Max length is remaining space / 2
+              const maxLen = Math.floor((actions.length - start) / 2);
+
+              for (let len = 1; len <= maxLen; len++) {
+                const pattern = actions.slice(start, start + len);
+                const patternStr = JSON.stringify(pattern);
+
+                let count = 1; // Start with 1 (the pattern itself)
+                let currentIdx = start + len;
+
+                // Check for subsequent repetitions
+                while (currentIdx + len <= actions.length) {
+                  const segment = actions.slice(currentIdx, currentIdx + len);
+                  if (JSON.stringify(segment) === patternStr) {
+                    count++;
+                    currentIdx += len;
+                  } else {
+                    break;
+                  }
+                }
+
+                if (count >= 2) {
+                  const coverage = count * len;
+                  // We want to maximize coverage.
+                  // Tie-breaker: prefer shorter patterns (more repetitions)? or longer patterns (sub-loops)?
+                  // Let's prefer coverage first.
+                  if (coverage > maxCoverage) {
+                    maxCoverage = coverage;
+                    bestMatch = {
+                      start,
+                      len,
+                      count,
+                      pattern,
+                      prefix: actions.slice(0, start),
+                      suffix: actions.slice(start + (count * len))
+                    };
+                  }
+                }
+              }
+            }
+            return bestMatch;
+          };
+
+          const match = detectPattern(structuredMain);
+          if (match) {
+            console.log(`[handleSolveMaze] Detected Loop Pattern: ${match.count}x`, match.pattern);
+            console.log(`[handleSolveMaze] Prefix: ${match.prefix.length}, Suffix: ${match.suffix.length}`);
+
+            structuredMain = [
+              ...match.prefix,
+              {
+                type: 'controls_repeat_ext', // Or maze_repeat
+                times: match.count,
+                do: match.pattern
+              },
+              ...match.suffix
+            ];
+          }
+        }
+
+        solution = {
+          rawActions: rawActions,
+          basicSolution: { main: basicMain, procedures: {} },
+          structuredSolution: { main: structuredMain, procedures: {} },
+          optimalBlocks: JSON.stringify(structuredMain).includes('repeat') ? 2 + basicMain.length / (basicMain.length > 1 ? 2 : 1) : basicMain.length, // Rough estimate
+        };
+
+      } else {
+        // Fallback to Generic Solver
+        solution = solveMaze(currentGC, currentSC, currentBC);
+      }
+
+      // Check if solution is valid
       if (solution && solution.rawActions) {
         // --- START: CẬP NHẬT METADATA VỚI LỜI GIẢI MỚI ---
         const newOptimalBlocks = solution.optimalBlocks || 0;
@@ -3511,6 +3619,7 @@ function App() {
                   const metadataUpdate = {
                     rawSolution: data.rawActions,
                     solution: data.solutionConfig, // Store initial solution with ItemGoals
+                    structuredSolution: data.solutionConfig?.structuredSolution, // Transpiled solution for optimal display
                     pathInfo: {
                       path_coords: data.pathCoords, // Path level coordinates from trace
                       placement_coords: data.blocks.map(b => [b.x, b.y, b.z] as [number, number, number]), // Ground blocks

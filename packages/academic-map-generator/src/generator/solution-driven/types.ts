@@ -267,7 +267,9 @@ export interface BlockAction {
   direction?: 'turnLeft' | 'turnRight';
   times?: number;
   do?: BlockAction[];
+  else?: BlockAction[];  // For if-else blocks
   mutation?: { name: string };
+  name?: string;  // For procedure calls (procedures_callnoreturn)
 }
 
 /**
@@ -422,7 +424,7 @@ export function coordToVector3(coord: Coord): Vector3Object {
  */
 export function createInitialContext(
   startPos: Coord = [0, 1, 0],
-  startDir: Direction = 0
+  startDir: Direction = 1  // Default to West (+X) per COORDINATE_SYSTEM.md
 ): ExecutionContext {
   return {
     position: [...startPos] as Coord,

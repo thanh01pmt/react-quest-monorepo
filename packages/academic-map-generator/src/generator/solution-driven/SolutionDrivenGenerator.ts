@@ -10,7 +10,8 @@ import {
   GenerationMetadata,
   Coord,
   GradeLevel,
-  ParameterConfig
+  ParameterConfig,
+  ExecutionTrace
 } from './types';
 import { TemplateInterpreter } from './TemplateInterpreter';
 import { SolutionBuilder } from './SolutionBuilder';
@@ -64,6 +65,19 @@ export class SolutionDrivenGenerator {
     const pathInfo = this.builder.buildPathInfo(trace);
     const items = this.builder.buildItems(trace);
     const solution = this.builder.buildSolutionConfig(template, trace);
+    
+    // OVERRIDE: Use Transpiled Solution for optimal structure (AST-based)
+    try {
+        const optimal = this.interpreter.transpile(template, params);
+        if (optimal) {
+            solution.structuredSolution = optimal;
+            // Recalculate optimal blocks based on AST structure
+            solution.optimalBlocks = this.countBlocks(optimal);
+        }
+    } catch (e) {
+        console.warn('Transpilation failed, falling back to trace solution', e);
+    }
+
     const gameConfig = this.builder.buildGameConfig(template, trace, actualSeed);
     
     // Build metadata
@@ -189,7 +203,7 @@ export class SolutionDrivenGenerator {
     return params;
   }
 
-  private calculateComplexity(template: CodeTemplate, trace: any): number {
+  private calculateComplexity(template: CodeTemplate, trace: ExecutionTrace): number {
     let score = 0;
     
     // Base complexity from concept
@@ -216,6 +230,20 @@ export class SolutionDrivenGenerator {
     score += trace.items.length * 0.2;
     
     return Math.round(score);
+  }
+
+  private countBlocks(solution: any): number {
+     let count = 0;
+     const visit = (actions: any[]) => {
+        if (!actions) return;
+        for (const a of actions) {
+           count++;
+           if (a.do) visit(a.do);
+           if (a.else) visit(a.else); // Assuming else branch might exist in some block defs
+        }
+     }
+     visit(solution.main);
+     return count;
   }
 }
 

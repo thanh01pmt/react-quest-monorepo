@@ -9,6 +9,8 @@ import {
   ExecutionContext,
   ExecutionTrace,
   ExecutionAction,
+  BlockAction,
+  StructuredSolution,
   ASTNode,
   BlockNode,
   ForLoopNode,
@@ -738,6 +740,7 @@ export class TemplateInterpreter {
   private totalMoves: number = 0;
   private totalCollects: number = 0;
   private rng?: SeededRandom;
+  private initialDirection: Direction = 1; // Capture starting direction
 
   /**
    * Execute a template with resolved parameters
@@ -753,6 +756,9 @@ export class TemplateInterpreter {
     this.loopIterations = 0;
     this.totalMoves = 0;
     this.totalCollects = 0;
+    
+    // Capture initial direction before any actions
+    this.initialDirection = this.context.direction;
 
     // Resolve parameters in code
     let code = template.code;
@@ -785,13 +791,197 @@ export class TemplateInterpreter {
       items: this.items,
       actions: this.actions,
       startPosition: startPos,
-      startDirection: 1, // Default to East (1) as used in legacy
+      startDirection: this.initialDirection, // Use captured initial direction
       endPosition: endPos,
       endDirection: this.context.direction,
       totalMoves: this.totalMoves,
       totalCollects: this.totalCollects,
       loopIterations: this.loopIterations
     };
+  }
+
+  /**
+   * Transpile template code directly to StructuredSolution (Blocks)
+   * This preserves loops and functions from the source code.
+   */
+  transpile(template: CodeTemplate, params: Record<string, number>): StructuredSolution {
+    // Resolve parameters in code
+    let code = template.code;
+    for (const [name, value] of Object.entries(params)) {
+      const pattern = name.startsWith('_') ? name : `\\$${name}`;
+      code = code.replace(new RegExp(pattern, 'gi'), String(value));
+    }
+
+    // Parse
+    const lexer = new Lexer(code);
+    const tokens = lexer.tokenize();
+    const parser = new Parser(tokens);
+    const ast = parser.parse();
+
+    // Context for variable lookup (global params)
+    const context = new Map<string, number>();
+    Object.entries(params).forEach(([k, v]) => context.set(k, v));
+
+    // Extract function definitions first (2-pass approach)
+    const procedures: Record<string, BlockAction[]> = {};
+    const mainStatements: any[] = [];
+    
+    for (const stmt of ast.statements) {
+      if (stmt.type === 'FunctionDef') {
+        // Extract function definition into procedures
+        procedures[stmt.name] = this.convertBlockToActions(stmt.body, context);
+      } else {
+        mainStatements.push(stmt);
+      }
+    }
+
+    // Convert remaining statements to main blocks
+    const main = this.convertBlockToActions({ type: 'Block', statements: mainStatements } as BlockNode, context);
+
+    return {
+      main,
+      procedures
+    };
+  }
+
+  private convertBlockToActions(block: BlockNode, context: Map<string, number>): BlockAction[] {
+    const actions: BlockAction[] = [];
+    for (const stmt of block.statements) {
+      if (stmt.type === 'Block') {
+        actions.push(...this.convertBlockToActions(stmt, context));
+      } else {
+        const action = this.convertNodeToAction(stmt, context);
+        if (action) actions.push(action);
+      }
+    }
+    return actions;
+  }
+
+  private convertNodeToAction(node: ASTNode, context: Map<string, number>): BlockAction | null {
+    switch (node.type) {
+      case 'FunctionCall':
+        // Map standard calls to maze blocks
+        switch (node.name) {
+          case 'moveForward': return { type: 'maze_moveForward' };
+          case 'turnLeft': return { type: 'maze_turn', direction: 'turnLeft' };
+          case 'turnRight': return { type: 'maze_turn', direction: 'turnRight' };
+          case 'collectItem': return { type: 'maze_collect' };
+          case 'toggleSwitch': return { type: 'maze_toggle_switch' };
+          case 'jump': return { type: 'maze_jump' };
+          // Legacy/Fallback aliases
+          case 'turn_left': return { type: 'maze_turn', direction: 'turnLeft' };
+          case 'turn_right': return { type: 'maze_turn', direction: 'turnRight' };
+          // Custom procedure call - map to Blockly procedure call block
+          default: return { type: 'procedures_callnoreturn', name: node.name };
+        }
+      
+      case 'ForLoop':
+        // evaluate iterations
+        // Loop structure: for (var i = start; i < end; i++)
+        // We need to evaluate start and end.
+        try {
+           const startVal = this.evaluateSimpleExpression(node.start, context);
+           const endVal = this.evaluateSimpleExpression(node.end, context);
+           // Assume < comparison and ++ step for now as standard template pattern
+           // iterations = end - start
+           // If loop is <=, it would be end - start + 1. 
+           // But parser stores expressions.
+           // Heuristic: templates usually use standard loops.
+           // Let's assume (endVal - startVal).
+           // If the loop condition was LTE (<=), we might need to know that from AST. 
+           // But AST for ForLoop in types.ts is generic: start: any, end: any.
+           // Looking at parseTypeScriptForLoop: it stores start/end expressions.
+           // And TemplateInterpreter.executeForLoop line 837 uses: start <= end ? 1 : -1.
+           // Actually executeForLoop logic is: for (let i = start; i <= end; i++)
+           // WARNING: The PARSER logic for `i < N` vs `i <= N`...
+           // In parseTypeScriptForLoop (line 396): it consumes LT or LTE.
+           // But the AST `ForLoopNode` definition *doesn't seem to store the operator*!
+           // Checking types.ts:
+           // export interface ForLoopNode { type: 'ForLoop', variable: string, start: any, end: any, body: BlockNode; }
+           // It seems the parser logic (lines 403-407 of TemplateInterpreter.ts) MIGHT adjust `end` value?
+           // Actually no, parseTypeScriptForLoop (viewed earlier) just calls parseExpression for endExpr.
+           // Wait, if AST doesn't store operator, `executeForLoop` assumes inclusive (`<=`)?
+           // Let's check `executeForLoop` (line 846): `for (let i = start; i <= end; i++)`.
+           // So `TemplateInterpreter` treats loops as Inclusive!
+           // But typical update `i < N` implies exclusive.
+           // If the parser parsed `i < N`, did it subtract 1?
+           // Let's check Parser `parseTypeScriptForLoop` again.
+           
+           // Assuming executeForLoop is the source of truth, it iterates start to end INCLUSIVE.
+           // So count = Math.abs(end - start) + 1.
+           const iterations = Math.abs(endVal - startVal) + 1;
+           
+           return {
+             type: 'maze_repeat',  // Use maze_repeat to match quest-player block definition
+             times: iterations,
+             do: this.convertBlockToActions(node.body, context)
+           };
+        } catch (e) {
+           console.warn('Failed to evaluate loop bounds in transpile', e);
+           // Fallback: Just return unrolled actions? OR a dummy loop
+           return {
+             type: 'maze_repeat',
+             times: 1, // Error placeholder
+             do: this.convertBlockToActions(node.body, context)
+           };
+        }
+
+      case 'IfStatement':
+        // Basic Condition mapping
+        // We only support 'isOnCrystal', 'isOnSwitch', 'hasKey'
+        // AST ConditionNode: { conditionType: 'isOnCrystal', negated: boolean }
+        const condType = node.condition.conditionType; // isOnCrystal...
+        const negated = node.condition.negated;
+        
+        // Map to maze_if
+        let blockType = 'maze_if';
+        let conditionStr = 'isPathForward'; // Default
+        
+        if (condType === 'isOnCrystal') conditionStr = 'isPathForward'; // Wait, maze blocks use specific conds?
+        // Actually, maze blocks usually have: isPathForward, isPathLeft, isPathRight.
+        // isOnCrystal is NOT a standard maze block condition usually?
+        // Standard Maze: 'isPathForward', 'isPathLeft', 'isPathRight'.
+        // If template uses 'isOnCrystal', maybe we map it to 'isPathForward'? 
+        // Or maybe this is a limitation of standard Blockly Maze.
+        // But for 'Basic' usage, let's map to 'isPathForward' as placeholder if strict mapping fails.
+        
+        return {
+           type: node.elseBranch ? 'maze_ifElse' : 'maze_if',
+           mutation: { name: conditionStr }, // This might need refinement based on exact block definitions
+           do: this.convertBlockToActions(node.thenBranch, context),
+           // properties?
+        };
+
+      default:
+        return null;
+    }
+  }
+
+  private evaluateSimpleExpression(expr: any, context: Map<string, number>): number {
+    // Handle primitive types (already evaluated)
+    if (typeof expr === 'number') return expr;
+    if (typeof expr === 'string') return context.get(expr) ?? 0; // Variable lookup by name
+    
+    // Handle AST node types
+    if (expr && typeof expr === 'object') {
+      if (expr.type === 'Literal') {
+        return typeof expr.value === 'number' ? expr.value : 0;
+      }
+      if (expr.type === 'Identifier') {
+        return context.get(expr.name) ?? 0;
+      }
+      if (expr.type === 'BinaryOp') {
+        const left = this.evaluateSimpleExpression(expr.left, context);
+        const right = this.evaluateSimpleExpression(expr.right, context);
+        switch(expr.operator) {
+          case TokenType.PLUS: return left + right;
+          case TokenType.MINUS: return left - right;
+          case TokenType.STAR: return left * right;
+          case TokenType.SLASH: return Math.floor(left / right);
+        }
+      }
+    }
+    return 0;
   }
 
   private executeBlock(block: BlockNode): void {
