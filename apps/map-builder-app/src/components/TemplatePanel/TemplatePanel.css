@@ -64,9 +64,9 @@
 
 .template-selector__info {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
   background: var(--bg-tertiary, #333);
   border-radius: 6px;
   font-size: 12px;
@@ -81,6 +81,22 @@
   font-style: italic;
 }
 
+.template-selector__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.template-selector__tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
 /* Variable Sliders Section */
 .template-variables {
   display: flex;

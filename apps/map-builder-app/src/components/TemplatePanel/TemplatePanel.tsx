@@ -339,13 +339,51 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
                 </select>
                 {currentPreset && (
                     <div className="template-selector__info">
-                        <span className="template-selector__difficulty">
-                            {'⭐'.repeat(currentPreset.difficulty)}
-                        </span>
-                        <span className="template-selector__concept">
-                            {currentPreset.concept}
-                        </span>
-                        <span>{currentPreset.descriptionVi}</span>
+                        {/* Header: Difficulty + Category */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span className="template-selector__difficulty">
+                                {'⭐'.repeat(currentPreset.difficulty)}
+                            </span>
+                            {currentPreset.category && (
+                                <span className="template-selector__category-badge" style={{
+                                    fontSize: '11px',
+                                    color: '#aaa',
+                                    border: '1px solid #444',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    background: 'rgba(0,0,0,0.2)'
+                                }}>
+                                    {currentPreset.category === 'conditional' && '🔀 '}
+                                    {currentPreset.category === 'loop' && '🔁 '}
+                                    {currentPreset.category === 'function' && '📦 '}
+                                    {currentPreset.category}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Concepts */}
+                        {(currentPreset.concepts || [currentPreset.concept]).length > 0 && (
+                            <div style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>
+                                <strong>Concepts: </strong>
+                                {(currentPreset.concepts || [currentPreset.concept]).join(', ')}
+                            </div>
+                        )}
+
+                        {/* Description */}
+                        <div style={{ color: '#ccc', marginTop: '4px', fontSize: '12px' }}>
+                            {currentPreset.description || currentPreset.descriptionVi}
+                        </div>
+
+                        {/* Tags */}
+                        {currentPreset.tags && currentPreset.tags.length > 0 && (
+                            <div className="template-selector__tags">
+                                {currentPreset.tags.map(tag => (
+                                    <span key={tag} className="template-selector__tag">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

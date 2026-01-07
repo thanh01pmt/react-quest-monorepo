@@ -21,6 +21,7 @@ export interface TemplatePreset {
   // Optional: for toolbox auto-selection
   tags?: string[];
   category?: string;
+  concepts?: string[];
 }
 
 /**

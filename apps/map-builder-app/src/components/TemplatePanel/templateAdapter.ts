@@ -107,11 +107,12 @@ export function convertToPreset(template: TemplateConfig): TemplatePreset {
   return {
     id: template.metadata.id,
     name: template.metadata.name,
-    nameVi: template.metadata.name, // Use name as fallback
+    nameVi: template.metadata.name, // Use name as fallback used to be nameVi but likely not available in config
     description: template.metadata.description || '',
-    descriptionVi: getConceptNameVi(concept),
+    descriptionVi: template.metadata.description || '', // Use description as fallback, don't override with concept name
     difficulty: mapDifficulty(template.metadata.difficulty),
-    concept: concept,
+    concept: concept, // Primary concept
+    concepts: template.metadata.concepts || [], // All concepts
     code: template.solutionCode,
     // Add for toolbox auto-selection
     tags: template.metadata.tags || [],
