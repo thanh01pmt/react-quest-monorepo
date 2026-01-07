@@ -101,6 +101,9 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
         setVariableValues(newValues);
     }, [variables]);
 
+    // Current preset info (Moved up to be available for callbacks)
+    const currentPreset = getPreset(selectedPresetId);
+
     // Get resolved code (with variables replaced)
     const resolvedCode = useMemo(() => {
         return resolveTemplate(code, variableValues);
@@ -283,7 +286,7 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
         } finally {
             setIsLoading(false);
         }
-    }, [getEffectiveCode, hasExistingMap, onGenerate]);
+    }, [getEffectiveCode, hasExistingMap, onGenerate, currentPreset]);
 
     // Copy JSON
     const handleCopyJson = useCallback(() => {
@@ -300,8 +303,7 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
         }
     }, [getEffectiveCode]);
 
-    // Current preset info
-    const currentPreset = getPreset(selectedPresetId);
+
 
     return (
         <div className={`template-panel ${isLoading ? 'template-panel--loading' : ''}`}>

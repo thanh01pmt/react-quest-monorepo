@@ -92,6 +92,11 @@ export function getConceptNameVi(concept: string): string {
  * Map difficulty (1-10 scale to 1-5 stars)
  */
 function mapDifficulty(difficulty: number): 1 | 2 | 3 | 4 | 5 {
+  // If difficulty is on 1-10 scale, map it. Otherwise pass through.
+  // Assuming 1-5 scale is standard for shared templates now.
+  if (difficulty >= 1 && difficulty <= 5) return difficulty as 1 | 2 | 3 | 4 | 5;
+  
+  // Legacy support for 1-10 scale
   if (difficulty <= 2) return 1;
   if (difficulty <= 4) return 2;
   if (difficulty <= 6) return 3;

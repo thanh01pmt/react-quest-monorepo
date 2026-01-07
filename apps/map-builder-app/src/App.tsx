@@ -2437,7 +2437,16 @@ function App() {
         return;
       }
       const finish = { x: finishObject.position[0], y: finishObject.position[1], z: finishObject.position[2] };
-      const currentGC = { type: "maze", renderer: "3d", blocks, players, collectibles, interactibles, finish };
+      const currentGC = {
+        ...(questMetadata?.gameConfig || {}), // Preserve existing config (mode, seed, etc.)
+        type: "maze",
+        renderer: "3d",
+        blocks,
+        players,
+        collectibles,
+        interactibles,
+        finish
+      };
 
       // 2. Lấy các config khác từ state
       let currentSC = questMetadata?.solution || {};

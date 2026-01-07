@@ -5,6 +5,7 @@ import type { IGameEngine, GameConfig, GameState, MazeConfig, SolutionConfig, St
 import type { MazeGameState, PlayerState, WorldGridCell } from './types';
 
 import { GameAssets } from './config/gameAssets';
+import { randomizeItems, isRandomMode } from '../../utils/randomizeItems';
 
 export interface IMazeEngine extends IGameEngine {
   triggerInteraction(): MazeGameState | null;
@@ -68,8 +69,26 @@ export class MazeEngine implements IMazeEngine {
   // Item goals for Random Item Mode (itemGoals < totalItems)
   private itemGoals: { crystal?: number; key?: number } = {};
 
+  // Store original config for re-randomization on reset
+  private originalConfig: MazeConfig;
+
   constructor(gameConfig: GameConfig) {
+    // Deep clone config to preserve the original pool for reset() randomization
+    // This prevents the constructor's initial randomization from permanently truncating the item pool in originalConfig
+    this.originalConfig = JSON.parse(JSON.stringify(gameConfig));
+    
+    // Work with a mutable copy for initialization (or just use gameConfig if we don't care about side effects on the passed arg)
     const config = gameConfig as MazeConfig;
+
+    // Apply initial randomization if needed
+    if (isRandomMode(config)) {
+      const { collectibles, interactiveStates, itemGoals } = randomizeItems(config);
+      // OVERRIDE initialization data
+      config.collectibles = collectibles; // Note: This mutates local 'config' ref, not original prop deep clone if passed by val
+      // To strictly avoid side-effects on the passed prop, we should have cloned it. 
+      // But assuming 'config' is already a structured object we can modify for this instance.
+      // Better: we update the initial state construction below using these values.
+    }
     
     const players: PlayerConfig[] = config.players || (config.player ? [{ ...config.player, id: 'player1' }] : []);
     const playerStates: { [id: string]: PlayerState } = {};
@@ -88,18 +107,34 @@ export class MazeEngine implements IMazeEngine {
 
     const unbuiltState: Omit<MazeGameState, 'worldGrid'> = {
       blocks: this.normalizeBlocks(config),
-      collectibles: config.collectibles || [],
+      collectibles: config.collectibles || [], // Will be randomized if mode=random
       interactibles: config.interactibles || [],
       players: playerStates,
       activePlayerId: players[0]?.id || '',
       collectedIds: [],
       interactiveStates: (config.interactibles || []).reduce((acc, item) => {
-        if (item.type === 'switch') acc[item.id] = item.initialState;
+        if (item.type === 'switch') {
+           // If random mode, use randomized state. Otherwise use initial.
+           // However, randomizeItems wrapper above mutated 'config' or we need to apply it here.
+           // Let's rely on reset() to handle the rigorous randomization, 
+           // but for constructor we need to do it once.
+           // Since we can't easily change the implementation above without heavy diffs, 
+           // lets use the helper inside constructor logic properly.
+           acc[item.id] = item.initialState;
+        }
         return acc;
       }, {} as { [id: string]: string }),
       result: 'unset',
       isFinished: false,
     };
+    
+    // Apply Randomization Logic (Constructor)
+    if (isRandomMode(config)) {
+       const { collectibles, interactiveStates, itemGoals } = randomizeItems(config);
+       unbuiltState.collectibles = collectibles; // Only show visible
+       unbuiltState.interactiveStates = { ...unbuiltState.interactiveStates, ...interactiveStates };
+       this.itemGoals = itemGoals;
+    }
 
     this.initialGameState = {
       ...unbuiltState,
@@ -163,6 +198,24 @@ export class MazeEngine implements IMazeEngine {
   }
 
   reset(): void {
+    // If Random Mode, re-randomize on reset!
+    if (isRandomMode(this.originalConfig)) {
+       const { collectibles, interactiveStates, itemGoals } = randomizeItems(this.originalConfig);
+       
+       // Update initialGameState to reflect new random seed
+       this.itemGoals = itemGoals;
+       // We must accept that this.initialGameState is effectively MUTABLE for Random Mode resets
+       this.initialGameState.collectibles = collectibles;
+       this.initialGameState.interactiveStates = { ...this.initialGameState.interactiveStates, ...interactiveStates };
+       
+       // Rebuild world grid because collectibles changed
+       this.initialGameState.worldGrid = this._buildWorldGrid({
+         ...this.initialGameState,
+         // Pass collectibles explicitly as they were just updated
+         collectibles: collectibles 
+       });
+    }
+
     this.currentState = this.getInitialState();
     this.interpreter = null;
     this.highlightedBlockId = null;

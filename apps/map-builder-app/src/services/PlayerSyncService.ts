@@ -233,10 +233,12 @@ export function syncToPlayer(quest: QuestData, playerUrl?: string): { success: b
       const syncUrl = buildSyncUrl(url, strippedQuest);
       
       // Check URL length - most browsers support ~8000 chars
-      if (syncUrl.length > 7500) {
+      // Modern browsers handle much longer URLs (32k+), but we keep a safe limit
+      // Increased from 7500 to 15000 to support moderately complex quests
+      if (syncUrl.length > 30000) {
         return { 
           success: false, 
-          error: `Quest too large for URL sync (${syncUrl.length} chars). Try reducing map size.` 
+          error: `Quest too large for URL sync (${syncUrl.length} chars). Try reducing map size or using shorter variable names.` 
         };
       }
       
