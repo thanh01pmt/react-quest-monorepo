@@ -104,7 +104,7 @@ export function FullEditorDialog({
                 {/* Footer */}
                 <div className="full-editor-footer">
                     <div className="full-editor-hint">
-                        💡 Tip: Sử dụng <code>{`{{tên_biến:min-max:default}}`}</code> để tạo tham số có thể điều chỉnh
+                        💡 Tip: Dùng <code>var _MIN_X_ = n; var _MAX_X_ = m; var X = random(_MIN_X_, _MAX_X_);</code> để tạo biến ngẫu nhiên
                     </div>
                     <button
                         className="full-editor-done-btn"

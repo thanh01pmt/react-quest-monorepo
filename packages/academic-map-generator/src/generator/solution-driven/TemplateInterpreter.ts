@@ -1199,6 +1199,14 @@ export class TemplateInterpreter {
         this.doJump();
         break;
       
+      case 'jumpup':
+        this.doJumpUp();
+        break;
+      
+      case 'jumpdown':
+        this.doJumpDown();
+        break;
+      
       case 'turnleft':
         this.doTurnLeft();
         break;
@@ -1273,6 +1281,64 @@ export class TemplateInterpreter {
       this.pathSet.add(key);
     }
     
+    this.actions.push({
+      type: 'jump',
+      position: [...this.context.position] as Coord,
+      direction: this.context.direction
+    });
+    this.totalMoves++;
+  }
+
+  /**
+   * JumpUp: Explicit jump UP (for template map generation)
+   * Creates elevated terrain by moving forward + up one block
+   */
+  private doJumpUp(): void {
+    // Move forward
+    this.context.position = moveForward(this.context.position, this.context.direction);
+    // Move up one block
+    this.context.position = [
+      this.context.position[0],
+      this.context.position[1] + 1,
+      this.context.position[2]
+    ] as Coord;
+    
+    const key = coordToKey(this.context.position);
+    if (!this.pathSet.has(key)) {
+      this.pathCoords.push([...this.context.position] as Coord);
+      this.pathSet.add(key);
+    }
+    
+    // Output as 'jump' for backward compatibility with player
+    this.actions.push({
+      type: 'jump',
+      position: [...this.context.position] as Coord,
+      direction: this.context.direction
+    });
+    this.totalMoves++;
+  }
+
+  /**
+   * JumpDown: Explicit jump DOWN (for template map generation)
+   * Creates descending terrain by moving forward + down one block
+   */
+  private doJumpDown(): void {
+    // Move forward
+    this.context.position = moveForward(this.context.position, this.context.direction);
+    // Move DOWN one block
+    this.context.position = [
+      this.context.position[0],
+      this.context.position[1] - 1,
+      this.context.position[2]
+    ] as Coord;
+    
+    const key = coordToKey(this.context.position);
+    if (!this.pathSet.has(key)) {
+      this.pathCoords.push([...this.context.position] as Coord);
+      this.pathSet.add(key);
+    }
+    
+    // Output as 'jump' for backward compatibility with player
     this.actions.push({
       type: 'jump',
       position: [...this.context.position] as Coord,

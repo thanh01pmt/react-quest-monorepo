@@ -1,104 +1,257 @@
-# 100 Template Matrix: Academic Skeletons
+# Template System: Academic Skeletons & Micro-Patterns
 
-To ensure **High Academic Quality**, we define map "Skeletons" based on algorithmic patterns. These are reusable logic structures. *Action Atoms* (Collect/Jump) are then plugged into these skeletons.
-
-## 1. Academic Skeletons (The "Logic")
-
-These are abstract patterns independent of the specific action.
-
-### S1: Linear Arithmetic (Progression)
-*Description*: Perform action N times, where N increases by a step.
-*Logic*: `for i=1 to M: repeat(i*step) { action }`
-*Academic Concept*: Arithmetic Progression, Variable Increment.
-
-### S2: Geometric Spiral (Growth)
-*Description*: Perform action N times, where N multiplies or grows non-linearly.
-*Logic*: `len = 1; for i=1 to M: repeat(len) { action }; len *= 2; turn()`
-*Academic Concept*: Geometric Progression, Exponential Growth.
-
-### S3: Alternating Logic (Parity)
-*Description*: Different actions for Odd vs Even steps.
-*Logic*: `for i=1 to N: if (i%2==0) { Action A } else { Action B }`
-*Academic Concept*: Modulo, Parity, State Oscillation.
-
-### S4: Backtracking (Stack)
-*Description*: Go forward performing A, turn around, return performing B.
-*Logic*: `List L; for x in Path: do(A); push(x); ... turn(); while L: y=pop(); do(B)` (Simplified: Forward N, Back N)
-*Academic Concept*: Inverse Operations, Stack/Memory.
-
-### S5: State Machine (Sequence)
-*Description*: Action depends on current "state" (e.g., color of floor).
-*Logic*: `while path: switch(read_state()): case R: Action A; case B: Action B.`
-*Academic Concept*: State Machines, Conditionals.
-
-### S6: Divide & Conquer (Fractal/Nested)
-*Description*: Break a large task (Square) into smaller identical tasks (Lines).
-*Logic*: `Function Line() { ... }; Function Square() { repeat(4) Line(); turn(); }`
-*Academic Concept*: Decomposition, Abstraction.
+This document defines map "Skeletons" based on algorithmic patterns and documents the **micro-pattern mechanism** used for map generation.
 
 ---
 
-## 2. The Matrix (Skeleton x Atom)
+## 🔧 Micro-Pattern Mechanism (Implementation Rules)
 
-We pair Skeletons with Atoms to generate UNIQUE templates.
+### Parameter Declaration Pattern
+All randomizable parameters MUST use this exact pattern:
 
-### Category: "Progression" (Variable/Loop Focus)
-1.  **Prog_Arith_Move**: Walk 1, then 2, then 3 steps. (`Skeleton S1` + `Atom Move`)
-2.  **Prog_Arith_Collect**: Collect 1, then 2, then 3 items. (`Skeleton S1` + `Atom Collect`)
-3.  **Prog_Geo_Spiral**: Spiral out (1, 2, 4, 8 steps). (`Skeleton S2` + `Atom Move`)
-4.  **Prog_Fib_Path**: Walk Fibonacci/Golden Ratio path.
-5.  **Prog_Decay**: Start with 5 actions, decrease to 1.
-
-### Category: "Logic & Parity" (Conditional Focus)
-6.  **Logic_Alt_Move**: Step-Jump-Step-Jump. (`Skeleton S3` + `Atoms Move/Jump`)
-7.  **Logic_Alt_Interact**: Collect-Toggle-Collect-Toggle. (`Skeleton S3` + `Atoms Collect/Toggle`)
-8.  **Logic_3_Way**: Modulo 3 (Step-Jump-Collect).
-9.  **Logic_Checkerboard**: Interact only on "Black" cells (i+j is even).
-
-### Category: "Memory & Inverse" (Function Focus)
-10. **Mem_Return**: Walk path, Turn, Walk exact path back. (`Skeleton S4` + `Atom Move`)
-11. **Mem_Undo**: Toggle switches ON, Turn, Toggle switches OFF. (`Skeleton S4` + `Atom Toggle`)
-12. **Mem_Palindrome**: Path is symmetrical (Action sequence reads same forward/back).
-
-### Category: "Decomposition" (Function Focus)
-13. **Decomp_Square**: Draw Square using Line function.
-14. **Decomp_Stair**: Build Stair using Step function.
-15. **Decomp_Grid**: Harvest Grid using Row function.
-16. **Decomp_Flower**: Draw Petal function -> Repeat 4 times.
-
-### Category: "Search & Optimization" (Capstone)
-17. **Search_Linear**: Scan row for finding item.
-18. **Search_Binary**: (Simulated) Go to middle, check, go left/right.
-19. **Sort_Selection**: (Simulated) Find max, collect, repeat.
-
----
-
-## 3. Execution Plan
-We will implement these Skeletons as reusable JS logic in the `SolutionDrivenGenerator`, then use the `.md` templates to invoke them with specific Atoms.
-
-*Example Template MD*:
 ```js
-// Skeleton: S1 (Arithmetic)
-// Atom: Collect
-var start = 1;
-var step = random(1, 2);
-for(var i=0; i<3; i++) {
-   var count = start + i*step;
-   repeat(count) { collect(); move(); } // Atom P2
+// Parameters
+var _MIN_X_ = 3;      // Min value for parameter X
+var _MAX_X_ = 6;      // Max value for parameter X
+var X = random(_MIN_X_, _MAX_X_);  // Runtime random selection
+```
+
+**Why?** The `TemplateInterpreter` automatically extracts `_MIN_*` and `_MAX_*` variables and displays them as adjustable sliders in the UI.
+
+### Available Commands
+
+#### Movement Commands
+| Command | Effect |
+|---------|--------|
+| `moveForward()` | Di chuyển 1 ô theo hướng hiện tại (cùng độ cao) |
+| `turnLeft()` | Xoay trái 90° |
+| `turnRight()` | Xoay phải 90° |
+| `jump()` | Nhảy lên/xuống 1 ô (tự động detect: nếu có block phía trước thì nhảy lên, nếu trống thì nhảy xuống) |
+| `jumpUp()` | **Template only** - Nhảy LÊN 1 ô (tạo block cao hơn) |
+| `jumpDown()` | **Template only** - Nhảy XUỐNG 1 ô (tạo block thấp hơn) |
+
+> **⚠️ Jump Rule for Templates**:
+> - Trong **template code**: Dùng `jumpUp()` hoặc `jumpDown()` để hệ thống hiểu và tạo đúng độ cao block.
+> - Trong **solution code** (output cho player): Tự động chuyển về `jump()` để tương thích ngược.
+
+#### Sensing Conditions (Item Generation)
+Use these functions to dynamically generate items:
+
+| Function | Effect |
+|----------|--------|
+| `isOnCrystal()` | 50% chance: places crystal at current position, returns `true` |
+| `isOnSwitch()` | 50% chance: places switch at current position, returns `true` |
+| `collectItem()` | Places crystal at current position (guaranteed) |
+| `toggleSwitch()` | Places switch at current position (guaranteed) |
+
+**Example (Conditional Item Placement):**
+```js
+for (let i = 0; i < PATH_LENGTH; i++) {
+  if (isOnCrystal()) {
+    collectItem();
+  } else if (isOnSwitch()) {
+    toggleSwitch();
+  }
+  moveForward();
 }
 ```
-This ensures high academic variance (the math/logic) while allowing infinite visual variance (the atoms).
 
-## 4. Validation Strategy (Collision)
+### Random Mode Enforcement
+**Rule**: Templates with **decision-making logic** MUST trigger Random Mode.
 
-Since maps are generated from solution traces (Solution-Driven), variable parameters might cause paths to cross or revisit the same coordinate.
+Auto-detected by tags/category:
+- Category: `conditional` OR `logic`
+- Tags containing: `if`, `else`, `detect`, `conditional`, `switch`
+- Concepts containing: `conditional`, `sensing`
 
-**Rule**: A generated map is **INVALID** if >1 item is placed on the same coordinate.
-*   **Constraint**: `Map[x][y][z]` can hold max **1 Item**.
-*   **Mechanism**:
-    1.  Trace solution code (simulate execution).
-    2.  Track `item_placements = Set<Coord>`.
-    3.  If `new_item_coord` exists in `item_placements` -> **REJECT** (Retry with new random seed).
-    4.  Only accept maps with **ZERO** item collisions.
+**Effect**: `gameConfig.mode = 'random'` hides a portion of items each run, preventing hardcoded solutions.
 
-This ensures that "Academic Skeletons" (which often involve backtracking or complex patterns) do not produce physically impossible maps.
+### Micro-Pattern Design Rules
+
+#### 1. Spacing Pattern
+Use `SPACE` to create variable distances between items:
+
+```js
+var _MIN_SPACE_ = 0;
+var _MAX_SPACE_ = 2;
+var SPACE = random(_MIN_SPACE_, _MAX_SPACE_);
+
+// SPACE + 1 ensures at least 1 move between items
+for (let s = 0; s < SPACE + 1; s++) {
+  moveForward();
+}
+collectItem();
+```
+
+**Why `SPACE + 1`?** If `SPACE = 0`, we still move 1 step. If `SPACE = 2`, we move 3 steps. This prevents items from overlapping.
+
+#### 2. Movement + Interaction Coordination
+Templates should interleave movement and interaction in clear phases:
+
+```js
+// Pattern: [Move Phase] → [Interact Phase] → [Turn Phase]
+for (let i = 0; i < REPEATS; i++) {
+  // Phase 1: Movement with spacing
+  for (let s = 0; s < SPACE_CRYSTAL + 1; s++) {
+    moveForward();
+  }
+  collectItem();  // Interaction
+  
+  // Phase 2: Different spacing for switch
+  for (let s = 0; s < SPACE_SWITCH + 1; s++) {
+    moveForward();
+  }
+  toggleSwitch();  // Interaction
+  
+  turnRight();  // Direction change
+}
+```
+
+#### 3. Segment-Based Patterns (Zigzag)
+For zigzag/alternating paths, use paired segments:
+
+```js
+for (let p = 0; p < PAIRS; p++) {
+  // Segment 1: Right direction
+  for (let s = 0; s < SEGMENT_LENGTH; s++) {
+    moveForward();
+  }
+  collectItem();
+  turnRight(); moveForward(); turnRight();
+  
+  // Segment 2: Left direction (mirror)
+  for (let s = 0; s < SEGMENT_LENGTH; s++) {
+    moveForward();
+  }
+  collectItem();
+  turnLeft(); moveForward(); turnLeft();
+}
+```
+
+#### 4. Template Code Structure
+Every template MUST follow this structure:
+
+```js
+// 1. PARAMETERS (always first)
+var _MIN_X_ = 2;
+var _MAX_X_ = 4;
+var X = random(_MIN_X_, _MAX_X_);
+
+// 2. INITIAL MOVE (enter the path)
+moveForward();
+
+// 3. MAIN LOOP (core pattern logic)
+for (let i = 0; i < X; i++) {
+  // Pattern body...
+}
+
+// 4. FINAL MOVE (exit the path)
+moveForward();
+```
+
+**Why Initial/Final Move?** Creates buffer space before/after the pattern, ensuring player starts at spawn and ends at target.
+
+---
+
+## ⚠️ Known Issues & Fixes (Lessons Learned)
+
+### 1. Switch Items Not Appearing
+**Cause**: `convertToMapData()` only mapped `collectibles`, ignoring `interactibles`.  
+**Fix**: Combine both arrays: `items: [...collectibles, ...interactibles]`
+
+### 2. Random Mode Not Re-Randomizing on Reset
+**Cause**: `MazeEngine` stored `originalConfig` by reference, which got mutated.  
+**Fix**: Deep clone config at initialization: `this.originalConfig = JSON.parse(JSON.stringify(gameConfig))`
+
+### 3. Toolbox Not Auto-Selected
+**Cause**: No mapping from template tags to toolbox presets.  
+**Fix**: `getToolboxFromTemplateTags()` maps tags → appropriate preset (e.g., `loops_l3` for loop templates).
+
+### 4. Interactibles Missing from Game Config
+**Cause**: `App.tsx` onGenerate handler didn't extract switches from `data.items`.  
+**Fix**: Filter and convert switch items to `gameConfig.interactibles` with proper structure.
+
+---
+
+## 📊 Implementation Status
+
+### Category: Progression (5/5 ✅)
+| Template | Status | Uses Micro-Pattern |
+|----------|--------|-------------------|
+| `arithmetic-move.md` | ✅ Implemented | ✅ Yes |
+| `arithmetic-collect.md` | ✅ Implemented | ✅ Yes |
+| `geometric-spiral.md` | ✅ Implemented | ✅ Yes |
+| `fibonacci-path.md` | ✅ Implemented | ✅ Yes |
+| `decaying-path.md` | ✅ Implemented | ✅ Yes |
+
+### Category: Logic & Parity (4/4 ✅)
+| Template | Status | Forces Random Mode |
+|----------|--------|-------------------|
+| `alternating-move.md` | ✅ Implemented | ⚠️ Should verify |
+| `alternating-interact.md` | ✅ Implemented | ⚠️ Should verify |
+| `three-way-cycle.md` | ✅ Implemented | ⚠️ Should verify |
+| `logic-checkerboard.md` | ✅ Implemented | ⚠️ Should verify |
+
+### Category: Memory & Inverse (3/3 ✅)
+| Template | Status |
+|----------|--------|
+| `path-return.md` | ✅ Implemented |
+| `undo-operations.md` | ✅ Implemented |
+| `palindrome-path.md` | ✅ Implemented |
+
+### Category: Decomposition (3/4 ⚠️)
+| Template | Status |
+|----------|--------|
+| `square-function.md` | ✅ Implemented |
+| `staircase-function.md` | ✅ Implemented |
+| `flower-pattern.md` | ✅ Implemented |
+| **Decomp_Grid** | ❌ **Not implemented** |
+
+### Category: Search & Optimization (0/3 ❌)
+| Template | Status |
+|----------|--------|
+| **Search_Linear** | ❌ Not found in templates folder |
+| **Search_Binary** | ❌ Not implemented |
+| **Sort_Selection** | ❌ Not implemented |
+
+### Additional Templates (Not in Original Design)
+- **Conditional**: `crystal-or-switch.md`, `if-simple.md` ✅
+- **Loop**: 9 templates covering basic to nested loops ✅
+- **Sequential**: 4 templates for beginner level ✅
+- **Variable**: `var-accumulator.md`, `var-counter.md` ✅
+- **Function**: 3 templates ✅
+
+---
+
+## 🎯 Template Quality Checklist
+
+Before marking a template as "complete", verify:
+
+- [ ] Uses `var _MIN_X_` / `var _MAX_X_` / `random()` pattern
+- [ ] Solution code is executable by `TemplateInterpreter`
+- [ ] If uses conditionals/sensing → has correct tags for Random Mode auto-detection
+- [ ] If uses `isOnSwitch()` → verify switches appear on generated map
+- [ ] Category and concepts match actual template content
+- [ ] Difficulty rating is appropriate (1-5 scale)
+
+---
+
+## 📝 Academic Skeletons Reference
+
+### S1: Linear Arithmetic (Progression)
+`for i=1 to M: repeat(i*step) { action }`
+
+### S2: Geometric Spiral (Growth)
+`len = 1; for i=1 to M: repeat(len) { action }; len *= 2; turn()`
+
+### S3: Alternating Logic (Parity)
+`for i=1 to N: if (i%2==0) { A } else { B }`
+
+### S4: Backtracking (Stack)
+Forward N, Turn, Back N (inverse operations)
+
+### S5: State Machine (Sequence)
+`while path: switch(read_state()): case R: A; case B: B`
+
+### S6: Divide & Conquer (Fractal/Nested)
+`function Line() {...}; function Square() { repeat(4) Line(); turn(); }`
