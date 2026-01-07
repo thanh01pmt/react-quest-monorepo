@@ -18,6 +18,8 @@ interface BlockAction {
     name?: string; // Function name
     // Generic substacks
     else?: BlockAction[];
+    // Movement
+    direction?: string; // For maze_turn
 }
 
 interface StructuredSolution {
@@ -51,6 +53,11 @@ function convertBlocksToXml(blocks: BlockAction[]): string {
         if (block.type.startsWith('maze_if') || block.type === 'maze_peek') {
             xml += `<field name="DIR">${block.condition}</field>`;
         }
+    }
+
+    // Handle direction for turn blocks
+    if (block.direction && block.type === 'maze_turn') {
+        xml += `<field name="DIR">${block.direction}</field>`;
     }
 
     // --- HANDLE VALUES ---
