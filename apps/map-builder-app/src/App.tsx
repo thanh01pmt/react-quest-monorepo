@@ -3464,7 +3464,36 @@ function App() {
                     )
                     : false;
 
-                  const newGameConfig = { ...data.gameConfig };
+                  const newGameConfig = {
+                    ...data.gameConfig,
+                    type: 'maze',
+                    renderer: '3d', // Force 3D renderer for template maps
+                    // FIX: Manually populate gameConfig because auto-solver is disabled for Template Mode
+                    // This ensures "Send to Player" works immediately with valid start/finish data
+                    blocks: data.blocks.map(b => ({
+                      position: { x: b.x, y: b.y, z: b.z },
+                      modelKey: 'ground_grass'
+                    })),
+                    players: [{
+                      id: "player1",
+                      start: {
+                        x: data.playerStart.x,
+                        y: data.playerStart.y,
+                        z: data.playerStart.z,
+                        direction: data.playerStart.direction || 1 // Default to North if missing
+                      }
+                    }],
+                    finish: {
+                      x: data.finish.x,
+                      y: data.finish.y,
+                      z: data.finish.z
+                    },
+                    collectibles: data.items.filter(i => i.type === 'crystal').map(c => ({
+                      position: { x: c.position.x, y: c.position.y, z: c.position.z },
+                      type: 'crystal'
+                    })),
+                    // interactibles are handled below
+                  };
 
                   if (forceRandomMode) {
                     console.log('[Template] Auto-enforcing Random Mode for sensing task');
@@ -3499,7 +3528,11 @@ function App() {
 
                   console.log('[Template] Auto-selected toolbox:', suggestedToolboxKey, 'from tags:', data.templateMeta?.tags);
 
+                  const tm = data.templateMeta as any;
                   const metadataUpdate: Record<string, any> = {
+                    id: tm?.id || 'generated-quest',
+                    name: tm?.meta?.titleVi || tm?.meta?.titleEn || 'Generated Quest',
+                    description: tm?.meta?.descVi || tm?.meta?.descEn || 'Complete the maze using the available blocks.',
                     rawSolution: data.rawActions,
                     solution: data.solutionConfig, // Store initial solution with ItemGoals
                     structuredSolution: data.solutionConfig?.structuredSolution, // Transpiled solution for optimal display
