@@ -10,7 +10,7 @@ export interface IMazeEngine extends IGameEngine {
   triggerInteraction(): MazeGameState | null;
   completeTeleport(): void;
   getCurrentState(): MazeGameState;
-  
+
   // Public API for external executors (Python/Lua)
   doMoveForward(): void;
   doTurnLeft(): void;
@@ -22,10 +22,10 @@ export interface IMazeEngine extends IGameEngine {
   checkIsItemPresent(): boolean;
   checkIsItemPresent(): boolean;
   checkNotDone(): boolean;
-  
+
   // Speech API
   doSay(characterId: string, text: string): void;
-  
+
   // OOP-Lite API for multi-character support (Phase 3)
   doActionForCharacter(characterId: string, action: string): void;
   checkPathForCharacter(characterId: string, direction: 0 | 1 | 3): boolean;
@@ -56,7 +56,7 @@ export class MazeEngine implements IMazeEngine {
 
   private readonly initialGameState: MazeGameState;
   private readonly finish: { x: number; y: number; z: number };
-  
+
   private currentState!: MazeGameState;
   private interpreter: any | null = null;
   private highlightedBlockId: string | null = null;
@@ -64,7 +64,7 @@ export class MazeEngine implements IMazeEngine {
 
   constructor(gameConfig: GameConfig) {
     const config = gameConfig as MazeConfig;
-    
+
     const players: PlayerConfig[] = config.players || (config.player ? [{ ...config.player, id: 'player1' }] : []);
     const playerStates: { [id: string]: PlayerState } = {};
     for (const p of players) {
@@ -111,7 +111,7 @@ export class MazeEngine implements IMazeEngine {
 
   private _buildWorldGrid(state: Omit<MazeGameState, 'worldGrid'>): Record<string, WorldGridCell> {
     const grid: Record<string, WorldGridCell> = {};
-    
+
     for (const block of state.blocks) {
       const key = `${block.position.x},${block.position.y},${block.position.z}`;
       grid[key] = { type: 'block', isSolid: true };
@@ -124,7 +124,7 @@ export class MazeEngine implements IMazeEngine {
       const key = `${item.position.x},${item.position.y},${item.position.z}`;
       grid[key] = { type: item.type, isSolid: false, id: item.id };
     }
-    
+
     return grid;
   }
 
@@ -166,7 +166,7 @@ export class MazeEngine implements IMazeEngine {
   // ============================================
   // PUBLIC API for external executors (Python/Lua)
   // ============================================
-  
+
   /** Move the active player forward one unit */
   public doMoveForward(): void {
     this.moveForward();
@@ -237,7 +237,7 @@ export class MazeEngine implements IMazeEngine {
    */
   public doActionForCharacter(characterId: string, action: string): void {
     const previousActiveId = this.currentState.activePlayerId;
-    
+
     // Switch to the target character
     if (this.currentState.players[characterId]) {
       this.currentState.activePlayerId = characterId;
@@ -245,7 +245,7 @@ export class MazeEngine implements IMazeEngine {
       console.warn(`[OOP-Lite] Character "${characterId}" not found`);
       return;
     }
-    
+
     // Execute the action
     const actionMap: Record<string, () => void> = {
       'MoveForward': () => this.doMoveForward(),
@@ -255,14 +255,14 @@ export class MazeEngine implements IMazeEngine {
       'CollectItem': () => this.doCollectItem(),
       'ToggleSwitch': () => this.doToggleSwitch(),
     };
-    
+
     const actionFn = actionMap[action];
     if (actionFn) {
       actionFn();
     } else {
       console.warn(`[OOP-Lite] Unknown action "${action}"`);
     }
-    
+
     // Restore previous active player (optional, depending on game design)
     // this.currentState.activePlayerId = previousActiveId;
   }
@@ -274,19 +274,19 @@ export class MazeEngine implements IMazeEngine {
    */
   public checkPathForCharacter(characterId: string, direction: 0 | 1 | 3): boolean {
     const previousActiveId = this.currentState.activePlayerId;
-    
+
     if (this.currentState.players[characterId]) {
       this.currentState.activePlayerId = characterId;
     } else {
       console.warn(`[OOP-Lite] Character "${characterId}" not found`);
       return false;
     }
-    
+
     const result = this.checkIsPath(direction);
-    
+
     // Restore previous active player
     this.currentState.activePlayerId = previousActiveId;
-    
+
     return result;
   }
 
@@ -315,39 +315,39 @@ export class MazeEngine implements IMazeEngine {
       interpreter.setProperty(globalObject, 'collectItem', createWrapper(this.collectItem.bind(this), true));
       interpreter.setProperty(globalObject, 'isItemPresent', createWrapper(this.isItemPresent.bind(this), false));
       interpreter.setProperty(globalObject, 'getItemCount', createWrapper(this.getItemCount.bind(this), false));
-      interpreter.setProperty(globalObject, 'placeBlock', createWrapper(() => {}, true));
-      interpreter.setProperty(globalObject, 'removeBlock', createWrapper(() => {}, true));
+      interpreter.setProperty(globalObject, 'placeBlock', createWrapper(() => { }, true));
+      interpreter.setProperty(globalObject, 'removeBlock', createWrapper(() => { }, true));
       interpreter.setProperty(globalObject, 'toggleSwitch', createWrapper(this.toggleSwitch.bind(this), true));
       // SỬA LỖI: Các hàm điều kiện cần trả về một đối tượng boolean của interpreter, không phải giá trị boolean gốc.
       const createConditionalWrapper = (func: (...args: any[]) => boolean) => {
         return interpreter.createNativeFunction(func.bind(this));
       };
       interpreter.setProperty(globalObject, 'isSwitchState', createConditionalWrapper(this.isSwitchState));
-      
+
       // Speech API
       interpreter.setProperty(globalObject, 'say', interpreter.createNativeFunction((text: string, blockId: string) => {
         if (blockId) this.highlight(blockId);
         this.doSay('', text);
-        this.executedAction = true; 
+        this.executedAction = true;
       }));
 
       interpreter.setProperty(globalObject, 'wait', interpreter.createNativeFunction((seconds: number, blockId: string) => {
         if (blockId) this.highlight(blockId);
         this.doWait(seconds);
-        this.executedAction = true; 
+        this.executedAction = true;
       }));
 
       // ============================================
       // OOP-Lite: Create Character objects (Phase 3)
       // ============================================
-      
+
       // Helper to create a Character object with methods
       const createCharacterObject = (characterId: string) => {
         const charObj = interpreter.nativeToPseudo({});
-        
+
         // Store the character ID
         interpreter.setProperty(charObj, 'id', interpreter.nativeToPseudo(characterId));
-        
+
         // Create method wrappers that use doActionForCharacter
         const createCharMethod = (action: string, isAction: boolean) => {
           return interpreter.createNativeFunction((...args: any[]) => {
@@ -357,13 +357,13 @@ export class MazeEngine implements IMazeEngine {
             this.doActionForCharacter(characterId, action);
           });
         };
-        
+
         const createSensorMethod = (direction: 0 | 1 | 3) => {
           return interpreter.createNativeFunction(() => {
             return this.checkPathForCharacter(characterId, direction);
           });
         };
-        
+
         // Action methods
         interpreter.setProperty(charObj, 'moveForward', createCharMethod('MoveForward', true));
         interpreter.setProperty(charObj, 'turnLeft', createCharMethod('TurnLeft', true));
@@ -371,21 +371,21 @@ export class MazeEngine implements IMazeEngine {
         interpreter.setProperty(charObj, 'jump', createCharMethod('Jump', true));
         interpreter.setProperty(charObj, 'collect', createCharMethod('CollectItem', true));
         interpreter.setProperty(charObj, 'toggleSwitch', createCharMethod('ToggleSwitch', true));
-        
+
         interpreter.setProperty(charObj, 'say', interpreter.createNativeFunction((text: string, blockId: string) => {
-            if (blockId) this.highlight(blockId);
-            this.doSay(characterId, text);
-            this.executedAction = true;
+          if (blockId) this.highlight(blockId);
+          this.doSay(characterId, text);
+          this.executedAction = true;
         }));
-        
+
         // Sensor methods
         interpreter.setProperty(charObj, 'isPathForward', createSensorMethod(0));
         interpreter.setProperty(charObj, 'isPathRight', createSensorMethod(1));
         interpreter.setProperty(charObj, 'isPathLeft', createSensorMethod(3));
-        
+
         return charObj;
       };
-      
+
       // Create default character objects
       // In the future, this can be populated from quest config
       interpreter.setProperty(globalObject, 'robot1', createCharacterObject('player1'));
@@ -394,30 +394,30 @@ export class MazeEngine implements IMazeEngine {
 
     this.interpreter = new Interpreter(userCode, initApi);
   }
-  
+
   step(): StepResult {
     const player = this.getActivePlayer();
 
     // Handle Wait
     if (player.waitEndTime) {
-       if (Date.now() < player.waitEndTime) {
-           return {
-             done: false,
-             state: JSON.parse(JSON.stringify(this.currentState)),
-             highlightedBlockId: this.highlightedBlockId
-           };
-       } else {
-           player.waitEndTime = undefined;
-       }
+      if (Date.now() < player.waitEndTime) {
+        return {
+          done: false,
+          state: JSON.parse(JSON.stringify(this.currentState)),
+          highlightedBlockId: this.highlightedBlockId
+        };
+      } else {
+        player.waitEndTime = undefined;
+      }
     }
 
     const currentPlayerPose = player.pose;
-    
+
     const oneShotPoses = [
       'TeleportIn',
-      'Bump', 
-      'Victory', 
-      'TurningLeft', 
+      'Bump',
+      'Victory',
+      'TurningLeft',
       'TurningRight',
       'Collecting',
       'Toggling'
@@ -426,7 +426,7 @@ export class MazeEngine implements IMazeEngine {
     if (currentPlayerPose && oneShotPoses.includes(currentPlayerPose)) {
       this.getActivePlayer().pose = 'Idle';
       const stateToReturn = JSON.parse(JSON.stringify(this.currentState));
-      
+
       return {
         done: this.currentState.isFinished,
         state: stateToReturn,
@@ -472,7 +472,7 @@ export class MazeEngine implements IMazeEngine {
       if (this.currentState.result === 'success') this.logVictoryAnimation();
       this.currentState.isFinished = true;
     }
-    
+
     return {
       done: this.currentState.isFinished,
       state: JSON.parse(JSON.stringify(this.currentState)),
@@ -485,7 +485,7 @@ export class MazeEngine implements IMazeEngine {
     const activePlayer = state.players[state.activePlayerId];
     return activePlayer.x === this.finish.x && activePlayer.y === this.finish.y && activePlayer.z === this.finish.z;
   }
-  
+
   private highlight(id?: any): void {
     if (typeof id === 'string' && id.startsWith('block_id_')) {
       this.highlightedBlockId = id.replace('block_id_', '');
@@ -497,19 +497,19 @@ export class MazeEngine implements IMazeEngine {
   }
 
   private getNextPosition(x: number, z: number, direction: Direction): { x: number, z: number } {
-    // COORDINATE_SYSTEM.md convention: 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
-    if (direction === 0) x++;       // East = +X
-    else if (direction === 1) z++;  // North = +Z
-    else if (direction === 2) x--;  // West = -X
-    else if (direction === 3) z--;  // South = -Z
+    // COORDINATE_SYSTEM.md convention: 0=South(-Z), 1=East(+X), 2=North(+Z), 3=West(-X)
+    if (direction === 0) z--;       // South = -Z
+    else if (direction === 1) x++;  // East = +X
+    else if (direction === 2) z++;  // North = +Z
+    else if (direction === 3) x--;  // West = -X
     return { x, z };
   }
-  
+
   private _getBlockModelAt(x: number, y: number, z: number): string | null {
     const cell = this.currentState.worldGrid[`${x},${y},${z}`];
     if (!cell || cell.type !== 'block') return null;
     // Tìm block tương ứng trong danh sách blocks để lấy modelKey
-    const blockData = this.initialGameState.blocks.find(b => 
+    const blockData = this.initialGameState.blocks.find(b =>
       b.position.x === x && b.position.y === y && b.position.z === z
     );
     return blockData?.modelKey || null;
@@ -551,7 +551,7 @@ export class MazeEngine implements IMazeEngine {
     player.z = nextZ;
   }
 
-  private _isJumpable(modelKey: string | null): boolean {    
+  private _isJumpable(modelKey: string | null): boolean {
     if (!modelKey) return false;
     // A block can be jumped on if it is explicitly defined as walkable.
     return WALKABLE_MODELS.includes(modelKey);
@@ -596,13 +596,13 @@ export class MazeEngine implements IMazeEngine {
   }
 
   private turnLeft(): void {
-    // COORDINATE_SYSTEM.md: Turn Left = (direction + 3) % 4 = CCW (E→N→W→S→E)
+    // In current visual mapping: North(2, 0rad) -> East(1, PI/2) is a CCW/Left turn
     this.getActivePlayer().direction = this.constrainDirection(this.getActivePlayer().direction + 3);
     this.getActivePlayer().pose = 'TurningLeft';
   }
 
   private turnRight(): void {
-    // COORDINATE_SYSTEM.md: Turn Right = (direction + 1) % 4 = CW (E→S→W→N→E)
+    // In current visual mapping: North(2, 0rad) -> West(3, -PI/2) is a CW/Right turn
     this.getActivePlayer().direction = this.constrainDirection(this.getActivePlayer().direction + 1);
     this.getActivePlayer().pose = 'TurningRight';
   }
@@ -627,7 +627,7 @@ export class MazeEngine implements IMazeEngine {
     const player = this.getActivePlayer();
     return player.x !== this.finish.x || player.y !== this.finish.y || player.z !== this.finish.z;
   }
-  
+
   private logVictoryAnimation(): void {
     this.getActivePlayer().pose = 'Victory';
   }
@@ -646,7 +646,7 @@ export class MazeEngine implements IMazeEngine {
       this.currentState.collectedIds.push(cell.id);
       this.currentState.collectibles = this.currentState.collectibles.filter(c => c.id !== cell.id);
       this.currentState.worldGrid = this._buildWorldGrid(this.currentState);
-      
+
       player.pose = 'Collecting';
 
       return true;
@@ -657,7 +657,7 @@ export class MazeEngine implements IMazeEngine {
   private isItemPresent(itemType: 'any' | 'crystal' | 'key' = 'any'): boolean {
     const player = this.getActivePlayer();
     const cell = this.currentState.worldGrid[`${player.x},${player.y},${player.z}`];
-    
+
     if (!cell || cell.type !== 'collectible') return false;
     if (itemType === 'any') return true;
 
@@ -667,11 +667,11 @@ export class MazeEngine implements IMazeEngine {
 
   private getItemCount(itemType: 'any' | 'crystal' | 'key' = 'any'): number {
     if (itemType === 'any') return this.currentState.collectedIds.length;
-    
+
     const collectedTypes = this.initialGameState.collectibles
       .filter(c => this.currentState.collectedIds.includes(c.id))
       .map(c => c.type);
-    
+
     return collectedTypes.filter(type => type === itemType).length;
   }
 
@@ -680,12 +680,12 @@ export class MazeEngine implements IMazeEngine {
     const cell = this.currentState.worldGrid[`${player.x},${player.y},${player.z}`];
 
     if (cell && cell.type === 'switch' && cell.id) {
-        const currentState = this.currentState.interactiveStates[cell.id];
-        this.currentState.interactiveStates[cell.id] = currentState === 'on' ? 'off' : 'on';
+      const currentState = this.currentState.interactiveStates[cell.id];
+      this.currentState.interactiveStates[cell.id] = currentState === 'on' ? 'off' : 'on';
 
-        player.pose = 'Toggling';
+      player.pose = 'Toggling';
 
-        return true;
+      return true;
     }
     return false;
   }
@@ -693,9 +693,9 @@ export class MazeEngine implements IMazeEngine {
   isSwitchState(state: 'on' | 'off'): boolean {
     const player = this.getActivePlayer();
     const cell = this.currentState.worldGrid[`${player.x},${player.y},${player.z}`];
-    
+
     if (cell && cell.type === 'switch' && cell.id) {
-        return this.currentState.interactiveStates[cell.id] === state;
+      return this.currentState.interactiveStates[cell.id] === state;
     }
     return false;
   }
@@ -703,7 +703,7 @@ export class MazeEngine implements IMazeEngine {
   public triggerInteraction(): MazeGameState | null {
     const player = this.getActivePlayer();
     const cell = this.currentState.worldGrid[`${player.x},${player.y},${player.z}`];
-    
+
     if (cell && cell.type === 'portal') {
       const portalConfig = this.initialGameState.interactibles.find(i => i.id === cell.id) as Portal | undefined;
 
@@ -711,13 +711,13 @@ export class MazeEngine implements IMazeEngine {
       if (portalConfig?.controlSwitchId) {
         const switchState = this.currentState.interactiveStates[portalConfig.controlSwitchId];
         if (switchState !== 'on') {
-            // Disabled
-            return null;
+          // Disabled
+          return null;
         }
       }
 
       const justMoved = (player.xPrev !== player.x) || (player.zPrev !== player.z);
-      
+
       if (justMoved) {
         player.pose = 'TeleportOut';
         console.log(`%c[MazeEngine] Triggered TeleportOut at position {x:${player.x}, y:${player.y}, z:${player.z}}`, 'color: #3498db; font-weight: bold;');
@@ -741,10 +741,10 @@ export class MazeEngine implements IMazeEngine {
           player.y = targetPortal.position.y;
           player.z = targetPortal.position.z;
           player.direction = targetPortal.exitDirection ?? player.direction;
-          
+
           player.xPrev = player.x;
           player.zPrev = player.z;
-          
+
           player.pose = 'TeleportIn';
           console.log(`%c[MazeEngine] Completed Teleport to new position {x:${player.x}, y:${player.y}, z:${player.z}}`, 'color: #3498db; font-weight: bold;');
         }

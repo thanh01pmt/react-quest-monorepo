@@ -1,6 +1,6 @@
 // apps/react-quest-app/src/App.tsx
 
-import { Routes, Route, useParams, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, useParams, useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -14,10 +14,12 @@ import {
   type SolutionConfig,
   type GameState,
   type QuestPlayerSettings,
+  GuideRenderer // IMPORT MỚI từ shared package
 } from '@repo/quest-player';
 import { QuestSidebar } from './components/QuestSidebar/index';
 import './App.css';
 import { SyncPage } from './pages/SyncPage'; // Import SyncPage
+// Removed local import
 
 // Bọc QuestPlayer trong React.memo để ngăn re-render không cần thiết
 const MemoizedQuestPlayer = React.memo(QuestPlayer);
@@ -26,7 +28,9 @@ const MemoizedQuestPlayer = React.memo(QuestPlayer);
 type AppQuest = Quest & {
   topic?: string;
   groupId: string;
+  _filePath?: string; // Added for debugging
 };
+
 
 type AppSettings = QuestPlayerSettings & { language: string };
 
@@ -124,15 +128,31 @@ function AppContent() {
 
   // Lấy groupId và questId từ URL
   const { groupId, questId: questIdFromUrl } = useParams<{ groupId: string; questId: string }>();
+  const [searchParams] = useSearchParams();
+  const codeFromUrl = searchParams.get('code');
   const navigate = useNavigate();
 
   // Xử lý toàn bộ quest một lần, thêm groupId và sắp xếp
   const allQuests = useMemo<AppQuest[]>(() => {
     const quests: AppQuest[] = Object.entries(questModules).map(([path, module]) => {
+      // Path format: ../quests/GROUP/SUBGROUP/file.json OR ../quests/GROUP/file.json
       const pathSegments = path.split('/');
-      // Giả sử cấu trúc là ../quests/GROUP_NAME/file.json, groupName sẽ là phần tử thứ 3
-      const groupId = pathSegments.length > 2 ? pathSegments[2] : 'ungrouped';
-      return { ...module.default, groupId } as AppQuest;
+
+      // Determine groupId:
+      // If path is deeply nested (e.g. subject1/topic1.1/file.json), pathSegments might be:
+      // [.., quests, subject1, topic1.1, file.json] -> indexes: 0, 1, 2, 3, 4
+
+      // Basic logic: The folder directly inside 'quests' is the main group
+      // index 0: ..
+      // index 1: quests
+      // index 2: GROUP_NAME (e.g. subject1, group2)
+
+      let groupId = 'ungrouped';
+      if (pathSegments.length > 2) {
+        groupId = pathSegments[2];
+      }
+
+      return { ...module.default, groupId, _filePath: path } as AppQuest;
     });
 
     quests.sort((a, b) => { // Sắp xếp toàn bộ danh sách
@@ -166,15 +186,27 @@ function AppContent() {
     metrics?: QuestMetrics; // THÊM MỚI
   }>({ isOpen: false, title: '', message: '' });
 
+  // GUIDE STATE
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+
+
+  // Ref to track if we are in "Testing Map" mode to prevent useEffect from overwriting data
+  const isTestingMapRef = React.useRef(false);
 
   // Effect để đồng bộ URL và state
   useEffect(() => {
     if (!groupId || questsInCurrentGroup.length === 0) return;
 
+    // IF TESTING MAP: Do NOT sync state with URL. 
+    // The URL points to the "background" quest (e.g. C2), but we are testing C19.
+    // If we sync, we overwrite C19 with C2.
+    if (isTestingMapRef.current) {
+      return;
+    }
+
     const targetQuestId = questIdFromUrl || questsInCurrentGroup[0]?.id;
 
     if (targetQuestId) {
-      // Nếu URL không có questId, hãy cập nhật nó để trỏ đến quest đầu tiên
       if (!questIdFromUrl) {
         navigate(`/quest/${groupId}/${targetQuestId}`, { replace: true });
       }
@@ -186,37 +218,42 @@ function AppContent() {
 
   useEffect(() => {
     if (currentQuestId && groupId) {
+      // If we are testing a map manually (Test Map button), skip the auto-load logic ONCE
+      if (isTestingMapRef.current) {
+        console.log('[DEBUG App.tsx] Skipping auto-load because isTestingMapRef is true');
+        isTestingMapRef.current = false;
+        return;
+      }
+
       setIsLoading(true);
       setQuestData(null);
 
       setTimeout(() => {
-        // FIX: Match by BOTH groupId and questId to avoid loading wrong quest
         const targetQuest = allQuests.find(quest => quest.id === currentQuestId && quest.groupId === groupId);
         if (targetQuest) {
-          // Debug log: Check quest data before validation
-          console.log('[DEBUG App.tsx] Loading quest ID:', targetQuest.id, 'from group:', targetQuest.groupId);
-          console.log('[DEBUG App.tsx] targetQuest.gameConfig BEFORE validation:', targetQuest.gameConfig);
-          console.log('[DEBUG App.tsx] introScene in targetQuest:', (targetQuest.gameConfig as any).introScene);
-
+          // ... (rest of logic is fine, duplicated below for context validation) ...
           const validationResult = questSchema.safeParse(targetQuest);
           if (validationResult.success) {
-            // Debug log: Check quest data after validation
-            console.log('[DEBUG App.tsx] validationResult.data.gameConfig AFTER validation:', validationResult.data.gameConfig);
-            console.log('[DEBUG App.tsx] introScene AFTER validation:', (validationResult.data.gameConfig as any).introScene);
-
             const newQuestData = { ...validationResult.data, groupId: targetQuest.groupId } as AppQuest;
+            if (codeFromUrl && !newQuestData.blocklyConfig) {
+              // @ts-ignore
+              newQuestData.blocklyConfig = {};
+            }
+            if (codeFromUrl) {
+              // @ts-ignore
+              newQuestData.blocklyConfig.startBlocks = codeFromUrl;
+            }
 
             if (newQuestData.translations) {
-              const translations = newQuestData.translations; // Tạo biến mới để TypeScript hiểu kiểu
+              const translations = newQuestData.translations;
               Object.keys(translations).forEach((langCode) => {
                 const langTranslations = translations[langCode];
-                if (langTranslations) { // Defensive: chỉ thêm nếu gói dịch thuật tồn tại
+                if (langTranslations) {
                   i18n.addResourceBundle(langCode, 'translation', langTranslations, true, true);
                 }
               });
               i18n.changeLanguage(i18n.language);
             }
-
             setQuestData(newQuestData);
           } else {
             console.error("Quest validation failed:", validationResult.error);
@@ -225,13 +262,16 @@ function AppContent() {
         setIsLoading(false);
       }, 50);
     }
-  }, [currentQuestId, i18n, allQuests]);
+  }, [currentQuestId, i18n, allQuests, groupId]); // Added groupId dependency
+
+  // ... (handlers) ...
 
   const handleQuestSelect = useCallback((id: string) => {
     if (id === questIdFromUrl) return;
-    // Sử dụng navigate để thay đổi URL, effect ở trên sẽ tự động cập nhật state
+    isTestingMapRef.current = false; // Ensure we reset test mode on manual navigation
     navigate(`/quest/${groupId}/${id}`);
   }, [questIdFromUrl, navigate, groupId]);
+
 
   const handleToggleSidebar = useCallback(() => {
     setIsSidebarCollapsed(prev => !prev);
@@ -280,7 +320,11 @@ function AppContent() {
         message: `${t('Games.dialogReason')}: ${translatedReason}`
       });
     }
-  }, [t]); // Thêm các phụ thuộc nếu cần
+  }, [t]);
+
+  const [testVersion, setTestVersion] = useState(0);
+
+  // ... (handlers) ...
 
   const renderMainContent = () => {
     if (isLoading || !questData) {
@@ -288,7 +332,7 @@ function AppContent() {
     }
     return (
       <MemoizedQuestPlayer
-        key={questData.id}
+        key={`${questData.id}-${testVersion}`}
         isStandalone={false}
         questData={questData}
         onQuestComplete={handleQuestComplete}
@@ -299,6 +343,61 @@ function AppContent() {
       />
     );
   };
+
+
+  const handleRunCode = useCallback((targetMapId: string, xml: string) => {
+    console.log('[App] handleRunCode triggered:', targetMapId);
+
+    // 1. Find target quest first
+    const targetQuest = allQuests.find(q => q.id === targetMapId);
+
+    if (!targetQuest) {
+      console.error(`[App] Quest not found for mapId: ${targetMapId}`);
+      alert(t('Games.questNotFound', { id: targetMapId }));
+      return;
+    }
+    console.log('[App] Found target quest:', targetQuest.id);
+    console.log('[App] Quest File Path:', targetQuest._filePath);
+    console.log('[App] Original Blocks Count:', (targetQuest.gameConfig as any)?.blocks?.length);
+    console.log('[App] Quest Group:', targetQuest.groupId);
+
+    // 2. Ask for confirmation
+    const confirmMessage = t('UI.confirmTestMap', 'Load map "{{mapId}}" and run code? Current progress will be lost.', { mapId: targetMapId });
+    if (!window.confirm(confirmMessage)) {
+      return; // User cancelled
+    }
+
+    // 3. User confirmed -> Close Guide
+    setIsGuideOpen(false);
+
+    // 4. Prepare new quest data with injected XML
+    // DEEP CLONE to avoid mutating the original object in allQuests
+    const newQuestData = JSON.parse(JSON.stringify(targetQuest));
+
+    if (!newQuestData.blocklyConfig) {
+      newQuestData.blocklyConfig = {};
+    }
+
+    // Inject the XML code
+    newQuestData.blocklyConfig.startBlocks = xml;
+
+    console.log('[App] handleRunCode - New Quest Data Ready');
+    console.log('[App] handleRunCode - Loaded Quest Blocks:', (newQuestData.gameConfig as any)?.blocks?.length);
+
+    // 5. Update State
+    isTestingMapRef.current = true;
+
+    // Force remount by incrementing version
+    setTestVersion(v => v + 1);
+
+    setQuestData(newQuestData as AppQuest);
+    setCurrentQuestId(targetMapId);
+
+    if (targetQuest.groupId === groupId) {
+      navigate(`/quest/${groupId}/${targetMapId}`, { replace: true });
+    }
+
+  }, [allQuests, t, groupId, navigate]);
 
   return (
     <div className="app-container">
@@ -381,8 +480,9 @@ function AppContent() {
           </div>
         ) : (
           <p>{dialogState.message}</p>
-        )}
-      </Dialog>
+        )
+        }
+      </Dialog >
 
       <QuestSidebar
         allQuests={questsInCurrentGroup}
@@ -391,6 +491,23 @@ function AppContent() {
         isCollapsed={isSidebarCollapsed}
         onToggle={handleToggleSidebar}
       >
+        <div style={{ margin: '10px 0', textAlign: 'center' }}>
+          <button
+            className="guide-button"
+            onClick={() => setIsGuideOpen(true)}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              width: isSidebarCollapsed ? 'auto' : '90%'
+            }}
+          >
+            {isSidebarCollapsed ? '?' : '📖 Hướng Dẫn'}
+          </button>
+        </div>
         <LanguageSelector
           language={settings.language}
           onChange={handleLanguageChange}
@@ -398,10 +515,86 @@ function AppContent() {
         />
       </QuestSidebar>
 
-      <main className="main-content-area">
+      <main className="main-content-area" style={{ position: 'relative' }}>
         {renderMainContent()}
+
+        {/* Guide Modal / Overlay - FULL SCREEN */}
+        {isGuideOpen && (
+          <div className="guide-overlay" onClick={() => setIsGuideOpen(false)}>
+            <div className="guide-modal" onClick={e => e.stopPropagation()}>
+              <div className="guide-header">
+                <div className="guide-title">
+                  <span className="guide-icon">📖</span>
+                  <h2>{t('UI.LearningGuide', 'Hướng dẫn bài học')}</h2>
+                </div>
+                <button
+                  onClick={() => setIsGuideOpen(false)}
+                  className="guide-close-btn"
+                  title={t('UI.Close', 'Close')}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <div className="guide-body">
+                <div className="guide-content-wrapper">
+                  {(() => {
+                    if (!questData) return <div className="guide-loading">{t('UI.Loading')}...</div>;
+
+                    let guideName = 'lesson1'; // Default
+
+                    // Parse ID Structure: CATEGORY.TOPIC_CODE.TYPE.ID
+                    // Example: FOR_LOOPS_G312.CODING_LOOPS_BASIC-MOVEMENT.SIMPLE_APPLY.C1-var1
+                    const idParts = questData.id.split('.');
+                    const category = (idParts[0] || '').toUpperCase();
+                    const challengeType = (idParts[2] || '').toUpperCase();
+
+                    // --- BẢNG PHÂN BỔ THỬ THÁCH LUYỆN TẬP ---
+                    if (category.includes('COMMAND')) {
+                      if (challengeType === 'SIMPLE_APPLY') guideName = 'lesson1';
+                      else if (challengeType === 'COMPLEX_APPLY') guideName = 'lesson2';
+                      else if (challengeType.includes('DEBUG')) guideName = 'lesson3';
+                    }
+                    else if (category.includes('FUNCTION')) {
+                      if (challengeType === 'SIMPLE_APPLY' || challengeType === 'COMPLEX_APPLY') guideName = 'lesson4';
+                      else guideName = 'lesson5'; // DEBUG or REFACTOR
+                    }
+                    else if (category.includes('FOR_LOOP')) {
+                      if (challengeType === 'SIMPLE_APPLY' || challengeType === 'COMPLEX_APPLY') guideName = 'lesson6';
+                      else guideName = 'lesson7'; // DEBUG or REFACTOR
+                    }
+                    else if (category.includes('VARIABLE') || category.includes('OPERATOR')) {
+                      if (challengeType === 'SIMPLE_APPLY' || challengeType === 'COMPLEX_APPLY') guideName = 'lesson8';
+                      else guideName = 'lesson9'; // DEBUG or REFACTOR
+                    }
+                    else if (category.includes('WHILE') || category.includes('CONDITIONAL')) {
+                      if (challengeType === 'SIMPLE_APPLY' || challengeType === 'COMPLEX_APPLY') guideName = 'lesson10';
+                      else guideName = 'lesson11'; // DEBUG or REFACTOR
+                    }
+                    else if (category.includes('ALGORITHM')) {
+                      guideName = 'lesson12';
+                    }
+
+                    // Fallback for non-standard IDs or missing categories
+                    if (guideName === 'lesson1' && !category.includes('COMMAND')) {
+                      // Heuristic fallback for older IDs
+                      if (category.includes('FUNC')) guideName = 'lesson4';
+                      else if (category.includes('LOOP')) guideName = 'lesson6';
+                      else if (category.includes('VAR')) guideName = 'lesson8';
+                      else if (category.includes('COND')) guideName = 'lesson10';
+                    }
+
+                    return <GuideRenderer guideUrl={`/guides/${guideName}.md`} onRunCode={handleRunCode} useDynamicHeight={true} />;
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
-    </div>
+    </div >
   );
 }
 

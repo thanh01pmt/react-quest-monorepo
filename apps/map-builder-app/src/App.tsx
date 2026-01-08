@@ -1319,8 +1319,7 @@ function App() {
       }
 
       // IMPORTANT: UI and Solver now use the SAME direction convention:
-      // 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
-      // No conversion needed anymore (the old mapping was for Python solver)
+      // 0=South(-Z), 1=East(+X), 2=North(+Z), 3=West(-X)
       const solverDirection = uiDirection;
 
       const players = [{ start: { x: startPos.x, y: startPos.y, z: startPos.z, direction: solverDirection } }];
@@ -2330,7 +2329,7 @@ function App() {
 
       // FIX: For player_start, direction is stored in properties.direction (not rotation!)
       // The visual cone uses properties.direction to determine its Y rotation
-      // Direction convention: 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
+      // Direction convention: 0=South(-Z), 1=East(+X), 2=North(+Z), 3=West(-X)
       const getStartDirection = (): number => {
         if (!startObject) return 1; // Default: North (+Z)
         const dir = startObject.properties?.direction;
@@ -2641,7 +2640,12 @@ function App() {
           modelKey: b.asset.key
         })),
         players: [{
-          start: { x: startObj.position[0], y: startObj.position[1], z: startObj.position[2], direction: startObj.rotation ? Math.round(startObj.rotation[1] / (Math.PI / 2)) : 1 }
+          start: {
+            x: startObj.position[0],
+            y: startObj.position[1],
+            z: startObj.position[2],
+            direction: typeof startObj.properties?.direction === 'number' ? startObj.properties.direction : 1
+          }
         }],
         finish: { x: targetObj.position[0], y: targetObj.position[1], z: targetObj.position[2] },
         collectibles: placedObjects.filter(o => o.asset.type === 'collectible' || o.asset.key.includes('crystal') || o.asset.key.includes('key')).map(c => ({
@@ -3476,7 +3480,8 @@ function App() {
                       id: 'player_start',
                       asset: playerAsset,
                       position: [data.playerStart.x, data.playerStart.y, data.playerStart.z] as [number, number, number],
-                      rotation: [0, (data.playerStart.direction || 0) * Math.PI / 2, 0] as [number, number, number],
+                      // Use mapping to determine visual rotation from direction index
+                      rotation: [0, { 0: Math.PI, 1: Math.PI / 2, 2: 0, 3: -Math.PI / 2 }[data.playerStart.direction as 0 | 1 | 2 | 3] || 0, 0] as [number, number, number],
                       properties: { type: 'player_start', direction: data.playerStart.direction }
                     });
                   }

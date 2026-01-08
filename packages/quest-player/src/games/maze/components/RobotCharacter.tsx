@@ -24,13 +24,13 @@ const ONE_SHOT_ANIMATIONS = ['Victory', 'Jumping', 'Collecting', 'Toggling'];
 // Hoạt ảnh CÓ chuyển động. Dùng để loại trừ việc gọi onTweenComplete từ mixer
 const MOVEMENT_ONLY_ANIMATIONS = ['Jumping', 'Walking'];
 
-// COORDINATE_SYSTEM.md: 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
+// COORDINATE_SYSTEM.md: 0=South(-Z), 1=East(+X), 2=North(+Z), 3=West(-X)
 // Robot model by default faces +Z (North). Y-rotation adjusts from +Z to target direction.
 const DIRECTION_TO_ROTATION: Record<Direction, number> = {
-  0: Math.PI / 2,  // East (+X): rotate -90° (CW) from +Z to +X
-  1: 0,             // North (+Z): no rotation needed, already facing +Z
-  2: -Math.PI / 2,   // West (-X): rotate +90° (CCW) from +Z to -X
-  3: -Math.PI,       // South (-Z): rotate 180° from +Z to -Z
+  0: Math.PI,       // South (-Z)
+  1: Math.PI / 2,   // East (+X)
+  2: 0,             // North (+Z)
+  3: -Math.PI / 2,  // West (-X)
 };
 
 interface RobotCharacterProps {

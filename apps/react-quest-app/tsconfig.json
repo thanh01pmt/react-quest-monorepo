@@ -2,13 +2,28 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["vite/client", "node"],
-    "noEmit": true
+    "types": [
+      "vite/client",
+      "node"
+    ],
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@repo/quest-player": [
+        "../../packages/quest-player/src/index.ts"
+      ],
+      "@repo/quest-player/i18n": [
+        "../../packages/quest-player/src/i18n.ts"
+      ]
+    }
   },
   "include": [
-    "src", 
+    "src",
     "vite.config.ts",
     "../../packages/quest-player/src/custom.d.ts"
   ],
-  "exclude": ["node_modules", "dist"]
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

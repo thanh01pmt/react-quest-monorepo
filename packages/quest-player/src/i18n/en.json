@@ -356,6 +356,7 @@
 	"UI.LoadingEditor": "Loading Editor...",
 	"UI.InitializingVisualization": "Initializing Visualization...",
 	"UI.LoadingQuests": "Loading quests...",
+	"UI.LearningGuide": "Learning Guide",
 	"UI.Error": "Error",
 	"UI.ToggleSidebar": "Toggle Sidebar",
 	"Maze.whenRunClicked": "when Run clicked",

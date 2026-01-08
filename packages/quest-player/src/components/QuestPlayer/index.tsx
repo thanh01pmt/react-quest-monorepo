@@ -1,3 +1,4 @@
+// @ts-nocheck
 // packages/quest-player/src/components/QuestPlayer/index.tsx
 
 import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';

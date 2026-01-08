@@ -91,22 +91,21 @@ class GameState {
   }
 }
 
-// DIRECTION CONVENTION (matches BuilderScene visual):
-// Direction index maps to visual cone rotation:
-// 0: +X (East)  - cone points to +X
-// 1: +Z (North) - cone points to +Z (default visual direction)
-// 2: -X (West)  - cone points to -X
-// 3: -Z (South) - cone points to -Z
+// NEW DIRECTION CONVENTION (matches Quest Player & BuilderScene):
+// 0: -Z (South)
+// 1: +X (East)
+// 2: +Z (North)
+// 3: -X (West)
 //
 // Direction order 0->1->2->3 is COUNTERCLOCKWISE when viewed from above (+Y)
-// From PLAYER'S PERSPECTIVE (looking in facing direction):
-// - turnRight = (direction + 1) % 4 (counterclockwise from above = right hand)
-// - turnLeft = (direction + 3) % 4 (clockwise from above = left hand)
+// From PLAYER'S PERSPECTIVE:
+// - turnRight = (direction + 1) % 4
+// - turnLeft = (direction + 3) % 4
 const directions = [
-  { x: 1, z: 0 },  // 0: +X (East) - FIX: was -Z
-  { x: 0, z: 1 },  // 1: +Z (North) - FIX: was +X
-  { x: -1, z: 0 }, // 2: -X (West) - FIX: was +Z
-  { x: 0, z: -1 }, // 3: -Z (South) - FIX: was -X
+  { x: 0, z: -1 }, // 0: -Z (South)
+  { x: 1, z: 0 },  // 1: +X (East)
+  { x: 0, z: 1 },  // 2: +Z (North)
+  { x: -1, z: 0 }, // 3: -X (West)
 ];
 
 /**
@@ -179,9 +178,9 @@ class GameWorld {
   isWalkable(pos: Position): boolean {
     const groundModel = this.worldMap.get(`${pos.x},${pos.y},${pos.z}`);
     // SỬA ĐỔI: Không thể đi trên 'wall.stone01'
-    return groundModel !== undefined 
-        && groundModel !== 'wall.stone01' 
-        && this.walkableGrounds.has(groundModel);
+    return groundModel !== undefined
+      && groundModel !== 'wall.stone01'
+      && this.walkableGrounds.has(groundModel);
   }
 }
 // --- END: LOGIC PORTED FROM PYTHON ---
@@ -288,40 +287,40 @@ function findMostFrequentSequence(
  * Lợi ích được tính bằng số khối lệnh tiết kiệm được.
  */
 function findLongestRepeatingSequence(actions: Action[]): { sequence: Action[] | null, repeats: number, length: number, startIndex: number, savings: number } {
-    const n = actions.length;
-    let bestSeq: Action[] | null = null;
-    let bestRepeats = 0;
-    let bestLen = 0;
-    let bestStartIndex = -1;
-    let maxSavings = 0;
+  const n = actions.length;
+  let bestSeq: Action[] | null = null;
+  let bestRepeats = 0;
+  let bestLen = 0;
+  let bestStartIndex = -1;
+  let maxSavings = 0;
 
-    for (let length = 1; length <= Math.floor(n / 2); length++) {
-        for (let i = 0; i <= n - length; i++) {
-            let repeats = 1;
-            while (i + (repeats + 1) * length <= n) {
-                const currentSegment = actions.slice(i, i + length);
-                const nextSegment = actions.slice(i + repeats * length, i + (repeats + 1) * length);
-                if (JSON.stringify(currentSegment) === JSON.stringify(nextSegment)) {
-                    repeats++;
-                } else {
-                    break;
-                }
-            }
-
-            if (repeats > 1) {
-                // Lợi ích = (số khối ban đầu) - (số khối trong thân vòng lặp + 1 khối repeat)
-                const savings = (repeats * length) - (length + 1);
-                if (savings > maxSavings) {
-                    maxSavings = savings;
-                    bestSeq = actions.slice(i, i + length);
-                    bestRepeats = repeats;
-                    bestLen = length;
-                    bestStartIndex = i;
-                }
-            }
+  for (let length = 1; length <= Math.floor(n / 2); length++) {
+    for (let i = 0; i <= n - length; i++) {
+      let repeats = 1;
+      while (i + (repeats + 1) * length <= n) {
+        const currentSegment = actions.slice(i, i + length);
+        const nextSegment = actions.slice(i + repeats * length, i + (repeats + 1) * length);
+        if (JSON.stringify(currentSegment) === JSON.stringify(nextSegment)) {
+          repeats++;
+        } else {
+          break;
         }
+      }
+
+      if (repeats > 1) {
+        // Lợi ích = (số khối ban đầu) - (số khối trong thân vòng lặp + 1 khối repeat)
+        const savings = (repeats * length) - (length + 1);
+        if (savings > maxSavings) {
+          maxSavings = savings;
+          bestSeq = actions.slice(i, i + length);
+          bestRepeats = repeats;
+          bestLen = length;
+          bestStartIndex = i;
+        }
+      }
     }
-    return { sequence: bestSeq, repeats: bestRepeats, length: bestLen, startIndex: bestStartIndex, savings: maxSavings };
+  }
+  return { sequence: bestSeq, repeats: bestRepeats, length: bestLen, startIndex: bestStartIndex, savings: maxSavings };
 }
 
 /**
@@ -329,17 +328,17 @@ function findLongestRepeatingSequence(actions: Action[]): { sequence: Action[] |
  * Dùng để quyết định có nên tạo vòng lặp lồng nhau hay không.
  */
 function findFactors(n: number): [number, number] | null {
-    if (n < 4) return null;
-    const factors: [number, number][] = [];
-    for (let i = 2; i <= Math.sqrt(n); i++) {
-        if (n % i === 0) {
-            factors.push([n / i, i]);
-        }
+  if (n < 4) return null;
+  const factors: [number, number][] = [];
+  for (let i = 2; i <= Math.sqrt(n); i++) {
+    if (n % i === 0) {
+      factors.push([n / i, i]);
     }
-    if (factors.length === 0) return null;
-    // Ưu tiên các thừa số gần nhau nhất (ví dụ: 16 -> 4x4 thay vì 8x2)
-    factors.sort((a, b) => Math.abs(a[0] - a[1]) - Math.abs(b[0] - b[1]));
-    return factors[0];
+  }
+  if (factors.length === 0) return null;
+  // Ưu tiên các thừa số gần nhau nhất (ví dụ: 16 -> 4x4 thay vì 8x2)
+  factors.sort((a, b) => Math.abs(a[0] - a[1]) - Math.abs(b[0] - b[1]));
+  return factors[0];
 }
 
 /**
@@ -374,7 +373,7 @@ const optimizeWithLoops = (
     if (sequence && savings > 0) {
       const beforeLoop = optimizedInnerActions.slice(0, startIndex);
       const afterLoop = optimizedInnerActions.slice(startIndex + repeats * length);
-      
+
       // Tối ưu hóa phần thân của vòng lặp mới một lần nữa
       const loopBody = optimizeRecursively(sequence);
 
@@ -442,22 +441,22 @@ const optimizeWithWhileLoops = (
     // Nếu chuỗi đủ dài (ví dụ: > 2) và kết thúc ở đích, chúng ta có thể dùng 'repeat_until'
     // Đây là một logic đơn giản, có thể mở rộng để xử lý các điều kiện khác (e.g., until wall)
     if (sequenceLength > 2) {
-       // Giả định rằng chuỗi moveForward này dẫn đến đích.
-       // ƯU TIÊN: Nếu có khối `maze_forever`, hãy sử dụng nó vì nó tối ưu hơn (tiết kiệm 1 khối).
-       if (availableBlocks.has('maze_forever')) {
-         optimizedActions.push({
-           type: 'maze_forever',
-           actions: [{ type: 'maze_moveForward' }]
-         });
-       } else {
-         // Fallback: Nếu không, sử dụng khối `controls_whileUntil` như cũ.
-         optimizedActions.push({
-           type: 'maze_repeat_until',
-           condition: 'at_finish',
-           actions: [{ type: 'maze_moveForward' }]
-         });
-       }
-       i = sequenceEnd; // Bỏ qua tất cả các hành động đã được thay thế
+      // Giả định rằng chuỗi moveForward này dẫn đến đích.
+      // ƯU TIÊN: Nếu có khối `maze_forever`, hãy sử dụng nó vì nó tối ưu hơn (tiết kiệm 1 khối).
+      if (availableBlocks.has('maze_forever')) {
+        optimizedActions.push({
+          type: 'maze_forever',
+          actions: [{ type: 'maze_moveForward' }]
+        });
+      } else {
+        // Fallback: Nếu không, sử dụng khối `controls_whileUntil` như cũ.
+        optimizedActions.push({
+          type: 'maze_repeat_until',
+          condition: 'at_finish',
+          actions: [{ type: 'maze_moveForward' }]
+        });
+      }
+      i = sequenceEnd; // Bỏ qua tất cả các hành động đã được thay thế
     } else {
       optimizedActions.push(action);
       i++;
@@ -543,11 +542,11 @@ const optimizeWithFunctions = (
         const { sequence } = result;
         procedureCount++;
         const procName = `PROCEDURE_${procedureCount}`;
-        
+
         // SỬA LỖI: Chỉ tối ưu hóa phần thân của hàm bằng vòng lặp.
         // Không gọi lại createStructuredSolution để tránh đệ quy vô hạn và logic phức tạp.
         procedures[procName] = optimizeWithLoops(sequence, availableBlocks, solutionConfig).main;
-        
+
         const callBlock: Action = { type: 'CALL', name: procName };
         const newActions: Action[] = [];
         let i = 0;
@@ -720,7 +719,7 @@ const optimizeWithVariablesAndLoops = (
           }
           const beforePattern = actions.slice(0, startActionIndex);
           const afterPattern = actions.slice(startActionIndex + totalOriginalActions);
-          
+
           // Thêm khối lặp chính vào sau các khối gán biến
           finalSolution.push({
             type: 'maze_repeat',
@@ -904,17 +903,17 @@ const calculateOptimalLines = (structuredSolution: { main: Action[], procedures?
         // THÊM MỚI: Xử lý đếm dòng cho khối if/else
         lloc++; // Đếm dòng 'if (...) {'
         if (block.if_actions) {
-            lloc += _countLinesRecursively(block.if_actions, declaredVars);
+          lloc += _countLinesRecursively(block.if_actions, declaredVars);
         }
         if (block.else_if_actions) {
-            block.else_if_actions.forEach((elseIfBlock: any) => {
-                lloc++; // Đếm dòng 'else if (...) {'
-                lloc += _countLinesRecursively(elseIfBlock.actions || [], declaredVars);
-            });
+          block.else_if_actions.forEach((elseIfBlock: any) => {
+            lloc++; // Đếm dòng 'else if (...) {'
+            lloc += _countLinesRecursively(elseIfBlock.actions || [], declaredVars);
+          });
         }
         if (block.else_actions) {
-            lloc++; // Đếm dòng 'else {'
-            lloc += _countLinesRecursively(block.else_actions || [], declaredVars);
+          lloc++; // Đếm dòng 'else {'
+          lloc += _countLinesRecursively(block.else_actions || [], declaredVars);
         }
       } else if (blockType) { // Các khối khác (move, turn, call, collect...)
         lloc++;
@@ -951,319 +950,319 @@ export const solveMaze = (gameConfig: GameConfig, solutionConfig: Solution, bloc
 
 /** TÁI CẤU TRÚC: Thuật toán A* mới, tìm đường đi theo VỊ TRÍ thay vì HÀNH ĐỘNG */
 const aStarPathSolver = (gameConfig: GameConfig, solutionConfig: Solution, blocklyConfig?: QuestBlocklyConfig): Solution | null => { // THAY ĐỔI: Thêm blocklyConfig
-    if (!gameConfig.players?.[0]?.start || !gameConfig.finish) {
-        console.error("Solver: Thiếu điểm bắt đầu hoặc kết thúc.");
-        return null;
-    }
-
-    // BƯỚC 1: Phân tích toolbox để lấy các khối lệnh có sẵn ngay từ đầu.
-    const availableBlocks = new Set<string>();
-    // SỬA LỖI: Củng cố logic để xử lý các cấu trúc blocklyConfig khác nhau.
-    // `augmented_config` có thể lồng `toolbox` trong một cấp nữa.
-    // SỬA LỖI: Sử dụng thuộc tính `availableBlocks` đã được tính toán sẵn từ App.tsx
-    if (blocklyConfig?.availableBlocks && Array.isArray(blocklyConfig.availableBlocks)) {
-      blocklyConfig.availableBlocks.forEach(block => availableBlocks.add(block));
-    } else { // Fallback nếu `availableBlocks` không được truyền vào
-      const queue = [...((blocklyConfig as any)?.toolbox?.contents || blocklyConfig?.contents || [])];
-      while (queue.length > 0) {
-        const item = queue.shift();
-        if (!item) continue;
-        if (item.type) availableBlocks.add(item.type);
-        if (item.custom === 'PROCEDURE') availableBlocks.add('PROCEDURE');
-        if (Array.isArray(item.contents)) queue.push(...item.contents); 
-      }
-    }
-    console.log("Solver: Các khối lệnh có sẵn từ toolbox:", Array.from(availableBlocks));
-
-    // --- THÊM MỚI: Chế độ tạo thuật toán tự hành ---
-    const hasLogicBlocks = availableBlocks.has('controls_if') && availableBlocks.has('maze_is_path');
-    const hasLoopBlock = availableBlocks.has('maze_forever') || availableBlocks.has('controls_whileUntil');
-    const isAlgorithmicMode = hasLogicBlocks && hasLoopBlock;
-
-    const world = new GameWorld(gameConfig, solutionConfig);
-    const startPos = gameConfig.players[0].start;
-    // DIRECTION CONVENTION: 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
-    // Default to 1 (North/+Z) if direction not specified
-    const rawDir = gameConfig.players[0].start.direction;
-    const startDir = rawDir !== undefined ? Math.round(rawDir) % 4 : 1;
-    console.log(`Solver: Start direction from config: ${rawDir}, using: ${startDir} (0=E, 1=N, 2=W, 3=S)`);
-    const startState = new GameState(startPos, startDir, world);
-    const startNode = new PathNode(startState);
-
-    const openList: PathNode[] = [];
-    const closedList: Map<string, number> = new Map(); // Map<stateKey, gCost>
-
-    const manhattan = (p1: Position, p2: Position): number => {
-        return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y) + Math.abs(p1.z - p2.z);
-    };
-
-    const heuristic = (state: GameState): number => {
-      const currentPos = state.position; // THAY ĐỔI: Sử dụng solutionConfig từ world
-      const requiredGoals = world.solutionConfig.itemGoals || {}; // THAY ĐỔI: Sử dụng solutionConfig từ world
-      const remainingGoalPositions: Position[] = [];
-  
-      // Thêm vị trí các vật phẩm chưa thu thập vào danh sách mục tiêu
-      for (const goalType in requiredGoals) {
-        if (goalType !== 'switch') {
-          const requiredCount = requiredGoals[goalType];
-          const collectedCount = Array.from(state.collectedItems).filter(id => world.collectiblesById.get(id)?.type === goalType).length;
-          if (collectedCount < requiredCount) {
-            world.collectiblesById.forEach((item, id) => {
-              if (item.type === goalType && !state.collectedItems.has(id)) {
-                remainingGoalPositions.push(item.position);
-              }
-            });
-          }
-        }
-      }
-  
-      // Thêm vị trí các công tắc chưa bật vào danh sách mục tiêu
-      if (requiredGoals['switch']) {
-        world.switchesByPos.forEach((s, posKey) => {
-          if (state.switchStates.get(s.id) !== 'on') {
-            const [x, y, z] = posKey.split(',').map(Number);
-            remainingGoalPositions.push({ x, y, z });
-          }
-        });
-      }
-  
-      // Nếu không còn mục tiêu phụ, heuristic là khoảng cách đến đích
-      // SỬA ĐỔI: Khi không còn mục tiêu phụ, heuristic chỉ cần là khoảng cách đến đích.
-      // Logic cũ tính toán phức tạp hơn một cách không cần thiết.
-      if (remainingGoalPositions.length === 0) { 
-        return manhattan(currentPos, world.finishPos);
-      }
-  
-      let maxHeuristic = manhattan(currentPos, world.finishPos); // Bắt đầu với khoảng cách đến đích cuối cùng
-
-      // Cải tiến Heuristic: Nếu có thể dùng hàm, giảm nhẹ heuristic để khuyến khích các đường đi có thể tối ưu hóa
-      if (availableBlocks.has('PROCEDURE')) {
-        maxHeuristic *= 0.95;
-      }
-
-      for (const pos of remainingGoalPositions) {
-        // Tính tổng chi phí ước tính nếu đi qua mục tiêu này
-        const costViaThisGoal = manhattan(currentPos, pos) + manhattan(pos, world.finishPos);
-        // Heuristic là chi phí tối đa trong tất cả các khả năng
-        maxHeuristic = Math.max(maxHeuristic, costViaThisGoal);
-      }
-      
-      return maxHeuristic;
-    };
-
-    const isGoalAchieved = (state: GameState): boolean => {
-        // THAY ĐỔI: Logic kiểm tra mục tiêu bị sai. Cần đếm số lượng vật phẩm đã thu thập theo đúng `goalType`.
-        const requiredGoals = world.solutionConfig.itemGoals || {};
-        for (const goalType in requiredGoals) {
-            const requiredCount = requiredGoals[goalType];
-            if (goalType === 'switch') {
-                // [SỬA LỖI] Xử lý linh hoạt mục tiêu 'switch' dựa trên `requiredCount`.
-                // [SỬA LỖI & CẢI TIẾN] Xử lý linh hoạt mục tiêu 'switch' dựa trên `requiredCount`.
-                const toggledOnCount = Array.from(state.switchStates.values()).filter(s => s === 'on').length;
-                if (typeof requiredCount === 'string' && requiredCount.toLowerCase() === 'all') {
-                    const totalSwitches = world.switchesByPos.size;
-                    if (toggledOnCount < totalSwitches) {
-                        return false;
-                    }
-                    if (toggledOnCount < totalSwitches) return false;
-                } else {
-                    // Chuyển đổi requiredCount thành số để so sánh
-                    const numericRequiredCount = Number(requiredCount);
-                    // Nếu requiredCount là một số hợp lệ, hãy so sánh số công tắc đã bật với nó.
-                    if (!isNaN(numericRequiredCount) && toggledOnCount < numericRequiredCount) {
-                        return false;
-                    }
-                }
-            } else {
-                // Đếm số vật phẩm đã thu thập thuộc `goalType` này
-                const collectedCount = Array.from(state.collectedItems).filter(id => world.collectiblesById.get(id)?.type === goalType).length;
-
-                if (typeof requiredCount === 'string' && requiredCount.toLowerCase() === 'all') {
-                    // Nếu yêu cầu là 'all', so sánh với tổng số vật phẩm loại đó có trên bản đồ
-                    const totalOfType = Array.from(world.collectiblesById.values()).filter(c => c.type === goalType).length;
-                    if (collectedCount < totalOfType) return false;
-                } else {
-                    // Nếu yêu cầu là một con số cụ thể
-                    const numericRequiredCount = Number(requiredCount);
-                    // Thêm kiểm tra `!isNaN` để đảm bảo an toàn
-                    if (!isNaN(numericRequiredCount) && collectedCount < numericRequiredCount) return false;
-                }
-            }
-        }
-
-        // [SỬA LỖI QUAN TRỌNG] Logic trả về bị sai.
-        // Hàm chỉ nên trả về `true` nếu vòng lặp `for` hoàn tất mà không `return false` lần nào.
-        // Điều này có nghĩa là tất cả các mục tiêu đã được đáp ứng.
-        // Nếu không có mục tiêu nào (`requiredGoals` rỗng), nó cũng nên trả về `true` để cho phép
-        // các màn chơi chỉ cần đi đến đích.
-        return true;
-    };
-
-    startNode.hCost = heuristic(startState);
-    openList.push(startNode);
-
-    // XÓA BỎ KHỐI TIỀN XỬ LÝ: Logic này phức tạp và gây ra lỗi không nhất quán
-    // giữa lần quay đầu và các lần quay sau. Vòng lặp A* chính sẽ xử lý tất cả
-    // các hành động xoay một cách đồng bộ.
-    while (openList.length > 0) {
-        openList.sort((a, b) => a.fCost - b.fCost);
-        const currentNode = openList.shift()!;
-        const stateKey = currentNode.state.getKey();
-
-        if (closedList.has(stateKey) && closedList.get(stateKey)! <= currentNode.gCost) {
-            continue;
-        }
-        closedList.set(stateKey, currentNode.gCost);
-
-        const state = currentNode.state;
-
-        if (isGoalAchieved(state)) {
-            // TÌM THẤY TRẠNG THÁI HOÀN THÀNH MỤC TIÊU!
-            // Bây giờ, cần tìm đường đi từ đây đến ô kết thúc.
-            const finalPathNode = findPathToFinish(currentNode, world, heuristic);
-            
-            if (!finalPathNode) {
-                // Nếu không thể tìm thấy đường đến đích từ trạng thái hoàn thành mục tiêu,
-                // tiếp tục tìm kiếm các trạng thái hoàn thành mục tiêu khác.
-                console.warn("Solver: Đã hoàn thành mục tiêu nhưng không tìm thấy đường đến đích. Tiếp tục tìm kiếm...");
-                continue; 
-            }
-
-            // Lấy đường đi cuối cùng
-            const path = finalPathNode.rawActionsToReach;
-
-            console.log("Solver: Tìm thấy lời giải tối ưu!", path);
-
-            // Đếm số lần rẽ trong đường đi thô để xác định độ phức tạp
-            const turnCount = path.filter(action => action.includes('turn')).length;
-            const isComplexPath = turnCount > 2; // Có thể điều chỉnh ngưỡng này
-
-            let finalStructuredSolution;
-            // --- LOGIC MỚI: GHI ĐÈ LỜI GIẢI CÓ CẤU TRÚC ---
-            // Chỉ kích hoạt chế độ thuật toán nếu đường đi thực sự phức tạp
-            if (isAlgorithmicMode && isComplexPath) {
-                console.log(`Solver: Chế độ thuật toán đang hoạt động (số lần rẽ: ${turnCount}). Ghi đè structuredSolution bằng thuật toán bám tường.`);
-                finalStructuredSolution = createWallFollowerSolution(solutionConfig);
-            } else {
-                // Nếu không phải chế độ thuật toán, tối ưu hóa rawActions như bình thường.
-                finalStructuredSolution = createStructuredSolution(convertRawToStructuredActions(path), availableBlocks, solutionConfig, world);
-            }
-
-            // Tính toán số khối và số dòng tối ưu
-            // Luôn tính toán dựa trên lời giải có cấu trúc cuối cùng (finalStructuredSolution)
-            const finalOptimalBlocks = calculateTotalBlocksInSolution(finalStructuredSolution);
-            const finalOptimalLines = calculateOptimalLines(finalStructuredSolution);
-
-            // THÊM MỚI: Tạo một phiên bản "basicSolution" đã được chuẩn hóa từ rawActions.
-            // Điều này đảm bảo basicSolution cũng sử dụng định dạng { type: 'maze_turn', direction: '...' }
-            const basicSolutionMain = convertRawToStructuredActions(path);
-
-            // Trả về kết quả cuối cùng
-            // Trả về kết quả cuối cùng
-            
-            // --- LOGIC MỚI: TRÍCH XUẤT TỌA ĐỘ ĐƯỜNG ĐI ---
-            const pathCoordinates: Position[] = [];
-            let currentNodeForPath: PathNode | null = finalPathNode;
-            while (currentNodeForPath) {
-                pathCoordinates.push(currentNodeForPath.state.position);
-                currentNodeForPath = currentNodeForPath.parent;
-            }
-            pathCoordinates.reverse();
-
-            return {
-                optimalBlocks: finalOptimalBlocks,
-                optimalLines: finalOptimalLines,
-                rawActions: path,
-                structuredSolution: finalStructuredSolution,
-                basicSolution: { main: basicSolutionMain, procedures: {} }, // Trả về basicSolution đã chuẩn hóa
-                pathCoordinates: pathCoordinates // Trả về tọa độ
-            };
-        }
-
-        const neighbors = findNeighbors(state, world);
-
-        for (const neighbor of neighbors) {
-            const { pos: neighborPos, action: moveAction } = neighbor;
-            const nextState = state.clone();
-            nextState.position = neighborPos;
-            const neighborPosKey = `${neighborPos.x},${neighborPos.y},${neighborPos.z}`;
-
-            let cost = 0;
-            const actionsToReachNeighbor: string[] = [];
-            const lastAction = currentNode.rawActionsToReach.length > 0 ? currentNode.rawActionsToReach[currentNode.rawActionsToReach.length - 1] : null;
-
-            // --- LOGIC MỚI: Truyền `lastAction` vào `calculateTurnActions` để có thể áp dụng chiết khấu lặp lại ---
-            const { actions: turnActions, newDirection: targetDir, cost: turnCost } = calculateTurnActions(state, neighborPos, lastAction);
-            actionsToReachNeighbor.push(...turnActions);
-            cost += turnCost;
-
-            // --- LOGIC MỚI: KHUYẾN KHÍCH SỰ LẶP LẠI ---
-            // Giảm nhẹ chi phí nếu hành động giống hành động trước đó để A* ưu tiên các chuỗi lặp lại.
-            const REPETITION_DISCOUNT = 0.01; // Tăng nhẹ chiết khấu để có tác động rõ ràng hơn
-
-            // Thêm hành động và chi phí cho di chuyển (walk/jump)
-            if (moveAction === 'walk') {
-                actionsToReachNeighbor.push('moveForward');
-                let moveCost = 1.0;
-                if (lastAction === 'moveForward') {
-                    moveCost -= REPETITION_DISCOUNT;
-                }
-                cost += moveCost;
-            } else { // jump
-                actionsToReachNeighbor.push('jump');
-                let jumpCost = 1.2; // Nhảy tốn nhiều chi phí hơn một chút
-                if (lastAction === 'jump') {
-                    jumpCost -= REPETITION_DISCOUNT;
-                }
-                cost += jumpCost;
-            }
-            
-            nextState.direction = targetDir;
-
-            // Tính chi phí và hành động thu thập/bật công tắc tại ô ĐẾN (chi phí rất nhỏ để ưu tiên)
-            const item = world.collectiblesByPos.get(neighborPosKey);
-            if (item && !nextState.collectedItems.has(item.id)) {
-                nextState.collectedItems.add(item.id);
-                cost += 0.01;
-                actionsToReachNeighbor.push('collect');
-            }
-
-            const switchInfo = world.switchesByPos.get(neighborPosKey);
-            if (switchInfo && nextState.switchStates.get(switchInfo.id) !== 'on') {
-                nextState.switchStates.set(switchInfo.id, 'on');
-                cost += 0.01;
-                actionsToReachNeighbor.push('toggleSwitch');
-            }
-
-            const newGCost = currentNode.gCost + cost;
-            const nextStateKey = nextState.getKey();
-
-            if (closedList.has(nextStateKey) && closedList.get(nextStateKey)! <= newGCost) {
-                continue;
-            }
-
-            const existingNode = openList.find(n => n.state.getKey() === nextStateKey);
-            if (existingNode && existingNode.gCost <= newGCost) {
-                continue;
-            }
-
-            const nextNode = new PathNode(nextState);
-            nextNode.parent = currentNode;
-            nextNode.gCost = newGCost;
-            nextNode.hCost = heuristic(nextState);
-            nextNode.rawActionsToReach = [...currentNode.rawActionsToReach, ...actionsToReachNeighbor];
-
-            if (existingNode) {
-                const index = openList.indexOf(existingNode);
-                openList[index] = nextNode;
-            } else {
-                openList.push(nextNode);
-            }
-        }
-    }
-
-    console.error("Solver: Không tìm thấy lời giải.");
+  if (!gameConfig.players?.[0]?.start || !gameConfig.finish) {
+    console.error("Solver: Thiếu điểm bắt đầu hoặc kết thúc.");
     return null;
+  }
+
+  // BƯỚC 1: Phân tích toolbox để lấy các khối lệnh có sẵn ngay từ đầu.
+  const availableBlocks = new Set<string>();
+  // SỬA LỖI: Củng cố logic để xử lý các cấu trúc blocklyConfig khác nhau.
+  // `augmented_config` có thể lồng `toolbox` trong một cấp nữa.
+  // SỬA LỖI: Sử dụng thuộc tính `availableBlocks` đã được tính toán sẵn từ App.tsx
+  if (blocklyConfig?.availableBlocks && Array.isArray(blocklyConfig.availableBlocks)) {
+    blocklyConfig.availableBlocks.forEach(block => availableBlocks.add(block));
+  } else { // Fallback nếu `availableBlocks` không được truyền vào
+    const queue = [...((blocklyConfig as any)?.toolbox?.contents || blocklyConfig?.contents || [])];
+    while (queue.length > 0) {
+      const item = queue.shift();
+      if (!item) continue;
+      if (item.type) availableBlocks.add(item.type);
+      if (item.custom === 'PROCEDURE') availableBlocks.add('PROCEDURE');
+      if (Array.isArray(item.contents)) queue.push(...item.contents);
+    }
+  }
+  console.log("Solver: Các khối lệnh có sẵn từ toolbox:", Array.from(availableBlocks));
+
+  // --- THÊM MỚI: Chế độ tạo thuật toán tự hành ---
+  const hasLogicBlocks = availableBlocks.has('controls_if') && availableBlocks.has('maze_is_path');
+  const hasLoopBlock = availableBlocks.has('maze_forever') || availableBlocks.has('controls_whileUntil');
+  const isAlgorithmicMode = hasLogicBlocks && hasLoopBlock;
+
+  const world = new GameWorld(gameConfig, solutionConfig);
+  const startPos = gameConfig.players[0].start;
+  // DIRECTION CONVENTION: 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
+  // Default to 1 (North/+Z) if direction not specified
+  const rawDir = gameConfig.players[0].start.direction;
+  const startDir = rawDir !== undefined ? Math.round(rawDir) % 4 : 1;
+  console.log(`Solver: Start direction from config: ${rawDir}, using: ${startDir} (0=E, 1=N, 2=W, 3=S)`);
+  const startState = new GameState(startPos, startDir, world);
+  const startNode = new PathNode(startState);
+
+  const openList: PathNode[] = [];
+  const closedList: Map<string, number> = new Map(); // Map<stateKey, gCost>
+
+  const manhattan = (p1: Position, p2: Position): number => {
+    return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y) + Math.abs(p1.z - p2.z);
+  };
+
+  const heuristic = (state: GameState): number => {
+    const currentPos = state.position; // THAY ĐỔI: Sử dụng solutionConfig từ world
+    const requiredGoals = world.solutionConfig.itemGoals || {}; // THAY ĐỔI: Sử dụng solutionConfig từ world
+    const remainingGoalPositions: Position[] = [];
+
+    // Thêm vị trí các vật phẩm chưa thu thập vào danh sách mục tiêu
+    for (const goalType in requiredGoals) {
+      if (goalType !== 'switch') {
+        const requiredCount = requiredGoals[goalType];
+        const collectedCount = Array.from(state.collectedItems).filter(id => world.collectiblesById.get(id)?.type === goalType).length;
+        if (collectedCount < requiredCount) {
+          world.collectiblesById.forEach((item, id) => {
+            if (item.type === goalType && !state.collectedItems.has(id)) {
+              remainingGoalPositions.push(item.position);
+            }
+          });
+        }
+      }
+    }
+
+    // Thêm vị trí các công tắc chưa bật vào danh sách mục tiêu
+    if (requiredGoals['switch']) {
+      world.switchesByPos.forEach((s, posKey) => {
+        if (state.switchStates.get(s.id) !== 'on') {
+          const [x, y, z] = posKey.split(',').map(Number);
+          remainingGoalPositions.push({ x, y, z });
+        }
+      });
+    }
+
+    // Nếu không còn mục tiêu phụ, heuristic là khoảng cách đến đích
+    // SỬA ĐỔI: Khi không còn mục tiêu phụ, heuristic chỉ cần là khoảng cách đến đích.
+    // Logic cũ tính toán phức tạp hơn một cách không cần thiết.
+    if (remainingGoalPositions.length === 0) {
+      return manhattan(currentPos, world.finishPos);
+    }
+
+    let maxHeuristic = manhattan(currentPos, world.finishPos); // Bắt đầu với khoảng cách đến đích cuối cùng
+
+    // Cải tiến Heuristic: Nếu có thể dùng hàm, giảm nhẹ heuristic để khuyến khích các đường đi có thể tối ưu hóa
+    if (availableBlocks.has('PROCEDURE')) {
+      maxHeuristic *= 0.95;
+    }
+
+    for (const pos of remainingGoalPositions) {
+      // Tính tổng chi phí ước tính nếu đi qua mục tiêu này
+      const costViaThisGoal = manhattan(currentPos, pos) + manhattan(pos, world.finishPos);
+      // Heuristic là chi phí tối đa trong tất cả các khả năng
+      maxHeuristic = Math.max(maxHeuristic, costViaThisGoal);
+    }
+
+    return maxHeuristic;
+  };
+
+  const isGoalAchieved = (state: GameState): boolean => {
+    // THAY ĐỔI: Logic kiểm tra mục tiêu bị sai. Cần đếm số lượng vật phẩm đã thu thập theo đúng `goalType`.
+    const requiredGoals = world.solutionConfig.itemGoals || {};
+    for (const goalType in requiredGoals) {
+      const requiredCount = requiredGoals[goalType];
+      if (goalType === 'switch') {
+        // [SỬA LỖI] Xử lý linh hoạt mục tiêu 'switch' dựa trên `requiredCount`.
+        // [SỬA LỖI & CẢI TIẾN] Xử lý linh hoạt mục tiêu 'switch' dựa trên `requiredCount`.
+        const toggledOnCount = Array.from(state.switchStates.values()).filter(s => s === 'on').length;
+        if (typeof requiredCount === 'string' && requiredCount.toLowerCase() === 'all') {
+          const totalSwitches = world.switchesByPos.size;
+          if (toggledOnCount < totalSwitches) {
+            return false;
+          }
+          if (toggledOnCount < totalSwitches) return false;
+        } else {
+          // Chuyển đổi requiredCount thành số để so sánh
+          const numericRequiredCount = Number(requiredCount);
+          // Nếu requiredCount là một số hợp lệ, hãy so sánh số công tắc đã bật với nó.
+          if (!isNaN(numericRequiredCount) && toggledOnCount < numericRequiredCount) {
+            return false;
+          }
+        }
+      } else {
+        // Đếm số vật phẩm đã thu thập thuộc `goalType` này
+        const collectedCount = Array.from(state.collectedItems).filter(id => world.collectiblesById.get(id)?.type === goalType).length;
+
+        if (typeof requiredCount === 'string' && requiredCount.toLowerCase() === 'all') {
+          // Nếu yêu cầu là 'all', so sánh với tổng số vật phẩm loại đó có trên bản đồ
+          const totalOfType = Array.from(world.collectiblesById.values()).filter(c => c.type === goalType).length;
+          if (collectedCount < totalOfType) return false;
+        } else {
+          // Nếu yêu cầu là một con số cụ thể
+          const numericRequiredCount = Number(requiredCount);
+          // Thêm kiểm tra `!isNaN` để đảm bảo an toàn
+          if (!isNaN(numericRequiredCount) && collectedCount < numericRequiredCount) return false;
+        }
+      }
+    }
+
+    // [SỬA LỖI QUAN TRỌNG] Logic trả về bị sai.
+    // Hàm chỉ nên trả về `true` nếu vòng lặp `for` hoàn tất mà không `return false` lần nào.
+    // Điều này có nghĩa là tất cả các mục tiêu đã được đáp ứng.
+    // Nếu không có mục tiêu nào (`requiredGoals` rỗng), nó cũng nên trả về `true` để cho phép
+    // các màn chơi chỉ cần đi đến đích.
+    return true;
+  };
+
+  startNode.hCost = heuristic(startState);
+  openList.push(startNode);
+
+  // XÓA BỎ KHỐI TIỀN XỬ LÝ: Logic này phức tạp và gây ra lỗi không nhất quán
+  // giữa lần quay đầu và các lần quay sau. Vòng lặp A* chính sẽ xử lý tất cả
+  // các hành động xoay một cách đồng bộ.
+  while (openList.length > 0) {
+    openList.sort((a, b) => a.fCost - b.fCost);
+    const currentNode = openList.shift()!;
+    const stateKey = currentNode.state.getKey();
+
+    if (closedList.has(stateKey) && closedList.get(stateKey)! <= currentNode.gCost) {
+      continue;
+    }
+    closedList.set(stateKey, currentNode.gCost);
+
+    const state = currentNode.state;
+
+    if (isGoalAchieved(state)) {
+      // TÌM THẤY TRẠNG THÁI HOÀN THÀNH MỤC TIÊU!
+      // Bây giờ, cần tìm đường đi từ đây đến ô kết thúc.
+      const finalPathNode = findPathToFinish(currentNode, world, heuristic);
+
+      if (!finalPathNode) {
+        // Nếu không thể tìm thấy đường đến đích từ trạng thái hoàn thành mục tiêu,
+        // tiếp tục tìm kiếm các trạng thái hoàn thành mục tiêu khác.
+        console.warn("Solver: Đã hoàn thành mục tiêu nhưng không tìm thấy đường đến đích. Tiếp tục tìm kiếm...");
+        continue;
+      }
+
+      // Lấy đường đi cuối cùng
+      const path = finalPathNode.rawActionsToReach;
+
+      console.log("Solver: Tìm thấy lời giải tối ưu!", path);
+
+      // Đếm số lần rẽ trong đường đi thô để xác định độ phức tạp
+      const turnCount = path.filter(action => action.includes('turn')).length;
+      const isComplexPath = turnCount > 2; // Có thể điều chỉnh ngưỡng này
+
+      let finalStructuredSolution;
+      // --- LOGIC MỚI: GHI ĐÈ LỜI GIẢI CÓ CẤU TRÚC ---
+      // Chỉ kích hoạt chế độ thuật toán nếu đường đi thực sự phức tạp
+      if (isAlgorithmicMode && isComplexPath) {
+        console.log(`Solver: Chế độ thuật toán đang hoạt động (số lần rẽ: ${turnCount}). Ghi đè structuredSolution bằng thuật toán bám tường.`);
+        finalStructuredSolution = createWallFollowerSolution(solutionConfig);
+      } else {
+        // Nếu không phải chế độ thuật toán, tối ưu hóa rawActions như bình thường.
+        finalStructuredSolution = createStructuredSolution(convertRawToStructuredActions(path), availableBlocks, solutionConfig, world);
+      }
+
+      // Tính toán số khối và số dòng tối ưu
+      // Luôn tính toán dựa trên lời giải có cấu trúc cuối cùng (finalStructuredSolution)
+      const finalOptimalBlocks = calculateTotalBlocksInSolution(finalStructuredSolution);
+      const finalOptimalLines = calculateOptimalLines(finalStructuredSolution);
+
+      // THÊM MỚI: Tạo một phiên bản "basicSolution" đã được chuẩn hóa từ rawActions.
+      // Điều này đảm bảo basicSolution cũng sử dụng định dạng { type: 'maze_turn', direction: '...' }
+      const basicSolutionMain = convertRawToStructuredActions(path);
+
+      // Trả về kết quả cuối cùng
+      // Trả về kết quả cuối cùng
+
+      // --- LOGIC MỚI: TRÍCH XUẤT TỌA ĐỘ ĐƯỜNG ĐI ---
+      const pathCoordinates: Position[] = [];
+      let currentNodeForPath: PathNode | null = finalPathNode;
+      while (currentNodeForPath) {
+        pathCoordinates.push(currentNodeForPath.state.position);
+        currentNodeForPath = currentNodeForPath.parent;
+      }
+      pathCoordinates.reverse();
+
+      return {
+        optimalBlocks: finalOptimalBlocks,
+        optimalLines: finalOptimalLines,
+        rawActions: path,
+        structuredSolution: finalStructuredSolution,
+        basicSolution: { main: basicSolutionMain, procedures: {} }, // Trả về basicSolution đã chuẩn hóa
+        pathCoordinates: pathCoordinates // Trả về tọa độ
+      };
+    }
+
+    const neighbors = findNeighbors(state, world);
+
+    for (const neighbor of neighbors) {
+      const { pos: neighborPos, action: moveAction } = neighbor;
+      const nextState = state.clone();
+      nextState.position = neighborPos;
+      const neighborPosKey = `${neighborPos.x},${neighborPos.y},${neighborPos.z}`;
+
+      let cost = 0;
+      const actionsToReachNeighbor: string[] = [];
+      const lastAction = currentNode.rawActionsToReach.length > 0 ? currentNode.rawActionsToReach[currentNode.rawActionsToReach.length - 1] : null;
+
+      // --- LOGIC MỚI: Truyền `lastAction` vào `calculateTurnActions` để có thể áp dụng chiết khấu lặp lại ---
+      const { actions: turnActions, newDirection: targetDir, cost: turnCost } = calculateTurnActions(state, neighborPos, lastAction);
+      actionsToReachNeighbor.push(...turnActions);
+      cost += turnCost;
+
+      // --- LOGIC MỚI: KHUYẾN KHÍCH SỰ LẶP LẠI ---
+      // Giảm nhẹ chi phí nếu hành động giống hành động trước đó để A* ưu tiên các chuỗi lặp lại.
+      const REPETITION_DISCOUNT = 0.01; // Tăng nhẹ chiết khấu để có tác động rõ ràng hơn
+
+      // Thêm hành động và chi phí cho di chuyển (walk/jump)
+      if (moveAction === 'walk') {
+        actionsToReachNeighbor.push('moveForward');
+        let moveCost = 1.0;
+        if (lastAction === 'moveForward') {
+          moveCost -= REPETITION_DISCOUNT;
+        }
+        cost += moveCost;
+      } else { // jump
+        actionsToReachNeighbor.push('jump');
+        let jumpCost = 1.2; // Nhảy tốn nhiều chi phí hơn một chút
+        if (lastAction === 'jump') {
+          jumpCost -= REPETITION_DISCOUNT;
+        }
+        cost += jumpCost;
+      }
+
+      nextState.direction = targetDir;
+
+      // Tính chi phí và hành động thu thập/bật công tắc tại ô ĐẾN (chi phí rất nhỏ để ưu tiên)
+      const item = world.collectiblesByPos.get(neighborPosKey);
+      if (item && !nextState.collectedItems.has(item.id)) {
+        nextState.collectedItems.add(item.id);
+        cost += 0.01;
+        actionsToReachNeighbor.push('collect');
+      }
+
+      const switchInfo = world.switchesByPos.get(neighborPosKey);
+      if (switchInfo && nextState.switchStates.get(switchInfo.id) !== 'on') {
+        nextState.switchStates.set(switchInfo.id, 'on');
+        cost += 0.01;
+        actionsToReachNeighbor.push('toggleSwitch');
+      }
+
+      const newGCost = currentNode.gCost + cost;
+      const nextStateKey = nextState.getKey();
+
+      if (closedList.has(nextStateKey) && closedList.get(nextStateKey)! <= newGCost) {
+        continue;
+      }
+
+      const existingNode = openList.find(n => n.state.getKey() === nextStateKey);
+      if (existingNode && existingNode.gCost <= newGCost) {
+        continue;
+      }
+
+      const nextNode = new PathNode(nextState);
+      nextNode.parent = currentNode;
+      nextNode.gCost = newGCost;
+      nextNode.hCost = heuristic(nextState);
+      nextNode.rawActionsToReach = [...currentNode.rawActionsToReach, ...actionsToReachNeighbor];
+
+      if (existingNode) {
+        const index = openList.indexOf(existingNode);
+        openList[index] = nextNode;
+      } else {
+        openList.push(nextNode);
+      }
+    }
+  }
+
+  console.error("Solver: Không tìm thấy lời giải.");
+  return null;
 }
 
 /**
@@ -1276,65 +1275,65 @@ const aStarPathSolver = (gameConfig: GameConfig, solutionConfig: Solution, block
  * @returns Node kết thúc chứa đường đi hoàn chỉnh, hoặc null nếu không tìm thấy.
  */
 function findPathToFinish(startNode: PathNode, world: GameWorld, heuristic: (state: GameState) => number): PathNode | null {
-    const openList: PathNode[] = [startNode];
-    // SỬA LỖI: Sử dụng stateKey đầy đủ (bao gồm cả hướng) thay vì chỉ posKey.
-    // Điều này ngăn việc loại bỏ sớm các đường đi đến cùng một vị trí nhưng với hướng tốt hơn (chi phí quay đầu ít hơn).
-    const closedList: Map<string, number> = new Map(); 
+  const openList: PathNode[] = [startNode];
+  // SỬA LỖI: Sử dụng stateKey đầy đủ (bao gồm cả hướng) thay vì chỉ posKey.
+  // Điều này ngăn việc loại bỏ sớm các đường đi đến cùng một vị trí nhưng với hướng tốt hơn (chi phí quay đầu ít hơn).
+  const closedList: Map<string, number> = new Map();
 
-    while (openList.length > 0) {
-        openList.sort((a, b) => a.fCost - b.fCost);
-        const currentNode = openList.shift()!;
-        const stateKey = currentNode.state.getKey();
+  while (openList.length > 0) {
+    openList.sort((a, b) => a.fCost - b.fCost);
+    const currentNode = openList.shift()!;
+    const stateKey = currentNode.state.getKey();
 
-        if (closedList.has(stateKey) && closedList.get(stateKey)! <= currentNode.gCost) {
-            continue;
-        }
-        closedList.set(stateKey, currentNode.gCost);
-
-        const state = currentNode.state;
-
-        // Kiểm tra xem đã đến đích chưa
-        if (state.position.x === world.finishPos.x && state.position.y === world.finishPos.y && state.position.z === world.finishPos.z) {
-            return currentNode; // Tìm thấy đường đi!
-        }
-
-        const neighbors = findNeighbors(state, world);
-
-        for (const neighbor of neighbors) {
-            const { pos: neighborPos, action: moveAction } = neighbor;
-            const nextState = state.clone();
-            nextState.position = neighborPos;
-
-            let cost = 0;
-            const actionsToReachNeighbor: string[] = [];
-            const lastAction = currentNode.rawActionsToReach.length > 0 ? currentNode.rawActionsToReach[currentNode.rawActionsToReach.length - 1] : null;
-
-            const { actions: turnActions, newDirection: targetDir, cost: turnCost } = calculateTurnActions(state, neighborPos, lastAction);
-            actionsToReachNeighbor.push(...turnActions);
-            cost += turnCost;
-
-            const moveActionStr = moveAction === 'walk' ? 'moveForward' : 'jump';
-            actionsToReachNeighbor.push(moveActionStr);
-            cost += 1; // Chi phí di chuyển cơ bản
-
-            nextState.direction = targetDir;
-
-            const newGCost = currentNode.gCost + cost;
-            const nextStateKey = nextState.getKey();
-
-            if (closedList.has(nextStateKey) && closedList.get(nextStateKey)! <= newGCost) {
-                continue;
-            }
-
-            const nextNode = new PathNode(nextState);
-            nextNode.parent = currentNode;
-            nextNode.gCost = newGCost;
-            nextNode.hCost = heuristic(nextState); // Heuristic bây giờ chỉ là khoảng cách đến đích
-            nextNode.rawActionsToReach = [...currentNode.rawActionsToReach, ...actionsToReachNeighbor];
-            openList.push(nextNode);
-        }
+    if (closedList.has(stateKey) && closedList.get(stateKey)! <= currentNode.gCost) {
+      continue;
     }
-    return null; // Không tìm thấy đường đến đích
+    closedList.set(stateKey, currentNode.gCost);
+
+    const state = currentNode.state;
+
+    // Kiểm tra xem đã đến đích chưa
+    if (state.position.x === world.finishPos.x && state.position.y === world.finishPos.y && state.position.z === world.finishPos.z) {
+      return currentNode; // Tìm thấy đường đi!
+    }
+
+    const neighbors = findNeighbors(state, world);
+
+    for (const neighbor of neighbors) {
+      const { pos: neighborPos, action: moveAction } = neighbor;
+      const nextState = state.clone();
+      nextState.position = neighborPos;
+
+      let cost = 0;
+      const actionsToReachNeighbor: string[] = [];
+      const lastAction = currentNode.rawActionsToReach.length > 0 ? currentNode.rawActionsToReach[currentNode.rawActionsToReach.length - 1] : null;
+
+      const { actions: turnActions, newDirection: targetDir, cost: turnCost } = calculateTurnActions(state, neighborPos, lastAction);
+      actionsToReachNeighbor.push(...turnActions);
+      cost += turnCost;
+
+      const moveActionStr = moveAction === 'walk' ? 'moveForward' : 'jump';
+      actionsToReachNeighbor.push(moveActionStr);
+      cost += 1; // Chi phí di chuyển cơ bản
+
+      nextState.direction = targetDir;
+
+      const newGCost = currentNode.gCost + cost;
+      const nextStateKey = nextState.getKey();
+
+      if (closedList.has(nextStateKey) && closedList.get(nextStateKey)! <= newGCost) {
+        continue;
+      }
+
+      const nextNode = new PathNode(nextState);
+      nextNode.parent = currentNode;
+      nextNode.gCost = newGCost;
+      nextNode.hCost = heuristic(nextState); // Heuristic bây giờ chỉ là khoảng cách đến đích
+      nextNode.rawActionsToReach = [...currentNode.rawActionsToReach, ...actionsToReachNeighbor];
+      openList.push(nextNode);
+    }
+  }
+  return null; // Không tìm thấy đường đến đích
 }
 
 /**
@@ -1344,46 +1343,46 @@ function findPathToFinish(startNode: PathNode, world: GameWorld, heuristic: (sta
  * @returns Một mảng các hàng xóm hợp lệ.
  */
 function findNeighbors(state: GameState, world: GameWorld): { pos: Position, action: 'walk' | 'jump' }[] {
-    const neighbors: { pos: Position, action: 'walk' | 'jump' }[] = [];
-    const { x, y, z } = state.position;
+  const neighbors: { pos: Position, action: 'walk' | 'jump' }[] = [];
+  const { x, y, z } = state.position;
 
-    // Duyệt qua 4 hướng chính
-    for (const dir of directions) {
-        const nextX = x + dir.x;
-        const nextZ = z + dir.z;
+  // Duyệt qua 4 hướng chính
+  for (const dir of directions) {
+    const nextX = x + dir.x;
+    const nextZ = z + dir.z;
 
-        // 1. Kiểm tra đi bộ (Walk)
-        const walkPos = { x: nextX, y: y, z: nextZ };
-        const groundBelowWalkPos = { x: nextX, y: y - 1, z: nextZ };
-        const blockAtWalkPos = world.worldMap.get(`${walkPos.x},${walkPos.y},${walkPos.z}`);
-        // SỬA ĐỔI: Kiểm tra tường minh khối `wall.stone01` như một vật cản không thể đi xuyên qua.
-        if (blockAtWalkPos !== 'wall.stone01' && !world.worldMap.has(`${walkPos.x},${walkPos.y},${walkPos.z}`) && 
-            world.isWalkable(groundBelowWalkPos)) {
-            neighbors.push({ pos: walkPos, action: 'walk' });
-        }
-
-        // 2. Kiểm tra nhảy lên (Jump Up)
-        const jumpUpObstaclePos = { x: nextX, y: y, z: nextZ };
-        const jumpUpLandingPos = { x: nextX, y: y + 1, z: nextZ };
-        const obstacleKey = `${jumpUpObstaclePos.x},${jumpUpObstaclePos.y},${jumpUpObstaclePos.z}`;
-        const obstacleModel = world.worldMap.get(obstacleKey);
-        // SỬA ĐỔI: Không thể nhảy qua khối 'wall.stone01'
-        if (obstacleModel && obstacleModel !== 'wall.stone01' &&
-            !world.worldMap.has(`${jumpUpLandingPos.x},${jumpUpLandingPos.y},${jumpUpLandingPos.z}`)) {
-            neighbors.push({ pos: jumpUpLandingPos, action: 'jump' });
-        }
-
-        // 3. Kiểm tra nhảy xuống (Jump Down)
-        const jumpDownAirPos = { x: nextX, y: y, z: nextZ };
-        const jumpDownLandingPos = { x: nextX, y: y - 1, z: nextZ };
-        const groundBelowJumpDown = { x: nextX, y: y - 2, z: nextZ };
-        if (!world.worldMap.has(`${jumpDownAirPos.x},${jumpDownAirPos.y},${jumpDownAirPos.z}`) &&
-            !world.worldMap.has(`${jumpDownLandingPos.x},${jumpDownLandingPos.y},${jumpDownLandingPos.z}`) &&
-            world.isWalkable(groundBelowJumpDown)) {
-            neighbors.push({ pos: jumpDownLandingPos, action: 'jump' });
-        }
+    // 1. Kiểm tra đi bộ (Walk)
+    const walkPos = { x: nextX, y: y, z: nextZ };
+    const groundBelowWalkPos = { x: nextX, y: y - 1, z: nextZ };
+    const blockAtWalkPos = world.worldMap.get(`${walkPos.x},${walkPos.y},${walkPos.z}`);
+    // SỬA ĐỔI: Kiểm tra tường minh khối `wall.stone01` như một vật cản không thể đi xuyên qua.
+    if (blockAtWalkPos !== 'wall.stone01' && !world.worldMap.has(`${walkPos.x},${walkPos.y},${walkPos.z}`) &&
+      world.isWalkable(groundBelowWalkPos)) {
+      neighbors.push({ pos: walkPos, action: 'walk' });
     }
-    return neighbors;
+
+    // 2. Kiểm tra nhảy lên (Jump Up)
+    const jumpUpObstaclePos = { x: nextX, y: y, z: nextZ };
+    const jumpUpLandingPos = { x: nextX, y: y + 1, z: nextZ };
+    const obstacleKey = `${jumpUpObstaclePos.x},${jumpUpObstaclePos.y},${jumpUpObstaclePos.z}`;
+    const obstacleModel = world.worldMap.get(obstacleKey);
+    // SỬA ĐỔI: Không thể nhảy qua khối 'wall.stone01'
+    if (obstacleModel && obstacleModel !== 'wall.stone01' &&
+      !world.worldMap.has(`${jumpUpLandingPos.x},${jumpUpLandingPos.y},${jumpUpLandingPos.z}`)) {
+      neighbors.push({ pos: jumpUpLandingPos, action: 'jump' });
+    }
+
+    // 3. Kiểm tra nhảy xuống (Jump Down)
+    const jumpDownAirPos = { x: nextX, y: y, z: nextZ };
+    const jumpDownLandingPos = { x: nextX, y: y - 1, z: nextZ };
+    const groundBelowJumpDown = { x: nextX, y: y - 2, z: nextZ };
+    if (!world.worldMap.has(`${jumpDownAirPos.x},${jumpDownAirPos.y},${jumpDownAirPos.z}`) &&
+      !world.worldMap.has(`${jumpDownLandingPos.x},${jumpDownLandingPos.y},${jumpDownLandingPos.z}`) &&
+      world.isWalkable(groundBelowJumpDown)) {
+      neighbors.push({ pos: jumpDownLandingPos, action: 'jump' });
+    }
+  }
+  return neighbors;
 }
 
 /**
@@ -1394,32 +1393,32 @@ function findNeighbors(state: GameState, world: GameWorld): { pos: Position, act
  * @returns `true` nếu có đường, ngược lại `false`.
  */
 const hasPathRelative = (state: GameState, relativeDir: 'ahead' | 'left' | 'right', world: GameWorld): boolean => {
-    const currentDir = state.direction;
-    let targetDir: number;
+  const currentDir = state.direction;
+  let targetDir: number;
 
-    if (relativeDir === 'ahead') {
-        targetDir = currentDir;
-    } else if (relativeDir === 'left') {
-        // Left (counterclockwise visual from camera): decrement direction index
-        targetDir = (currentDir - 1 + 4) % 4;
-    } else { // right
-        // Right (clockwise visual from camera): increment direction index
-        targetDir = (currentDir + 1) % 4;
-    }
+  if (relativeDir === 'ahead') {
+    targetDir = currentDir;
+  } else if (relativeDir === 'left') {
+    // Left (counterclockwise visual from camera): decrement direction index
+    targetDir = (currentDir - 1 + 4) % 4;
+  } else { // right
+    // Right (clockwise visual from camera): increment direction index
+    targetDir = (currentDir + 1) % 4;
+  }
 
-    const dirVector = directions[targetDir];
-    const nextPos = {
-        x: state.position.x + dirVector.x,
-        y: state.position.y,
-        z: state.position.z + dirVector.z
-    };
+  const dirVector = directions[targetDir];
+  const nextPos = {
+    x: state.position.x + dirVector.x,
+    y: state.position.y,
+    z: state.position.z + dirVector.z
+  };
 
-    // Kiểm tra xem ô phía trước có trống và có nền đất đi được bên dưới không.
-    const isBlocked = world.worldMap.has(`${nextPos.x},${nextPos.y},${nextPos.z}`);
-    const groundBelow = { ...nextPos, y: nextPos.y - 1 };
-    const hasGround = world.isWalkable(groundBelow);
+  // Kiểm tra xem ô phía trước có trống và có nền đất đi được bên dưới không.
+  const isBlocked = world.worldMap.has(`${nextPos.x},${nextPos.y},${nextPos.z}`);
+  const groundBelow = { ...nextPos, y: nextPos.y - 1 };
+  const hasGround = world.isWalkable(groundBelow);
 
-    return !isBlocked && hasGround;
+  return !isBlocked && hasGround;
 };
 
 /**
@@ -1429,51 +1428,51 @@ const hasPathRelative = (state: GameState, relativeDir: 'ahead' | 'left' | 'righ
  * @returns Một mảng các hành động thô.
  */
 const simulateWallFollower = (world: GameWorld, startState: GameState): string[] => {
-    const rawActions: string[] = [];
-    let currentState = startState.clone();
-    const maxSteps = 1000; // Giới hạn để tránh lặp vô tận
+  const rawActions: string[] = [];
+  let currentState = startState.clone();
+  const maxSteps = 1000; // Giới hạn để tránh lặp vô tận
 
-    for (let i = 0; i < maxSteps; i++) {
-        // Kiểm tra đã đến đích chưa
-        if (currentState.position.x === world.finishPos.x && currentState.position.z === world.finishPos.z) {
-            break;
-        }
-
-        if (hasPathRelative(currentState, 'right', world)) {
-            // Turn right (clockwise visual from camera)
-            currentState.direction = (currentState.direction + 1) % 4;
-            rawActions.push('turnRight');
-            // Đi tới
-            const dirVector = directions[currentState.direction];
-            currentState.position.x += dirVector.x;
-            currentState.position.z += dirVector.z;
-            rawActions.push('moveForward');
-        } else if (hasPathRelative(currentState, 'ahead', world)) {
-            // Đi tới
-            const dirVector = directions[currentState.direction];
-            currentState.position.x += dirVector.x;
-            currentState.position.z += dirVector.z;
-            rawActions.push('moveForward');
-        } else {
-            // Turn left (counterclockwise visual from camera)
-            currentState.direction = (currentState.direction - 1 + 4) % 4;
-            rawActions.push('turnLeft');
-        }
-
-        // Logic xử lý mục tiêu phụ (ví dụ: bật công tắc) có thể được thêm vào đây nếu cần
-        const posKey = `${currentState.position.x},${currentState.position.y},${currentState.position.z}`;
-        if (world.switchesByPos.has(posKey) && currentState.switchStates.get(world.switchesByPos.get(posKey)!.id) !== 'on') {
-            currentState.switchStates.set(world.switchesByPos.get(posKey)!.id, 'on');
-            rawActions.push('toggleSwitch');
-        }
-        // THÊM MỚI: Logic xử lý thu thập vật phẩm
-        const collectible = world.collectiblesByPos.get(posKey);
-        if (collectible && !currentState.collectedItems.has(collectible.id)) {
-            currentState.collectedItems.add(collectible.id);
-            rawActions.push('collect');
-        }
+  for (let i = 0; i < maxSteps; i++) {
+    // Kiểm tra đã đến đích chưa
+    if (currentState.position.x === world.finishPos.x && currentState.position.z === world.finishPos.z) {
+      break;
     }
-    return rawActions;
+
+    if (hasPathRelative(currentState, 'right', world)) {
+      // Turn right (clockwise visual from camera)
+      currentState.direction = (currentState.direction + 1) % 4;
+      rawActions.push('turnRight');
+      // Đi tới
+      const dirVector = directions[currentState.direction];
+      currentState.position.x += dirVector.x;
+      currentState.position.z += dirVector.z;
+      rawActions.push('moveForward');
+    } else if (hasPathRelative(currentState, 'ahead', world)) {
+      // Đi tới
+      const dirVector = directions[currentState.direction];
+      currentState.position.x += dirVector.x;
+      currentState.position.z += dirVector.z;
+      rawActions.push('moveForward');
+    } else {
+      // Turn left (counterclockwise visual from camera)
+      currentState.direction = (currentState.direction - 1 + 4) % 4;
+      rawActions.push('turnLeft');
+    }
+
+    // Logic xử lý mục tiêu phụ (ví dụ: bật công tắc) có thể được thêm vào đây nếu cần
+    const posKey = `${currentState.position.x},${currentState.position.y},${currentState.position.z}`;
+    if (world.switchesByPos.has(posKey) && currentState.switchStates.get(world.switchesByPos.get(posKey)!.id) !== 'on') {
+      currentState.switchStates.set(world.switchesByPos.get(posKey)!.id, 'on');
+      rawActions.push('toggleSwitch');
+    }
+    // THÊM MỚI: Logic xử lý thu thập vật phẩm
+    const collectible = world.collectiblesByPos.get(posKey);
+    if (collectible && !currentState.collectedItems.has(collectible.id)) {
+      currentState.collectedItems.add(collectible.id);
+      rawActions.push('collect');
+    }
+  }
+  return rawActions;
 };
 
 /**
@@ -1482,112 +1481,112 @@ const simulateWallFollower = (world: GameWorld, startState: GameState): string[]
  * @returns Một đối tượng structuredSolution chứa thuật toán.
  */
 const createWallFollowerSolution = (solutionConfig: Solution): { main: Action[]; procedures?: Record<string, Action[]> } => {
-    // Logic của thuật toán:
-    // loop forever {
-    //   if (path to the right) {
-    //     turn right;
-    //     move forward;
-    //   } else if (path ahead) {
-    //     move forward;
-    //   } else {
-    //     turn left;
-    //   }
-    //   // Sau khi di chuyển, kiểm tra các hành động phụ
-    //   if (item present) {
-    //     collect;
-    //   }
-    //   if (switch is off) {
-    //     toggle switch;
-    //   }
-    // }
+  // Logic của thuật toán:
+  // loop forever {
+  //   if (path to the right) {
+  //     turn right;
+  //     move forward;
+  //   } else if (path ahead) {
+  //     move forward;
+  //   } else {
+  //     turn left;
+  //   }
+  //   // Sau khi di chuyển, kiểm tra các hành động phụ
+  //   if (item present) {
+  //     collect;
+  //   }
+  //   if (switch is off) {
+  //     toggle switch;
+  //   }
+  // }
 
-    const itemGoalActions: Action[] = [];
-    const itemGoals = solutionConfig.itemGoals || {};
+  const itemGoalActions: Action[] = [];
+  const itemGoals = solutionConfig.itemGoals || {};
 
-    // THÊM MỚI: Tự động tạo các khối 'if' cho từng loại vật phẩm trong itemGoals
-    for (const goalType in itemGoals) {
-        // Bỏ qua 'switch' vì nó được xử lý riêng
-        if (goalType !== 'switch') {
-            itemGoalActions.push({
-                type: 'controls_if',
-                condition: { type: 'maze_is_item_present', item_type: goalType }, // Sử dụng đúng loại vật phẩm từ itemGoals
-                if_actions: [{ type: 'maze_collect' }]
-            });
-        }
+  // THÊM MỚI: Tự động tạo các khối 'if' cho từng loại vật phẩm trong itemGoals
+  for (const goalType in itemGoals) {
+    // Bỏ qua 'switch' vì nó được xử lý riêng
+    if (goalType !== 'switch') {
+      itemGoalActions.push({
+        type: 'controls_if',
+        condition: { type: 'maze_is_item_present', item_type: goalType }, // Sử dụng đúng loại vật phẩm từ itemGoals
+        if_actions: [{ type: 'maze_collect' }]
+      });
     }
+  }
 
-    // Chỉ thêm logic cho công tắc nếu nó có trong itemGoals
-    if (itemGoals.switch) {
-        itemGoalActions.push({
+  // Chỉ thêm logic cho công tắc nếu nó có trong itemGoals
+  if (itemGoals.switch) {
+    itemGoalActions.push({
+      type: 'controls_if',
+      condition: { type: 'maze_is_switch_state', state: 'off' }, // Kiểm tra công tắc đang tắt
+      if_actions: [{ type: 'maze_toggle_switch' }]
+    });
+  }
+  const solution: { main: Action[]; procedures?: Record<string, Action[]> } = {
+    main: [
+      {
+        type: 'maze_forever', // Hoặc 'controls_whileUntil' với điều kiện 'maze_at_finish'
+        actions: [
+          {
+            // Khối logic di chuyển
             type: 'controls_if',
-            condition: { type: 'maze_is_switch_state', state: 'off' }, // Kiểm tra công tắc đang tắt
-            if_actions: [{ type: 'maze_toggle_switch' }]
-        });
-    }
-    const solution: { main: Action[]; procedures?: Record<string, Action[]> } = {
-        main: [
-            {
-                type: 'maze_forever', // Hoặc 'controls_whileUntil' với điều kiện 'maze_at_finish'
-                actions: [
-                    {
-                        // Khối logic di chuyển
-                        type: 'controls_if',
-                        condition: { type: 'maze_is_path', direction: 'path to the right' },
-                        if_actions: [
-                            { type: 'maze_turn', direction: 'turnRight' },
-                            { type: 'maze_moveForward' }
-                        ],
-                        else_if_actions: [{
-                            condition: { type: 'maze_is_path', direction: 'path ahead' },
-                            actions: [{ type: 'maze_moveForward' }]
-                        }],
-                        else_actions: [{ type: 'maze_turn', direction: 'turnLeft' }]
-                    },
-                    // Nối các khối logic cho itemGoals đã được tạo tự động
-                    ...itemGoalActions
-                ]
-            }
+            condition: { type: 'maze_is_path', direction: 'path to the right' },
+            if_actions: [
+              { type: 'maze_turn', direction: 'turnRight' },
+              { type: 'maze_moveForward' }
+            ],
+            else_if_actions: [{
+              condition: { type: 'maze_is_path', direction: 'path ahead' },
+              actions: [{ type: 'maze_moveForward' }]
+            }],
+            else_actions: [{ type: 'maze_turn', direction: 'turnLeft' }]
+          },
+          // Nối các khối logic cho itemGoals đã được tạo tự động
+          ...itemGoalActions
         ]
-    };
-    return solution;
+      }
+    ]
+  };
+  return solution;
 };
 
 /**
  * HÀM MỚI: Tính toán các hành động xoay, hướng mới và chi phí để đi từ trạng thái hiện tại đến vị trí tiếp theo.
  */
 function calculateTurnActions(currentState: GameState, nextPos: Position, lastAction: string | null): { actions: string[], newDirection: number, cost: number } {
-    const actions: string[] = [];
-    const REPETITION_DISCOUNT = 0.01; // Tăng nhẹ chiết khấu để có tác động rõ ràng hơn
-    let cost = 0;
+  const actions: string[] = [];
+  const REPETITION_DISCOUNT = 0.01; // Tăng nhẹ chiết khấu để có tác động rõ ràng hơn
+  let cost = 0;
 
-    const dx = nextPos.x - currentState.position.x;
-    const dz = nextPos.z - currentState.position.z;
-    
-    // FIX: Updated mapping for new convention: 0=+X(East), 1=+Z(North), 2=-X(West), 3=-Z(South)
-    let targetDir: number;
-    if (dx === 1 && dz === 0) targetDir = 0;       // +X -> East (was 1)
-    else if (dx === -1 && dz === 0) targetDir = 2; // -X -> West (was 3)
-    else if (dx === 0 && dz === 1) targetDir = 1;  // +Z -> North (was 2)
-    else if (dx === 0 && dz === -1) targetDir = 3; // -Z -> South (was 0)
-    else targetDir = currentState.direction;
+  const dx = nextPos.x - currentState.position.x;
+  const dz = nextPos.z - currentState.position.z;
 
-    if (targetDir !== currentState.direction) {
-        // Direction array order: 0(E)->1(N)->2(W)->3(S) is COUNTERCLOCKWISE when viewed from above (+Y)
-        // But from PLAYER'S PERSPECTIVE (looking in their facing direction):
-        // - Counterclockwise from above = turn RIGHT (player's right hand)
-        // - Clockwise from above = turn LEFT (player's left hand)
-        const diff = (targetDir - currentState.direction + 4) % 4;
-        if (diff === 1) { // +1 step in array = counterclockwise from above = turnRight from player POV
-            actions.push('turnRight');
-            cost += (lastAction === 'turnRight' ? 0.1 - REPETITION_DISCOUNT : 0.1);
-        } else if (diff === 3) { // -1 step in array = clockwise from above = turnLeft from player POV
-            actions.push('turnLeft');
-            cost += (lastAction === 'turnLeft' ? 0.1 - REPETITION_DISCOUNT : 0.1);
-        } else if (diff === 2) {
-            actions.push('turnRight', 'turnRight');
-            cost += 0.2; // 180 degree turn
-        }
+  // Updated mapping for new convention: 0=-Z(South), 1=+X(East), 2=+Z(North), 3=-X(West)
+  let targetDir: number;
+  if (dx === 0 && dz === -1) targetDir = 0;      // -Z -> South
+  else if (dx === 1 && dz === 0) targetDir = 1;  // +X -> East
+  else if (dx === 0 && dz === 1) targetDir = 2;  // +Z -> North
+  else if (dx === -1 && dz === 0) targetDir = 3; // -X -> West
+  else targetDir = currentState.direction;
+
+  if (targetDir !== currentState.direction) {
+    // Direction array order: 0(E)->1(N)->2(W)->3(S) is COUNTERCLOCKWISE when viewed from above (+Y)
+    // But from PLAYER'S PERSPECTIVE (looking in their facing direction):
+    // - Counterclockwise from above = turn RIGHT (player's right hand)
+    // - Clockwise from above = turn LEFT (player's left hand)
+    const diff = (targetDir - currentState.direction + 4) % 4;
+    if (diff === 1) { // +1 step in array = counterclockwise from above = turnRight from player POV
+      actions.push('turnRight');
+      cost += (lastAction === 'turnRight' ? 0.1 - REPETITION_DISCOUNT : 0.1);
+    } else if (diff === 3) { // -1 step in array = clockwise from above = turnLeft from player POV
+      actions.push('turnLeft');
+      cost += (lastAction === 'turnLeft' ? 0.1 - REPETITION_DISCOUNT : 0.1);
+    } else if (diff === 2) {
+      actions.push('turnRight', 'turnRight');
+      cost += 0.2; // 180 degree turn
     }
+  }
 
-    return { actions, newDirection: targetDir, cost };
+  return { actions, newDirection: targetDir, cost };
 }

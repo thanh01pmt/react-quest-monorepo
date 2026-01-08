@@ -2,9 +2,9 @@
 
 import * as Blockly from 'blockly/core';
 import { javascriptGenerator, Order } from 'blockly/javascript';
-import type { TFunction } from 'i18next'; 
+import type { TFunction } from 'i18next';
 
-export function init(t: TFunction) { 
+export function init(t: TFunction) {
   // XÓA các định nghĩa cũ trước khi tạo mới
   const blocksToDelete = [
     'maze_start',
@@ -20,6 +20,14 @@ export function init(t: TFunction) {
     'maze_is_switch_state',
     'maze_at_finish',
     'maze_item_count',
+    'maze_while',
+    'maze_until',
+    'maze_say',
+    'maze_wait',
+    'maze_say_for',
+    'oop_character_action',
+    'oop_character_sensor',
+    'oop_character_say',
   ];
 
   blocksToDelete.forEach(blockType => {
@@ -39,7 +47,7 @@ export function init(t: TFunction) {
   Blockly.Msg['DELETE_X_BLOCKS'] = t('DELETE_X_BLOCKS', 'Delete %1 Blocks');
   Blockly.Msg['DELETE_X_BLOCKS'] = t('DELETE_X_BLOCKS', 'Delete %1 Blocks');
   Blockly.Msg['HELP'] = t('Games.help', 'Help');
-  
+
   // [NEW] Messages for new loop blocks
   Blockly.Msg['MAZE_WHILE'] = t('Maze.while', 'while');
   Blockly.Msg['MAZE_WHILE_TOOLTIP'] = t('Maze.whileTooltip', 'Repeat actions while the condition is true.');
@@ -87,7 +95,8 @@ export function init(t: TFunction) {
         { "type": "input_statement", "name": "DO" }
       ],
       "style": "events_category",
-      "topRow": true, // Thêm dòng này để hiển thị khối dưới dạng "hat"
+      "topRow": true,
+      "hat": "cap", // Force hat shape in Zelos
       "tooltip": "This block is the starting point for your program.",
     },
     {
@@ -109,9 +118,9 @@ export function init(t: TFunction) {
     {
       "type": "maze_turn",
       "message0": "%1",
-      "args0": [{ 
-        "type": "field_dropdown", 
-        "name": "DIR", 
+      "args0": [{
+        "type": "field_dropdown",
+        "name": "DIR",
         "options": TURN_DIRECTIONS,
       }],
       "previousStatement": null,
@@ -209,48 +218,48 @@ export function init(t: TFunction) {
   ]);
 
   // Start block - Remove leading indentation from statementToCode output
-  javascriptGenerator.forBlock['maze_start'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_start'] = function (block: Blockly.Block) {
     const code = javascriptGenerator.statementToCode(block, 'DO') || '';
     // Remove leading whitespace from each line
     return code.split('\n').map(line => line.trimStart()).join('\n');
   };
 
-  javascriptGenerator.forBlock['maze_moveForward'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_moveForward'] = function (block: Blockly.Block) {
     return `moveForward('block_id_${block.id}');\n`;
   };
-  javascriptGenerator.forBlock['maze_jump'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_jump'] = function (block: Blockly.Block) {
     return `jump('block_id_${block.id}');\n`;
   };
-  javascriptGenerator.forBlock['maze_turn'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_turn'] = function (block: Blockly.Block) {
     const dir = block.getFieldValue('DIR');
     return `${dir}('block_id_${block.id}');\n`;
   };
-  javascriptGenerator.forBlock['maze_repeat'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_repeat'] = function (block: Blockly.Block) {
     const repeats = javascriptGenerator.valueToCode(block, 'TIMES', Order.ASSIGNMENT) || '0';
     let branch = javascriptGenerator.statementToCode(block, 'DO');
     const loopVar = javascriptGenerator.nameDB_?.getDistinctName('count', 'variable') || 'count';
     const code = `for (var ${loopVar} = 0; ${loopVar} < ${repeats}; ${loopVar}++) {\n${branch}}\n`;
     return code;
   };
-  javascriptGenerator.forBlock['maze_collect'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_collect'] = function (block: Blockly.Block) {
     return `collectItem('block_id_${block.id}');\n`;
   };
-  javascriptGenerator.forBlock['maze_toggle_switch'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_toggle_switch'] = function (block: Blockly.Block) {
     return `toggleSwitch('block_id_${block.id}');\n`;
   };
-  javascriptGenerator.forBlock['maze_item_count'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_item_count'] = function (block: Blockly.Block) {
     const type = block.getFieldValue('TYPE');
     const code = `getItemCount('${type}', 'block_id_${block.id}')`;
     return [code, Order.FUNCTION_CALL];
   };
 
-  javascriptGenerator.forBlock['maze_forever'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_forever'] = function (block: Blockly.Block) {
     let branch = javascriptGenerator.statementToCode(block, 'DO');
     return `while (notDone('block_id_${block.id}')) {\n${branch}}\n`;
   };
 
   type PathDirectionKey = 'path ahead' | 'path to the left' | 'path to the right';
-  javascriptGenerator.forBlock['maze_is_path'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_is_path'] = function (block: Blockly.Block) {
     const dir = block.getFieldValue('DIR') as PathDirectionKey;
     const apiCall = {
       'path ahead': 'isPathForward',
@@ -261,19 +270,19 @@ export function init(t: TFunction) {
     return [code, Order.FUNCTION_CALL];
   };
 
-  javascriptGenerator.forBlock['maze_is_item_present'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_is_item_present'] = function (block: Blockly.Block) {
     const type = block.getFieldValue('TYPE');
     const code = `isItemPresent('${type}', 'block_id_${block.id}')`;
     return [code, Order.FUNCTION_CALL];
   };
 
-  javascriptGenerator.forBlock['maze_is_switch_state'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_is_switch_state'] = function (block: Blockly.Block) {
     const state = block.getFieldValue('STATE');
     const code = `isSwitchState('${state}', 'block_id_${block.id}')`;
     return [code, Order.FUNCTION_CALL];
   };
 
-  javascriptGenerator.forBlock['maze_at_finish'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_at_finish'] = function (block: Blockly.Block) {
     const code = `!notDone('block_id_${block.id}')`;
     return [code, Order.LOGICAL_NOT];
   };
@@ -321,19 +330,19 @@ export function init(t: TFunction) {
     }
   ]);
 
-  javascriptGenerator.forBlock['maze_while'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_while'] = function (block: Blockly.Block) {
     const argument0 = javascriptGenerator.valueToCode(block, 'BOOL', Order.NONE) || 'false';
     const branch = javascriptGenerator.statementToCode(block, 'DO');
     return 'while (' + argument0 + ') {\n' + branch + '}\n';
   };
 
-  javascriptGenerator.forBlock['maze_until'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_until'] = function (block: Blockly.Block) {
     const argument0 = javascriptGenerator.valueToCode(block, 'BOOL', Order.NONE) || 'false';
     const branch = javascriptGenerator.statementToCode(block, 'DO');
     return 'do {\n' + branch + '} while (!' + argument0 + ');\n';
   };
 
-  javascriptGenerator.forBlock['maze_say'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_say'] = function (block: Blockly.Block) {
     const msg = javascriptGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
     return `say(${msg}, 'block_id_${block.id}');\n`;
   };
@@ -409,7 +418,7 @@ export function init(t: TFunction) {
           "name": "CHARACTER",
           "options": DEFAULT_CHARACTERS
         },
-         {
+        {
           "type": "field_label",
           "text": t('Maze.say', 'say')
         },
@@ -450,7 +459,7 @@ export function init(t: TFunction) {
   ]);
 
   // Generator for OOP action block
-  javascriptGenerator.forBlock['oop_character_action'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['oop_character_action'] = function (block: Blockly.Block) {
     const character = block.getFieldValue('CHARACTER');
     const action = block.getFieldValue('ACTION');
     // Generate OOP-style syntax: robot1.moveForward()
@@ -458,24 +467,24 @@ export function init(t: TFunction) {
   };
 
   // Generator for OOP sensor block
-  javascriptGenerator.forBlock['oop_character_sensor'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['oop_character_sensor'] = function (block: Blockly.Block) {
     const character = block.getFieldValue('CHARACTER');
     const sensor = block.getFieldValue('SENSOR');
     return [`${character}.${sensor}()`, Order.FUNCTION_CALL];
   };
 
-  javascriptGenerator.forBlock['oop_character_say'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['oop_character_say'] = function (block: Blockly.Block) {
     const character = block.getFieldValue('CHARACTER');
     const msg = javascriptGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
     return `${character}.say(${msg}, 'block_id_${block.id}');\n`;
   };
 
-  javascriptGenerator.forBlock['maze_wait'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_wait'] = function (block: Blockly.Block) {
     const duration = javascriptGenerator.valueToCode(block, 'DURATION', Order.NONE) || '1';
     return `wait(${duration}, 'block_id_${block.id}');\n`;
   };
 
-  javascriptGenerator.forBlock['maze_say_for'] = function(block: Blockly.Block) {
+  javascriptGenerator.forBlock['maze_say_for'] = function (block: Blockly.Block) {
     const msg = javascriptGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
     const duration = javascriptGenerator.valueToCode(block, 'DURATION', Order.NONE) || '1';
     const id = `'block_id_${block.id}'`;

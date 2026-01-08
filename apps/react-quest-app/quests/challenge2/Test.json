@@ -1,0 +1,730 @@
+{
+  "strategy": "none",
+  "pathInfo": {
+    "start_pos": [
+      2,
+      0,
+      2
+    ],
+    "target_pos": [
+      8,
+      0,
+      8
+    ],
+    "path_coords": [
+      [
+        2,
+        1,
+        2
+      ],
+      [
+        2,
+        1,
+        3
+      ],
+      [
+        2,
+        1,
+        4
+      ],
+      [
+        2,
+        1,
+        5
+      ],
+      [
+        3,
+        1,
+        5
+      ],
+      [
+        4,
+        1,
+        5
+      ],
+      [
+        5,
+        1,
+        5
+      ],
+      [
+        5,
+        1,
+        6
+      ],
+      [
+        5,
+        1,
+        7
+      ],
+      [
+        5,
+        1,
+        8
+      ],
+      [
+        6,
+        1,
+        8
+      ],
+      [
+        7,
+        1,
+        8
+      ],
+      [
+        8,
+        1,
+        8
+      ]
+    ],
+    "placement_coords": [
+      [
+        2,
+        0,
+        2
+      ],
+      [
+        2,
+        0,
+        3
+      ],
+      [
+        2,
+        0,
+        4
+      ],
+      [
+        2,
+        0,
+        5
+      ],
+      [
+        3,
+        0,
+        5
+      ],
+      [
+        4,
+        0,
+        5
+      ],
+      [
+        5,
+        0,
+        5
+      ],
+      [
+        5,
+        0,
+        6
+      ],
+      [
+        5,
+        0,
+        7
+      ],
+      [
+        5,
+        0,
+        8
+      ],
+      [
+        6,
+        0,
+        8
+      ],
+      [
+        7,
+        0,
+        8
+      ],
+      [
+        8,
+        0,
+        8
+      ]
+    ],
+    "obstacles": [],
+    "metadata": {
+      "topology_type": "zigzag",
+      "num_segments": 4,
+      "segment_length": 3,
+      "segments": [
+        [
+          [
+            2,
+            0,
+            2
+          ],
+          [
+            2,
+            0,
+            3
+          ],
+          [
+            2,
+            0,
+            4
+          ],
+          [
+            2,
+            0,
+            5
+          ]
+        ],
+        [
+          [
+            2,
+            0,
+            5
+          ],
+          [
+            3,
+            0,
+            5
+          ],
+          [
+            4,
+            0,
+            5
+          ],
+          [
+            5,
+            0,
+            5
+          ]
+        ],
+        [
+          [
+            5,
+            0,
+            5
+          ],
+          [
+            5,
+            0,
+            6
+          ],
+          [
+            5,
+            0,
+            7
+          ],
+          [
+            5,
+            0,
+            8
+          ]
+        ],
+        [
+          [
+            5,
+            0,
+            8
+          ],
+          [
+            6,
+            0,
+            8
+          ],
+          [
+            7,
+            0,
+            8
+          ],
+          [
+            8,
+            0,
+            8
+          ]
+        ]
+      ],
+      "corners": [
+        [
+          2,
+          0,
+          5
+        ],
+        [
+          5,
+          0,
+          5
+        ],
+        [
+          5,
+          0,
+          8
+        ]
+      ],
+      "segment_analysis": {
+        "count": 4,
+        "lengths": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "min_length": 4,
+        "max_length": 4,
+        "avg_length": 4,
+        "types": [
+          "forward_z",
+          "forward_x",
+          "forward_z",
+          "forward_x"
+        ]
+      },
+      "semantic_positions": {
+        "start": [
+          2,
+          0,
+          2
+        ],
+        "end": [
+          8,
+          0,
+          8
+        ],
+        "first_corner": [
+          2,
+          0,
+          5
+        ],
+        "last_corner": [
+          5,
+          0,
+          8
+        ],
+        "optimal_start": "start",
+        "optimal_end": "end",
+        "valid_pairs": [
+          {
+            "name": "full_zigzag_easy",
+            "start": "start",
+            "end": "end",
+            "path_type": "full_traversal",
+            "strategies": [
+              "segment_pattern_reuse",
+              "alternating_patterns"
+            ],
+            "difficulty": "EASY",
+            "teaching_goal": "Follow zigzag with repeated segment pattern"
+          },
+          {
+            "name": "corner_sequence_medium",
+            "start": "first_corner",
+            "end": "last_corner",
+            "path_type": "inner_segments",
+            "strategies": [
+              "segment_pattern_reuse"
+            ],
+            "difficulty": "MEDIUM",
+            "teaching_goal": "Navigate between corners with pattern recognition"
+          },
+          {
+            "name": "reversed_hard",
+            "start": "end",
+            "end": "start",
+            "path_type": "reversed_traversal",
+            "strategies": [
+              "segment_pattern_reuse"
+            ],
+            "difficulty": "HARD",
+            "teaching_goal": "Reverse zigzag with hidden regularity"
+          }
+        ]
+      }
+    },
+    "topology": "zigzag",
+    "params": {},
+    "strategy": "none"
+  },
+  "plannedSolution": null,
+  "solution": {
+    "itemGoals": {},
+    "type": "reach_target",
+    "optimalBlocks": 17,
+    "optimalLines": 16,
+    "rawActions": [
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnRight",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "moveForward"
+    ],
+    "structuredSolution": {
+      "main": [
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        }
+      ]
+    },
+    "basicSolution": {
+      "main": [
+        {
+          "type": "maze_turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        }
+      ],
+      "procedures": {}
+    },
+    "pathCoordinates": [
+      {
+        "x": 2,
+        "y": 1,
+        "z": 2,
+        "direction": 3
+      },
+      {
+        "x": 2,
+        "y": 1,
+        "z": 3
+      },
+      {
+        "x": 2,
+        "y": 1,
+        "z": 4
+      },
+      {
+        "x": 2,
+        "y": 1,
+        "z": 5
+      },
+      {
+        "x": 3,
+        "y": 1,
+        "z": 5
+      },
+      {
+        "x": 4,
+        "y": 1,
+        "z": 5
+      },
+      {
+        "x": 5,
+        "y": 1,
+        "z": 5
+      },
+      {
+        "x": 5,
+        "y": 1,
+        "z": 6
+      },
+      {
+        "x": 5,
+        "y": 1,
+        "z": 7
+      },
+      {
+        "x": 5,
+        "y": 1,
+        "z": 8
+      },
+      {
+        "x": 6,
+        "y": 1,
+        "z": 8
+      },
+      {
+        "x": 7,
+        "y": 1,
+        "z": 8
+      },
+      {
+        "x": 8,
+        "y": 1,
+        "z": 8
+      }
+    ]
+  },
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 2,
+          "y": 0,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 2,
+          "y": 0,
+          "z": 3
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 2,
+          "y": 0,
+          "z": 4
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 2,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 3,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 4,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 6,
+          "y": 0,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 7,
+          "y": 0,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "ground.checker",
+        "position": {
+          "x": 8,
+          "y": 0,
+          "z": 8
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 2,
+          "y": 1,
+          "z": 2,
+          "direction": 3
+        }
+      }
+    ],
+    "collectibles": [],
+    "interactibles": [],
+    "finish": {
+      "x": 8,
+      "y": 1,
+      "z": 8
+    }
+  },
+  "blocklyConfig": {
+    "maxBlocks": 22,
+    "toolboxPresetKey": "commands_l6_comprehensive",
+    "toolbox": {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATMOVEMENT}",
+          "categorystyle": "movement_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_moveForward"
+            },
+            {
+              "kind": "block",
+              "type": "maze_turn"
+            },
+            {
+              "kind": "block",
+              "type": "maze_jump"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATACTIONS}",
+          "categorystyle": "actions_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_collect"
+            },
+            {
+              "kind": "block",
+              "type": "maze_toggle_switch"
+            }
+          ]
+        }
+      ]
+    },
+    "startBlocks": "<xml><block type=\"maze_start\" deletable=\"false\" movable=\"false\"><statement name=\"DO\"><block type=\"maze_turn\"><field name=\"DIR\">turnLeft</field><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_turn\"><field name=\"DIR\">turnLeft</field><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_turn\"><field name=\"DIR\">turnRight</field><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_turn\"><field name=\"DIR\">turnLeft</field><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"><next><block type=\"maze_moveForward\"/></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></statement></block></xml>"
+  },
+  "id": "COMMANDS_G312.CODING_COMMANDS_LOGIC-DEBUGGING.DEBUG_FIX_SEQUENCE.C1932-var32",
+  "gameType": "maze",
+  "titleKey": "Challenge.COMMANDS_G312.CODING_COMMANDS_LOGIC-DEBUGGING.DEBUG_FIX_SEQUENCE.C1932.Title",
+  "questTitleKey": "Challenge.COMMANDS_G312.CODING_COMMANDS_LOGIC-DEBUGGING.DEBUG_FIX_SEQUENCE.C1932.Description",
+  "descriptionKey": "Challenge.COMMANDS_G312.CODING_COMMANDS_LOGIC-DEBUGGING.DEBUG_FIX_SEQUENCE.C1932.Description",
+  "level": 2,
+  "translations": {
+    "vi": {
+      "Challenge.COMMANDS_G312.CODING_COMMANDS_LOGIC-DEBUGGING.DEBUG_FIX_SEQUENCE.C1932.Title": "[var3] Sửa Lỗi Đảo Bay",
+      "Challenge.COMMANDS_G312.CODING_COMMANDS_LOGIC-DEBUGGING.DEBUG_FIX_SEQUENCE.C1932.Description": "Các bước di chuyển trên sân chơi này không đúng thứ tự. Hãy gỡ rối logic này để hoàn thành mục tiêu. Hãy thử tìm cách giải quyết ngắn gọn nhất.",
+      "CODING_COMMANDS_LOGIC-DEBUGGING": "Gỡ lỗi Logic trong Chuỗi lệnh"
+    }
+  }
+}

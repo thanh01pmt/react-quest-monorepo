@@ -72,14 +72,15 @@ interface BuilderSceneProps {
 
 // Separate component for player_start to ensure proper re-rendering
 function PlayerStartRenderer({ direction, material }: { direction: number, material?: THREE.Material }) {
-  // COORDINATE_SYSTEM.md: 0=East(+X), 1=North(+Z), 2=West(-X), 3=South(-Z)
+  // COORDINATE_SYSTEM.md: 0=South(-Z), 1=East(+X), 2=North(+Z), 3=West(-X)
   // After baseRotation (π/2 on X-axis), cone tip points to +X (East)
   // Y-axis rotation adjusts from +X to target direction (CCW from above)
   const rotationMap: Record<number, number> = {
-    0: 0,             // East (+X): no rotation needed, already facing +X
-    1: -Math.PI / 2,  // North (+Z): rotate -90° from +X to +Z
-    2: Math.PI,       // West (-X): rotate 180° from +X to -X
-    3: Math.PI / 2    // South (-Z): rotate +90° from +X to -Z
+    // Standard mapping to match RobotCharacter.tsx
+    0: Math.PI,       // South
+    1: Math.PI / 2,   // East
+    2: 0,             // North
+    3: -Math.PI / 2   // West
   };
 
   const baseRotation = Math.PI / 2; // Cone tip from +Y to +X after X-axis rotation
