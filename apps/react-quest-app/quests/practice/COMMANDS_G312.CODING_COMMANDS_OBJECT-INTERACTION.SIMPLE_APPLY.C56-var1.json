@@ -1,0 +1,353 @@
+{
+  "id": "COMMANDS_G312.CODING_COMMANDS_OBJECT-INTERACTION.SIMPLE_APPLY.C56-var1",
+  "gameType": "maze",
+  "topic": "topic-title-coding_commands_object-interaction",
+  "level": 56,
+  "titleKey": "Challenge.COMMANDS_G312.CODING_COMMANDS_OBJECT-INTERACTION.SIMPLE_APPLY.C56.Title",
+  "questTitleKey": "Challenge.COMMANDS_G312.CODING_COMMANDS_OBJECT-INTERACTION.SIMPLE_APPLY.C56.Description",
+  "descriptionKey": "Challenge.COMMANDS_G312.CODING_COMMANDS_OBJECT-INTERACTION.SIMPLE_APPLY.C56.Description",
+  "translations": {
+    "vi": {
+      "Challenge.COMMANDS_G312.CODING_COMMANDS_OBJECT-INTERACTION.SIMPLE_APPLY.C56.Title": "Kích hoạt Công tắc",
+      "Challenge.COMMANDS_G312.CODING_COMMANDS_OBJECT-INTERACTION.SIMPLE_APPLY.C56.Description": "Một công tắc đang ở trạng thái tắt trên bản đồ. Hãy lập trình đường đi để đến vị trí của nó và dùng lệnh 'toggleSwitch' để bật nó lên.",
+      "topic-title-coding_commands_object-interaction": "Tương tác với Đối tượng"
+    }
+  },
+  "supportedEditors": [
+    "blockly",
+    "monaco"
+  ],
+  "blocklyConfig": {
+    "toolbox": {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATEVENTS}",
+          "categorystyle": "events_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_start"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATMOVEMENT}",
+          "categorystyle": "movement_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_moveForward"
+            },
+            {
+              "kind": "block",
+              "type": "maze_turn"
+            },
+            {
+              "kind": "block",
+              "type": "maze_jump"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATACTIONS}",
+          "categorystyle": "actions_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_toggle_switch"
+            }
+          ]
+        }
+      ]
+    },
+    "maxBlocks": 22,
+    "startBlocks": "<xml><block type=\"maze_start\" deletable=\"false\" movable=\"false\"><statement name=\"DO\"></statement></block></xml>",
+    "toolboxPresetKey": "commands_l5_switch"
+  },
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": 4
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": 3
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 20,
+          "y": 0,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 18,
+          "y": 0,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 3
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 4
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "stone.stone03",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 6
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 21,
+          "y": 1,
+          "z": 6,
+          "direction": 3
+        }
+      }
+    ],
+    "collectibles": [],
+    "interactibles": [
+      {
+        "id": "s1",
+        "type": "switch",
+        "position": {
+          "x": 17,
+          "y": 1,
+          "z": 2
+        },
+        "initialState": "off"
+      }
+    ],
+    "finish": {
+      "x": 17,
+      "y": 1,
+      "z": 6
+    },
+    "blocklyConfig": {}
+  },
+  "solution": {
+    "type": "reach_target",
+    "itemGoals": {
+      "switch": 1
+    },
+    "optimalBlocks": 17,
+    "optimalLines": 16,
+    "rawActions": [
+      "turnRight",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "toggleSwitch",
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward"
+    ],
+    "structuredSolution": {
+      "main": [
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_toggleSwitch"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        }
+      ],
+      "procedures": {}
+    },
+    "structuredSolution_fixbug_version": {
+      "main": [
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_toggleSwitch"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        }
+      ],
+      "procedures": {}
+    }
+  },
+  "sounds": {
+    "win": "/assets/maze/win.mp3",
+    "fail": "/assets/maze/fail_pegman.mp3"
+  }
+}

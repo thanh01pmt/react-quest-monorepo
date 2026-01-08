@@ -1,0 +1,234 @@
+{
+  "id": "COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6-var4",
+  "gameType": "maze",
+  "topic": "topic-title-coding_commands_basic-movement",
+  "level": 6,
+  "titleKey": "Challenge.COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6.Title",
+  "questTitleKey": "Challenge.COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6.Description",
+  "descriptionKey": "Challenge.COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6.Description",
+  "translations": {
+    "vi": {
+      "Challenge.COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6.Title": "Góc quay đầu tiên",
+      "Challenge.COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6.Description": "Hãy giúp nhân vật đi đến đích bằng cách sử dụng khối lệnh `moveForward` kết hợp cùng `turnLeft/ turnRight`.",
+      "topic-title-coding_commands_basic-movement": "Di chuyển Tuần tự Cơ bản"
+    }
+  },
+  "supportedEditors": [
+    "blockly",
+    "monaco"
+  ],
+  "blocklyConfig": {
+    "toolbox": {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATEVENTS}",
+          "categorystyle": "events_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_start"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATMOVEMENT}",
+          "categorystyle": "movement_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_moveForward"
+            },
+            {
+              "kind": "block",
+              "type": "maze_turn"
+            }
+          ]
+        }
+      ]
+    },
+    "maxBlocks": 15,
+    "startBlocks": "<xml><block type=\"maze_start\" deletable=\"false\" movable=\"false\"><statement name=\"DO\"></statement></block></xml>",
+    "toolboxPresetKey": "commands_l2_turn"
+  },
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "stone.stone04",
+        "position": {
+          "x": 31,
+          "y": 0,
+          "z": 13
+        }
+      },
+      {
+        "modelKey": "stone.stone04",
+        "position": {
+          "x": 31,
+          "y": 0,
+          "z": 14
+        }
+      },
+      {
+        "modelKey": "stone.stone04",
+        "position": {
+          "x": 31,
+          "y": 0,
+          "z": 15
+        }
+      },
+      {
+        "modelKey": "stone.stone04",
+        "position": {
+          "x": 30,
+          "y": 0,
+          "z": 15
+        }
+      },
+      {
+        "modelKey": "stone.stone04",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": 15
+        }
+      },
+      {
+        "modelKey": "stone.stone04",
+        "position": {
+          "x": 28,
+          "y": 0,
+          "z": 15
+        }
+      },
+      {
+        "modelKey": "stone.stone04",
+        "position": {
+          "x": 27,
+          "y": 0,
+          "z": 15
+        }
+      },
+      {
+        "modelKey": "stone.stone04",
+        "position": {
+          "x": 26,
+          "y": 0,
+          "z": 15
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 31,
+          "y": 1,
+          "z": 13,
+          "direction": 3
+        }
+      }
+    ],
+    "collectibles": [],
+    "interactibles": [],
+    "finish": {
+      "x": 26,
+      "y": 1,
+      "z": 15
+    },
+    "blocklyConfig": {}
+  },
+  "solution": {
+    "type": "reach_target",
+    "itemGoals": {},
+    "optimalBlocks": 10,
+    "optimalLines": 9,
+    "rawActions": [
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "turnRight",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward"
+    ],
+    "structuredSolution": {
+      "main": [
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        }
+      ],
+      "procedures": {}
+    },
+    "structuredSolution_fixbug_version": {
+      "main": [
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        }
+      ],
+      "procedures": {}
+    }
+  },
+  "sounds": {
+    "win": "/assets/maze/win.mp3",
+    "fail": "/assets/maze/fail_pegman.mp3"
+  }
+}

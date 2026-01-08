@@ -1,0 +1,233 @@
+/* CSS Variables for Guide Renderer */
+.guide-renderer {
+    /* Default (Light) Theme */
+    --guide-bg: #ffffff;
+    --guide-text: #24292e;
+    --guide-border: #eaecef;
+    --guide-heading: #1a1f23;
+    --guide-primary: #0969da;
+    --guide-secondary-bg: #f6f8fa;
+    --guide-code-bg: rgba(27, 31, 35, 0.05);
+    --guide-blockquote-color: #57606a;
+    --guide-blockquote-border: #d0d7de;
+    --guide-blockquote-bg: #f6f8fa;
+    --guide-note-bg: #ddf4ff;
+    --guide-note-border: #0969da;
+    --guide-card-bg: #ffffff;
+    --guide-card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --guide-hover-bg: #f3f4f6;
+    --guide-blockly-canvas-bg: #ffffff;
+    --guide-blockly-border: #d0d7de;
+
+    padding: 32px 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--guide-text);
+    background-color: transparent;
+    overflow-y: auto;
+    height: 100%;
+    line-height: 1.7;
+    font-size: 16px;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Tablet Optimizations */
+@media (max-width: 1024px) {
+    .guide-renderer {
+        padding: 24px 20px;
+    }
+}
+
+/* Dark Mode Overrides */
+:where(.theme-dark, .dark-mode) .guide-renderer {
+    --guide-bg: #0d1117;
+    --guide-text: #c9d1d9;
+    --guide-border: #30363d;
+    --guide-heading: #f0f6fc;
+    --guide-primary: #58a6ff;
+    --guide-secondary-bg: #161b22;
+    --guide-code-bg: rgba(110, 118, 129, 0.4);
+    --guide-blockquote-color: #8b949e;
+    --guide-blockquote-border: #30363d;
+    --guide-blockquote-bg: #161b22;
+    --guide-note-bg: rgba(56, 139, 253, 0.1);
+    --guide-note-border: #1f6feb;
+    --guide-card-bg: #161b22;
+    --guide-card-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --guide-hover-bg: #21262d;
+    --guide-blockly-canvas-bg: rgba(255, 255, 255, 0.96);
+    --guide-blockly-border: #444c56;
+}
+
+/* Global Reset */
+.guide-renderer * {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Typography */
+.guide-renderer h1 {
+    font-size: 32px;
+    border-bottom: 2px solid var(--guide-border);
+    padding-bottom: 0.4em;
+    margin-top: 0;
+    margin-bottom: 32px;
+    color: var(--guide-primary);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--guide-primary), #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.guide-renderer h2 {
+    font-size: 24px;
+    margin-top: 48px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    color: var(--guide-heading);
+    border-bottom: 1px solid var(--guide-border);
+    padding-bottom: 0.3em;
+    display: flex;
+    align-items: center;
+}
+
+.guide-renderer h3 {
+    font-size: 20px;
+    margin-top: 32px;
+    margin-bottom: 14px;
+    font-weight: 600;
+    color: var(--guide-heading);
+}
+
+.guide-renderer p {
+    margin-bottom: 20px;
+}
+
+.guide-renderer strong {
+    color: var(--guide-heading);
+    font-weight: 600;
+}
+
+.guide-renderer blockquote {
+    margin: 24px 0;
+    padding: 12px 20px;
+    color: var(--guide-blockquote-color);
+    border-left: 4px solid var(--guide-blockquote-border);
+    background-color: var(--guide-blockquote-bg);
+    border-radius: 6px;
+    font-style: italic;
+    backdrop-filter: blur(4px);
+}
+
+/* Code */
+.guide-renderer code {
+    background-color: var(--guide-code-bg);
+    padding: 0.2em 0.4em;
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.9em;
+}
+
+/* Lists */
+.guide-renderer ul,
+.guide-renderer ol {
+    padding-left: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.guide-renderer li {
+    margin-bottom: 0.5em;
+}
+
+/* Images & Videos */
+.guide-renderer img {
+    height: auto;
+    border-radius: 12px;
+    box-shadow: var(--guide-card-shadow);
+    margin: 24px auto;
+    display: block;
+    max-width: 100%;
+    transition: transform 0.3s ease;
+}
+
+.guide-renderer img:hover {
+    transform: scale(1.01);
+}
+
+/* Blockly XML Block */
+.blockly-xml-block {
+    margin: 28px 0;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--guide-blockly-border);
+    box-shadow: var(--guide-card-shadow);
+    background-color: var(--guide-blockly-canvas-bg);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.blockly-xml-block:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* Premium Button Run Code */
+.btn-run-code {
+    background: linear-gradient(135deg, #2ea44f, #238636);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-run-code:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(35, 134, 54, 0.4);
+    filter: brightness(1.1);
+}
+
+.btn-run-code:active {
+    transform: translateY(0);
+}
+
+.btn-edit-block {
+    background: linear-gradient(135deg, #0969da, #0550ae);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(9, 105, 218, 0.3);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-edit-block:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(9, 105, 218, 0.4);
+    filter: brightness(1.1);
+}
+
+.btn-edit-block:active {
+    transform: translateY(0);
+}
+
+/* Transitions for dynamic resizing */
+.blockly-xml-block {
+    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}

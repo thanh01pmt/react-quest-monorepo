@@ -1,0 +1,23 @@
+# Task: Reporting- [x] Tạo implementation_plan cho Guide Builder Enhancements
+- [x] Thêm tính năng "Edit on Click" (Sửa trực tiếp block từ preview)
+- [x] Nâng cấp UI XmlBlockEditor (Glassmorphism & Dark Mode)
+- [x] Thêm nút chuyển đổi Theme (Sáng/Tối) cho Preview pane
+- [x] Đồng bộ hóa tham số hiển thị giữa Builder và Player
+- [x] Kiểm tra và xác nhận build thành công
+- [x] Triển khai Co giãn Block động (Dynamic Height)
+    - [x] Thêm onHeightChange vào BlocklyRenderer
+    - [x] Thêm useDynamicHeight và logic quản lý state vào GuideRenderer
+    - [x] Kích hoạt useDynamicHeight trên Guide Builder
+    - [x] Xác minh không ảnh hưởng đến Player
+- [x] Tối ưu hóa Hiệu năng & Dọn dẹp Log (v3.2)
+    - [x] Ổn định handleHeightChange bằng useCallback
+    - [x] Thêm cơ chế lọc các thay đổi chiều cao nhỏ
+    - [x] Gỡ bỏ các console.log dư thừa trong shared components
+    - [x] Đồng bộ hóa các thay đổi và kiểm tra lại
+    - [x] HOTFIX: Sửa lỗi vòng lặp vô hạn (useRef cho dynamicHeights, loại bỏ khỏi dependencies)
+    - [x] HOTFIX: Sửa lỗi frame nhỏ trên Guide Builder (tăng chiều cao tối thiểu cho dynamic mode)
+    - [x] HOTFIX: Sửa lỗi BlocklyRenderer không hiển thị (truyền height cụ thể thay vì 100%)
+    - [x] UX: Di chuyển nút Edit lên góc trên phải cùng toolbar Blockly
+tent topics)
+- [x] Update `daily_log/2026-01-05.md` with afternoon progress
+- [x] Report to PM (User) in Vietnamese

@@ -1,0 +1,315 @@
+{
+  "id": "COMMANDS_G312.CODING_COMMANDS_MULTI-OBJECTIVE.COMPLEX_APPLY.C94-var1",
+  "gameType": "maze",
+  "topic": "topic-title-coding_commands_multi-objective",
+  "level": 94,
+  "titleKey": "Challenge.COMMANDS_G312.CODING_COMMANDS_MULTI-OBJECTIVE.COMPLEX_APPLY.C94.Title",
+  "questTitleKey": "Challenge.COMMANDS_G312.CODING_COMMANDS_MULTI-OBJECTIVE.COMPLEX_APPLY.C94.Description",
+  "descriptionKey": "Challenge.COMMANDS_G312.CODING_COMMANDS_MULTI-OBJECTIVE.COMPLEX_APPLY.C94.Description",
+  "translations": {
+    "vi": {
+      "Challenge.COMMANDS_G312.CODING_COMMANDS_MULTI-OBJECTIVE.COMPLEX_APPLY.C94.Title": "Nhiệm vụ Kép",
+      "Challenge.COMMANDS_G312.CODING_COMMANDS_MULTI-OBJECTIVE.COMPLEX_APPLY.C94.Description": "Đã đến lúc kết hợp các kỹ năng! Hãy lập kế hoạch một lộ trình để vừa thu thập pha lê, vừa kích hoạt công tắc.",
+      "topic-title-coding_commands_multi-objective": "Lập kế hoạch Đa mục tiêu"
+    }
+  },
+  "supportedEditors": [
+    "blockly",
+    "monaco"
+  ],
+  "blocklyConfig": {
+    "toolbox": {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATEVENTS}",
+          "categorystyle": "events_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_start"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATMOVEMENT}",
+          "categorystyle": "movement_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_moveForward"
+            },
+            {
+              "kind": "block",
+              "type": "maze_turn"
+            },
+            {
+              "kind": "block",
+              "type": "maze_jump"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATACTIONS}",
+          "categorystyle": "actions_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_collect"
+            },
+            {
+              "kind": "block",
+              "type": "maze_toggle_switch"
+            }
+          ]
+        }
+      ]
+    },
+    "maxBlocks": 19,
+    "startBlocks": "<xml><block type=\"maze_start\" deletable=\"false\" movable=\"false\"><statement name=\"DO\"></statement></block></xml>",
+    "toolboxPresetKey": "commands_l6_comprehensive"
+  },
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "ground.mud",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "ground.mud",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "ground.mud",
+        "position": {
+          "x": 16,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "ground.mud",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 19
+        }
+      },
+      {
+        "modelKey": "ground.mud",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 16
+        }
+      },
+      {
+        "modelKey": "ground.mud",
+        "position": {
+          "x": 18,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "ground.mud",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 15
+        }
+      },
+      {
+        "modelKey": "ground.mud",
+        "position": {
+          "x": 15,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "ground.mud",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 18
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 15,
+          "y": 1,
+          "z": 17,
+          "direction": 1
+        }
+      }
+    ],
+    "collectibles": [
+      {
+        "id": "c2",
+        "type": "crystal",
+        "position": {
+          "x": 16,
+          "y": 1,
+          "z": 17
+        }
+      }
+    ],
+    "interactibles": [
+      {
+        "id": "s1",
+        "type": "switch",
+        "position": {
+          "x": 19,
+          "y": 1,
+          "z": 17
+        },
+        "initialState": "off"
+      }
+    ],
+    "finish": {
+      "x": 17,
+      "y": 1,
+      "z": 19
+    },
+    "blocklyConfig": {}
+  },
+  "solution": {
+    "type": "reach_target",
+    "itemGoals": {
+      "switch": 1,
+      "crystal": 1
+    },
+    "optimalBlocks": 14,
+    "optimalLines": 13,
+    "rawActions": [
+      "moveForward",
+      "collect",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "toggleSwitch",
+      "turnLeft",
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "turnLeft",
+      "moveForward",
+      "moveForward"
+    ],
+    "structuredSolution": {
+      "main": [
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_toggleSwitch"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        }
+      ],
+      "procedures": {}
+    },
+    "structuredSolution_fixbug_version": {
+      "main": [
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_collect"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_toggleSwitch"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        }
+      ],
+      "procedures": {}
+    }
+  },
+  "sounds": {
+    "win": "/assets/maze/win.mp3",
+    "fail": "/assets/maze/fail_pegman.mp3"
+  }
+}
