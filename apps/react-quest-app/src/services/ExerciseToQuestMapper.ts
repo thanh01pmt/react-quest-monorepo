@@ -609,6 +609,9 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
         ),
       },
     },
+    hints: exercise.hintsData || {
+      description: exercise.hints.join('\n\n'),
+    },
     blocklyConfig: {
       toolbox: PRACTICE_TOOLBOX,
       maxBlocks: calculatedMaxBlocks,

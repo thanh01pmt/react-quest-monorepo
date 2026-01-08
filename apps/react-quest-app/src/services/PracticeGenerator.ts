@@ -200,6 +200,7 @@ export class PracticeGenerator {
       parameters,
       mapData: null, // Will be generated when exercise is played
       hints: this.generateHints(template),
+      hintsData: template.hints,
     };
   }
 

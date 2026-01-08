@@ -162,6 +162,7 @@ export interface GeneratedExercise {
     optimalBlocks: number;
   };
   hints: string[];
+  hintsData?: TemplateHints;
 }
 
 /**

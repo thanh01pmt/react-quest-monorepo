@@ -62,6 +62,13 @@ export interface Quest {
 
   translations?: Record<string, Record<string, string>>;
 
+  hints?: {
+    title?: string;
+    description?: string;
+    learningGoals?: string;
+    goalDetails?: string[];
+  };
+
   blocklyConfig?: BlocklyConfig;
   monacoConfig?: MonacoConfig;
   

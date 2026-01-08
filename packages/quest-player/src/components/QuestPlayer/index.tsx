@@ -827,7 +827,12 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   return (
     <>
       <Dialog isOpen={dialogState.isOpen} title={dialogState.title} onClose={() => setDialogState({ ...dialogState, isOpen: false })}>{dialogState.message}</Dialog>
-      <DocumentationPanel isOpen={isDocsOpen} onClose={() => setIsDocsOpen(false)} gameType={questData.gameType} />
+      <DocumentationPanel
+        isOpen={isDocsOpen}
+        onClose={() => setIsDocsOpen(false)}
+        gameType={questData.gameType}
+        hints={questData.hints}
+      />
       <BackgroundMusic src={questData.backgroundMusic} play={playerStatus === 'running' && (settings.soundsEnabled ?? true)} />
 
       <PanelGroup direction="horizontal" className="quest-player-container" autoSaveId="quest-player-panels">

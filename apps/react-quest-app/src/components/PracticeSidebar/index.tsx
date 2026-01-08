@@ -323,7 +323,9 @@ export const PracticeSidebar: React.FC<PracticeSidebarProps> = ({
                                             {isCompleted ? (result?.success ? '✓' : '✗') : (isCurrent ? '▶' : '○')}
                                         </span>
                                         <span className="exercise-number">{index + 1}</span>
-                                        <span className="exercise-concept">{exercise.concept}</span>
+                                        <span className="exercise-concept">
+                                            {t('Practice.challenge', 'Bài')} {index + 1}
+                                        </span>
                                         {result && (
                                             <span className="exercise-xp">+{result.xpEarned} XP</span>
                                         )}
