@@ -38,6 +38,7 @@ export const mazeTheme = Blockly.Theme.defineTheme('maze', {
       colourPrimary: '#FFBF00',
       colourSecondary: '#E6AC00',
       colourTertiary: '#CC9900',
+      hat: 'cap', // Start block hat shape
     },
     'movement_category': {
       colourPrimary: '#CF63CF',
