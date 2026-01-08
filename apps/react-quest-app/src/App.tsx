@@ -14,6 +14,7 @@ import {
   type SolutionConfig,
   type GameState,
   type QuestPlayerSettings,
+  GuideRenderer,
 } from '@repo/quest-player';
 import { QuestSidebar } from './components/QuestSidebar/index';
 import './App.css';
@@ -165,6 +166,8 @@ function AppContent() {
     code?: string;
     metrics?: QuestMetrics; // THÊM MỚI
   }>({ isOpen: false, title: '', message: '' });
+
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
 
   // Effect để đồng bộ URL và state
@@ -391,6 +394,23 @@ function AppContent() {
         isCollapsed={isSidebarCollapsed}
         onToggle={handleToggleSidebar}
       >
+        <div style={{ margin: '10px 0', textAlign: 'center' }}>
+          <button
+            className="guide-button"
+            onClick={() => setIsGuideOpen(true)}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              width: isSidebarCollapsed ? 'auto' : '90%'
+            }}
+          >
+            {isSidebarCollapsed ? '?' : '📖 Hướng Dẫn'}
+          </button>
+        </div>
         <LanguageSelector
           language={settings.language}
           onChange={handleLanguageChange}
@@ -398,8 +418,90 @@ function AppContent() {
         />
       </QuestSidebar>
 
-      <main className="main-content-area">
+      <main className="main-content-area" style={{ position: 'relative' }}>
         {renderMainContent()}
+
+        {/* Guide Modal / Overlay - FULL SCREEN */}
+        {isGuideOpen && (
+          <div className="guide-overlay" onClick={() => setIsGuideOpen(false)}>
+            <div className="guide-modal" onClick={e => e.stopPropagation()}>
+              <div className="guide-header">
+                <div className="guide-title">
+                  <span className="guide-icon">📖</span>
+                  <h2>{t('UI.LearningGuide', 'Hướng dẫn bài học')}</h2>
+                </div>
+                <button
+                  onClick={() => setIsGuideOpen(false)}
+                  className="guide-close-btn"
+                  title={t('UI.Close', 'Close')}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <div className="guide-body">
+                <div className="guide-content-wrapper">
+                  {(() => {
+                    if (!questData) return <div className="guide-loading">{t('UI.Loading')}...</div>;
+
+                    let guideName = 'lesson1'; // Default
+
+                    // Parse ID Structure: CATEGORY.TOPIC_CODE.TYPE.ID
+                    // Example: FOR_LOOPS_G312.CODING_LOOPS_BASIC-MOVEMENT.SIMPLE_APPLY.C1-var1
+                    const idParts = questData.id.split('.');
+                    const category = (idParts[0] || '').toUpperCase();
+                    const challengeType = (idParts[2] || '').toUpperCase();
+
+                    // --- BẢNG PHÂN BỔ THỬ THÁCH LUYỆN TẬP ---
+                    if (category.includes('COMMAND')) {
+                      if (challengeType === 'SIMPLE_APPLY') guideName = 'lesson1';
+                      else if (challengeType === 'COMPLEX_APPLY') guideName = 'lesson2';
+                      else if (challengeType.includes('DEBUG')) guideName = 'lesson3';
+                    }
+                    else if (category.includes('FUNCTION')) {
+                      if (challengeType === 'SIMPLE_APPLY' || challengeType === 'COMPLEX_APPLY') guideName = 'lesson4';
+                      else guideName = 'lesson5'; // DEBUG or REFACTOR
+                    }
+                    else if (category.includes('FOR_LOOP')) {
+                      if (challengeType === 'SIMPLE_APPLY' || challengeType === 'COMPLEX_APPLY') guideName = 'lesson6';
+                      else guideName = 'lesson7'; // DEBUG or REFACTOR
+                    }
+                    else if (category.includes('VARIABLE') || category.includes('OPERATOR')) {
+                      if (challengeType === 'SIMPLE_APPLY' || challengeType === 'COMPLEX_APPLY') guideName = 'lesson8';
+                      else guideName = 'lesson9'; // DEBUG or REFACTOR
+                    }
+                    else if (category.includes('WHILE') || category.includes('CONDITIONAL')) {
+                      if (challengeType === 'SIMPLE_APPLY' || challengeType === 'COMPLEX_APPLY') guideName = 'lesson10';
+                      else guideName = 'lesson11'; // DEBUG or REFACTOR
+                    }
+                    else if (category.includes('ALGORITHM')) {
+                      guideName = 'lesson12';
+                    }
+
+                    // Fallback for non-standard IDs or missing categories
+                    if (guideName === 'lesson1' && !category.includes('COMMAND')) {
+                      // Heuristic fallback for older IDs
+                      if (category.includes('FUNC')) guideName = 'lesson4';
+                      else if (category.includes('LOOP')) guideName = 'lesson6';
+                      else if (category.includes('VAR')) guideName = 'lesson8';
+                      else if (category.includes('COND')) guideName = 'lesson10';
+                    }
+
+                    return (
+                      <GuideRenderer
+                        guideUrl={`/guides/${guideName}.md`}
+                        // onRunCode={handleRunCode} // Disabled in dev merge to preserve architecture
+                        useDynamicHeight={true}
+                      />
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -1,0 +1,2030 @@
+{
+  "id": "COMMANDS_G10.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6-var12",
+  "gameType": "maze",
+  "topic": "CODING_COMMANDS_BASIC-MOVEMENT",
+  "grade": "G10",
+  "challenge_type": "SIMPLE_APPLY",
+  "difficulty_code": "EASY",
+  "gen_map_type": "star_shape",
+  "gen_logic_type": "command_obstacle",
+  "core_skill_codes": [],
+  "subject_codes": [
+    "COMMANDS"
+  ],
+  "category_codes": [
+    "COMMANDS_G10"
+  ],
+  "topic_codes": [
+    "CODING_COMMANDS_BASIC-MOVEMENT"
+  ],
+  "bloom_level_codes": [
+    "APPLY"
+  ],
+  "exam_type_code": [
+    "PRACTICE"
+  ],
+  "course_codes": [
+    "CODING"
+  ],
+  "context_codes": [
+    "BASIC_NAVIGATION"
+  ],
+  "knowledge_dimension_codes": [
+    "PROCEDURAL",
+    "CONCEPTUAL"
+  ],
+  "learning_objective_codes": [],
+  "difficulty_perceived_score": 10,
+  "difficulty_perceived_label": "Legendary",
+  "difficulty_intrinsic": "Expert",
+  "level": 6,
+  "titleKey": "Challenge.COMMANDS_G10.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6.Title",
+  "questTitleKey": "Challenge.COMMANDS_G10.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6.Description",
+  "descriptionKey": "Challenge.COMMANDS_G10.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6.Description",
+  "translations": {
+    "vi": {
+      "Challenge.COMMANDS_G10.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6.Title": "Góc quay đầu tiên",
+      "Challenge.COMMANDS_G10.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C6.Description": "Hãy giúp nhân vật đi đến đích bằng cách sử dụng khối lệnh `đi tới` kết hợp cùng `quay qua trái/ quay qua phải`.",
+      "CODING_COMMANDS_BASIC-MOVEMENT": "Di chuyển Tuần tự Cơ bản"
+    }
+  },
+  "supportedEditors": [
+    "blockly",
+    "monaco"
+  ],
+  "blocklyConfig": {
+    "toolbox": {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATEVENTS}",
+          "categorystyle": "events_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_start"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATMOVEMENT}",
+          "categorystyle": "movement_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_moveForward"
+            },
+            {
+              "kind": "block",
+              "type": "maze_turn"
+            }
+          ]
+        }
+      ]
+    },
+    "maxBlocks": 136,
+    "startBlocks": "<xml><block type=\"maze_start\" deletable=\"false\" movable=\"false\"><statement name=\"DO\"></statement></block></xml>",
+    "toolboxPresetKey": "commands_l2_turn"
+  },
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 18,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 20,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 22,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 23,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 24,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 25,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 26,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 27,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 28,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": -6
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": -5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": -4
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": -3
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": -2
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": -1
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": 1
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": 3
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": 4
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 29,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 28,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 27,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 26,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 25,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 24,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 23,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 22,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 21,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 20,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 19,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 18,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 9
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 10
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 11
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 12
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 13
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 14
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 15
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 16
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 17,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 16,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 15,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 14,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 13,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 12,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 11,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 9,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 8,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 7,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 6,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 16
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 15
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 14
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 13
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 12
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 11
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 10
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 9
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 8
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 6
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 4,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 3,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 2,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 1,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -1,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -2,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -3,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -4,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -5,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -6,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": 5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": 4
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": 3
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": 2
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": 1
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": -1
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": -2
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": -3
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": -4
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": -5
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": -6
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -7,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -6,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -5,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -4,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -3,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -2,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": -1,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 1,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 2,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 3,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 4,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -7
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -8
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -9
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -10
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -11
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -12
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -13
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -14
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -15
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -16
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -17
+        }
+      },
+      {
+        "modelKey": "wall.brick05",
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": -18
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 17,
+          "y": 1,
+          "z": -7,
+          "direction": 3
+        }
+      }
+    ],
+    "collectibles": [],
+    "interactibles": [],
+    "finish": {
+      "x": 5,
+      "y": 1,
+      "z": -18
+    },
+    "blocklyConfig": {}
+  },
+  "solution": {
+    "type": "reach_target",
+    "itemGoals": {},
+    "optimalBlocks": 131,
+    "optimalLines": 130,
+    "rawActions": [
+      "turnLeft",
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnRight",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnRight",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnRight",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnRight",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnRight",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnRight",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "turnLeft",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward",
+      "moveForward"
+    ],
+    "structuredSolution": {
+      "main": [
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        }
+      ],
+      "procedures": {}
+    },
+    "structuredSolution_fixbug_version": {
+      "main": [
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnRight"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_turn",
+          "direction": "turnLeft"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        },
+        {
+          "type": "maze_moveForward"
+        }
+      ],
+      "procedures": {}
+    }
+  },
+  "sounds": {
+    "win": "/assets/maze/win.mp3",
+    "fail": "/assets/maze/fail_pegman.mp3"
+  }
+}

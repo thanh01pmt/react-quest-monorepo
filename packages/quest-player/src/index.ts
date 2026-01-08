@@ -3,6 +3,8 @@
 // Main component export
 export { QuestPlayer } from './components/QuestPlayer';
 export type { QuestPlayerProps } from './components/QuestPlayer';
+export * from './components/BlocklyRenderer';
+export * from './components/GuideRenderer';
 
 // Child components (for library mode usage in apps)
 export { Dialog } from './components/Dialog';

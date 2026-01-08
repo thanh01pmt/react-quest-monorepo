@@ -1,0 +1,83 @@
+/* apps/guide-builder/src/components/Toolbar/Toolbar.css */
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background-color: var(--builder-header-bg, #161b22);
+    border-bottom: 1px solid var(--builder-border, #30363d);
+    gap: 12px;
+}
+
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 20px;
+    background-color: var(--builder-border, #30363d);
+    margin: 0 4px;
+}
+
+.toolbar button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: #c9d1d9;
+    /* Visible text color */
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.3, 0, 0.5, 1);
+    position: relative;
+    font-weight: 600;
+    font-size: 14px;
+    /* Ensure text is readable */
+}
+
+/* Force SVG visibility and color */
+.toolbar button svg,
+.toolbar button svg * {
+    stroke: currentColor !important;
+    stroke-width: 2px;
+    fill: none;
+    opacity: 1 !important;
+}
+
+.toolbar button svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+.toolbar button:hover {
+    background-color: rgba(177, 186, 196, 0.12);
+    /* Subtle hover */
+    color: #f0f6fc;
+}
+
+.toolbar button:active {
+    background-color: rgba(177, 186, 196, 0.2);
+    transform: scale(0.96);
+}
+
+.toolbar .btn-primary-ghost {
+    width: auto;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 500;
+    gap: 8px;
+    border: 1px solid var(--builder-border, #30363d);
+    background-color: #21262d;
+}
+
+.toolbar .btn-primary-ghost:hover {
+    border-color: #8b949e;
+    background-color: #30363d;
+}

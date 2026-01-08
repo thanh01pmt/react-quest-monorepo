@@ -1,0 +1,197 @@
+{
+  "id": "COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C11-var1",
+  "gameType": "maze",
+  "topic": "topic-title-coding_commands_basic-movement",
+  "level": 11,
+  "titleKey": "Challenge.COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C11.Title",
+  "questTitleKey": "Challenge.COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C11.Description",
+  "descriptionKey": "Challenge.COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C11.Description",
+  "translations": {
+    "vi": {
+      "Challenge.COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C11.Title": "Bước đi đầu tiên",
+      "Challenge.COMMANDS_G4.CODING_COMMANDS_BASIC-MOVEMENT.SIMPLE_APPLY.C11.Description": "Hãy giúp nhân vật đi đến đích bằng cách sử dụng khối lệnh `moveForward`.",
+      "topic-title-coding_commands_basic-movement": "Di chuyển Tuần tự Cơ bản"
+    }
+  },
+  "supportedEditors": [
+    "blockly",
+    "monaco"
+  ],
+  "blocklyConfig": {
+    "toolbox": {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATEVENTS}",
+          "categorystyle": "events_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_start"
+            }
+          ]
+        },
+        {
+          "kind": "category",
+          "name": "%{BKY_GAMES_CATMOVEMENT}",
+          "categorystyle": "movement_category",
+          "contents": [
+            {
+              "kind": "block",
+              "type": "maze_moveForward"
+            },
+            {
+              "kind": "block",
+              "type": "maze_turn"
+            },
+            {
+              "kind": "block",
+              "type": "maze_jump"
+            }
+          ]
+        }
+      ]
+    },
+    "maxBlocks": 8,
+    "startBlocks": "<xml><block type=\"maze_start\" deletable=\"false\" movable=\"false\"><statement name=\"DO\"></statement></block></xml>",
+    "toolboxPresetKey": "commands_l3_jump"
+  },
+  "gameConfig": {
+    "type": "maze",
+    "renderer": "3d",
+    "blocks": [
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 7,
+          "y": 0,
+          "z": 9
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 7,
+          "y": 0,
+          "z": 10
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 7,
+          "y": 0,
+          "z": 11
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 8,
+          "y": 0,
+          "z": 11
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 9,
+          "y": 0,
+          "z": 11
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 9,
+          "y": 0,
+          "z": 10
+        }
+      },
+      {
+        "modelKey": "ground.normal",
+        "position": {
+          "x": 9,
+          "y": 0,
+          "z": 9
+        }
+      },
+      {
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 7,
+          "y": 1,
+          "z": 10
+        }
+      }
+    ],
+    "players": [
+      {
+        "id": "player1",
+        "start": {
+          "x": 7,
+          "y": 1,
+          "z": 9,
+          "direction": 2
+        }
+      }
+    ],
+    "collectibles": [],
+    "interactibles": [],
+    "finish": {
+      "x": 7,
+      "y": 1,
+      "z": 11
+    },
+    "blocklyConfig": {},
+    "obstacles": [
+      {
+        "id": "o1",
+        "type": "obstacle",
+        "modelKey": "stone.stone05",
+        "position": {
+          "x": 7,
+          "y": 0,
+          "z": 10
+        }
+      }
+    ]
+  },
+  "solution": {
+    "type": "reach_target",
+    "itemGoals": {},
+    "optimalBlocks": 3,
+    "optimalLines": 2,
+    "rawActions": [
+      "jump",
+      "jump"
+    ],
+    "structuredSolution": {
+      "main": [
+        {
+          "type": "maze_jump"
+        },
+        {
+          "type": "maze_jump"
+        }
+      ],
+      "procedures": {}
+    },
+    "structuredSolution_fixbug_version": {
+      "main": [
+        {
+          "type": "maze_jump"
+        },
+        {
+          "type": "maze_jump"
+        }
+      ],
+      "procedures": {}
+    }
+  },
+  "sounds": {
+    "win": "/assets/maze/win.mp3",
+    "fail": "/assets/maze/fail_pegman.mp3"
+  }
+}

@@ -1,0 +1,46 @@
+{
+    "board_name": "My Feelings - Core Team",
+    "orchestrator_id": "my-feelings-pm",
+    "communication_settings": {
+        "inter_agent_messaging": true,
+        "shared_memory_access": true,
+        "auto_conflict_resolution": "orchestrator_decision",
+        "preferred_language": "Vietnamese",
+        "enforce_user_language": true
+    },
+    "participants": [
+        {
+            "agent_id": "my-feelings-pm",
+            "permissions": [
+                "assign_tasks",
+                "read_all_logs",
+                "request_human_approval"
+            ]
+        },
+        {
+            "agent_id": "my-feelings-architect",
+            "permissions": [
+                "modify_structure",
+                "database_config"
+            ]
+        },
+        {
+            "agent_id": "my-feelings-developer",
+            "permissions": [
+                "code_writing",
+                "unit_testing"
+            ]
+        },
+        {
+            "agent_id": "my-feelings-quality-ux",
+            "permissions": [
+                "browser_automation",
+                "performance_monitoring"
+            ]
+        }
+    ],
+    "workflow_rules": {
+        "step_transition": "requires_pm_approval",
+        "final_deployment": "requires_human_approval"
+    }
+}
