@@ -156,8 +156,11 @@ export interface ExecutionAction {
  * Complete execution trace
  */
 export interface ExecutionTrace {
-  /** All positions visited (path) */
+  /** All positions visited (path) - UNIQUE coordinates only */
   pathCoords: Coord[];
+  
+  /** Full sequential movement path (may contain duplicates for patterns that revisit tiles) */
+  movementSequence: Coord[];
   
   /** Items placed with their positions */
   items: Array<{ type: string; position: Coord }>;

@@ -3049,6 +3049,10 @@ function App() {
     if (dynamicPathCoords !== null) return dynamicPathCoords;
 
     // PRIORITY 4: Topology Path (from generation)
+    // For Template mode, prefer movement_sequence (full sequential path with duplicates)
+    if (questMetadata?.pathInfo?.movement_sequence) {
+      return questMetadata.pathInfo.movement_sequence as [number, number, number][];
+    }
     if (questMetadata?.pathInfo?.path_coords) {
       return questMetadata.pathInfo.path_coords as [number, number, number][];
     }
@@ -3905,21 +3909,20 @@ function App() {
                     },
                     gameConfig: newGameConfig, // Apply random mode if needed
                     pathInfo: {
-                      path_coords: data.pathCoords, // Path level coordinates from trace
+                      path_coords: data.pathCoords, // Unique path coordinates
+                      movement_sequence: data.movementSequence, // Full sequential path for visualization
                       placement_coords: data.blocks.map(b => [b.x, b.y, b.z] as [number, number, number]), // Ground blocks
                       start_pos: [data.playerStart.x, data.playerStart.y, data.playerStart.z] as [number, number, number],
                       target_pos: [data.finish.x, data.finish.y, data.finish.z] as [number, number, number],
                       topology: 'template_generated',
                       params: {}
                     },
-                    // Auto-set blocklyConfig with suggested toolbox AND GENERATED START BLOCKS
+                    // NOTE: startBlocks is NOT auto-generated - it should only be set manually
+                    // via "Edit Start Blocks" button, otherwise students get the answer pre-filled
                     blocklyConfig: {
                       toolboxPresetKey: suggestedToolboxKey,
-                      toolbox: toolboxPresets[suggestedToolboxKey],
-                      // FIX: Generate XML for startBlocks to ensure Procedure Definitions are included
-                      startBlocks: data.solutionConfig?.structuredSolution
-                        ? convertSolutionToXml(data.solutionConfig.structuredSolution)
-                        : undefined
+                      toolbox: toolboxPresets[suggestedToolboxKey]
+                      // startBlocks: REMOVED - do not auto-generate with correct answer
                     }
                   };
 

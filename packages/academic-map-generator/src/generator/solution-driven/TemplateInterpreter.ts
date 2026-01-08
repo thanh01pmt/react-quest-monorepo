@@ -762,6 +762,7 @@ export class TemplateInterpreter {
   private context!: ExecutionContext;
   private pathCoords: Coord[] = [];
   private pathSet: Set<string> = new Set();
+  private movementSequence: Coord[] = []; // Full sequential path (with duplicates)
   private items: Array<{ type: string; position: Coord }> = [];
   private actions: ExecutionAction[] = [];
   private loopIterations: number = 0;
@@ -779,6 +780,7 @@ export class TemplateInterpreter {
     this.rng = rng;
     this.pathCoords = [[...this.context.position] as Coord];
     this.pathSet = new Set([coordToKey(this.context.position)]);
+    this.movementSequence = [[...this.context.position] as Coord]; // Start with initial position
     this.items = [];
     this.actions = [];
     this.loopIterations = 0;
@@ -816,6 +818,7 @@ export class TemplateInterpreter {
 
     return {
       pathCoords: this.pathCoords,
+      movementSequence: this.movementSequence, // Full sequential path for visualization
       items: this.items,
       actions: this.actions,
       startPosition: startPos,
@@ -1298,6 +1301,9 @@ export class TemplateInterpreter {
   private doMoveForward(): void {
     this.context.position = moveForward(this.context.position, this.context.direction);
     
+    // Track full sequential path (with duplicates for patterns that revisit tiles)
+    this.movementSequence.push([...this.context.position] as Coord);
+    
     const key = coordToKey(this.context.position);
     if (!this.pathSet.has(key)) {
       this.pathCoords.push([...this.context.position] as Coord);
@@ -1325,6 +1331,9 @@ export class TemplateInterpreter {
       this.context.position[1] + 1,
       this.context.position[2]
     ] as Coord;
+    
+    // Track full sequential path (with duplicates for patterns that revisit tiles)
+    this.movementSequence.push([...this.context.position] as Coord);
     
     const key = coordToKey(this.context.position);
     if (!this.pathSet.has(key)) {

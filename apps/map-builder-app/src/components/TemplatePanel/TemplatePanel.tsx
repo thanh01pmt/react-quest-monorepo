@@ -33,7 +33,8 @@ interface GeneratedMapData {
     finish: { x: number; y: number; z: number };
     rawActions: string[];
     gameConfig: any;
-    pathCoords: Array<[number, number, number]>; // Path level coordinates for visualization
+    pathCoords: Array<[number, number, number]>; // Unique path coordinates
+    movementSequence: Array<[number, number, number]>; // Full sequential path (with duplicates)
     solutionConfig?: any;
     // Template metadata for auto-toolbox selection
     templateMeta?: {
@@ -683,6 +684,7 @@ function convertToMapData(result: SolutionDrivenResult): GeneratedMapData {
         rawActions: solution.rawActions,
         gameConfig: gameConfig,
         pathCoords: trace.pathCoords as Array<[number, number, number]>,
+        movementSequence: trace.movementSequence as Array<[number, number, number]>, // Full sequential path
         solutionConfig: solution
     };
 }
