@@ -229,7 +229,7 @@ function coordKey(x: number, y: number, z: number): string {
 
 /**
  * Validate generated map result for position collisions
- * Returns { valid: boolean, reason?: string }
+ * Returns invalid if items overlap with start/finish (maintains academic integrity)
  */
 function validateMapResult(result: SolutionDrivenResult): { valid: boolean; reason?: string } {
   const gameConfig = result.gameConfig.gameConfig;
@@ -258,46 +258,30 @@ function validateMapResult(result: SolutionDrivenResult): { valid: boolean; reas
     return { valid: false, reason: 'Start and Finish positions overlap' };
   }
   
-  // Collect all item positions
-  const itemPositions = new Set<string>();
+  // Check items for collisions
   const collectibles = gameConfig.collectibles || [];
-  const items = trace.items || [];
+  const itemPositions = new Set<string>();
   
-  // Check items from gameConfig
   for (const item of collectibles) {
     const pos = item.position || item;
     const [ix, iy, iz] = getCoords(pos);
     const key = coordKey(ix, iy, iz);
     
-    // Rule 2: Start/Finish must not overlap with items
+    // Rule 2: Items must not be at start position
     if (key === startKey) {
       return { valid: false, reason: `Item at start position: ${key}` };
     }
+    
+    // Rule 3: Items must not be at finish position
     if (key === finishKey) {
       return { valid: false, reason: `Item at finish position: ${key}` };
     }
     
-    // Rule 3: Items must not overlap with each other
+    // Rule 4: Items must not overlap with each other
     if (itemPositions.has(key)) {
       return { valid: false, reason: `Duplicate item position: ${key}` };
     }
-    itemPositions.add(key);
-  }
-  
-  // Also check trace items
-  for (const item of items) {
-    const [ix, iy, iz] = getCoords(item.position);
-    const key = coordKey(ix, iy, iz);
     
-    if (key === startKey) {
-      return { valid: false, reason: `Trace item at start position: ${key}` };
-    }
-    if (key === finishKey) {
-      return { valid: false, reason: `Trace item at finish position: ${key}` };
-    }
-    if (itemPositions.has(key)) {
-      return { valid: false, reason: `Duplicate trace item position: ${key}` };
-    }
     itemPositions.add(key);
   }
   
@@ -409,13 +393,41 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
       let candidateCode = '';
       
       try {
-        // ... (existing logic)
-        // ... (existing logic)
+        // Create modified parameters with range-aware variation
+        // Each attempt tries different values within allowed [min, max] range
+        const attemptParams: Record<string, number | boolean | string> = {};
+        
+        for (const [key, value] of Object.entries(exercise.parameters)) {
+          if (typeof value === 'number') {
+            // Find the template parameter definition to get min/max
+            const paramDef = registryTemplate?.parameters.find(p => p.name === key);
+            const min = paramDef?.min ?? (value - 2);
+            const max = paramDef?.max ?? (value + 3);
+            const rangeSize = max - min + 1;
+            
+            // Generate alternative value based on attempt number
+            // Pattern: initial → max → (other values cycling)
+            let newValue: number;
+            if (attempt === 1) {
+              newValue = value; // First attempt uses original value
+            } else if (attempt === 2) {
+              newValue = max; // Second attempt tries max
+            } else {
+              // Subsequent attempts: cycle through range from initial towards min, then wrap
+              const offset = (attempt - 2) % rangeSize;
+              newValue = min + ((value - min - offset + rangeSize) % rangeSize);
+            }
+            
+            // Clamp to valid range
+            attemptParams[key] = Math.max(min, Math.min(max, newValue));
+          } else {
+            attemptParams[key] = value;
+          }
+        }
 
-        /* logic moved up */
-        // Re-resolve code for each attempt to get fresh random values
+        // Re-resolve code with attempt-specific parameters
         if (registryTemplate) {
-           resolvedCode = prepareTemplateCode(registryTemplate.solutionCode, exercise.parameters);
+           resolvedCode = prepareTemplateCode(registryTemplate.solutionCode, attemptParams);
         } else {
            // Preset logic
         }
@@ -425,7 +437,7 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
             attemptCode = prepareTemplateCode(resolvedCode, {});
         }
 
-        console.log(`[ExerciseToQuest] Generation Attempt ${attempt}/${MAX_RETRIES}...`);
+        console.log(`[ExerciseToQuest] Generation Attempt ${attempt}/${MAX_RETRIES} with params:`, attemptParams);
         
         candidateCode = attemptCode;
         
@@ -440,7 +452,7 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
            throw new Error("Generated map is too empty/trivial");
         }
         
-        // Position collision validation
+        // Position validation - reject if items at start/finish
         const validation = validateMapResult(result);
         if (!validation.valid) {
            console.warn("[ExerciseToQuest] Map validation failed:", validation.reason);
@@ -481,6 +493,14 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
   // 4. Extract gameConfig from result
   const gameConfig = result.gameConfig.gameConfig;
   const solution = result.solution;
+  const trace = result.trace;
+  
+  // Extract template metadata for dynamic toolbox selection (sync with Builder)
+  const templateMeta = registryTemplate ? {
+    tags: registryTemplate.metadata.tags || [],
+    concepts: registryTemplate.metadata.concepts || [],
+    category: registryTemplate.metadata.category,
+  } : undefined;
 
   // FAILSAFE: Ensure finish position has a ground block
   // (Fixes issue where finish marker floats in air if trace.endPosition isn't in pathCoords)
@@ -540,6 +560,8 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
         start: { x: 0, y: 1, z: 0, direction: 0 },
       },
       finish: gameConfig.finish || { x: 5, y: 1, z: 0 },
+      // Add movementSequence for path visualization (sync with Builder)
+      movementSequence: trace.movementSequence || [],
     } as Quest['gameConfig'],
     solution: {
       type: 'reach_target',
@@ -548,6 +570,8 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
       rawActions: solution.rawActions || [],
       structuredSolution: solution.structuredSolution,
     } as Quest['solution'],
+    // Include template metadata for dynamic toolbox selection (sync with Builder)
+    templateMeta,
   };
 }
 

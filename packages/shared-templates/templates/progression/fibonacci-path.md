@@ -23,15 +23,12 @@ A path based on the famous Fibonacci sequence found in nature.
 ```js
 // Parameters
 var _MIN_STEPS_ = 2;
-var _MAX_STEPS_ = 3;
+var _MAX_STEPS_ = 5;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
 let a = 1;
 let b = 1;
-
-// Initial entry
-moveForward();
 
 // First step (distance 1)
 moveForward();
