@@ -17,7 +17,8 @@ import { PlacementService, PedagogyStrategy } from '@repo/academic-map-generator
 import { useBuilderMode, GenerateConfig } from '../../store/builderModeContext';
 import { v4 as uuidv4 } from 'uuid';
 import { TopologyInspector, HighlightItem } from '../TopologyInspector';
-import { Map, ChevronDown, ChevronRight, CheckCircle, Loader2, Construction, Lightbulb } from 'lucide-react';
+import { Map, ChevronDown, ChevronRight, CheckCircle, Loader2, Construction, Lightbulb, Search } from 'lucide-react';
+import { CollapsibleSection } from '../CollapsibleSection';
 import './TopologyPanel.css';
 
 interface TopologyPanelProps {
@@ -45,32 +46,10 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
 
     const [selectedTopology, setSelectedTopology] = useState<string>('straight_line');
     const [params, setParams] = useState<Record<string, any>>({});
+    const [activeSection, setActiveSection] = useState<'topology' | 'inspector' | null>('topology');
 
-    // Collapsible section states
-    const [expandedSections, setExpandedSections] = useState<Set<string>>(
-        new Set(['topology', 'strategy'])
-    );
 
-    // Listen for trigger-generate event from ActionBar
-    useEffect(() => {
-        const handleTriggerGenerate = () => {
-            handleGenerate();
-        };
-        window.addEventListener('trigger-generate', handleTriggerGenerate);
-        return () => window.removeEventListener('trigger-generate', handleTriggerGenerate);
-    }, [selectedTopology, params]); // Dependencies for handleGenerate
 
-    const toggleSection = (section: string) => {
-        setExpandedSections(prev => {
-            const next = new Set(prev);
-            if (next.has(section)) {
-                next.delete(section);
-            } else {
-                next.add(section);
-            }
-            return next;
-        });
-    };
 
     const handleTopologyChange = (name: string) => {
         setSelectedTopology(name);
@@ -944,64 +923,69 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
             )}
 
             {/* Topology Selection */}
-            <div className="collapsible-section">
-                <button
-                    className="section-header"
-                    onClick={() => toggleSection('topology')}
-                >
-                    <span><Map size={16} className="section-icon" /> Topology</span>
-                    <span className="toggle-icon">{expandedSections.has('topology') ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
-                </button>
-                {expandedSections.has('topology') && (
-                    <div className="section-content">
-                        <select
-                            className="topology-select"
-                            value={selectedTopology}
-                            onChange={e => handleTopologyChange(e.target.value)}
-                        >
-                            {topologyGroups.map(group => (
-                                <optgroup key={group.category} label={group.category}>
-                                    {group.items.map(name => (
-                                        <option key={name} value={name}>
-                                            {registry.getDisplayName(name)}
-                                        </option>
-                                    ))}
-                                </optgroup>
-                            ))}
-                        </select>
+            <CollapsibleSection
+                title="Topology"
+                icon={<Map size={16} />}
+                isCollapsed={activeSection !== 'topology'}
+                onToggle={(collapsed) => setActiveSection(collapsed ? null : 'topology')}
+                storageKey="topology-config"
+            >
+                <div className="section-content">
+                    <select
+                        className="topology-select"
+                        value={selectedTopology}
+                        onChange={e => handleTopologyChange(e.target.value)}
+                    >
+                        {topologyGroups.map(group => (
+                            <optgroup key={group.category} label={group.category}>
+                                {group.items.map(name => (
+                                    <option key={name} value={name}>
+                                        {registry.getDisplayName(name)}
+                                    </option>
+                                ))}
+                            </optgroup>
+                        ))}
+                    </select>
 
-                        <div className="params-container">
-                            <label className="params-label">Parameters</label>
-                            {renderParamInputs()}
-                        </div>
+                    <div className="params-container">
+                        <label className="params-label">PARAMETERS</label>
+                        {renderParamInputs()}
                     </div>
-                )}
-            </div>
 
-            {/* Generate Ground Button - outside collapsible section */}
-            <div className="generate-section">
-                <button className="generate-btn" onClick={handleGenerate} disabled={state.isGenerating}>
-                    {state.isGenerating ? (
-                        <><Loader2 size={18} className="spin-icon" /> Generating...</>
-                    ) : (
-                        <><Construction size={18} /> Generate Ground</>
-                    )}
-                </button>
-                <p className="hint-text">
-                    <Lightbulb size={14} className="hint-icon" /> After generating ground, switch to <strong>Placement</strong> tab to add items.
-                </p>
-            </div>
+                    <div className="generate-section">
+                        <button className="generate-btn" onClick={handleGenerate} disabled={state.isGenerating}>
+                            {state.isGenerating ? (
+                                <><Loader2 size={18} className="spin-icon" /> Generating...</>
+                            ) : (
+                                <><Construction size={18} /> Generate Ground</>
+                            )}
+                        </button>
+                        <p className="hint-text">
+                            <Lightbulb size={14} className="hint-icon" /> After generating ground, switch to <strong>Placement</strong> tab to add items.
+                        </p>
+                    </div>
+                </div>
+            </CollapsibleSection>
 
             {/* Topology Inspector - Shows after generation */}
             {pathInfo && (
-                <TopologyInspector
-                    pathInfo={pathInfo}
-                    onHighlightChange={onHighlightChange}
-                    placedObjects={placedObjects}
-                    autoExpand={false}
-                    autoAnalyze={true}
-                    autoShowReport={false}
-                />
+                <CollapsibleSection
+                    title="Topology Inspector"
+                    icon={<Search size={16} />}
+                    isCollapsed={activeSection !== 'inspector'}
+                    onToggle={(collapsed) => setActiveSection(collapsed ? null : 'inspector')}
+                    storageKey="topology-inspector"
+                >
+                    <TopologyInspector
+                        pathInfo={pathInfo}
+                        onHighlightChange={onHighlightChange}
+                        placedObjects={placedObjects}
+                        autoExpand={false}
+                        autoAnalyze={true}
+                        autoShowReport={false}
+                        hideHeader={true}
+                    />
+                </CollapsibleSection>
             )}
         </div>
     );

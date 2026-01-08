@@ -87,7 +87,7 @@ function App() {
   // Keyboard Shortcuts State (Moved from HelpButton)
   const [showShortcuts, setShowShortcuts] = useState(false);
   // --- START: THAY ĐỔI ĐỂ QUẢN LÝ LỊCH SỬ UNDO/REDO ---
-  const [activeSidePanel, setActiveSidePanel] = useState<'topology' | 'placement' | 'template'>('topology'); // State chọn panel
+  const [activeSidePanel, setActiveSidePanel] = useState<'topology' | 'placement' | 'template'>('template'); // State chọn panel
   const [placementSubTab, setPlacementSubTab] = useState<'guided' | 'auto'>('guided'); // Sub-tab trong Placement panel
   const [autoPlacementMode, setAutoPlacementMode] = useState<'random' | 'academic'>('random'); // Mode trong Auto tab
   const [constraintsEnabled, setConstraintsEnabled] = useState(true); // Bật/tắt constraints trong Random mode

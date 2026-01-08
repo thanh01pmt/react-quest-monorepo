@@ -41,6 +41,8 @@ interface TopologyInspectorProps {
     autoAnalyze?: boolean;
     /** If true, show the report modal automatically after analysis */
     autoShowReport?: boolean;
+    /** If true, hide the internal header and always show content (for external collapsible control) */
+    hideHeader?: boolean;
 }
 
 export interface HighlightItem {
@@ -62,7 +64,7 @@ const HIGHLIGHT_COLORS = [
     '#ef4444', // red
 ];
 
-export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, autoExpand = false, autoAnalyze = false, autoShowReport = false }: TopologyInspectorProps) {
+export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, autoExpand = false, autoAnalyze = false, autoShowReport = false, hideHeader = false }: TopologyInspectorProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [context, setContext] = useState<PlacementContext | null>(null);
@@ -440,15 +442,17 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, 
 
     return (
         <div className="topology-inspector">
-            <button
-                className="inspector-toggle"
-                onClick={() => setIsExpanded(!isExpanded)}
-            >
-                <span><Search size={14} /> Topology Inspector</span>
-                <span className="toggle-icon">{isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
-            </button>
+            {!hideHeader && (
+                <button
+                    className="inspector-toggle"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                >
+                    <span><Search size={14} /> Topology Inspector</span>
+                    <span className="toggle-icon">{isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
+                </button>
+            )}
 
-            {isExpanded && showReport && (
+            {(isExpanded || hideHeader) && showReport && (
                 <div className="report-modal-overlay">
                     <div className="report-modal">
                         <div className="report-header">
@@ -468,7 +472,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, 
                 </div>
             )}
 
-            {isExpanded && !showReport && (
+            {(isExpanded || hideHeader) && !showReport && (
                 <div className="inspector-content">
                     <div className="inspector-toolbar">
                         <button className="refresh-btn" onClick={analyze}>
@@ -527,7 +531,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, 
 
                                 {/* Points */}
                                 <div className="points-section">
-                                    <h4 className="collapsible-header" onClick={() => toggleGroup('points')}>
+                                    <h4 className="inspector-group-header" onClick={() => toggleGroup('points')}>
                                         {collapsedGroups.has('points') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                                         <MapPin size={16} /> Special Points ({context.points.length})
                                     </h4>
@@ -563,7 +567,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, 
                                 {/* Areas */}
                                 {context.areas.length > 0 && (
                                     <div className="areas-section">
-                                        <h4 className="collapsible-header" onClick={() => toggleGroup('areas')}>
+                                        <h4 className="inspector-group-header" onClick={() => toggleGroup('areas')}>
                                             {collapsedGroups.has('areas') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                                             <BoxSelect size={16} /> Areas ({context.areas.length})
                                         </h4>
@@ -601,7 +605,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, 
                                 {/* Connectors */}
                                 {context.connectors.length > 0 && (
                                     <div className="connectors-section">
-                                        <h4 className="collapsible-header" onClick={() => toggleGroup('connectors')}>
+                                        <h4 className="inspector-group-header" onClick={() => toggleGroup('connectors')}>
                                             {collapsedGroups.has('connectors') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                                             <Link size={16} /> Connectors ({context.connectors.length})
                                         </h4>
@@ -621,7 +625,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, 
                                 {/* Relations */}
                                 {context.relations.length > 0 && (
                                     <div className="relations-section">
-                                        <h4 className="collapsible-header" onClick={() => toggleGroup('relations')}>
+                                        <h4 className="inspector-group-header" onClick={() => toggleGroup('relations')}>
                                             {collapsedGroups.has('relations') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                                             <Scale size={16} /> Relations ({context.relations.length})
                                         </h4>
@@ -668,7 +672,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, 
                                 <div className="tier-section">
                                     <h3 className="tier-header">Tier 2: Pattern Extrapolation</h3>
                                     <div className="patterns-section">
-                                        <h4 className="collapsible-header" onClick={() => toggleGroup('patterns')}>
+                                        <h4 className="inspector-group-header" onClick={() => toggleGroup('patterns')}>
                                             {collapsedGroups.has('patterns') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                                             <Cpu size={16} /> Patterns ({context.patterns.length})
                                         </h4>
@@ -694,7 +698,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, 
                             <div className="tier-section">
                                 <h3 className="tier-header">Tier 3: Length Filtering</h3>
                                 <div className="segments-section">
-                                    <h4 className="collapsible-header" onClick={() => toggleGroup('segments')}>
+                                    <h4 className="inspector-group-header" onClick={() => toggleGroup('segments')}>
                                         {collapsedGroups.has('segments') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                                         <Ruler size={16} /> Merged Segments ({context.segments.length})
                                     </h4>
@@ -735,7 +739,7 @@ export function TopologyInspector({ pathInfo, placedObjects, onHighlightChange, 
                             <div className="tier-section">
                                 <h3 className="tier-header">Tier 4: Prioritization</h3>
                                 <div className="positions-section">
-                                    <h4 className="collapsible-header" onClick={() => toggleGroup('positions')}>
+                                    <h4 className="inspector-group-header" onClick={() => toggleGroup('positions')}>
                                         {collapsedGroups.has('positions') ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                                         <MapPin size={16} /> Priority Positions ({context.prioritizedCoords.length})
                                     </h4>

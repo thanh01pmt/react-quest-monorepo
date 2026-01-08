@@ -5,8 +5,8 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px;
-  height: 100%;
-  overflow-y: auto;
+  /* height: 100%; - Removed to rely on parent scroll */
+  /* overflow-y: auto; - Removed to rely on parent scroll */
 }
 
 .template-panel__header {

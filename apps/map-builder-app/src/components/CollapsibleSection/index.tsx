@@ -5,6 +5,7 @@
  * - Animated expand/collapse
  * - localStorage persistence
  * - Customizable styling
+ * - Controlled/Uncontrolled mode support
  */
 
 import React, { useState, useEffect, useRef, ReactNode } from 'react';
@@ -20,6 +21,8 @@ interface CollapsibleSectionProps {
     storageKey?: string;
     /** Initial collapsed state (default: false = expanded) */
     defaultCollapsed?: boolean;
+    /** Controlled collapsed state */
+    isCollapsed?: boolean;
     /** Children content */
     children: ReactNode;
     /** Optional subtitle/badge */
@@ -35,13 +38,14 @@ export function CollapsibleSection({
     icon,
     storageKey,
     defaultCollapsed = false,
+    isCollapsed: controlledCollapsed,
     children,
     badge,
     className = '',
     onToggle,
 }: CollapsibleSectionProps) {
-    // Initialize state from localStorage if available
-    const [isCollapsed, setIsCollapsed] = useState(() => {
+    // Internal state for uncontrolled mode
+    const [internalCollapsed, setInternalCollapsed] = useState(() => {
         if (storageKey) {
             const stored = localStorage.getItem(`collapsible-${storageKey}`);
             if (stored !== null) {
@@ -50,6 +54,10 @@ export function CollapsibleSection({
         }
         return defaultCollapsed;
     });
+
+    // Check if component is controlled
+    const isControlled = controlledCollapsed !== undefined;
+    const isCollapsed = isControlled ? controlledCollapsed : internalCollapsed;
 
     const contentRef = useRef<HTMLDivElement>(null);
     const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
@@ -70,7 +78,9 @@ export function CollapsibleSection({
 
     const handleToggle = () => {
         const newState = !isCollapsed;
-        setIsCollapsed(newState);
+        if (!isControlled) {
+            setInternalCollapsed(newState);
+        }
         onToggle?.(newState);
     };
 

@@ -21,11 +21,11 @@
 }
 
 .inspector-content {
-  margin-top: 8px;
+  margin-top: 0;
   padding: 12px;
-  background-color: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 6px;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
   font-size: 0.8125rem;
 }
 
@@ -67,7 +67,7 @@
 .metrics-section {
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: none;
 }
 
 .metrics-grid {
@@ -119,9 +119,14 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #64748b;
+  margin-top: 0px;
   margin-bottom: 8px;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: none;
   padding-bottom: 4px;
+}
+
+.tier-section:first-of-type .tier-header {
+  margin-top: 0;
 }
 
 .items-list {
@@ -151,6 +156,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  align-items: flex-start; /* Prevent badges from stretching */
 }
 
 .item-name {
@@ -338,7 +344,7 @@
 }
 
 /* Collapsible section headers */
-.collapsible-header {
+.inspector-group-header {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -348,13 +354,14 @@
   border-radius: 4px;
   transition: background-color 0.15s;
   user-select: none;
+  background: transparent;
 }
 
-.collapsible-header:hover {
+.inspector-group-header:hover {
   background-color: #1e293b;
 }
 
-.collapsible-header svg:first-child {
+.inspector-group-header svg:first-child {
   color: #64748b;
   flex-shrink: 0;
 }

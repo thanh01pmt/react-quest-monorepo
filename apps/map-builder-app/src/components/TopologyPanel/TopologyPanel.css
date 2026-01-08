@@ -7,10 +7,9 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  padding: 0;
   background: var(--bg-elevated);
-  color: var(--text-primary);
-  height: 100%;
-  overflow-y: auto;
+  /* height/overflow reset removed */
 }
 
 /* Icon Styles */
@@ -39,6 +38,7 @@
   padding: 12px;
   background: rgba(34, 197, 94, 0.1);
   border-bottom: 1px solid rgba(34, 197, 94, 0.3);
+  margin-bottom: 12px;
 }
 
 .post-generate-header {
@@ -69,8 +69,26 @@
 }
 
 /* Collapsible Sections */
-.collapsible-section {
-  border-bottom: 1px solid var(--border-solid);
+.topology-panel .collapsible-section {
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  overflow: hidden;
+  margin: 0 12px 8px 12px;
+  padding: 0 !important;
+}
+
+.topology-panel .collapsible-section:first-child {
+  margin-top: 12px;
+}
+
+.topology-panel .collapsible-header {
+   display: flex;
+   width: 100%;
+   margin: 0;
+   border: none !important;
+   background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-elevated) 100%) !important;
+   padding: 12px;
 }
 
 .section-header {
@@ -264,11 +282,10 @@
 
 /* Generate Section */
 .generate-section {
-  margin: 12px;
-  padding: 16px;
-  border: 1px solid var(--border-solid);
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* Generate Button */
