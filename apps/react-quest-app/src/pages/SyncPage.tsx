@@ -98,6 +98,21 @@ export function SyncPage({ settings, onSettingsChange }: SyncPageProps) {
             gameType: (quest.gameType as string) || 'maze'
         } as unknown as Quest;
 
+        // VALIDATION: Check if gameConfig is valid to prevent Player crash
+        const gc = (finalQuest as any).gameConfig;
+        if (!gc) {
+            setError("Invalid Quest: Missing game configuration.");
+            return null;
+        }
+        if (!gc.players || gc.players.length === 0 || !gc.players[0]?.start) {
+            setError("Invalid Quest: Missing Player Start position. Please place a Start object in builder.");
+            return null;
+        }
+        if (!gc.finish) {
+            setError("Invalid Quest: Missing Finish position. Please place a Finish object in builder.");
+            return null;
+        }
+
         // If "Show Solution" is OFF, we verify if we need to clear the answer.
         // Usually builder sends the "answer" in startBlocks.
         if (finalQuest.blocklyConfig?.startBlocks) {
