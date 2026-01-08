@@ -249,7 +249,7 @@ export function SyncPage({ settings, onSettingsChange }: SyncPageProps) {
                 <QuestPlayer
                     isStandalone={false}
                     language={(settings as any).language || 'en'}
-                    questData={questForPlayer}
+                    questData={questForPlayer as Quest}
                     initialSettings={settings}
                     onSettingsChange={onSettingsChange}
                     onQuestComplete={handleQuestComplete}

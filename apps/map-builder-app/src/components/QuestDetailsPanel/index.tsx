@@ -76,124 +76,7 @@ function CollapsibleSection({
 // ============================================================
 // JSON TO XML CONVERTER (giữ nguyên logic cũ)
 // ============================================================
-const jsonToXml = (structuredSolution: any): string => {
-  const doc = document.implementation.createDocument(null, 'xml', null);
 
-  const jsonToXmlRecursive = (actions: any[], parent: Element): Element | null => {
-    let lastBlock: Element | null = null;
-
-    actions.forEach(action => {
-      const block = doc.createElement('block');
-
-      if (action.type === 'CALL' && action.name) {
-        block.setAttribute('type', 'procedures_callnoreturn');
-        const mutation = doc.createElement('mutation');
-        mutation.setAttribute('name', action.name);
-        block.appendChild(mutation);
-      } else {
-        block.setAttribute('type', action.type);
-      }
-
-      // Handle different block types
-      if (action.type === 'maze_turn') {
-        const field = doc.createElement('field');
-        field.setAttribute('name', 'DIR');
-        field.textContent = action.direction;
-        block.appendChild(field);
-      } else if (action.type === 'maze_repeat' || action.type === 'maze_for') {
-        const value = doc.createElement('value');
-        value.setAttribute('name', 'TIMES');
-
-        if (typeof action.times === 'object' && action.times !== null && action.times.type) {
-          jsonToXmlRecursive([action.times], value);
-        } else {
-          const shadow = doc.createElement('shadow');
-          shadow.setAttribute('type', 'math_number');
-          const field = doc.createElement('field');
-          field.setAttribute('name', 'NUM');
-          field.textContent = action.times?.toString() || '1';
-          shadow.appendChild(field);
-          value.appendChild(shadow);
-        }
-        block.appendChild(value);
-
-        // Support both 'do' (transpiler output) and 'actions' (legacy format) for loop body
-        const loopBody = action.do || action.actions;
-        if (loopBody && loopBody.length > 0) {
-          const statement = doc.createElement('statement');
-          statement.setAttribute('name', 'DO');
-          jsonToXmlRecursive(loopBody, statement);
-          block.appendChild(statement);
-        }
-      } else if (action.type === 'maze_forever') {
-        const statement = doc.createElement('statement');
-        statement.setAttribute('name', 'DO');
-        const foreverBody = action.do || action.actions || [];
-        jsonToXmlRecursive(foreverBody, statement);
-        block.appendChild(statement);
-      } else if (action.type === 'procedures_callnoreturn') {
-        const mutation = doc.createElement('mutation');
-        // Handle both direct name property and mutation object format
-        const functionName = action.mutation?.name || action.name || 'unnamed_function';
-        mutation.setAttribute('name', functionName);
-        block.appendChild(mutation);
-      }
-
-      if (lastBlock) {
-        const next = doc.createElement('next');
-        next.appendChild(block);
-        lastBlock.appendChild(next);
-      } else {
-        parent.appendChild(block);
-      }
-      lastBlock = block;
-    });
-
-    return lastBlock;
-  };
-
-  const startBlock = doc.createElement('block');
-  startBlock.setAttribute('type', 'maze_start');
-  startBlock.setAttribute('deletable', 'false');
-  startBlock.setAttribute('movable', 'false');
-
-  if (structuredSolution.main && structuredSolution.main.length > 0) {
-    const mainStatement = doc.createElement('statement');
-    mainStatement.setAttribute('name', 'DO');
-    jsonToXmlRecursive(structuredSolution.main, mainStatement);
-    startBlock.appendChild(mainStatement);
-  }
-  doc.documentElement.appendChild(startBlock);
-
-  if (structuredSolution.procedures) {
-    let yOffset = 100;
-    for (const procName in structuredSolution.procedures) {
-      const procActions = structuredSolution.procedures[procName];
-      const procBlock = doc.createElement('block');
-      procBlock.setAttribute('type', 'procedures_defnoreturn');
-      procBlock.setAttribute('x', '400');
-      procBlock.setAttribute('y', yOffset.toString());
-
-      const field = doc.createElement('field');
-      field.setAttribute('name', 'NAME');
-      field.textContent = procName;
-      procBlock.appendChild(field);
-
-      if (procActions && procActions.length > 0) {
-        const procStatement = doc.createElement('statement');
-        procStatement.setAttribute('name', 'STACK');
-        jsonToXmlRecursive(procActions, procStatement);
-        procBlock.appendChild(procStatement);
-      }
-
-      doc.documentElement.appendChild(procBlock);
-      yOffset += 150;
-    }
-  }
-
-  const serializer = new XMLSerializer();
-  return serializer.serializeToString(doc);
-};
 
 // Normalize actions
 const normalizeActions = (actions: any[]): any[] => {
@@ -331,26 +214,21 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
     }
   }, [metadata]);
 
-  // Compile JSON to XML
-  const handleCompileToXml = (jsonSource: string, sourceName: string) => {
-    try {
-      if (!jsonSource || jsonSource.trim() === '') {
-        alert(`Error: ${sourceName} (JSON) is empty.`);
-        return;
+  // Auto-sync Max Blocks (Optimal + 3)
+  useEffect(() => {
+    const isAuto = getDeepValue(metadata, 'blocklyConfig.autoMaxBlocks') !== false;
+    if (isAuto && localStructuredSolution && localStructuredSolution !== '{}') {
+      const count = (localStructuredSolution.match(/"type":/g) || []).length;
+      if (count > 0) {
+        const target = count + 3;
+        if (getDeepValue(metadata, 'blocklyConfig.maxBlocks') !== target) {
+          handleComplexChange({ path: 'blocklyConfig.maxBlocks', value: target });
+        }
       }
-      const structuredSolution = JSON.parse(jsonSource);
-      if (!structuredSolution || !Array.isArray(structuredSolution.main)) {
-        alert('Error: Data must have a "main" array.');
-        return;
-      }
-      const finalXml = jsonToXml(structuredSolution);
-      handleComplexChange({ path: 'blocklyConfig.startBlocks', value: finalXml });
-      alert('Start Blocks created successfully!');
-    } catch (error) {
-      console.error("Error compiling JSON to XML:", error);
-      alert(`Error: Could not parse ${sourceName}.\n\n${error}`);
     }
-  };
+  }, [localStructuredSolution, getDeepValue(metadata, 'blocklyConfig.autoMaxBlocks')]);
+
+
 
   // File import handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -420,6 +298,8 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
             handleComplexChange({ path: 'blocklyConfig.startBlocks', value: newXml });
             setBlocklyModalOpen(false);
           }}
+          basicSolution={localBasicSolution}
+          optimalSolution={localStructuredSolution}
         />
       )}
 
@@ -577,11 +457,50 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
         </div>
 
         <div className="field-row">
-          <label>Max Blocks</label>
+          <div className="field-row-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <label>Max Blocks</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {getDeepValue(metadata, 'blocklyConfig.autoMaxBlocks') === false && localStructuredSolution && (localStructuredSolution.match(/"type":/g) || []).length > 0 && (
+                <span
+                  style={{ fontSize: '10px', color: '#3b82f6', cursor: 'pointer', fontWeight: 500 }}
+                  title="Click to apply Optimal Block count"
+                  onClick={() => {
+                    const count = (localStructuredSolution.match(/"type":/g) || []).length;
+                    if (count > 0) handleComplexChange({ path: 'blocklyConfig.maxBlocks', value: count });
+                  }}
+                >
+                  Opt: {(localStructuredSolution.match(/"type":/g) || []).length}
+                </span>
+              )}
+              <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: '#888' }}>
+                <input
+                  type="checkbox"
+                  checked={getDeepValue(metadata, 'blocklyConfig.autoMaxBlocks') !== false}
+                  onChange={(e) => {
+                    const isAuto = e.target.checked;
+                    const changes: { path: string, value: any }[] = [{ path: 'blocklyConfig.autoMaxBlocks', value: isAuto }];
+
+                    // Instant update if turning ON
+                    if (isAuto && localStructuredSolution) {
+                      const count = (localStructuredSolution.match(/"type":/g) || []).length;
+                      if (count > 0) {
+                        changes.push({ path: 'blocklyConfig.maxBlocks', value: count + 3 });
+                      }
+                    }
+                    handleComplexChange(...changes);
+                  }}
+                  style={{ cursor: 'pointer' }}
+                />
+                Auto (+3)
+              </label>
+            </div>
+          </div>
           <input
             type="number"
             value={getDeepValue(metadata, 'blocklyConfig.maxBlocks') || ''}
+            disabled={getDeepValue(metadata, 'blocklyConfig.autoMaxBlocks') !== false}
             onChange={(e) => handleComplexChange({ path: 'blocklyConfig.maxBlocks', value: parseInt(e.target.value, 10) || 0 })}
+            className={getDeepValue(metadata, 'blocklyConfig.autoMaxBlocks') !== false ? 'disabled-input' : ''}
           />
         </div>
       </CollapsibleSection>
@@ -609,7 +528,7 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
               Generating...
             </>
           ) : (
-            <><RefreshCw size={16} /> Gen Raw Action</>
+            <><RefreshCw size={16} /> Calculate Solution</>
           )}
         </button>
 
@@ -627,23 +546,7 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
           </div>
         )}
 
-        {/* Gen Basic/Optimal Solution buttons */}
-        <div className="button-group">
-          <button
-            className="action-btn secondary"
-            onClick={() => handleCompileToXml(localBasicSolution, 'Basic Solution')}
-            disabled={!localBasicSolution || localBasicSolution === '{}'}
-          >
-            Gen Basic Solution
-          </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => handleCompileToXml(localStructuredSolution, 'Structured Solution')}
-            disabled={!localStructuredSolution || localStructuredSolution === '{}'}
-          >
-            Gen Optimal Solution
-          </button>
-        </div>
+
 
         {/* Edit Start Blocks */}
         <div className="action-row" style={{ marginTop: '8px' }}>

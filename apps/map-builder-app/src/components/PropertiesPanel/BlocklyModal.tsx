@@ -44,11 +44,14 @@ const scratchWithCustomCategoriesTheme = Blockly.Theme.defineTheme('scratch_cust
 // Import các thành phần cần thiết từ quest-player
 import { questPlayerResources } from '@repo/quest-player/i18n';
 import { initMazeBlocks } from './blocks';
+import { convertSolutionToXml } from '@repo/academic-map-generator';
 
 interface BlocklyModalProps {
   initialXml: string;
   onClose: () => void;
   onSave: (xml: string) => void;
+  basicSolution?: any;
+  optimalSolution?: any;
 }
 
 // Định nghĩa Toolbox ngay trong code
@@ -72,7 +75,7 @@ const toolboxJson = {
       'contents': [
         { 'kind': 'block', 'type': 'maze_forever' },
         { 'kind': 'block', 'type': 'controls_whileUntil' },
-        { 'kind': 'block', 'type': 'maze_repeat', 'inputs': { 'TIMES': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 5 }}}}}
+        { 'kind': 'block', 'type': 'maze_repeat', 'inputs': { 'TIMES': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 5 } } } } }
       ]
     },
     {
@@ -107,7 +110,7 @@ const toolboxJson = {
       'contents': [
         { 'kind': 'block', 'type': 'maze_item_count' },
         { 'kind': 'block', 'type': 'math_number' },
-        { 'kind': 'block', 'type': 'math_arithmetic', 'inputs': { 'A': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 }}}, 'B': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 }}} }}
+        { 'kind': 'block', 'type': 'math_arithmetic', 'inputs': { 'A': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }, 'B': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } } } }
       ]
     },
     { 'kind': 'sep' }, // Đường kẻ phân cách
@@ -116,11 +119,41 @@ const toolboxJson = {
   ]
 };
 
-export function BlocklyModal({ initialXml, onClose, onSave }: BlocklyModalProps) {
+export function BlocklyModal({ initialXml, onClose, onSave, basicSolution, optimalSolution }: BlocklyModalProps) {
   const blocklyDiv = useRef<HTMLDivElement>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
   const { t, i18n } = useTranslation(); // 2. Lấy hàm t và i18n instance
   const [currentXml, setCurrentXml] = useState(initialXml);
+
+  // Load solution into workspace
+  const handleLoadSolution = (solutionData: any, type: string) => {
+    if (!solutionData || (typeof solutionData === 'string' && solutionData === '{}')) {
+      alert(`No ${type} solution data available.`);
+      return;
+    }
+
+    try {
+      // Parse JSON if string
+      const solution = typeof solutionData === 'string' ? JSON.parse(solutionData) : solutionData;
+
+      if (!solution.main) {
+        alert('Invalid solution format: missing "main" array');
+        return;
+      }
+
+      const xml = convertSolutionToXml(solution);
+
+      if (workspaceRef.current) {
+        workspaceRef.current.clear();
+        const dom = Blockly.utils.xml.textToDom(xml);
+        Blockly.Xml.domToWorkspace(dom, workspaceRef.current);
+        setCurrentXml(xml);
+      }
+    } catch (e) {
+      console.error('Failed to load solution', e);
+      alert('Error loading solution: ' + e);
+    }
+  };
 
   useEffect(() => {
     // Hàm dịch trực tiếp toolbox JSON bằng i18next
@@ -223,10 +256,78 @@ export function BlocklyModal({ initialXml, onClose, onSave }: BlocklyModalProps)
   return (
     <div className="blockly-modal-overlay">
       <div className="blockly-modal-content">
-        <div className="blockly-modal-header">
-          <h2>Edit Start Blocks</h2>
-          <button onClick={() => onSave(currentXml)} className="modal-btn save-btn">Save & Close</button>
-          <button onClick={onClose} className="modal-btn close-btn">Close</button>
+        <div className="blockly-modal-header" style={{ justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h2>Edit Start Blocks</h2>
+            <div style={{ display: 'flex', gap: '8px', marginLeft: '10px' }}>
+              <button
+                className="modal-btn secondary-btn"
+                onClick={() => handleLoadSolution(basicSolution, 'Basic')}
+                disabled={!basicSolution || basicSolution === '{}'}
+                title="Load Basic Solution"
+                style={{
+                  fontSize: '12px',
+                  padding: '6px 12px',
+                  background: '#3b82f6',
+                  color: 'white',
+                  border: '1px solid #2563eb',
+                  borderRadius: '4px',
+                  opacity: (!basicSolution || basicSolution === '{}') ? 0.5 : 1,
+                  cursor: (!basicSolution || basicSolution === '{}') ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Load Basic
+              </button>
+              <button
+                className="modal-btn secondary-btn"
+                onClick={() => handleLoadSolution(optimalSolution, 'Optimal')}
+                disabled={!optimalSolution || optimalSolution === '{}'}
+                title="Load Optimal Solution"
+                style={{
+                  fontSize: '12px',
+                  padding: '6px 12px',
+                  background: '#8b5cf6',
+                  color: 'white',
+                  border: '1px solid #7c3aed',
+                  borderRadius: '4px',
+                  opacity: (!optimalSolution || optimalSolution === '{}') ? 0.5 : 1,
+                  cursor: (!optimalSolution || optimalSolution === '{}') ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Load Optimal
+              </button>
+              <button
+                className="modal-btn secondary-btn"
+                onClick={() => {
+                  if (confirm('Reset to empty start block?')) {
+                    const emptyStart = '<xml><block type="maze_start" deletable="false" movable="false" x="20" y="20"></block></xml>';
+                    if (workspaceRef.current) {
+                      workspaceRef.current.clear();
+                      const dom = Blockly.utils.xml.textToDom(emptyStart);
+                      Blockly.Xml.domToWorkspace(dom, workspaceRef.current);
+                      setCurrentXml(emptyStart);
+                    }
+                  }
+                }}
+                title="Reset to Empty"
+                style={{
+                  fontSize: '12px',
+                  padding: '6px 12px',
+                  background: '#ef4444',
+                  color: 'white',
+                  border: '1px solid #dc2626',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+          <div>
+            <button onClick={() => onSave(currentXml)} className="modal-btn save-btn">Save & Close</button>
+            <button onClick={onClose} className="modal-btn close-btn">Close</button>
+          </div>
         </div>
         <div className="blockly-container" ref={blocklyDiv}></div>
       </div>

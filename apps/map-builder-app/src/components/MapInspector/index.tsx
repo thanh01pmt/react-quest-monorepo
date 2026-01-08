@@ -34,7 +34,7 @@ export const MapInspector: React.FC<MapInspectorProps> = ({
     mode = 'manual'
 }) => {
     const [showValidation, setShowValidation] = useState(false);
-    const [isMinimized, setIsMinimized] = useState(false);
+    const [isMinimized, setIsMinimized] = useState(true);
 
     // Use path tracer for manual mode
     const tracedPath = usePathTracer(placedObjects);

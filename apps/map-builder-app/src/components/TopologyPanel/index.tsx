@@ -998,7 +998,7 @@ export const TopologyPanel: React.FC<TopologyPanelProps> = ({ onGenerate, assetM
                     pathInfo={pathInfo}
                     onHighlightChange={onHighlightChange}
                     placedObjects={placedObjects}
-                    autoExpand={true}
+                    autoExpand={false}
                     autoAnalyze={true}
                     autoShowReport={false}
                 />
