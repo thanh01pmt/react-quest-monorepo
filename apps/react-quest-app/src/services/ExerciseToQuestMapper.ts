@@ -222,6 +222,62 @@ function resolveTemplateCode(templateCode: string, difficulty: number): string {
   return code;
 }
 
+/**
+ * Generate dynamic task description based on map content
+ */
+function generateTaskDescription(
+  collectibles: any[] = [],
+  interactibles: any[] = [],
+  locale: 'en' | 'vi' = 'vi'
+): string {
+  const crystalCount = collectibles.filter(c => c.type === 'crystal').length;
+  const keyCount = collectibles.filter(c => c.type === 'key').length;
+  const switchCount = interactibles.filter(i => i.type === 'switch').length;
+  const portalCount = interactibles.filter(i => i.type === 'portal').length;
+  
+  const tasks: string[] = [];
+  
+  // Build task list based on map content
+  if (crystalCount > 0) {
+    tasks.push(locale === 'vi' 
+      ? `Thu thập ${crystalCount} pha lê` 
+      : `Collect ${crystalCount} crystal${crystalCount > 1 ? 's' : ''}`);
+  }
+  
+  if (keyCount > 0) {
+    tasks.push(locale === 'vi' 
+      ? `Thu thập ${keyCount} chìa khóa` 
+      : `Collect ${keyCount} key${keyCount > 1 ? 's' : ''}`);
+  }
+  
+  if (switchCount > 0) {
+    tasks.push(locale === 'vi' 
+      ? `Bật ${switchCount} công tắc` 
+      : `Activate ${switchCount} switch${switchCount > 1 ? 'es' : ''}`);
+  }
+  
+  if (portalCount > 0) {
+    tasks.push(locale === 'vi' 
+      ? `Sử dụng ${portalCount} cổng dịch chuyển` 
+      : `Use ${portalCount} portal${portalCount > 1 ? 's' : ''}`);
+  }
+  
+  // Add final goal
+  const reachGoal = locale === 'vi' ? 'tìm đường về đích' : 'reach the goal';
+  
+  if (tasks.length === 0) {
+    // No items - just navigation
+    return locale === 'vi' 
+      ? 'Tìm đường về đích.' 
+      : 'Find your way to the goal.';
+  } else if (tasks.length === 1) {
+    return `${tasks[0]} và ${reachGoal}.`;
+  } else {
+    const lastTask = tasks.pop();
+    return `${tasks.join(', ')}, ${lastTask} và ${reachGoal}.`;
+  }
+}
+
 // Helper to create coordinate key for comparison
 function coordKey(x: number, y: number, z: number): string {
   return `${x},${y},${z}`;
@@ -538,11 +594,19 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
     translations: {
       en: {
         [`practice_${exercise.id}`]: `Exercise ${index + 1}: ${exercise.concept}`,
-        [`practice_${exercise.id}_desc`]: exercise.hints[0] || 'Complete the maze',
+        [`practice_${exercise.id}_desc`]: generateTaskDescription(
+          gameConfig.collectibles || [],
+          gameConfig.interactibles || [],
+          'en'
+        ),
       },
       vi: {
         [`practice_${exercise.id}`]: `Bài ${index + 1}: ${exercise.concept}`,
-        [`practice_${exercise.id}_desc`]: exercise.hints[0] || 'Hoàn thành mê cung',
+        [`practice_${exercise.id}_desc`]: generateTaskDescription(
+          gameConfig.collectibles || [],
+          gameConfig.interactibles || [],
+          'vi'
+        ),
       },
     },
     blocklyConfig: {

@@ -154,8 +154,15 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         totalTime: 0
       };
       lastActionTimeRef.current = now;
+
+      // Inject quest translations if available (e.g. for dynamic practice quests)
+      if (questData.translations) {
+        Object.entries(questData.translations).forEach(([lang, resources]) => {
+          i18n.addResourceBundle(lang, 'translation', resources, true, true);
+        });
+      }
     }
-  }, [questData]);
+  }, [questData, i18n]);
 
   // Use LZString for decompression
   // const LZString = require('lz-string'); // Dynamic import if needed, but import up top is better. 

@@ -103,6 +103,16 @@ export interface TemplateMetadata {
 }
 
 /**
+ * Hints extracted from template markdown for student guidance
+ */
+export interface TemplateHints {
+  title: string;               // e.g., "Palindrome Path"
+  description: string;         // Main description paragraph
+  learningGoals?: string;      // e.g., "Palindrome / Symmetry" or first learning goal
+  goalDetails?: string[];      // Bullet points under Learning Goals/Academic Concept
+}
+
+/**
  * Full template config (metadata + content)
  */
 export interface TemplateConfig {
@@ -111,6 +121,7 @@ export interface TemplateConfig {
   solutionCode: string;
   descriptionMarkdown: string;
   rawContent: string;         // Original markdown
+  hints?: TemplateHints;      // Extracted hints for student guidance
 }
 
 // ============================================================================

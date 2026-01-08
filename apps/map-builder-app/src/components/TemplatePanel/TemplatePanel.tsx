@@ -42,6 +42,23 @@ interface GeneratedMapData {
         concepts?: string[];
         category?: string;
     };
+    // Quest info auto-filled from template
+    questInfo?: {
+        id: string;
+        topic: string;
+        titleKey: string;
+        descriptionKey: string;
+        translations: {
+            vi: Record<string, string>;
+            en: Record<string, string>;
+        };
+        hints?: {
+            title: string;
+            description: string;
+            learningGoals?: string;
+            goalDetails?: string[];
+        };
+    };
 }
 
 interface PreviewResult {
@@ -58,6 +75,33 @@ interface PreviewResult {
 export interface TemplatePanelProps {
     onGenerate: (data: GeneratedMapData) => void;
     hasExistingMap?: boolean;
+}
+
+// Helper to generate task description from result
+function generateTaskDescription(result: SolutionDrivenResult, locale: 'vi' | 'en'): string {
+    const collectibles = result.gameConfig?.gameConfig?.collectibles || [];
+    const interactibles = result.gameConfig?.gameConfig?.interactibles || [];
+    const crystalCount = collectibles.filter((c: any) => c.type === 'crystal').length;
+    const switchCount = interactibles.filter((i: any) => i.type === 'switch').length;
+
+    const tasks: string[] = [];
+    if (crystalCount > 0) {
+        tasks.push(locale === 'vi' ? `Thu thập ${crystalCount} pha lê` : `Collect ${crystalCount} crystal${crystalCount > 1 ? 's' : ''}`);
+    }
+    if (switchCount > 0) {
+        tasks.push(locale === 'vi' ? `Bật ${switchCount} công tắc` : `Activate ${switchCount} switch${switchCount > 1 ? 'es' : ''}`);
+    }
+
+    const reachGoal = locale === 'vi' ? 'tìm đường về đích' : 'reach the goal';
+    if (tasks.length === 0) return locale === 'vi' ? 'Tìm đường về đích.' : 'Find your way to the goal.';
+    return `${tasks.join(', ')} và ${reachGoal}.`;
+}
+
+// Helper to get category name from CATEGORY_INFO array
+function getCategoryName(category: string | undefined, locale: 'vi' | 'en'): string {
+    const catInfo = CATEGORY_INFO.find(c => c.id === category);
+    if (!catInfo) return category || (locale === 'vi' ? 'Tùy chỉnh' : 'Custom');
+    return locale === 'vi' ? catInfo.nameVi : catInfo.name;
 }
 
 export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePanelProps) {
@@ -264,6 +308,35 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
                     tags: currentPreset.tags || [],
                     concepts: currentPreset.concept ? [currentPreset.concept] : [],
                     category: currentPreset.category
+                };
+
+                // Auto-fill quest info from template
+                const templateId = currentPreset.id || 'custom';
+                const timestamp = Date.now();
+                const uniqueId = `TEMPLATE.${currentPreset.category?.toUpperCase() || 'CUSTOM'}.${timestamp}`;
+                const titleKey = `Template.${templateId}.Title`;
+                const descriptionKey = `Template.${templateId}.Description`;
+                const topicKey = `topic-${currentPreset.category || 'custom'}`;
+
+                mapData.questInfo = {
+                    id: uniqueId,
+                    topic: topicKey,
+                    titleKey,
+                    descriptionKey,
+                    translations: {
+                        vi: {
+                            [titleKey]: currentPreset.name || 'Bài tập mới',
+                            [descriptionKey]: currentPreset.description || generateTaskDescription(result, 'vi'),
+                            [topicKey]: getCategoryName(currentPreset.category, 'vi')
+                        },
+                        en: {
+                            [titleKey]: currentPreset.name || 'New Exercise',
+                            [descriptionKey]: currentPreset.description || generateTaskDescription(result, 'en'),
+                            [topicKey]: getCategoryName(currentPreset.category, 'en')
+                        }
+                    },
+                    // Hints extracted from template markdown
+                    hints: currentPreset.hints
                 };
             }
             onGenerate(mapData);

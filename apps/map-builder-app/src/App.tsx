@@ -3900,6 +3900,16 @@ function App() {
                   console.log('[Template] Auto-selected toolbox:', suggestedToolboxKey, 'from tags:', data.templateMeta?.tags);
 
                   const metadataUpdate: Record<string, any> = {
+                    // Apply questInfo from template (auto-filled title, description, topic, hints)
+                    ...(data.questInfo ? {
+                      id: data.questInfo.id,
+                      topic: data.questInfo.topic,
+                      titleKey: data.questInfo.titleKey,
+                      questTitleKey: data.questInfo.descriptionKey,
+                      descriptionKey: data.questInfo.descriptionKey,
+                      translations: data.questInfo.translations,
+                      hints: data.questInfo.hints,
+                    } : {}),
                     // FIX: Store structuredSolution INSIDE solution (not top level)
                     // This matches what QuestDetailsPanel expects (solution.structuredSolution)
                     solution: {
