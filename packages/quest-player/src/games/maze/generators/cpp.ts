@@ -5,7 +5,9 @@ import * as Blockly from 'blockly/core';
 // Note: We use javascriptGenerator internally but override output format
 
 // Store for C++ code generation
-let cppCode: string[] = [];
+// @ts-ignore - unused but required by signarture
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let _cppCode: string[] = [];
 
 const indent = (code: string, level: number = 1): string => {
   const spaces = '    '.repeat(level);

@@ -4,7 +4,7 @@ import Interpreter from 'js-interpreter';
 import type { IGameEngine, GameConfig, PondConfig, SolutionConfig, GameState, StepResult } from '../../types';
 import type { PondGameState, AvatarState, PondEvent } from './types';
 
-type Interpreter = any;
+// type Interpreter = any;
 
 const STATEMENTS_PER_FRAME = 100;
 const MISSILE_SPEED = 3;

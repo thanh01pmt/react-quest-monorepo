@@ -30,6 +30,7 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "src"
+    "src",
+    "../../packages/quest-player/src/types/**/*.d.ts"
   ]
 }

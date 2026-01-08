@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -29,7 +29,7 @@ export const GuideRenderer: React.FC<GuideRendererProps> = ({
     onElementClick,
     useDynamicHeight = false
 }) => {
-    const { t } = useTranslation();
+    useTranslation();
     const [dynamicHeights, setDynamicHeights] = useState<Record<number, number>>({});
 
     const [, forceUpdate] = useState(0);

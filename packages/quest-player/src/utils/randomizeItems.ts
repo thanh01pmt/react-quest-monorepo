@@ -5,7 +5,7 @@
  * Only applies when gameConfig.mode === 'random'
  */
 
-import type { MazeConfig, Collectible, Interactive } from '../types';
+import type { MazeConfig, Collectible } from '../types';
 
 /** Shuffle array using Fisher-Yates algorithm */
 function shuffle<T>(array: T[]): T[] {

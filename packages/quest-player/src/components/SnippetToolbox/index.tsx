@@ -40,7 +40,7 @@ export const SnippetToolbox: React.FC<SnippetToolboxProps> = ({ currentEditor, a
     });
 
     // Auto-expand all when searching
-    const displayExpanded = searchQuery ? filteredCategories.map(c => c.id) : (expandedCategory ? [expandedCategory] : []);
+    // const displayExpanded = searchQuery ? filteredCategories.map(c => c.id) : (expandedCategory ? [expandedCategory] : []);
 
     return (
         <div className={`snippet-toolbox ${theme}`}>

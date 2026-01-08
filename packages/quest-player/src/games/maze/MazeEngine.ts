@@ -4,7 +4,7 @@ import Interpreter from 'js-interpreter';
 import type { IGameEngine, GameConfig, GameState, MazeConfig, SolutionConfig, StepResult, PlayerConfig, Block, Portal, Direction } from '../../types';
 import type { MazeGameState, PlayerState, WorldGridCell } from './types';
 
-import { GameAssets } from './config/gameAssets';
+// GameAssets import removed - using explicit model lists instead
 import { randomizeItems, isRandomMode } from '../../utils/randomizeItems';
 
 export interface IMazeEngine extends IGameEngine {
@@ -46,14 +46,17 @@ const WALKABLE_MODELS = [
 ];
 
 // These are blocks that act as solid obstacles but cannot be walked or jumped on.
-const NON_WALKABLE_MODELS = [
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _NON_WALKABLE_MODELS = [
   'wall.stone01', // Explicitly define the wall stone
   'water',        // Corresponds to water.glb
   'lava',         // Corresponds to lava.glb
 ];
 
 // All solid blocks are a combination of the two lists above.
-const SOLID_BLOCK_MODELS = [...WALKABLE_MODELS, ...NON_WALKABLE_MODELS];
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Unused: const _SOLID_BLOCK_MODELS = [...WALKABLE_MODELS, ...NON_WALKABLE_MODELS];
 
 export class MazeEngine implements IMazeEngine {
   public readonly gameType = 'maze';
@@ -82,7 +85,7 @@ export class MazeEngine implements IMazeEngine {
 
     // Apply initial randomization if needed
     if (isRandomMode(config)) {
-      const { collectibles, interactiveStates, itemGoals } = randomizeItems(config);
+      const { collectibles } = randomizeItems(config);
       // OVERRIDE initialization data
       config.collectibles = collectibles; // Note: This mutates local 'config' ref, not original prop deep clone if passed by val
       // To strictly avoid side-effects on the passed prop, we should have cloned it. 
@@ -310,7 +313,7 @@ export class MazeEngine implements IMazeEngine {
    * @param action - The action name (e.g., "MoveForward", "TurnLeft")
    */
   public doActionForCharacter(characterId: string, action: string): void {
-    const previousActiveId = this.currentState.activePlayerId;
+    // const _previousActiveId = this.currentState.activePlayerId;
     
     // Switch to the target character
     if (this.currentState.players[characterId]) {

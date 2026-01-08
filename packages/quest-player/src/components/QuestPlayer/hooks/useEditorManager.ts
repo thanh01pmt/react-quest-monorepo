@@ -3,7 +3,7 @@
 import { useState, useEffect, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as Blockly from 'blockly/core';
-import { javascriptGenerator } from 'blockly/javascript';
+// javascriptGenerator available via parent
 import type { Quest, EditorType } from '../../../types';
 import { stripBlockIds } from '../utils';
 

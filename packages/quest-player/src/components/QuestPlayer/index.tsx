@@ -13,12 +13,12 @@ import * as Vi from 'blockly/msg/vi';
 import { BlocklyWorkspace } from 'react-blockly';
 import { transform } from '@babel/standalone';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import type { Quest, ExecutionMode, CameraMode, ToolboxJSON, ToolboxItem, QuestPlayerSettings, QuestCompletionResult, MazeConfig, Interactive, QuestMetrics, CodeLanguage, EditorType } from '../../types';
+import type { Quest, ExecutionMode, CameraMode, ToolboxJSON, ToolboxItem, QuestPlayerSettings, QuestCompletionResult, MazeConfig, Interactive, QuestMetrics, CodeLanguage } from '../../types';
 import type { MazeGameState } from '../../games/maze/types';
 import { Visualization } from '../Visualization';
 import { QuestImporter } from '../QuestImporter';
 import { Dialog } from '../Dialog';
-import { LanguageSelector } from '../LanguageSelector';
+// LanguageSelector - available via Dialog if needed
 import { MonacoEditor } from '../MonacoEditor';
 import { EditorToolbar } from '../EditorToolbar';
 import { DocumentationPanel } from '../DocumentationPanel';
@@ -26,7 +26,7 @@ import { BackgroundMusic } from '../BackgroundMusic';
 import { SettingsPanel } from '../SettingsPanel';
 import { SnippetToolbox } from '../SnippetToolbox';
 import { useSoundManager } from '../../hooks/useSoundManager';
-import { getToolboxPreset, getToolboxPresetWithFallback, type ToolboxPresetKey } from '../../config/toolboxPresets';
+import { getToolboxPresetWithFallback } from '../../config/toolboxPresets';
 import type { TurtleRendererHandle } from '../../games/turtle/TurtleRenderer';
 import { getFailureMessage, processToolbox, createBlocklyTheme, calculateLogicalLines, filterToolbox, getToolboxCategoryNames } from './utils';
 import { useQuestLoader } from './hooks/useQuestLoader';
@@ -104,7 +104,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
   const [dynamicToolboxConfig, setDynamicToolboxConfig] = useState<ToolboxJSON | null>(null);
-  const [blocklySearchQuery, setBlocklySearchQuery] = useState('');
+  const [blocklySearchQuery, /* setBlocklySearchQuery */] = useState('');
 
   const filteredToolboxConfig = useMemo(() => {
     if (!dynamicToolboxConfig) return null;
@@ -122,7 +122,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   const [blockCount, setBlockCount] = useState(0);
   const [displayStats, setDisplayStats] = useState<DisplayStats>({});
 
-  const [executionMode, setExecutionMode] = useState<ExecutionMode>('run');
+  const [executionMode, /* setExecutionMode */] = useState<ExecutionMode>('run');
 
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
   const rendererRef = useRef<TurtleRendererHandle>(null);
@@ -219,7 +219,6 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
   // Tách riêng code cho blockly và monaco để quản lý tốt hơn
   const [blocklyGeneratedCode, setBlocklyGeneratedCode] = useState('');
-  const [displayCode, setDisplayCode] = useState('');
 
   // FIX: Use useState instead of useMemo so settings can be updated locally
   const [settings, setSettings] = useState<QuestPlayerSettings>(() => ({ ...DEFAULT_SETTINGS, ...props.initialSettings }));
@@ -329,7 +328,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
     if (isStandalone) {
       if (result.isSuccess) {
-        const unitLabel = result.unitLabel === 'block' ? 'blockCount' : 'lineCount';
+        // const unitLabel = result.unitLabel === 'block' ? 'blockCount' : 'lineCount';
         const metrics = result.metrics;
 
         const message = (
