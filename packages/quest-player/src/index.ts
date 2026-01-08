@@ -34,4 +34,11 @@ export { init as initMazeBlocks } from './games/maze/blocks'; // <-- Đổi tên
 export { mazeTheme } from '../theme'; // Trỏ đến file theme ở gốc /packages/quest-player/theme.ts
 
 // Export Toolbox helpers
+// Export Toolbox helpers
 export { getToolboxPreset, getToolboxPresetWithFallback, toolboxPresets, type ToolboxPresetKey } from './config/toolboxPresets';
+
+// Utils
+export { createBlocklyTheme } from './components/QuestPlayer/utils';
+
+// I18n Resources
+export { questPlayerResources } from './i18n';
