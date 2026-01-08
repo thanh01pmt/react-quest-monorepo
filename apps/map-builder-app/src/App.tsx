@@ -1393,6 +1393,13 @@ function App() {
     // Only recalculate if we have questMetadata (meaning a map was generated or loaded)
     if (!questMetadata?.pathInfo) return;
 
+    // GUARD: Skip auto-recalc for Template mode - solution already from template
+    // Use questMetadataRef to get latest value (avoids stale closure from React batching)
+    if (questMetadataRef.current?.pathInfo?.topology === 'template_generated') {
+      console.log('[Auto-Recalc] SKIPPED: Template mode - solution preserved from template');
+      return;
+    }
+
     // Get current collectibles and interactibles
     const collectibles = placedObjects.filter(o => o.asset.type === 'collectible');
     const interactibles = placedObjects.filter(o => o.asset.type === 'interactible');
@@ -2400,6 +2407,78 @@ function App() {
     }
   };
 
+  // --- HÀM MỚI: XÂY DỰNG GAMECONFIG TỪ PLACEDOBJECTS (KHÔNG CHẠY SOLVER) ---
+  // Mục đích: Cung cấp đủ dữ liệu cho Player mà không cần chạy A* solver (tránh treo)
+  // Được sử dụng cho Template mode nơi solution đã có sẵn từ template
+  // REFACTORED: Có thể nhận objects tùy chọn để bypass React state timing issue
+  const buildGameConfigFromPlacedObjects = useCallback((objects?: PlacedObject[]) => {
+    // Sử dụng objects được truyền vào hoặc placedObjects từ state
+    const sourceObjects = objects || placedObjects;
+
+    const blocks = sourceObjects.filter(o => o.asset.type === 'block')
+      .map(o => ({ modelKey: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
+
+    const collectibles = sourceObjects.filter(o => o.asset.type === 'collectible')
+      .map((o, i) => ({
+        id: `c${i + 1}`,
+        type: 'crystal', // Normalized type for Player
+        position: { x: o.position[0], y: o.position[1], z: o.position[2] }
+      }));
+
+    const interactibles = sourceObjects.filter(o => o.asset.type === 'interactible')
+      .map((o, i) => ({
+        id: o.id || `s${i + 1}`,
+        type: 'switch', // Normalized type for Player
+        initialState: (o.properties?.initialState as 'on' | 'off') || 'off',
+        position: { x: o.position[0], y: o.position[1], z: o.position[2] }
+      }));
+
+    const finishObject = sourceObjects.find(o => o.asset.key === 'finish');
+    const startObject = sourceObjects.find(o => o.asset.key === 'player_start');
+
+    const finish = finishObject
+      ? { x: finishObject.position[0], y: finishObject.position[1], z: finishObject.position[2] }
+      : null;
+
+    const getStartDirection = (): number => {
+      if (!startObject) return 1;
+      const dir = startObject.properties?.direction;
+      if (typeof dir === 'number') return Math.round(dir) % 4;
+      if (typeof dir === 'string') return Math.round(parseFloat(dir)) % 4;
+      return 1;
+    };
+
+    const players = startObject ? [{
+      id: "player1",
+      start: {
+        x: startObject.position[0],
+        y: startObject.position[1],
+        z: startObject.position[2],
+        direction: getStartDirection()
+      }
+    }] : [];
+
+    const gameConfig = {
+      type: 'maze',
+      renderer: '3d',
+      blocks,
+      players,
+      finish,
+      collectibles,
+      interactibles
+    };
+
+    console.log('[buildGameConfigFromPlacedObjects] GameConfig populated:', {
+      blocks: blocks.length,
+      players: players.length,
+      hasFinish: !!finish,
+      collectibles: collectibles.length,
+      interactibles: interactibles.length
+    });
+
+    return gameConfig;
+  }, [placedObjects]);
+
   // --- HÀM MỚI: TÍCH HỢP BỘ GIẢI MÊ CUNG ---
   const handleSolveMaze = (options?: { silent?: boolean }) => {
     // SỬA LỖI: Tái cấu trúc để không cần nhấn "Render from JSON" trước khi giải.
@@ -2828,6 +2907,12 @@ function App() {
   // AUTO-SOLVE EFFECT: Trigger solver when placedObjects change (Debounced)
   useEffect(() => {
     if (placedObjects.length === 0) return;
+
+    // GUARD: Skip auto-solver for Template mode (path/solution already from template)
+    // gameConfig is populated separately via buildGameConfigFromPlacedObjects()
+    if (questMetadata?.pathInfo?.topology === 'template_generated') {
+      return;
+    }
 
     // Only auto-solve if in Topology (Auto validation) mode or if we want it generally active
     // The user screenshot showed "Map Inspector Auto", so we should support it.
@@ -3767,7 +3852,15 @@ function App() {
                     )
                     : false;
 
-                  const newGameConfig = { ...data.gameConfig };
+                  // REFACTORED: Reuse buildGameConfigFromPlacedObjects function
+                  // Truyền newObjects trực tiếp để bypass React state timing issue
+                  const builtConfig = buildGameConfigFromPlacedObjects(newObjects);
+
+                  const newGameConfig = {
+                    ...data.gameConfig,
+                    ...builtConfig,
+                    // Merge any additional template-specific config
+                  };
 
                   if (forceRandomMode) {
                     console.log('[Template] Auto-enforcing Random Mode for sensing task');
@@ -3803,9 +3896,13 @@ function App() {
                   console.log('[Template] Auto-selected toolbox:', suggestedToolboxKey, 'from tags:', data.templateMeta?.tags);
 
                   const metadataUpdate: Record<string, any> = {
-                    rawSolution: data.rawActions,
-                    solution: data.solutionConfig, // Store initial solution with ItemGoals
-                    structuredSolution: data.solutionConfig?.structuredSolution, // Transpiled solution for optimal display
+                    // FIX: Store structuredSolution INSIDE solution (not top level)
+                    // This matches what QuestDetailsPanel expects (solution.structuredSolution)
+                    solution: {
+                      ...data.solutionConfig,
+                      rawActions: data.rawActions,
+                      structuredSolution: data.solutionConfig?.structuredSolution,
+                    },
                     gameConfig: newGameConfig, // Apply random mode if needed
                     pathInfo: {
                       path_coords: data.pathCoords, // Path level coordinates from trace
@@ -3826,8 +3923,13 @@ function App() {
                     }
                   };
 
+                  // FIX: Update questMetadataRef DIRECTLY before handleGenerateMap
+                  // This ensures Auto-Recalc guard works (avoids React batching timing issue)
+                  questMetadataRef.current = { ...questMetadataRef.current, ...metadataUpdate };
+
                   // Call handleGenerateMap which properly manages history
                   handleGenerateMap(newObjects, metadataUpdate);
+                  // Note: gameConfig is already complete in metadataUpdate, no need to call buildGameConfigFromPlacedObjects
                 }}
                 hasExistingMap={placedObjects.length > 0}
               />

@@ -69,6 +69,11 @@ export class SolutionDrivenGenerator {
     // OVERRIDE: Use Transpiled Solution for optimal structure (AST-based)
     try {
         const optimal = this.interpreter.transpile(template, params);
+        console.log('[SolutionDrivenGenerator] Transpile result:', {
+          hasProcedures: optimal?.procedures && Object.keys(optimal.procedures).length > 0,
+          procedureNames: optimal?.procedures ? Object.keys(optimal.procedures) : [],
+          mainLength: optimal?.main?.length
+        });
         if (optimal) {
             solution.structuredSolution = optimal;
             // Recalculate optimal blocks based on AST structure
