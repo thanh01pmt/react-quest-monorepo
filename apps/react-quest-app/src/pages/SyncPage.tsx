@@ -113,37 +113,39 @@ export function SyncPage({ settings, onSettingsChange }: SyncPageProps) {
             return null;
         }
 
-        // If "Show Solution" is OFF, we verify if we need to clear the answer.
-        // Usually builder sends the "answer" in startBlocks.
-        if (finalQuest.blocklyConfig?.startBlocks) {
-            if (showSolution) {
-                // FIX: Generate full XML solution from structuredSolution if available
-                if ((finalQuest as any).solution?.structuredSolution) {
-                    const solutionXml = convertSolutionToXml((finalQuest as any).solution.structuredSolution);
-                    return {
-                        ...finalQuest,
-                        blocklyConfig: {
-                            ...finalQuest.blocklyConfig,
-                            startBlocks: solutionXml
-                        }
-                    };
-                }
-                // If no structured solution, fallback to existing startBlocks (might be answer or empty)
-                return finalQuest;
-            } else {
-                // If toggle is OFF, force empty start blocks (or keep original default)
+        // If "Show Solution" is ON, override startBlocks with the full solution
+        if (showSolution) {
+            // FIX: Generate full XML solution from structuredSolution if available
+            if ((finalQuest as any).solution?.structuredSolution) {
+                const solutionXml = convertSolutionToXml((finalQuest as any).solution.structuredSolution);
                 return {
                     ...finalQuest,
                     blocklyConfig: {
                         ...finalQuest.blocklyConfig,
-                        // Only reset start blocks, keep toolboxes
-                        startBlocks: '<xml><block type="maze_start" deletable="false" movable="false"><statement name="DO"></statement></block></xml>'
+                        startBlocks: solutionXml
                     }
                 };
             }
+            // If no structured solution, fallback to existing startBlocks (might be answer or empty)
+            return finalQuest;
         }
 
-        return finalQuest;
+        // If "Show Solution" is OFF:
+        // - Use user's custom startBlocks if they exist (from "Edit Start Blocks" in Builder)
+        // - Otherwise, provide empty maze_start block (student starts from scratch)
+        if (finalQuest.blocklyConfig?.startBlocks) {
+            // User has created custom startBlocks - USE THEM!
+            return finalQuest;
+        }
+
+        // No startBlocks from builder - provide default empty start block
+        return {
+            ...finalQuest,
+            blocklyConfig: {
+                ...finalQuest.blocklyConfig,
+                startBlocks: '<xml><block type="maze_start" deletable="false" movable="false"><statement name="DO"></statement></block></xml>'
+            }
+        };
     }, [quest, showSolution]);
 
     const handlePlay = () => {
