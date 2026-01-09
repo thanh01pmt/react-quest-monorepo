@@ -48,6 +48,21 @@ export interface MicroPattern {
   netTurn: 0 | 90 | -90 | 180;
   /** Can be used as inner pattern in nested loops (netTurn === 0) */
   nestedLoopCompatible: boolean;
+  
+  /** Number of turns in pattern */
+  turnCount: number;
+  /** Style of turn (if turnCount === 1) */
+  turnStyle: 'turnLeft' | 'straight' | 'turnRight';
+  /** Position of turn (if turnCount === 1) */
+  turnPoint: 'start' | 'end' | 'mid' | 'null';
+  
+  /** Does the pattern contain jump actions? */
+  hasJump: boolean;
+  
+  /** Does the pattern start with an interaction action? */
+  startsWithItem: boolean;
+  /** Does the pattern end with an interaction action? */
+  endsWithItem: boolean;
 }
 
 export interface GeneratorOptions {
@@ -63,12 +78,24 @@ export interface GeneratorOptions {
   movementStyle?: 'straight' | 'turn' | 'jump' | 'mixed';
   /** Include template-only actions (jumpUp/Down)? Default: false */
   includeTemplateActions?: boolean;
-  /** Max consecutive same position actions (default: 4) */
+  /** Max consecutive same position actions (default: 4 -> 10) */
   maxConsecutivePosition?: number;
   /** Only return patterns compatible with nested loops (netTurn = 0) */
   nestedLoopCompatible?: boolean;
   /** Filter by specific net turn angle */
   netTurn?: 0 | 90 | -90 | 180;
+  
+  /** Filter by turn style (requires turnCount <= 1) */
+  turnStyle?: 'turnLeft' | 'straight' | 'turnRight';
+  /** Filter by turn point (requires turnCount <= 1) */
+  turnPoint?: 'start' | 'end' | 'mid' | 'null';
+  
+  /** Filter by presence of jump actions */
+  hasJump?: boolean;
+  
+  /** Exclude patterns with items at specific positions */
+  noItemAt?: 'start' | 'end' | 'both';
+  
   /** Seeded RNG for reproducibility */
   seed?: number;
 }
@@ -228,10 +255,44 @@ function getPatternMeta(actions: ActionType[]): MicroPattern {
   const netTurn = calculateNetTurn(actions);
   const nestedLoopCompatible = netTurn === 0;
   
+  // Calculate Turn Metadata
+  const turnIndices = actions.map((a, i) => isDirectionAction(a) ? i : -1).filter(i => i !== -1);
+  const turnCount = turnIndices.length;
+  
+  let turnStyle: 'turnLeft' | 'straight' | 'turnRight' = 'straight';
+  let turnPoint: 'start' | 'end' | 'mid' | 'null' = 'null';
+  
+  if (turnCount === 1) {
+    const idx = turnIndices[0];
+    const action = actions[idx];
+    turnStyle = action as 'turnLeft' | 'turnRight';
+    
+    if (idx === 0) turnPoint = 'start';
+    else if (idx === actions.length - 1) turnPoint = 'end';
+    else turnPoint = 'mid';
+  } else if (turnCount === 0) {
+    turnStyle = 'straight';
+    turnPoint = 'null';
+  } else {
+    // For patterns with > 1 turn, we don't assign simplified metadata (or assign a "complex" tag if we had one)
+    // But for now, we just leave them compatible with basic fields, but filter logic will skip them if turnStyle is requested
+     // We can assign defaults but indicate they are multi-turn
+     // Actually, let's keep 'straight' and 'null' as defaults for multi-turn to avoid type errors, 
+     // but the turnCount > 1 will be used to exclude them if filtering is active.
+  }
+  // startsWithItem: true if FIRST action is item (item at START position, before any move)
+  // endsWithItem: true if LAST action is item (item at LAST block)
+  const startsWithItem = isInteractionAction(actions[0]);
+  const endsWithItem = isInteractionAction(actions[actions.length - 1]);
+  
   return { 
     id, actions, actionCount: actions.length, 
     interactionType, movementStyle,
-    netTurn, nestedLoopCompatible
+    netTurn, nestedLoopCompatible,
+    turnCount, turnStyle, turnPoint,
+    hasJump,
+    startsWithItem,
+    endsWithItem
   };
 }
 
@@ -292,6 +353,10 @@ export function getAllPatterns(options: GeneratorOptions = {}): MicroPattern[] {
     movementStyle,
     nestedLoopCompatible,
     netTurn,
+    turnStyle,
+    turnPoint,
+    hasJump,
+    noItemAt,
   } = options;
   
   // Build action set
@@ -319,6 +384,24 @@ export function getAllPatterns(options: GeneratorOptions = {}): MicroPattern[] {
       if (nestedLoopCompatible !== undefined && meta.nestedLoopCompatible !== nestedLoopCompatible) continue;
       if (netTurn !== undefined && meta.netTurn !== netTurn) continue;
       
+      // New Turn Filter Logic
+      // If turnStyle or turnPoint is specified, we STRICTLY require turnCount <= 1
+      if (turnStyle || turnPoint) {
+        if (meta.turnCount > 1) continue; 
+        
+        if (turnStyle && meta.turnStyle !== turnStyle) continue;
+        if (turnPoint && meta.turnPoint !== turnPoint) continue;
+      }
+
+      if (hasJump !== undefined && meta.hasJump !== hasJump) continue;
+      
+      // noItemAt filter: exclude patterns with items at start/end
+      if (noItemAt) {
+        if (noItemAt === 'start' && meta.startsWithItem) continue;
+        if (noItemAt === 'end' && meta.endsWithItem) continue;
+        if (noItemAt === 'both' && (meta.startsWithItem || meta.endsWithItem)) continue;
+      }
+      
       results.push(meta);
     }
   }
@@ -340,6 +423,10 @@ export function getRandomPattern(options: GeneratorOptions = {}): MicroPattern |
     movementStyle,
     nestedLoopCompatible,
     netTurn,
+    turnStyle,
+    turnPoint,
+    hasJump,
+    noItemAt,
     seed = Date.now(),
   } = options;
   
@@ -370,6 +457,21 @@ export function getRandomPattern(options: GeneratorOptions = {}): MicroPattern |
       if (movementStyle && meta.movementStyle !== movementStyle) continue;
       if (nestedLoopCompatible !== undefined && meta.nestedLoopCompatible !== nestedLoopCompatible) continue;
       if (netTurn !== undefined && meta.netTurn !== netTurn) continue;
+      
+      if (turnStyle || turnPoint) {
+        if (meta.turnCount > 1) continue; 
+        if (turnStyle && meta.turnStyle !== turnStyle) continue;
+        if (turnPoint && meta.turnPoint !== turnPoint) continue;
+      }
+      
+      if (hasJump !== undefined && meta.hasJump !== hasJump) continue;
+      
+      // noItemAt filter
+      if (noItemAt) {
+        if (noItemAt === 'start' && meta.startsWithItem) continue;
+        if (noItemAt === 'end' && meta.endsWithItem) continue;
+        if (noItemAt === 'both' && (meta.startsWithItem || meta.endsWithItem)) continue;
+      }
       
       count++;
       // Reservoir sampling: keep with probability 1/count

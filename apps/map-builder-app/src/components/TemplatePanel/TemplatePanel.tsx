@@ -236,21 +236,62 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
     const getEffectiveCode = useCallback(() => {
         let execCode = code;
 
+        console.log('[TemplatePanel] === getEffectiveCode START ===');
+        console.log('[TemplatePanel] Original code:', code);
+        console.log('[TemplatePanel] Variables:', variables.map(v => v.name));
+        console.log('[TemplatePanel] VariableValues:', variableValues);
+
         // Step 0: Remove var declarations FIRST
         // This ensures "var _MIN_STEPS_ = 3;" is removed before it becomes "var 3 = 3;" by Global Replace
         // Matches: var _NAME_ = VALUE; (including comments)
         execCode = execCode.replace(/^\s*var\s+(_[A-Z0-9_]+_)\s*=\s*(?:['"][^'"]*['"]|\d+)\s*;.*$/gm, '');
+        console.log('[TemplatePanel] After Step 0 (remove var decls):', execCode);
 
-        // Step 1: Replace all substitution variables with their values
-        // We now replace them in the REST of the code
+        // Step 1: Extract FRESH values from the current code
+        // This ensures we use the actual values in the code, not stale state
+        const freshValues: Record<string, string | number> = {};
         for (const v of variables) {
-            const value = variableValues[v.name] ?? v.value;
+            // Pattern to extract value: var _NAME_ = VALUE;
+            // VALUE can be a number or a quoted string
+            const extractPattern = new RegExp(
+                `var\\s+${v.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*=\\s*(?:(['"])([^'"]*?)\\1|(\\d+))\\s*;`
+            );
+            const match = code.match(extractPattern);
+            if (match) {
+                if (match[2] !== undefined) {
+                    // String value (group 2 from quoted string)
+                    freshValues[v.name] = match[2];
+                } else if (match[3] !== undefined) {
+                    // Number value (group 3)
+                    freshValues[v.name] = parseInt(match[3], 10);
+                }
+            } else {
+                // Fallback to variableValues or original value
+                freshValues[v.name] = variableValues[v.name] ?? v.value;
+            }
+        }
+
+        console.log('[TemplatePanel] Fresh values from code:', freshValues);
+
+        // Step 2: Replace all substitution variables with their fresh values
+        // NOTE: \b doesn't work well with underscore-prefixed names like _TURN_STYLE_
+        // because _ is considered a word character. We use explicit lookbehind/lookahead instead.
+        for (const v of variables) {
+            const value = freshValues[v.name];
             const isString = typeof value === 'string';
             const replacement = isString ? `'${value}'` : String(value);
 
-            const pattern = new RegExp(`\\b${v.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g');
+            // Use a pattern that matches the variable name when NOT preceded/followed by word chars
+            // This handles cases like: randomPattern(LEN, _INTERACTION_, _TURN_STYLE_)
+            const escapedName = v.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const pattern = new RegExp(`(?<![\\w])${escapedName}(?![\\w])`, 'g');
+            const beforeReplace = execCode;
             execCode = execCode.replace(pattern, replacement);
+            if (beforeReplace !== execCode) {
+                console.log(`[TemplatePanel] Replaced ${v.name} with ${replacement}`);
+            }
         }
+        console.log('[TemplatePanel] After Step 2 (replace vars):', execCode);
 
         // Step 2: Find and evaluate "var VARNAME = random(min, max);" 
         // Store the results and replace VARNAME throughout code
@@ -271,6 +312,7 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
             const max = parseInt(match[3], 10);
             randomVars[varName] = Math.floor(Math.random() * (max - min + 1)) + min;
         }
+        console.log('[TemplatePanel] Random vars:', randomVars);
 
         // Pass 2: Remove the declarations
         execCode = execCode.replace(/var\s+[A-Z][A-Z0-9_]*\s*=\s*random\s*\(\s*\d+\s*,\s*\d+\s*\)\s*;/g, '');
@@ -283,6 +325,10 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
 
         // Remove empty lines resulted from removals
         execCode = execCode.replace(/^\s*\n/gm, '');
+
+        console.log('[TemplatePanel] === FINAL CODE ===');
+        console.log(execCode);
+        console.log('[TemplatePanel] === getEffectiveCode END ===');
 
         return execCode;
     }, [code, variables, variableValues]);

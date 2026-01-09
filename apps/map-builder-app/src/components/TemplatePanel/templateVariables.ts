@@ -156,7 +156,7 @@ export function parseTemplate(code: string): ParsedTemplate {
  * Check if template has variables
  */
 export function hasVariables(code: string): boolean {
-  return /var\s+_[A-Z][A-Z0-9_]*_\s*=\s*\d+\s*;/.test(code);
+  return /var\s+_[A-Z][A-Z0-9_]*_\s*=\s*(?:['"][^'"]*['"]|\d+)\s*;/.test(code);
 }
 
 /**

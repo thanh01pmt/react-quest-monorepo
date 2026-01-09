@@ -23,18 +23,16 @@ A simple path with crystals to collect. Perfect for learning basic movement comm
 
 ```js
 // Parameters
-var _MIN_CRYSTAL_COUNT_ = 3;
-var _MAX_CRYSTAL_COUNT_ = 8;
-var CRYSTAL_COUNT = random(_MIN_CRYSTAL_COUNT_, _MAX_CRYSTAL_COUNT_);
+var _MIN_LEN_ = 3;
+var _MAX_LEN_ = 8;
+var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key
+// Straight line = no turns
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump'; // Default to no jump for basic trail
+
+var LEN = random(_MIN_LEN_, _MAX_LEN_);
 
 // Solution
-// Collect all crystals along the path
-moveForward();
-
-for (let i = 0; i < CRYSTAL_COUNT; i++) {
-  moveForward();
-  collectItem();
-}
-
-moveForward();
+randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_);
 ```

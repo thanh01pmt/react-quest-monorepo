@@ -17,22 +17,16 @@ A simple linear path collecting crystals with random spacing between them.
 ## Solution & Parameters
 
 ```js
-var _MIN_CRYSTALS_ = 3;
-var _MAX_CRYSTALS_ = 5;
-var _MIN_SPACE_ = 0;
-var _MAX_SPACE_ = 2;
+// Parameters
+var _MIN_LEN_ = 3;
+var _MAX_LEN_ = 8;
+var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump'; // Line walk typically doesn't jump
 
-var CRYSTALS = random(_MIN_CRYSTALS_, _MAX_CRYSTALS_);
-var SPACE = random(_MIN_SPACE_, _MAX_SPACE_);
+var LEN = random(_MIN_LEN_, _MAX_LEN_);
 
-moveForward();
-
-for (let i = 0; i < CRYSTALS; i++) {
-  for (let s = 0; s < SPACE + 1; s++) {
-    moveForward();
-  }
-  collectItem();
-}
-
-moveForward();
+// Solution
+randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_);
 ```

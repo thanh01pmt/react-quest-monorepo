@@ -844,11 +844,15 @@ export class TemplateInterpreter {
   private totalCollects: number = 0;
   private rng?: SeededRandom;
   private initialDirection: Direction = 1; // Capture starting direction
+  private lastPattern: MicroPattern | null = null; // Store last generated pattern for repeatLastPattern()
 
   /**
    * Execute a template with resolved parameters
    */
   execute(template: CodeTemplate, params: Record<string, number>, rng?: SeededRandom): ExecutionTrace {
+    // Reset state
+    this.context = createInitialContext();
+    this.rng = rng;
     // Reset state
     this.context = createInitialContext();
     this.rng = rng;
@@ -860,6 +864,7 @@ export class TemplateInterpreter {
     this.loopIterations = 0;
     this.totalMoves = 0;
     this.totalCollects = 0;
+    this.lastPattern = null; // Reset last pattern
     
     // Capture initial direction before any actions
     this.initialDirection = this.context.direction;
@@ -1216,7 +1221,7 @@ export class TemplateInterpreter {
       // Params are already substituted in code, so they appear as numbers.
       // But if we missed any, or use globals?
       console.warn(`[Interpreter] Variable '${node.name}' not found.`);
-      return 0; 
+      return undefined; 
     }
     if (node.type === 'BinaryOp') {
       const left = this.evaluateExpression(node.left);
@@ -1433,26 +1438,63 @@ export class TemplateInterpreter {
         // - string -> movementStyle
         
         // Analyze arguments 2, 3, 4 for filters
+        // Analyze arguments 2, 3, 4, 5 for filters
         let nestedCompatible: boolean | undefined = undefined;
         let netTurn: 0 | 90 | -90 | 180 | undefined = undefined;
         let movementStyle: 'straight' | 'turn' | 'jump' | 'mixed' | undefined = undefined;
+        let turnStyle: 'turnLeft' | 'straight' | 'turnRight' | undefined = undefined;
+        let turnPoint: 'start' | 'end' | 'mid' | 'null' | undefined = undefined;
+        let hasJump: boolean | undefined = undefined;
+        let userSeed: number | undefined = undefined;
+        let noItemAt: 'start' | 'end' | 'both' | undefined = undefined;
 
-        for (let i = 2; i <= 4; i++) {
+        console.log('[GenericMapGenerator] Parsing randomPattern arguments:', node.arguments.map((arg, i) => i + ': ' + (arg ? this.evaluateExpression(arg) : 'undefined')));
+
+        // Parse arguments 2-5 for filters, and argument 6 for seed
+        for (let i = 2; i <= 6; i++) {
             const arg = node.arguments[i] ? this.evaluateExpression(node.arguments[i]) : undefined;
             if (arg === undefined) continue;
+            
+            console.log(`[GenericMapGenerator] Arg ${i}:`, arg);
 
             if (typeof arg === 'boolean') {
                 nestedCompatible = arg;
             } else if (typeof arg === 'number') {
+                // Check if it's a netTurn value or a seed
                 if ([0, 90, -90, 180].includes(arg)) {
                     netTurn = arg as any;
+                } else if (arg > 180 || arg < -180) {
+                    // Large numbers are treated as seeds
+                    userSeed = arg;
                 }
             } else if (typeof arg === 'string') {
-                if (['straight', 'turn', 'jump', 'mixed'].includes(arg)) {
+                if (['turnLeft', 'straight', 'turnRight'].includes(arg)) {
+                    turnStyle = arg as any;
+                }
+                
+                if (['start', 'end', 'mid', 'null'].includes(arg)) {
+                   turnPoint = arg as any;
+                }
+                
+                if (arg === 'withJump') hasJump = true;
+                if (arg === 'noJump') hasJump = false;
+                
+                // noItemAt filter
+                if (arg === 'noItemStart') noItemAt = 'start';
+                if (arg === 'noItemEnd') noItemAt = 'end';
+                if (arg === 'noItemBoth') noItemAt = 'both';
+
+                // Legacy/General Style support
+                if (!turnStyle && !hasJump && ['straight', 'turn', 'jump', 'mixed'].includes(arg)) {
                     movementStyle = arg as any;
                 }
             }
         }
+        
+        console.log('[GenericMapGenerator] Parsed Filters:', { turnStyle, turnPoint, hasJump, movementStyle, noItemAt, userSeed });
+
+        // Use user-provided seed, or generate from RNG, or undefined
+        const seedToUse = userSeed ?? (this.rng ? Math.floor(this.rng.next() * 100000) : undefined);
 
         const pattern = getRandomPattern({
           maxLength: maxLength || 5,
@@ -1460,11 +1502,36 @@ export class TemplateInterpreter {
           nestedLoopCompatible: nestedCompatible,
           netTurn: netTurn,
           movementStyle: movementStyle,
-          seed: this.rng ? Math.floor(this.rng.next() * 100000) : undefined // Seeded
+          turnStyle: turnStyle,
+          turnPoint: turnPoint,
+          hasJump: hasJump,
+          noItemAt: noItemAt,
+          seed: seedToUse
         });
 
         if (pattern) {
+          console.log('[GenericMapGenerator] Selected pattern:', {
+            id: pattern.id,
+            actions: pattern.actions,
+            startsWithItem: pattern.startsWithItem,
+            endsWithItem: pattern.endsWithItem,
+            hasJump: pattern.hasJump,
+            turnStyle: pattern.turnStyle,
+          });
+          this.lastPattern = pattern; // Store for repeatLastPattern()
           this.executeMicroPattern(pattern);
+        } else {
+          console.warn('[GenericMapGenerator] No pattern matched filters!');
+        }
+        break;
+      }
+      
+      case 'repeatlastpattern': {
+        // repeatLastPattern() - re-execute the last generated pattern
+        if (this.lastPattern) {
+          this.executeMicroPattern(this.lastPattern);
+        } else {
+          console.warn('[Interpreter] repeatLastPattern() called but no pattern has been generated yet.');
         }
         break;
       }

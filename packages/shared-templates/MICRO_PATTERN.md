@@ -45,10 +45,20 @@ interface MicroPattern {
   id: string;                    // "M_C", "M_M_C", "L_M_R_C"
   actions: ActionType[];         // ['moveForward', 'collectItem']
   actionCount: number;           // 2
-  interactionType: 'crystal' | 'switch' | 'mixed';
+  interactionType: 'crystal' | 'switch' | 'key' | 'mixed';
   movementStyle: 'straight' | 'turn' | 'jump' | 'mixed';
   netTurn: 0 | 90 | -90 | 180;  // Hướng thay đổi sau pattern
   nestedLoopCompatible: boolean; // true nếu netTurn === 0
+  
+  // New: Turn metadata
+  turnCount: number;             // Số lượng turn trong pattern
+  turnStyle: 'turnLeft' | 'straight' | 'turnRight';  // Loại turn (nếu turnCount <= 1)
+  turnPoint: 'start' | 'end' | 'mid' | 'null';       // Vị trí turn (nếu turnCount <= 1)
+  
+  // New: Jump and interaction metadata
+  hasJump: boolean;              // Có chứa jump actions?
+  startsWithItem: boolean;       // Bắt đầu bằng interaction action?
+  endsWithItem: boolean;         // Kết thúc bằng interaction action?
 }
 ```
 
@@ -192,12 +202,44 @@ const multiple = getRandomPatterns(5, { maxLength: 4 });
 |--------|------|---------|-------|
 | `minLength` | number | 2 | Độ dài pattern tối thiểu |
 | `maxLength` | number | 5 | Độ dài pattern tối đa |
-| `interactionType` | string | - | Filter: 'crystal', 'switch', 'mixed' |
+| `interactionType` | string | - | Filter: 'crystal', 'switch', 'key', 'mixed' |
 | `movementStyle` | string | - | Filter: 'straight', 'turn', 'jump', 'mixed' |
 | `nestedLoopCompatible` | boolean | - | Filter: netTurn = 0 |
+| `netTurn` | number | - | Filter: 0, 90, -90, 180 |
+| `turnStyle` | string | - | Filter: 'straight', 'turnLeft', 'turnRight' |
+| `turnPoint` | string | - | Filter: 'null', 'start', 'mid', 'end' |
+| `hasJump` | boolean | - | Filter: có/không có jump actions |
+| `noItemAt` | string | - | Filter: 'start', 'end', 'both' (không có item ở vị trí đó) |
 | `includeTemplateActions` | boolean | false | Bao gồm jumpUp/jumpDown |
 | `maxConsecutivePosition` | number | 4 | Max same position action liên tiếp |
-| `seed` | number | Date.now() | Seed cho RNG |
+| `seed` | number | Date.now() | Seed cho RNG (reproducible) |
+
+### 2.7. Template Functions (for Builder Templates)
+
+Dùng trong Template DSL của Quest Builder:
+
+```javascript
+// Signature đầy đủ
+randomPattern(maxLength, interactionType, turnStyle, turnPoint, hasJump, noItemAt, seed);
+
+// Ví dụ
+randomPattern(6, 'crystal', 'straight', 'null', 'noJump');
+randomPattern(4, 'switch', 'turnRight', 'mid', 'noJump', 'noItemEnd');
+randomPattern(5, 'crystal', 'straight', 'null', 'noJump', 'noItemBoth', 12345);
+
+// Lặp lại pattern trước đó
+repeatLastPattern();
+```
+
+| Argument | Values | Mô tả |
+|----------|--------|-------|
+| `maxLength` | number | Độ dài tối đa |
+| `interactionType` | `'crystal'`, `'switch'`, `'key'` | Loại item |
+| `turnStyle` | `'straight'`, `'turnLeft'`, `'turnRight'` | Kiểu rẽ |
+| `turnPoint` | `'null'`, `'start'`, `'mid'`, `'end'` | Vị trí rẽ |
+| `hasJump` | `'noJump'`, `'withJump'` | Có/không có nhảy |
+| `noItemAt` | `'noItemStart'`, `'noItemEnd'`, `'noItemBoth'` | Không item ở đầu/cuối |
+| `seed` | number > 180 | Seed cho reproducible patterns |
 
 ---
 
@@ -632,6 +674,12 @@ difficulty = f(
 
 | Date | Changes |
 |------|---------|
+| 2026-01-10 | Added `turnStyle`, `turnPoint` filters for single-turn patterns |
+| 2026-01-10 | Added `hasJump` filter ('withJump', 'noJump') |
+| 2026-01-10 | Added `noItemAt` filter ('start', 'end', 'both') |
+| 2026-01-10 | Added `repeatLastPattern()` template function |
+| 2026-01-10 | Added `seed` parameter for reproducible patterns |
+| 2026-01-10 | Removed auto-added start block (all blocks explicit) |
 | 2026-01-09 | Initial implementation of L1 micro-patterns |
 | 2026-01-09 | Added 9 validation rules |
 | 2026-01-09 | Added `netTurn` and `nestedLoopCompatible` |
