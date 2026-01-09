@@ -1816,11 +1816,17 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "displayName": "Interaction",
         "type": "string",
         "defaultValue": "crystal"
+      },
+      {
+        "name": "_STYLE_",
+        "displayName": "Style",
+        "type": "string",
+        "defaultValue": "mixed"
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Generate a dynamic path using Micro Patterns\n// This will create a random sequence of moves, turns, and collections.\n// Users can adjust _INTERACTION_ to change the item type.\nrandomPattern(LEN, _INTERACTION_);",
+    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key\nvar _STYLE_ = 'mixed'; // OPTIONS: mixed, straight, jump, turn\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Generate a dynamic path using Micro Patterns\n// This will create a random sequence of moves, turns, and collections.\n// Users can adjust:\n// - _INTERACTION_: item type (crystal, switch, key)\n// - _STYLE_: movement style (mixed, straight, jump, turn)\nrandomPattern(LEN, _INTERACTION_, _STYLE_);",
     "descriptionMarkdown": "# Simple Sequence\n\nLearn the basics of sequential programming by executing commands in order.\n\n## Learning Goals\n- Understand sequential execution\n- Practice basic commands\n- Learn that each command runs one after another\n\n## Solution & Parameters",
-    "rawContent": "---\nid: simple-sequence\nname: \"Simple Sequence\"\ncategory: sequential\nconcepts: [\"sequential\"]\ndifficulty: 1\ntags: [\"moveForward\", \"collectItem\", \"basic\", \"sequence\"]\nauthor: system\nversion: 1\ndescription: \"Sequential commands without loops - basic movement and collection\"\n---\n\n# Simple Sequence\n\nLearn the basics of sequential programming by executing commands in order.\n\n## Learning Goals\n- Understand sequential execution\n- Practice basic commands\n- Learn that each command runs one after another\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Generate a dynamic path using Micro Patterns\n// This will create a random sequence of moves, turns, and collections.\n// Users can adjust _INTERACTION_ to change the item type.\nrandomPattern(LEN, _INTERACTION_);\n```\n\n",
+    "rawContent": "---\nid: simple-sequence\nname: \"Simple Sequence\"\ncategory: sequential\nconcepts: [\"sequential\"]\ndifficulty: 1\ntags: [\"moveForward\", \"collectItem\", \"basic\", \"sequence\"]\nauthor: system\nversion: 1\ndescription: \"Sequential commands without loops - basic movement and collection\"\n---\n\n# Simple Sequence\n\nLearn the basics of sequential programming by executing commands in order.\n\n## Learning Goals\n- Understand sequential execution\n- Practice basic commands\n- Learn that each command runs one after another\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key\nvar _STYLE_ = 'mixed'; // OPTIONS: mixed, straight, jump, turn\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Generate a dynamic path using Micro Patterns\n// This will create a random sequence of moves, turns, and collections.\n// Users can adjust:\n// - _INTERACTION_: item type (crystal, switch, key)\n// - _STYLE_: movement style (mixed, straight, jump, turn)\nrandomPattern(LEN, _INTERACTION_, _STYLE_);\n```\n\n",
     "hints": {
       "title": "Simple Sequence",
       "description": "Learn the basics of sequential programming by executing commands in order.",

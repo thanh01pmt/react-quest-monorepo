@@ -1426,12 +1426,32 @@ export class TemplateInterpreter {
       case 'random_pattern': {
         const maxLength = node.arguments[0] ? this.evaluateExpression(node.arguments[0]) : undefined;
         const interactionType = node.arguments[1] ? this.evaluateExpression(node.arguments[1]) : undefined; // string
-        const hasNested = node.arguments[2] ? this.evaluateExpression(node.arguments[2]) : undefined; // boolean
+        const filterArg = node.arguments[2] ? this.evaluateExpression(node.arguments[2]) : undefined; 
+
+        // Analyze 3rd argument for flexible filtering
+        let nestedCompatible: boolean | undefined = undefined;
+        let netTurn: 0 | 90 | -90 | 180 | undefined = undefined;
+        let movementStyle: 'straight' | 'turn' | 'jump' | 'mixed' | undefined = undefined;
+
+        if (typeof filterArg === 'boolean') {
+            nestedCompatible = filterArg;
+        } else if (typeof filterArg === 'number') {
+            // Validate allowable turns
+            if ([0, 90, -90, 180].includes(filterArg)) {
+                netTurn = filterArg as any;
+            }
+        } else if (typeof filterArg === 'string') {
+            if (['straight', 'turn', 'jump', 'mixed'].includes(filterArg)) {
+                movementStyle = filterArg as any;
+            }
+        }
 
         const pattern = getRandomPattern({
           maxLength: maxLength || 5,
           interactionType: interactionType || 'crystal',
-          nestedLoopCompatible: hasNested,
+          nestedLoopCompatible: nestedCompatible,
+          netTurn: netTurn,
+          movementStyle: movementStyle,
           seed: this.rng ? Math.floor(this.rng.next() * 100000) : undefined // Seeded
         });
 

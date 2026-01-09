@@ -67,6 +67,8 @@ export interface GeneratorOptions {
   maxConsecutivePosition?: number;
   /** Only return patterns compatible with nested loops (netTurn = 0) */
   nestedLoopCompatible?: boolean;
+  /** Filter by specific net turn angle */
+  netTurn?: 0 | 90 | -90 | 180;
   /** Seeded RNG for reproducibility */
   seed?: number;
 }
@@ -289,6 +291,7 @@ export function getAllPatterns(options: GeneratorOptions = {}): MicroPattern[] {
     interactionType,
     movementStyle,
     nestedLoopCompatible,
+    netTurn,
   } = options;
   
   // Build action set
@@ -314,6 +317,7 @@ export function getAllPatterns(options: GeneratorOptions = {}): MicroPattern[] {
       if (interactionType && meta.interactionType !== interactionType) continue;
       if (movementStyle && meta.movementStyle !== movementStyle) continue;
       if (nestedLoopCompatible !== undefined && meta.nestedLoopCompatible !== nestedLoopCompatible) continue;
+      if (netTurn !== undefined && meta.netTurn !== netTurn) continue;
       
       results.push(meta);
     }
@@ -335,6 +339,7 @@ export function getRandomPattern(options: GeneratorOptions = {}): MicroPattern |
     interactionType,
     movementStyle,
     nestedLoopCompatible,
+    netTurn,
     seed = Date.now(),
   } = options;
   
@@ -364,6 +369,7 @@ export function getRandomPattern(options: GeneratorOptions = {}): MicroPattern |
       if (interactionType && meta.interactionType !== interactionType) continue;
       if (movementStyle && meta.movementStyle !== movementStyle) continue;
       if (nestedLoopCompatible !== undefined && meta.nestedLoopCompatible !== nestedLoopCompatible) continue;
+      if (netTurn !== undefined && meta.netTurn !== netTurn) continue;
       
       count++;
       // Reservoir sampling: keep with probability 1/count

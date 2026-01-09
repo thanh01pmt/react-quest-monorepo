@@ -26,12 +26,15 @@ Learn the basics of sequential programming by executing commands in order.
 var _MIN_STEPS_ = 3;
 var _MAX_STEPS_ = 6;
 var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key
+var _STYLE_ = 'mixed'; // OPTIONS: mixed, straight, jump, turn
 var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
 // Generate a dynamic path using Micro Patterns
 // This will create a random sequence of moves, turns, and collections.
-// Users can adjust _INTERACTION_ to change the item type.
-randomPattern(LEN, _INTERACTION_);
+// Users can adjust:
+// - _INTERACTION_: item type (crystal, switch, key)
+// - _STYLE_: movement style (mixed, straight, jump, turn)
+randomPattern(LEN, _INTERACTION_, _STYLE_);
 ```
 
