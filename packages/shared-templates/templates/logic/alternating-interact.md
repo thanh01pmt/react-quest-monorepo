@@ -18,34 +18,31 @@ A complex task requiring the student to recognize two interleaved patterns.
 - Even steps: Collect Crystal
 - Odd steps: Toggle Switch
 
+## Features
+- **Complex Pattern**: Alternates between two different actions (Collect vs Toggle).
+- **Modulo Logic**: Uses `%` operator to determine the current state.
+
 ## Solution & Parameters
 
 ```js
 // Parameters
 var _MIN_PAIRS_ = 2;
 var _MAX_PAIRS_ = 4;
-var _MIN_SPACE_ = 0;
-var _MAX_SPACE_ = 1;
-
 var PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);
-var SPACE = random(_MIN_SPACE_, _MAX_SPACE_);
+
+// Full Parameter Set (Standardized)
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
 
 // Solution
-moveForward();
-
 for (let i = 0; i < PAIRS; i++) {
-  // Phase 1: Crystal
-  for (let s = 0; s < SPACE + 1; s++) {
-    moveForward();
-  }
-  collectItem();
+  // Step 1: Crystal
+  randomPattern(2, 'crystal', true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + (i*2));
   
-  // Phase 2: Switch
-  for (let s = 0; s < SPACE + 1; s++) {
-    moveForward();
-  }
-  toggleSwitch();
+  // Step 2: Switch
+  randomPattern(2, 'switch', true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + (i*2) + 1);
 }
-
-moveForward();
 ```

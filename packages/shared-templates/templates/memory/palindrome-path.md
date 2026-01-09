@@ -17,6 +17,10 @@ A path where the action sequence reads the same backwards and forwards.
 ## Academic Concept: Palindrome / Symmetry
 - Sequence: $A, B, C, B, A$
 
+## Features
+- **Symmetry**: Actions are mirrored around a center point.
+- **Pattern Construction**: Builds a sequence A-B-C-B-A.
+
 ## Solution & Parameters
 
 ```js
@@ -25,15 +29,23 @@ var _MIN_MID_LENGTH_ = 1;
 var _MAX_MID_LENGTH_ = 3;
 var MID_LENGTH = random(_MIN_MID_LENGTH_, _MAX_MID_LENGTH_);
 
-// Solution
-// Start (A)
-moveForward();
-jumpUp();
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
 
-// Middle (B repeated)
+// Solution
+// Start (A) - Manual or Pattern
+jumpUp(); 
+moveForward();
+
+// Middle (B repeated) - Forward
 for (let i = 0; i < MID_LENGTH; i++) {
-  collectItem();
-  moveForward();
+  // Pattern segment forward
+  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + i);
 }
 
 // Pivot (C)
@@ -41,13 +53,15 @@ turnRight();
 moveForward();
 turnRight();
 
-// Middle Mirror (B repeated)
+// Middle Mirror (B repeated) - Backward/Return
+// We reuse the seed logic to "mirror" the path structure, but for the palindrome execution 
+// usually the ACTIONS are the same (Move, Collect).
 for (let i = 0; i < MID_LENGTH; i++) {
-  collectItem();
-  moveForward();
+   randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + i + 100); 
+   // Using diff seed to ensure new items generated if needed, but structure is strictly Length of 1
 }
 
 // End Mirror (A)
-jumpDown();
 moveForward();
+jumpDown();
 ```

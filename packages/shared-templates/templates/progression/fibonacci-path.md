@@ -18,49 +18,49 @@ A path based on the famous Fibonacci sequence found in nature.
 - $F_0=0, F_1=1, F_n = F_{n-1} + F_{n-2}$
 - Sequence: 1, 1, 2, 3, 5, 8...
 
+## Features
+- **Math Sequence**: Generates path based on Fibonacci numbers (1, 1, 2, 3, 5...).
+- **Variable Update**: Demonstrates updating two variables in a loop.
+
 ## Solution & Parameters
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 2;
-var _MAX_STEPS_ = 5;
+var _MIN_STEPS_ = 3;
+var _MAX_STEPS_ = 6;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
+
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
 
 // Solution
 let a = 1;
 let b = 1;
 
-// First step (distance 1)
-moveForward();
-collectItem();
+// First 2 steps (manual or loop) for F_1 and F_2
+// Step 1: len 1
+randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_);
 turnRight();
 
-// Second step (distance 1)
-moveForward();
-collectItem();
+// Step 2: len 1
+randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + 1);
 turnRight();
 
-// Additional Fibonacci steps
-for (let i = 2; i < STEPS + 1; i++) {
+// Additional Fibonacci steps (F_3 onwards)
+for (let i = 2; i < STEPS; i++) {
   let next = a + b;
   
   // Move Fibonacci distance
-  for (let j = 0; j < next; j++) {
-    moveForward();
-  }
-  collectItem();
+  randomPattern(next, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + i);
   turnRight();
   
   // Update sequence
   a = b;
   b = next;
 }
-
-// Final exit segment (no turn, just continue forward)
-for (let j = 0; j < b; j++) {
-  collectItem();
-  moveForward();
-}
-
-moveForward();
 ```

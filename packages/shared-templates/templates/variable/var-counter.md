@@ -19,20 +19,29 @@ Learn to use a variable as a counter to track progress.
 - Increment a counter
 - Use counter in loop
 
+## Features
+- **Counter Variable**: Validates that loop count matches variable.
+- **Simple Loop**: Standard iteration.
+
 ## Solution & Parameters
 
 ```js
 // Parameters
 var _MIN_COUNT_ = 3;
-var _MAX_COUNT_ = 5;
+var _MAX_COUNT_ = 6;
 var COUNT = random(_MIN_COUNT_, _MAX_COUNT_);
+
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
 
 // Solution
 // Use counter to collect COUNT items
-moveForward();
-
 for (let i = 0; i < COUNT; i++) {
-  collectItem();
-  moveForward();
+  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + i);
 }
 ```

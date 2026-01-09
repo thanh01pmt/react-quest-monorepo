@@ -14,40 +14,34 @@ description: "Collect crystals in a zigzag pattern with alternating turns"
 
 Zigzag path with alternating left/right turns.
 
+## Features
+- **ZigZag Logic**: Alternates turns for a classic zigzag path.
+- **Micro-Patterns**: Each leg of the zigzag is a generated pattern.
+
 ## Solution & Parameters
 
 ```js
-var _MIN_PAIRS_ = 1;
-var _MAX_PAIRS_ = 3;
-var _SEGMENT_LENGTH_ = 2;
-
+// Parameters
+var _MIN_PAIRS_ = 2;
+var _MAX_PAIRS_ = 4;
 var PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);
 
-moveForward();
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
 
-for (let p = 0; p < PAIRS; p++) {
-  // === Segment 1 (Right Turn) ===
-  for (let s1 = 0; s1 < _SEGMENT_LENGTH_; s1++) {
-    moveForward();
-  }
-  collectItem();
-  
-  // Turn Right Sequence
-  turnRight();
-  moveForward();
+// Solution
+for (let i = 0; i < PAIRS; i++) {
+  // Leg 1
+  randomPattern(3, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + (i*2));
   turnRight();
   
-  // === Segment 2 (Left Turn) ===
-  for (let s2 = 0; s2 < _SEGMENT_LENGTH_; s2++) {
-    moveForward();
-  }
-  collectItem();
-  
-  // Turn Left Sequence (prepare for next pair, or end facing forward)
-  turnLeft();
-  moveForward();
+  // Leg 2
+  randomPattern(3, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + (i*2) + 1);
   turnLeft();
 }
-
-moveForward();
 ```

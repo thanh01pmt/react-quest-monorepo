@@ -18,36 +18,37 @@ A spiral path that expands exponentially.
 - Sequence: $a, ar, ar^2, ...$
 - Here: Side length multiplies by `RATIO` (usually 2) each turn.
 
+## Features
+- **Geometric Progression**: Demonstrates exponential properties (doubling length).
+- **Spiral**: Creates an expanding spiral path.
+
 ## Solution & Parameters
 
 ```js
 // Parameters
-var _MIN_TURNS_ = 2;
-var _MAX_TURNS_ = 3;
+var _MIN_TURNS_ = 3;
+var _MAX_TURNS_ = 5;
 var TURNS = random(_MIN_TURNS_, _MAX_TURNS_);
 var RATIO = 2;
 
-// Solution
-moveForward();
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
 
+// Solution
 let length = 1;
 
 for (let i = 0; i < TURNS; i++) {
-  // Move side and collect
-  for (let j = 0; j < length; j++) {
-    collectItem();
-    moveForward();
-  }
+  // Generate expanding segment
+  randomPattern(length, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + i);
   
   turnRight();
+  
+  // Clean arithmetic update
   length = length * RATIO;
 }
-
-// Final side without turn (exit)
-for (let j = 0; j < length; j++) {
-  collectItem();
-  moveForward();
-}
-
-moveForward();
 ```

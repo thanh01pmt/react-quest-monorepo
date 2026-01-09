@@ -18,23 +18,33 @@ A simple introduction to parity (even/odd) logic.
 - Understand even/odd pattern
 - Recognize alternating sequences
 
+## Features
+- **Parity Logic**: Demonstrates doing something every *other* step.
+- **Control Flow**: Using logic to control action execution.
+
 ## Solution & Parameters
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 3;
-var _MAX_STEPS_ = 5;
+var _MIN_STEPS_ = 4;
+var _MAX_STEPS_ = 6;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _SEED_ = random(1, 99999);
+
 // Solution
-// Collect at every other position (skip one step between each)
-moveForward();
-
 for (let i = 0; i < STEPS; i++) {
-  collectItem();
-  moveForward();
-  moveForward();  // Skip one position
+   // Even steps: Item present
+   // Odd steps: No item (empty step)
+   if (i % 2 == 0) {
+      randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, 'false', _SEED_ + i); // Item forced
+   } else {
+      randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, 'true', _SEED_ + i); // Item blocked (empty)
+   }
 }
-
-moveForward();
 ```

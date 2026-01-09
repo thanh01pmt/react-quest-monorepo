@@ -17,27 +17,35 @@ Decompose climbing into a single "Step Up" action.
 ## Academic Concept: Procedural Abstraction
 - Abstract "Move, Jump, Move" into "ClimbStep()"
 
+## Features
+- **Procedure Call**: Encapsulates logic in `climbStep`.
+- **Abstraction**: Hides the complexity of climbing behind a simple function name.
+
 ## Solution & Parameters
 
 ```js
 // Parameters
-var _MIN_HEIGHT_ = 2;
-var _MAX_HEIGHT_ = 4;
+var _MIN_HEIGHT_ = 3;
+var _MAX_HEIGHT_ = 5;
 var HEIGHT = random(_MIN_HEIGHT_, _MAX_HEIGHT_);
+
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'withJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
 
 // Solution
 function climbStep() {
-  moveForward();
-  jumpUp();
-  collectItem();
+   // Use randomPattern to generate one valid step segment with jump
+   // length 1 implies basically just the jump/landing logic if configured right
+   randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_);
 }
 
-// Main
-moveForward();
-
+// Main: Climb the staircase
 for(let i = 0; i < HEIGHT; i++) {
   climbStep();
 }
-
-moveForward();
 ```

@@ -19,32 +19,35 @@ Combine FOR loops with turning to create more complex paths.
 - Combine loops with turn commands
 - Create L-shaped paths
 
+## Features
+- **Sequential Loops**: Uses multiple loops to create distinct path segments.
+- **Direction Change**: Connects segments with a turn command.
+- **Segments**: Each arm of the L-shape is generated as a `randomPattern`.
+
 ## Solution & Parameters
 
 ```js
 // Parameters
-var _MIN_SEGMENT1_ = 2;
-var _MAX_SEGMENT1_ = 4;
-var _MIN_SEGMENT2_ = 2;
-var _MAX_SEGMENT2_ = 4;
-var SEGMENT1 = random(_MIN_SEGMENT1_, _MAX_SEGMENT1_);
-var SEGMENT2 = random(_MIN_SEGMENT2_, _MAX_SEGMENT2_);
+var _MIN_STEPS_ = 3;
+var _MAX_STEPS_ = 5;
+var SEG1_LEN = random(_MIN_STEPS_, _MAX_STEPS_);
+var SEG2_LEN = random(_MIN_STEPS_, _MAX_STEPS_);
+
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight'; 
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
 
 // Solution
-// L-shape path
-moveForward();
+// Segment 1
+randomPattern(SEG1_LEN, _INTERACTION_, false, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_);
 
-for (let i = 0; i < SEGMENT1; i++) {
-  collectItem();
-  moveForward();
-}
-
+// Turn
 turnRight();
 
-for (let i = 0; i < SEGMENT2; i++) {
-  collectItem();
-  moveForward();
-}
-
-moveForward();
+// Segment 2
+randomPattern(SEG2_LEN, _INTERACTION_, false, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + 1);
 ```

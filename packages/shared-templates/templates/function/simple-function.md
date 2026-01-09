@@ -19,26 +19,34 @@ Learn to define and call functions to organize your code.
 - Call a function multiple times
 - Understand code reuse
 
+## Features
+- **Function Definition**: Groups actions into `collectItems`.
+- **Complex Pattern**: Uses the function to build a zigzag path.
+
 ## Solution & Parameters
 
 ```js
 // Parameters
-var _MIN_PER_CALL_ = 1;
-var _MAX_PER_CALL_ = 3;
-var _MIN_CALLS_ = 2;
-var _MAX_CALLS_ = 3;
+var _MIN_PER_CALL_ = 2;
+var _MAX_PER_CALL_ = 4;
+var _MIN_CALLS_ = 3;
+var _MAX_CALLS_ = 5;
 var PER_CALL = random(_MIN_PER_CALL_, _MAX_PER_CALL_);
 var CALLS = random(_MIN_CALLS_, _MAX_CALLS_);
 
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
+
 // Solution
 function collectItems() {
-  for (let i = 0; i < PER_CALL; i++) {
-    collectItem();
-    moveForward();
-  }
+  // Generate a straight segment of collection
+  randomPattern(PER_CALL, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_);
 }
-
-moveForward();
 
 // Zigzag pattern to avoid circular path
 for (let c = 0; c < CALLS; c++) {
@@ -46,16 +54,8 @@ for (let c = 0; c < CALLS; c++) {
   
   if (c % 2 == 0) {
     turnRight();
-    moveForward();
-    turnRight();
   } else {
-    turnLeft();
-    moveForward();
     turnLeft();
   }
 }
-
-// Final segment
-collectItems();
-moveForward();
 ```
