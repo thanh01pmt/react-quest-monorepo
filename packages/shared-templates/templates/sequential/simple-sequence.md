@@ -24,16 +24,14 @@ Learn the basics of sequential programming by executing commands in order.
 ```js
 // Parameters
 var _MIN_STEPS_ = 3;
-var _MAX_STEPS_ = 5;
-var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
+var _MAX_STEPS_ = 6;
+var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key
+var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
-// Simple sequence of move and collect
-moveForward();
-
-for (let i = 0; i < STEPS; i++) {
-  moveForward();
-  collectItem();
-}
-moveForward();
+// Generate a dynamic path using Micro Patterns
+// This will create a random sequence of moves, turns, and collections.
+// Users can adjust _INTERACTION_ to change the item type.
+randomPattern(LEN, _INTERACTION_);
 ```
+

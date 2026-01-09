@@ -259,9 +259,18 @@ suffix();
 interface WhileLoopStructure {
   type: 'while';
   condition: 'notAtEnd' | 'hasItem' | 'customCount';
-  maxIterations: number;
+  minIterations: number;      // Random hóa độ dài đường đi
+  maxIterations: number;      // Safety limit
   pattern: MicroPattern;
 }
+```
+
+```javascript
+// Code tương đương
+while (notDone()) {
+  pattern();
+}
+```
 ```
 
 ### 3.3. Count Modes
@@ -479,15 +488,17 @@ const stairStructure = createNestedLoop(
 | variable | var-counter, var-accumulator | Single loop |
 | progression | arithmetic-move/collect | Nested loop (linear) |
 | progression | fibonacci-path | Nested loop (fibonacci) |
+| loop | while-loop-basic | While loop (new) |
+| function | simple-function, flower-pattern | Nested loop + helper function |
 
 ### Templates cần giữ static (tính năng đặc biệt)
 
 | Category | Templates | Lý do |
 |----------|-----------|-------|
 | conditional | if-simple, crystal-or-switch | Cần `isOnCrystal()` sensor |
-| function | simple-function, collect-procedure | Cần function definition |
+| conditional | if-simple, crystal-or-switch | Cần `isOnCrystal()` sensor |
 | memory | palindrome-path | Symmetric pattern logic |
-| decomposition | flower-pattern, staircase-function | Function + nested |
+| decomposition | staircase-function | Complex logic + function |
 
 ---
 
@@ -569,6 +580,30 @@ const map = generateMap({
 - `useSwitchState: true` → Switch với random state (on/off)
 - `useKeyPlacement: true` → Random key thay vì crystal
 
+### 8.5. Function Extraction Support
+
+Cho phép tự động tạo hàm phụ để phân rã bài toán (Decomposition).
+
+```typescript
+const map = generateMap({
+  structureType: 'nested',
+  useHelperFunctions: true,  // <-- Enable function extraction
+  // ...
+});
+```
+
+**Output Code:**
+```javascript
+function processSegment() {
+  moveForward();
+  collectItem();
+}
+
+for (let i = 0; i < 4; i++) {
+  processSegment();
+}
+```
+
 ---
 
 ## 9. Future Enhancements
@@ -607,4 +642,6 @@ difficulty = f(
 | 2026-01-09 | Added `pickUpKey` action (K) |
 | 2026-01-09 | Added key item type and switch state |
 | 2026-01-09 | Added ConditionalConfig for sensor-based maps |
+| 2026-01-09 | Added While Loop support (random iterations) |
+| 2026-01-09 | Add Function Extraction strategy (Decomposition) |
 

@@ -58,10 +58,13 @@ export interface NestedLoopStructure {
 }
 
 /** While loop structure: repeat until condition */
+/** While loop structure: repeat until condition */
 export interface WhileLoopStructure {
   type: 'while';
   /** Condition type */
   condition: 'notAtEnd' | 'hasItem' | 'customCount';
+  /** Min iterations (for generation) */
+  minIterations: number;
   /** Max iterations (safety limit) */
   maxIterations: number;
   /** Pattern to repeat */
@@ -220,6 +223,24 @@ export function createNestedLoop(
 }
 
 /**
+ * Create a while loop structure
+ */
+export function createWhileLoop(
+  pattern: MicroPattern,
+  condition: 'notAtEnd' | 'hasItem' | 'customCount',
+  minIterations: number,
+  maxIterations: number
+): WhileLoopStructure {
+  return {
+    type: 'while',
+    pattern,
+    condition,
+    minIterations,
+    maxIterations,
+  };
+}
+
+/**
  * Create common count modes
  */
 export const CountModes = {
@@ -239,7 +260,8 @@ export type StructurePreset =
   | 'square_pattern'   // Nested loop, same inner/outer count
   | 'staircase'        // Nested loop, linear inner count
   | 'fibonacci_spiral' // Nested loop, fibonacci inner count
-  | 'zigzag';          // Single loop with alternating transition
+  | 'zigzag'           // Single loop with alternating transition
+  | 'while_loop';      // While loop (endless runner style)
 
 /**
  * Get recommended structure for a preset
@@ -269,6 +291,14 @@ export function getStructurePreset(preset: StructurePreset): Partial<LoopStructu
     
     case 'zigzag':
       return { type: 'single' };
+
+    case 'while_loop':
+      return { 
+        type: 'while',
+        condition: 'notAtEnd',
+        minIterations: 5,
+        maxIterations: 12
+      };
     
     default:
       return { type: 'single' };

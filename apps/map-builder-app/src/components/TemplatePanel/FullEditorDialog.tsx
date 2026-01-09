@@ -15,7 +15,7 @@ interface FullEditorDialogProps {
     onClose: () => void;
     code: string;
     onCodeChange: (code: string) => void;
-    variables?: Array<{ name: string; displayName: string; value: number }>;
+    variables?: Array<{ name: string; displayName: string; value: number | string }>;
 }
 
 export function FullEditorDialog({

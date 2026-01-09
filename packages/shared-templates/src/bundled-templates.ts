@@ -20,7 +20,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "detect"
       ],
       "author": "system",
-      "version": 1,
+      "version": 2,
       "description": "Decide whether to collect crystal or activate switch"
     },
     "parameters": [
@@ -37,9 +37,9 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "defaultValue": 6
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_PATH_LENGTH_ = 3;\nvar _MAX_PATH_LENGTH_ = 6;\nvar PATH_LENGTH = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < PATH_LENGTH; i++) {\n  if (isOnCrystal()) {\n    collectItem();\n  } else if (isOnSwitch()) {\n    toggleSwitch();\n  }\n  moveForward();\n}\n\nmoveForward();",
+    "solutionCode": "// Parameters\nvar _MIN_PATH_LENGTH_ = 3;\nvar _MAX_PATH_LENGTH_ = 6;\nvar PATH_LENGTH = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < PATH_LENGTH; i++) {\n  if (isItemPresent('crystal')) {\n    collectItem();\n  } else if (isItemPresent('switch')) {\n    toggleSwitch();\n  }\n  moveForward();\n}\n\nmoveForward();",
     "descriptionMarkdown": "# Crystal or Switch\n\nLearn to make decisions based on what's in front of you.\n\n## Learning Goals\n- Use if-else for decision making\n- Detect items in the environment\n- Choose correct action based on condition\n\n## Solution & Parameters",
-    "rawContent": "---\nid: crystal-or-switch\nname: \"Crystal or Switch\"\ncategory: conditional\nconcepts: [\"if_else\"]\ndifficulty: 4\ntags: [\"if\", \"else\", \"detect\"]\nauthor: system\nversion: 1\ndescription: \"Decide whether to collect crystal or activate switch\"\n---\n\n# Crystal or Switch\n\nLearn to make decisions based on what's in front of you.\n\n## Learning Goals\n- Use if-else for decision making\n- Detect items in the environment\n- Choose correct action based on condition\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_PATH_LENGTH_ = 3;\nvar _MAX_PATH_LENGTH_ = 6;\nvar PATH_LENGTH = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < PATH_LENGTH; i++) {\n  if (isOnCrystal()) {\n    collectItem();\n  } else if (isOnSwitch()) {\n    toggleSwitch();\n  }\n  moveForward();\n}\n\nmoveForward();\n```\n",
+    "rawContent": "---\nid: crystal-or-switch\nname: \"Crystal or Switch\"\ncategory: conditional\nconcepts: [\"if_else\"]\ndifficulty: 4\ntags: [\"if\", \"else\", \"detect\"]\nauthor: system\nversion: 2\ndescription: \"Decide whether to collect crystal or activate switch\"\n---\n\n# Crystal or Switch\n\nLearn to make decisions based on what's in front of you.\n\n## Learning Goals\n- Use if-else for decision making\n- Detect items in the environment\n- Choose correct action based on condition\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_PATH_LENGTH_ = 3;\nvar _MAX_PATH_LENGTH_ = 6;\nvar PATH_LENGTH = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < PATH_LENGTH; i++) {\n  if (isItemPresent('crystal')) {\n    collectItem();\n  } else if (isItemPresent('switch')) {\n    toggleSwitch();\n  }\n  moveForward();\n}\n\nmoveForward();\n```\n\n",
     "hints": {
       "title": "Crystal or Switch",
       "description": "Learn to make decisions based on what's in front of you.",
@@ -65,7 +65,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "decision"
       ],
       "author": "system",
-      "version": 2,
+      "version": 3,
       "description": "Use simple if statement to collect crystals"
     },
     "parameters": [
@@ -82,9 +82,9 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "defaultValue": 5
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_PATH_ = 3;\nvar _MAX_PATH_ = 5;\nvar PATH_LEN = random(_MIN_PATH_, _MAX_PATH_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < PATH_LEN; i++) {\n  if (isOnCrystal()) {\n    collectItem();\n  }\n  moveForward();\n}\n\nmoveForward();",
+    "solutionCode": "// Parameters\nvar _MIN_PATH_ = 3;\nvar _MAX_PATH_ = 5;\nvar PATH_LEN = random(_MIN_PATH_, _MAX_PATH_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < PATH_LEN; i++) {\n  if (isItemPresent('crystal')) {\n    collectItem();\n  }\n  moveForward();\n}\n\nmoveForward();",
     "descriptionMarkdown": "# Simple If\n\nLearn to use a simple if statement to make decisions.\n\n## Learning Goals\n- Understand if statement\n- Make conditional decisions\n- Check conditions\n\n## Solution & Parameters",
-    "rawContent": "---\nid: if-simple\nname: \"Simple If\"\ncategory: conditional\nconcepts: [\"if_simple\"]\ndifficulty: 2\ntags: [\"conditional\", \"if\", \"decision\"]\nauthor: system\nversion: 2\ndescription: \"Use simple if statement to collect crystals\"\n---\n\n# Simple If\n\nLearn to use a simple if statement to make decisions.\n\n## Learning Goals\n- Understand if statement\n- Make conditional decisions\n- Check conditions\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_PATH_ = 3;\nvar _MAX_PATH_ = 5;\nvar PATH_LEN = random(_MIN_PATH_, _MAX_PATH_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < PATH_LEN; i++) {\n  if (isOnCrystal()) {\n    collectItem();\n  }\n  moveForward();\n}\n\nmoveForward();\n```\n",
+    "rawContent": "---\nid: if-simple\nname: \"Simple If\"\ncategory: conditional\nconcepts: [\"if_simple\"]\ndifficulty: 2\ntags: [\"conditional\", \"if\", \"decision\"]\nauthor: system\nversion: 3\ndescription: \"Use simple if statement to collect crystals\"\n---\n\n# Simple If\n\nLearn to use a simple if statement to make decisions.\n\n## Learning Goals\n- Understand if statement\n- Make conditional decisions\n- Check conditions\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_PATH_ = 3;\nvar _MAX_PATH_ = 5;\nvar PATH_LEN = random(_MIN_PATH_, _MAX_PATH_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < PATH_LEN; i++) {\n  if (isItemPresent('crystal')) {\n    collectItem();\n  }\n  moveForward();\n}\n\nmoveForward();\n```\n\n",
     "hints": {
       "title": "Simple If",
       "description": "Learn to use a simple if statement to make decisions.",
@@ -1809,12 +1809,18 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MAX_STEPS_",
         "displayName": "Max Steps",
         "type": "number",
-        "defaultValue": 5
+        "defaultValue": 6
+      },
+      {
+        "name": "_INTERACTION_",
+        "displayName": "Interaction",
+        "type": "string",
+        "defaultValue": "crystal"
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 5;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Simple sequence of move and collect\nmoveForward();\n\nfor (let i = 0; i < STEPS; i++) {\n  moveForward();\n  collectItem();\n}\nmoveForward();",
+    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Generate a dynamic path using Micro Patterns\n// This will create a random sequence of moves, turns, and collections.\n// Users can adjust _INTERACTION_ to change the item type.\nrandomPattern(LEN, _INTERACTION_);",
     "descriptionMarkdown": "# Simple Sequence\n\nLearn the basics of sequential programming by executing commands in order.\n\n## Learning Goals\n- Understand sequential execution\n- Practice basic commands\n- Learn that each command runs one after another\n\n## Solution & Parameters",
-    "rawContent": "---\nid: simple-sequence\nname: \"Simple Sequence\"\ncategory: sequential\nconcepts: [\"sequential\"]\ndifficulty: 1\ntags: [\"moveForward\", \"collectItem\", \"basic\", \"sequence\"]\nauthor: system\nversion: 1\ndescription: \"Sequential commands without loops - basic movement and collection\"\n---\n\n# Simple Sequence\n\nLearn the basics of sequential programming by executing commands in order.\n\n## Learning Goals\n- Understand sequential execution\n- Practice basic commands\n- Learn that each command runs one after another\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 5;\nvar STEPS = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Simple sequence of move and collect\nmoveForward();\n\nfor (let i = 0; i < STEPS; i++) {\n  moveForward();\n  collectItem();\n}\nmoveForward();\n```\n",
+    "rawContent": "---\nid: simple-sequence\nname: \"Simple Sequence\"\ncategory: sequential\nconcepts: [\"sequential\"]\ndifficulty: 1\ntags: [\"moveForward\", \"collectItem\", \"basic\", \"sequence\"]\nauthor: system\nversion: 1\ndescription: \"Sequential commands without loops - basic movement and collection\"\n---\n\n# Simple Sequence\n\nLearn the basics of sequential programming by executing commands in order.\n\n## Learning Goals\n- Understand sequential execution\n- Practice basic commands\n- Learn that each command runs one after another\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Generate a dynamic path using Micro Patterns\n// This will create a random sequence of moves, turns, and collections.\n// Users can adjust _INTERACTION_ to change the item type.\nrandomPattern(LEN, _INTERACTION_);\n```\n\n",
     "hints": {
       "title": "Simple Sequence",
       "description": "Learn the basics of sequential programming by executing commands in order.",

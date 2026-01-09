@@ -21,8 +21,8 @@
 
 import type { MicroPattern, ActionType } from './micro-patterns';
 import { getRandomPattern, patternToCode } from './micro-patterns';
-import type { LoopStructure, SingleLoopStructure, NestedLoopStructure, CountMode } from './loop-structures';
-import { createSingleLoop, createNestedLoop, CountModes, calculateCount, estimateTotalActions, estimateSolutionBlocks } from './loop-structures';
+import type { LoopStructure, SingleLoopStructure, NestedLoopStructure, WhileLoopStructure, CountMode } from './loop-structures';
+import { createSingleLoop, createNestedLoop, createWhileLoop, CountModes, calculateCount, estimateTotalActions, estimateSolutionBlocks } from './loop-structures';
 
 // =============================================================================
 // TYPES
@@ -89,7 +89,10 @@ export interface ConditionalConfig {
 /** Generator configuration */
 export interface GeneratorConfig {
   /** Target structure type */
-  structureType: 'single' | 'nested';
+  structureType: 'single' | 'nested' | 'while';
+
+  /** Extract inner loops to helper functions? */
+  useHelperFunctions?: boolean;
   
   /** Loop counts */
   outerCount?: number;
@@ -310,9 +313,16 @@ function executeStructure(structure: LoopStructure, state: ExecutionState): void
     case 'nested':
       executeNestedLoop(structure, state);
       break;
+
     case 'while':
-      // While loops would need condition checking - not implemented yet
-      throw new Error('While loop execution not implemented');
+      // While loop simulation: execute pattern random times (between min and max)
+      // This creates a valid path for "while not done"
+      const w = structure as WhileLoopStructure;
+      const iterations = Math.floor(state.rng() * (w.maxIterations - w.minIterations + 1)) + w.minIterations;
+      for (let i = 0; i < iterations; i++) {
+        executePattern(state, w.pattern);
+      }
+      break;
   }
 }
 
@@ -376,7 +386,7 @@ export function generateMap(config: GeneratorConfig): GeneratedMap {
     }
     
     structure = createSingleLoop(pattern, outerCount);
-  } else {
+  } else if (structureType === 'nested') {
     // Nested loop
     const innerPattern = getRandomPattern({
       nestedLoopCompatible: true,
@@ -404,6 +414,18 @@ export function generateMap(config: GeneratorConfig): GeneratedMap {
       outerCount,
       innerCount
     );
+  } else {
+    // While loop
+    const pattern = getRandomPattern({
+      maxLength: patternMaxLength,
+      interactionType: patternInteractionType,
+      includeTemplateActions: includeJumpActions,
+      seed,
+    });
+    
+    if (!pattern) throw new Error('Could not generate valid pattern for while loop');
+
+    structure = createWhileLoop(pattern, 'notAtEnd', 4, outerCount || 10);
   }
   
   // Execute structure to generate path and items
@@ -503,7 +525,7 @@ export function generateValidMap(
 /**
  * Generate JavaScript solution code from structure
  */
-export function generateSolutionCode(structure: LoopStructure): string {
+export function generateSolutionCode(structure: LoopStructure, options?: { useHelperFunctions?: boolean }): string {
   const lines: string[] = [];
   
   if (structure.type === 'single') {
@@ -541,11 +563,27 @@ export function generateSolutionCode(structure: LoopStructure): string {
     
     // Inner loop
     const innerCountExpr = getCountExpression(s.innerCount);
-    lines.push(`  for (let inner = 0; inner < ${innerCountExpr}; inner++) {`);
-    for (const action of s.innerPattern.actions) {
-      lines.push(`    ${action}();`);
+    
+    if (options?.useHelperFunctions) {
+      // Function Extraction Strategy
+      lines.unshift(`function processSegment() {`);
+      for (const action of s.innerPattern.actions) {
+        lines.splice(1, 0, `  ${action}();`);
+      }
+      lines.splice(1 + s.innerPattern.actions.length, 0, `}`);
+      lines.splice(2 + s.innerPattern.actions.length, 0, ``); // Empty line
+      
+      lines.push(`  for (let inner = 0; inner < ${innerCountExpr}; inner++) {`);
+      lines.push(`    processSegment();`);
+      lines.push(`  }`);
+    } else {
+      // Inline generation
+      lines.push(`  for (let inner = 0; inner < ${innerCountExpr}; inner++) {`);
+        for (const action of s.innerPattern.actions) {
+          lines.push(`    ${action}();`);
+        }
+      lines.push(`  }`);
     }
-    lines.push(`  }`);
     
     // Transition (with condition to skip last)
     lines.push(`  if (outer < ${s.outerCount - 1}) {`);
@@ -561,6 +599,13 @@ export function generateSolutionCode(structure: LoopStructure): string {
       lines.push(`// Suffix`);
       lines.push(patternToCode(s.suffix));
     }
+  } else if (structure.type === 'while') {
+    const s = structure as WhileLoopStructure;
+    lines.push(`while (notDone()) {`);
+    for (const action of s.pattern.actions) {
+      lines.push(`  ${action}();`);
+    }
+    lines.push(`}`);
   }
   
   return lines.join('\n');

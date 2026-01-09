@@ -129,8 +129,10 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
     });
     const [preview, setPreview] = useState<PreviewResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [variableValues, setVariableValues] = useState<Record<string, number>>({});
+
+    const [variableValues, setVariableValues] = useState<Record<string, number | string>>({});
     const [isFullEditorOpen, setIsFullEditorOpen] = useState(false);
+
     const [isNotebookOpen, setIsNotebookOpen] = useState(false);
     const [isParamsExpanded, setIsParamsExpanded] = useState(true);
 
@@ -139,7 +141,7 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
 
     // Initialize variable values when variables change
     useEffect(() => {
-        const newValues: Record<string, number> = {};
+        const newValues: Record<string, number | string> = {};
         variables.forEach(v => {
             newValues[v.name] = variableValues[v.name] ?? v.value;
         });
@@ -203,10 +205,25 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
     }, []);
 
     // Handle variable change - update value in code directly
-    const handleVariableChange = useCallback((name: string, value: number) => {
+    // Handle variable change - update value in code directly
+    const handleVariableChange = useCallback((name: string, value: number | string) => {
         // Update the var declaration in code
-        const pattern = new RegExp(`(var\\s+${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*=\\s*)\\d+(\\s*;)`, 'g');
-        const newCode = code.replace(pattern, `$1${value}$2`);
+        // For strings, escape if needed? Actually updateVariableValues handles it if we use it, 
+        // but here we are doing regex replace manually.
+
+        // Match number: var _N_ = 123;
+        // Match string: var _S_ = 'val';
+
+        // We construct a regex that matches EITHER number OR string assignment
+        // But simpler: just locate the assignment by variable name and replace the RHS
+        // We rely on the structure: var _NAME_ = VALUE;
+
+        const isString = typeof value === 'string';
+        const replacement = isString ? `'${value}'` : value;
+
+        const pattern = new RegExp(`(var\\s+${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*=\\s*)(?:\\d+|['"][^'"]*['"])(\\s*;)`, 'g');
+        const newCode = code.replace(pattern, `$1${replacement}$2`);
+
         setCode(newCode);
         setVariableValues(prev => ({ ...prev, [name]: value }));
         setPreview(null);
@@ -219,18 +236,35 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
     const getEffectiveCode = useCallback(() => {
         let execCode = code;
 
-        // Step 1: Replace all _PLACEHOLDER_ with their values
+        // Step 0: Remove var declarations FIRST
+        // This ensures "var _MIN_STEPS_ = 3;" is removed before it becomes "var 3 = 3;" by Global Replace
+        // Matches: var _NAME_ = VALUE; (including comments)
+        execCode = execCode.replace(/^\s*var\s+(_[A-Z0-9_]+_)\s*=\s*(?:['"][^'"]*['"]|\d+)\s*;.*$/gm, '');
+
+        // Step 1: Replace all substitution variables with their values
+        // We now replace them in the REST of the code
         for (const v of variables) {
             const value = variableValues[v.name] ?? v.value;
+            const isString = typeof value === 'string';
+            const replacement = isString ? `'${value}'` : String(value);
+
             const pattern = new RegExp(`\\b${v.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g');
-            execCode = execCode.replace(pattern, String(value));
+            execCode = execCode.replace(pattern, replacement);
         }
 
         // Step 2: Find and evaluate "var VARNAME = random(min, max);" 
         // Store the results and replace VARNAME throughout code
+        // Step 2: Parse and Remove "var VARNAME = random(...);"
+        // We calculate the value, store it, THEN remove the line, THEN replace usage
         const randomVars: Record<string, number> = {};
         const randomPattern = /var\s+([A-Z][A-Z0-9_]*)\s*=\s*random\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/g;
         let match;
+
+        // We need to capture all matches first because modifying string while exec leads to issues
+        // Actually, we can just replace the lines with empty string AND capture the values in one pass?
+        // But we need the min/max values.
+
+        // Pass 1: Extract values
         while ((match = randomPattern.exec(execCode)) !== null) {
             const varName = match[1];
             const min = parseInt(match[2], 10);
@@ -238,14 +272,14 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
             randomVars[varName] = Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
-        // Replace random var names with their computed values
+        // Pass 2: Remove the declarations
+        execCode = execCode.replace(/var\s+[A-Z][A-Z0-9_]*\s*=\s*random\s*\(\s*\d+\s*,\s*\d+\s*\)\s*;/g, '');
+
+        // Pass 3: Replace random var names with their computed values in the REST of the code
         for (const [varName, value] of Object.entries(randomVars)) {
             const pattern = new RegExp(`\\b${varName}\\b`, 'g');
             execCode = execCode.replace(pattern, String(value));
         }
-
-        // Step 3: Remove var declarations (now they're just "var 5 = 5;" etc)
-        execCode = execCode.replace(/^\s*var\s+\d+\s*=\s*[^;]+;\s*$/gm, '');
 
         // Remove empty lines resulted from removals
         execCode = execCode.replace(/^\s*\n/gm, '');
@@ -486,19 +520,52 @@ export function TemplatePanel({ onGenerate, hasExistingMap = false }: TemplatePa
                                         <label className="template-variables__label">
                                             {variable.displayName}
                                         </label>
-                                        <input
-                                            type="number"
-                                            className="template-variables__number-input"
-                                            value={variableValues[variable.name] ?? variable.value}
-                                            onChange={(e) => {
-                                                const newValue = parseInt(e.target.value, 10);
-                                                if (!isNaN(newValue) && newValue >= 0) {
-                                                    handleVariableChange(variable.name, newValue);
-                                                }
-                                            }}
-                                            min={0}
-                                            max={100}
-                                        />
+
+                                        {variable.options ? (
+                                            <select
+                                                className="template-variables__select"
+                                                value={variableValues[variable.name] ?? variable.value}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    // Determine if original was number or string based on variable.type
+                                                    // But Select values are always strings.
+                                                    // If variable type is number, parse it.
+                                                    if (variable.type === 'number') {
+                                                        const num = parseInt(val, 10);
+                                                        handleVariableChange(variable.name, num);
+                                                    } else {
+                                                        handleVariableChange(variable.name, val);
+                                                    }
+                                                }}
+                                                style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #444', background: '#222', color: '#eee' }}
+                                            >
+                                                {variable.options.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                        ) : variable.type === 'string' ? (
+                                            <input
+                                                type="text"
+                                                className="template-variables__text-input"
+                                                value={variableValues[variable.name] ?? variable.value}
+                                                onChange={(e) => handleVariableChange(variable.name, e.target.value)}
+                                                style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #444', background: '#222', color: '#eee' }}
+                                            />
+                                        ) : (
+                                            <input
+                                                type="number"
+                                                className="template-variables__number-input"
+                                                value={variableValues[variable.name] ?? variable.value}
+                                                onChange={(e) => {
+                                                    const newValue = parseInt(e.target.value, 10);
+                                                    if (!isNaN(newValue) && newValue >= 0) {
+                                                        handleVariableChange(variable.name, newValue);
+                                                    }
+                                                }}
+                                                min={0}
+                                                max={100}
+                                            />
+                                        )}
                                     </div>
                                 ))}
                             </div>

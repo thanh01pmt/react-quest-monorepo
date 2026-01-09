@@ -31,6 +31,7 @@ import {
   coordToKey
 } from './types';
 import { SeededRandom } from './utils';
+import { getRandomPattern, MicroPattern, ActionType } from '@repo/shared-templates';
 
 // ============================================================================
 // LEXER
@@ -659,6 +660,9 @@ class Parser {
           this.advance();
           return { type: 'Identifier', name: token.value };
       }
+      if (this.check(TokenType.STRING)) {
+          return { type: 'Literal', value: this.advance().value };
+      }
       if (this.check(TokenType.LPAREN)) {
           this.advance();
           const expr = this.parseExpression();
@@ -776,19 +780,22 @@ class Parser {
     const name = this.advance().value;
     
     // Optional parentheses
+    // Optional parentheses
+    const args: any[] = [];
     if (this.check(TokenType.LPAREN)) {
       this.advance(); // (
-      // Skip arguments for now
-      while (!this.check(TokenType.RPAREN) && !this.isAtEnd()) {
-        this.advance();
+      if (!this.check(TokenType.RPAREN)) {
+        do {
+          args.push(this.parseExpression());
+        } while (this.match(','));
       }
-      if (this.check(TokenType.RPAREN)) this.advance(); // )
+      this.consume(TokenType.RPAREN, 'Expected )');
     }
     
     // Optional semicolon
     if (this.check(TokenType.SEMICOLON)) this.advance();
     
-    return { type: 'FunctionCall', name, arguments: [] };
+    return { type: 'FunctionCall', name, arguments: args };
   }
 
   // === Helpers ===
@@ -1414,6 +1421,26 @@ export class TemplateInterpreter {
     const name = node.name.toLowerCase();
     
     switch (name) {
+      // === Micro Pattern Support ===
+      case 'randompattern':
+      case 'random_pattern': {
+        const maxLength = node.arguments[0] ? this.evaluateExpression(node.arguments[0]) : undefined;
+        const interactionType = node.arguments[1] ? this.evaluateExpression(node.arguments[1]) : undefined; // string
+        const hasNested = node.arguments[2] ? this.evaluateExpression(node.arguments[2]) : undefined; // boolean
+
+        const pattern = getRandomPattern({
+          maxLength: maxLength || 5,
+          interactionType: interactionType || 'crystal',
+          nestedLoopCompatible: hasNested,
+          seed: this.rng ? Math.floor(this.rng.next() * 100000) : undefined // Seeded
+        });
+
+        if (pattern) {
+          this.executeMicroPattern(pattern);
+        }
+        break;
+      }
+
       // === Movement Commands (Quest Player standard) ===
       case 'moveforward':
         this.doMoveForward();
@@ -1646,5 +1673,23 @@ export class TemplateInterpreter {
       direction: this.context.direction,
       item: itemType
     });
+  }
+
+  private executeMicroPattern(pattern: MicroPattern): void {
+    if (!pattern.actions) return;
+    
+    for (const action of pattern.actions) {
+      switch(action) {
+        case 'moveForward': this.doMoveForward(); break;
+        case 'turnLeft': this.doTurnLeft(); break;
+        case 'turnRight': this.doTurnRight(); break;
+        case 'collectItem': this.doCollect('crystal'); break;
+        case 'toggleSwitch': this.doInteract('switch'); break;
+        case 'pickUpKey': this.doCollect('key'); break;
+        case 'jump': this.doJump(); break;
+        case 'jumpUp': this.doJumpUp(); break;
+        case 'jumpDown': this.doJumpDown(); break;
+      }
+    }
   }
 }
