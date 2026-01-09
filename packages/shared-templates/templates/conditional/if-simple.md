@@ -6,7 +6,7 @@ concepts: ["if_simple"]
 difficulty: 2
 tags: ["conditional", "if", "decision"]
 author: system
-version: 2
+version: 3
 description: "Use simple if statement to collect crystals"
 ---
 
@@ -31,7 +31,7 @@ var PATH_LEN = random(_MIN_PATH_, _MAX_PATH_);
 moveForward();
 
 for (let i = 0; i < PATH_LEN; i++) {
-  if (isOnCrystal()) {
+  if (isItemPresent('crystal')) {
     collectItem();
   }
   moveForward();
@@ -39,3 +39,4 @@ for (let i = 0; i < PATH_LEN; i++) {
 
 moveForward();
 ```
+

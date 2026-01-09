@@ -6,7 +6,7 @@ concepts: ["if_else"]
 difficulty: 4
 tags: ["if", "else", "detect"]
 author: system
-version: 1
+version: 2
 description: "Decide whether to collect crystal or activate switch"
 ---
 
@@ -31,9 +31,9 @@ var PATH_LENGTH = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);
 moveForward();
 
 for (let i = 0; i < PATH_LENGTH; i++) {
-  if (isOnCrystal()) {
+  if (isItemPresent('crystal')) {
     collectItem();
-  } else if (isOnSwitch()) {
+  } else if (isItemPresent('switch')) {
     toggleSwitch();
   }
   moveForward();
@@ -41,3 +41,4 @@ for (let i = 0; i < PATH_LENGTH; i++) {
 
 moveForward();
 ```
+

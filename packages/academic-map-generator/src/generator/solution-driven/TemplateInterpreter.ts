@@ -55,6 +55,7 @@ enum TokenType {
   // Literals
   NUMBER = 'NUMBER',
   IDENTIFIER = 'IDENTIFIER',
+  STRING = 'STRING',
   
   // Operators
   ASSIGN = 'ASSIGN',       // =
@@ -214,6 +215,10 @@ class Lexer {
         case '!':
           tokens.push(this.makeToken(TokenType.NOT, '!'));
           break;
+        case "'":
+        case '"':
+          tokens.push(this.readString(char));
+          break;
         default:
           // Skip unknown characters
           this.position++;
@@ -223,6 +228,37 @@ class Lexer {
 
     tokens.push({ type: TokenType.EOF, value: null, line: this.line, column: this.column });
     return tokens;
+  }
+
+  private readString(quoteType: string): Token {
+    this.position++; // Skip opening quote
+    this.column++;
+    
+    let value = '';
+    while (this.position < this.input.length && this.input[this.position] !== quoteType) {
+      const char = this.input[this.position];
+      value += char;
+      this.position++;
+      this.column++;
+      if (char === '\n') {
+        this.line++;
+        this.column = 1;
+      }
+    }
+    
+    if (this.position >= this.input.length) {
+      throw new Error(`Unterminated string at line ${this.line}`);
+    }
+    
+    this.position++; // Skip closing quote
+    this.column++;
+    
+    return {
+      type: TokenType.STRING,
+      value,
+      line: this.line,
+      column: this.column
+    };
   }
 
   private skipWhitespace(): void {
@@ -670,28 +706,59 @@ class Parser {
     // Parse condition identifier
     const conditionName = this.consume(TokenType.IDENTIFIER, 'Expected condition').value.toLowerCase();
     
-    // Support function call syntax: isOnCrystal()
+    // Parse optional function call with arguments: isItemPresent('crystal')
+    let argument: string | undefined;
     if (this.check(TokenType.LPAREN)) {
-        this.advance();
+        this.advance(); // consume (
+        
+        // Parse string argument if present (e.g., 'crystal', 'on')
+        if (!this.check(TokenType.RPAREN)) {
+          if (this.check(TokenType.STRING)) {
+            argument = this.consume(TokenType.STRING, 'Expected string argument').value.toLowerCase();
+          } else {
+             // Fallback for old style identifiers if any (though strings are preferred now)
+             // Or allow skipping over complex args if we don't support them
+             while (!this.check(TokenType.RPAREN) && !this.isAtEnd()) {
+                this.advance();
+             }
+          }
+        }
+        
         this.consume(TokenType.RPAREN, 'Expected ")" after condition function call');
     }
     
     // Map to ConditionType
     const conditionType = this.mapConditionType(conditionName);
     
-    return { type: 'Condition', conditionType, negated };
+    return { type: 'Condition', conditionType, negated, argument };
   }
 
   private mapConditionType(name: string): ConditionType {
     const mapping: Record<string, ConditionType> = {
+      // Legacy mappings (deprecated, for backward compatibility)
       'isoncrystal': 'isOnCrystal',
       'is_on_crystal': 'isOnCrystal',
       'isonswitch': 'isOnSwitch',
       'is_on_switch': 'isOnSwitch',
       'haskey': 'hasKey',
-      'has_key': 'hasKey'
+      'has_key': 'hasKey',
+      
+      // Standard Blockly API
+      'isitempresent': 'isItemPresent',
+      'is_item_present': 'isItemPresent',
+      'isswitchstate': 'isSwitchState',
+      'is_switch_state': 'isSwitchState',
+      'ispathforward': 'isPathForward',
+      'is_path_forward': 'isPathForward',
+      'ispathleft': 'isPathLeft',
+      'is_path_left': 'isPathLeft',
+      'ispathright': 'isPathRight',
+      'is_path_right': 'isPathRight',
+      'notdone': 'notDone',
+      'not_done': 'notDone',
+      'atfinish': 'notDone', // atFinish is negated notDone, handled in evaluator
     };
-    return mapping[name] || 'isOnCrystal';
+    return mapping[name] || 'isItemPresent'; // Default to isItemPresent for unknown
   }
 
   private parseBlock(): BlockNode {
@@ -1170,6 +1237,8 @@ export class TemplateInterpreter {
 
   private evaluateFunctionCallExpr(node: any): any {
      const name = node.name.toLowerCase();
+     
+     // Random function
      if (name === 'random') {
         const min = this.evaluateExpression(node.args[0]);
         const max = this.evaluateExpression(node.args[1]);
@@ -1178,7 +1247,108 @@ export class TemplateInterpreter {
         }
         return Math.floor(Math.random() * (max - min + 1)) + min;
      }
+     
+     // === Standard Blockly Sensor Functions ===
+     
+     // isItemPresent('crystal'|'switch'|'key'|'any')
+     if (name === 'isitempresent') {
+        const itemType = node.args[0]?.value?.toLowerCase() || 'any';
+        return this.checkItemPresent(itemType);
+     }
+     
+     // isSwitchState('on'|'off')
+     if (name === 'isswitchstate') {
+        const state = node.args[0]?.value?.toLowerCase() || 'on';
+        return this.checkSwitchState(state);
+     }
+     
+     // isPathForward(), isPathLeft(), isPathRight()
+     if (name === 'ispathforward') {
+        return true; // In generative mode, path is always ahead
+     }
+     if (name === 'ispathleft') {
+        return this.rng ? this.rng.nextBoolean() : Math.random() > 0.5;
+     }
+     if (name === 'ispathright') {
+        return this.rng ? this.rng.nextBoolean() : Math.random() > 0.5;
+     }
+     
+     // notDone() - always true in generative mode until we reach end
+     if (name === 'notdone') {
+        return true;
+     }
+     
+     // atFinish() - opposite of notDone
+     if (name === 'atfinish') {
+        return false;
+     }
+     
      return 0;
+  }
+  
+  /**
+   * Check if item of specified type is present at current position
+   * In generative mode, may place items randomly
+   */
+  private checkItemPresent(itemType: string): boolean {
+    const pos = this.context.position;
+    
+    // Check existing items
+    const hasItem = this.items.some(item => {
+      if (itemType === 'any') {
+        return item.position[0] === pos[0] && item.position[2] === pos[2];
+      }
+      return item.type === itemType && 
+             item.position[0] === pos[0] && 
+             item.position[2] === pos[2];
+    });
+    
+    if (hasItem) return true;
+    
+    // Generative mode: randomly place item
+    if (this.rng && this.rng.nextBoolean()) {
+      const type = itemType === 'any' ? 'crystal' : itemType;
+      console.log(`[Interpreter] Placing ${type} at position:`, pos);
+      this.items.push({ type, position: [...pos] as Coord });
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Check switch state at current position
+   * In generative mode, may place switch with random state
+   */
+  private checkSwitchState(targetState: string): boolean {
+    const pos = this.context.position;
+    
+    // Find switch at current position
+    const switchItem = this.items.find(item => 
+      item.type === 'switch' && 
+      item.position[0] === pos[0] && 
+      item.position[2] === pos[2]
+    );
+    
+    if (switchItem) {
+      // Check if switch is in target state
+      const currentState = (switchItem as any).state || 'off';
+      return currentState === targetState;
+    }
+    
+    // Generative mode: place switch with random state
+    if (this.rng) {
+      const state = this.rng.nextBoolean() ? 'on' : 'off';
+      console.log(`[Interpreter] Placing switch (${state}) at position:`, pos);
+      this.items.push({ 
+        type: 'switch', 
+        position: [...pos] as Coord,
+        state 
+      } as any);
+      return state === targetState;
+    }
+    
+    return false;
   }
 
   private executeFunctionDef(node: FunctionDefNode): void {
@@ -1195,42 +1365,42 @@ export class TemplateInterpreter {
     let result: boolean;
     
     switch (condition.conditionType) {
+      // === Legacy condition types (backward compatibility) ===
       case 'isOnCrystal':
-        // Check if crystal at current position, if not and in generative mode, place one
-        result = this.items.some(item => 
-          item.type === 'crystal' && 
-          item.position[0] === this.context.position[0] && 
-          item.position[2] === this.context.position[2]
-        );
-
-        // Generative Mode: If not found, place a crystal here
-        if (!result && this.rng && this.rng.nextBoolean()) {
-          console.log('[Interpreter] Placing crystal at position:', this.context.position);
-          this.items.push({ type: 'crystal', position: [...this.context.position] as Coord });
-          result = true;
-        }
+        result = this.checkItemPresent('crystal');
         break;
 
       case 'isOnSwitch':
-        // Check if switch at current position, if not and in generative mode, place one
-        result = this.items.some(item => 
-          item.type === 'switch' && 
-          item.position[0] === this.context.position[0] && 
-          item.position[2] === this.context.position[2]
-        );
-
-        // Generative Mode: If not found, place a switch here
-        if (!result && this.rng && this.rng.nextBoolean()) {
-          console.log('[Interpreter] Placing switch at position:', this.context.position);
-          this.items.push({ type: 'switch', position: [...this.context.position] as Coord });
-          result = true;
-        } else {
-          console.log('[Interpreter] isOnSwitch evaluated:', result, 'rng:', this.rng ? 'exists' : 'null', 'at:', this.context.position);
-        }
+        result = this.checkItemPresent('switch');
         break;
         
       case 'hasKey':
         result = this.context.inventory.keys > 0;
+        break;
+      
+      // === Standard Blockly API condition types ===
+      case 'isItemPresent':
+        result = this.checkItemPresent(condition.argument || 'any');
+        break;
+        
+      case 'isSwitchState':
+        result = this.checkSwitchState(condition.argument || 'on');
+        break;
+        
+      case 'isPathForward':
+        result = true; // Always have path ahead in generative mode
+        break;
+        
+      case 'isPathLeft':
+        result = this.rng ? this.rng.nextBoolean() : Math.random() > 0.5;
+        break;
+        
+      case 'isPathRight':
+        result = this.rng ? this.rng.nextBoolean() : Math.random() > 0.5;
+        break;
+        
+      case 'notDone':
+        result = true; // Always not done until we reach end
         break;
         
       default:

@@ -251,12 +251,22 @@ export interface ConditionNode {
   type: 'Condition';
   conditionType: ConditionType;
   negated?: boolean;
+  /** Argument for functions like isItemPresent('crystal') */
+  argument?: string;
 }
 
 export type ConditionType = 
+  // Legacy (deprecated, kept for backward compatibility)
   | 'isOnCrystal'
   | 'isOnSwitch'
-  | 'hasKey';
+  | 'hasKey'
+  // Standard Blockly API
+  | 'isItemPresent'   // isItemPresent('crystal'|'switch'|'key'|'any')
+  | 'isSwitchState'   // isSwitchState('on'|'off') 
+  | 'isPathForward'   // isPathForward()
+  | 'isPathLeft'      // isPathLeft()
+  | 'isPathRight'     // isPathRight()
+  | 'notDone';        // notDone() / atFinish()
 
 // ============================================================================
 // OUTPUT TYPES

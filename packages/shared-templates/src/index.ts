@@ -42,3 +42,12 @@ export {
   MAX_STREAK_MULTIPLIER,
   PAR_TIME_SECONDS,
 } from './scoring';
+
+// Micro-Patterns for template composition
+export * from './micro-patterns';
+
+// Loop Structures (L2) for template generation
+export * from './loop-structures';
+
+// Template Generator (L3) for map generation
+export * from './template-generator';
