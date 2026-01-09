@@ -1426,23 +1426,31 @@ export class TemplateInterpreter {
       case 'random_pattern': {
         const maxLength = node.arguments[0] ? this.evaluateExpression(node.arguments[0]) : undefined;
         const interactionType = node.arguments[1] ? this.evaluateExpression(node.arguments[1]) : undefined; // string
-        const filterArg = node.arguments[2] ? this.evaluateExpression(node.arguments[2]) : undefined; 
-
-        // Analyze 3rd argument for flexible filtering
+        // Parse optional arguments (index 2 onwards)
+        // We support mixed ordering for convenience:
+        // - boolean -> nestedLoopCompatible
+        // - number -> netTurn
+        // - string -> movementStyle
+        
+        // Analyze arguments 2, 3, 4 for filters
         let nestedCompatible: boolean | undefined = undefined;
         let netTurn: 0 | 90 | -90 | 180 | undefined = undefined;
         let movementStyle: 'straight' | 'turn' | 'jump' | 'mixed' | undefined = undefined;
 
-        if (typeof filterArg === 'boolean') {
-            nestedCompatible = filterArg;
-        } else if (typeof filterArg === 'number') {
-            // Validate allowable turns
-            if ([0, 90, -90, 180].includes(filterArg)) {
-                netTurn = filterArg as any;
-            }
-        } else if (typeof filterArg === 'string') {
-            if (['straight', 'turn', 'jump', 'mixed'].includes(filterArg)) {
-                movementStyle = filterArg as any;
+        for (let i = 2; i <= 4; i++) {
+            const arg = node.arguments[i] ? this.evaluateExpression(node.arguments[i]) : undefined;
+            if (arg === undefined) continue;
+
+            if (typeof arg === 'boolean') {
+                nestedCompatible = arg;
+            } else if (typeof arg === 'number') {
+                if ([0, 90, -90, 180].includes(arg)) {
+                    netTurn = arg as any;
+                }
+            } else if (typeof arg === 'string') {
+                if (['straight', 'turn', 'jump', 'mixed'].includes(arg)) {
+                    movementStyle = arg as any;
+                }
             }
         }
 

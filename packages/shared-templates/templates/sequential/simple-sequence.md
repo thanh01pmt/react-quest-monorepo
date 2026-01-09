@@ -27,14 +27,16 @@ var _MIN_STEPS_ = 3;
 var _MAX_STEPS_ = 6;
 var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key
 var _STYLE_ = 'mixed'; // OPTIONS: mixed, straight, jump, turn
+var _NET_TURN_ = 0; // OPTIONS: 0, 90, -90, 180
 var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
 // Generate a dynamic path using Micro Patterns
 // This will create a random sequence of moves, turns, and collections.
 // Users can adjust:
-// - _INTERACTION_: item type (crystal, switch, key)
-// - _STYLE_: movement style (mixed, straight, jump, turn)
-randomPattern(LEN, _INTERACTION_, _STYLE_);
+// - _INTERACTION_: item type
+// - _STYLE_: movement style
+// - _NET_TURN_: final direction change (0 same, 90 right, -90 left, 180 u-turn)
+randomPattern(LEN, _INTERACTION_, _STYLE_, _NET_TURN_);
 ```
 
