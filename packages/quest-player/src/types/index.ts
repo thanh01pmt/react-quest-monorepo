@@ -62,6 +62,13 @@ export interface Quest {
 
   translations?: Record<string, Record<string, string>>;
 
+  hints?: {
+    title?: string;
+    description?: string;
+    learningGoals?: string;
+    goalDetails?: string[];
+  };
+
   blocklyConfig?: BlocklyConfig;
   monacoConfig?: MonacoConfig;
   
@@ -69,6 +76,13 @@ export interface Quest {
   solution: SolutionConfig;
   sounds?: Record<string, string>;
   backgroundMusic?: string;
+  
+  // Template metadata for dynamic toolbox selection (synced from Builder)
+  templateMeta?: {
+    tags?: string[];
+    concepts?: string[];
+    category?: string;
+  };
 }
 
 // =================================================================
@@ -172,6 +186,9 @@ export interface MazeConfig {
     crystal?: number;  // Max crystals trong pool
     key?: number;      // Max keys trong pool
   };
+  
+  /** Movement sequence for path visualization (from SolutionDrivenGenerator) */
+  movementSequence?: Array<[number, number, number]>;
 }
 
 export interface TurtleConfig {
@@ -260,6 +277,13 @@ export interface Quest {
   solution: SolutionConfig;
   sounds?: Record<string, string>;
   backgroundMusic?: string;
+  
+  // Template metadata for dynamic toolbox selection (synced from Builder)
+  templateMeta?: {
+    tags?: string[];
+    concepts?: string[];
+    category?: string;
+  };
 }
 
 // =================================================================

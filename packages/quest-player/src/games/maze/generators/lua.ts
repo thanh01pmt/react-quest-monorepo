@@ -80,7 +80,7 @@ export const initLuaGenerator = () => {
     return [code, Order.HIGH]; // Lua function calls have high precedence
   };
 
-  luaGenerator.forBlock['maze_is_item_present'] = function(block: Blockly.Block) {
+  luaGenerator.forBlock['maze_is_item_present'] = function(_block: Blockly.Block) {
     const code = 'isItemPresent()';
     return [code, Order.HIGH];
   };

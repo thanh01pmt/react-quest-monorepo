@@ -18,17 +18,17 @@ const ASSET_SCALE = TILE_SIZE * 0.8; // Scale asset to be smaller than a tile
 
 export const Collectible: React.FC<CollectibleProps> = ({ position, collectibleType }) => {
   const ref = useRef<THREE.Group>(null!);
-  
+
   const assetPath = GameAssets.world.misc[collectibleType];
-  
+
   if (!assetPath) {
     console.warn(`Asset path not found for collectibleType: ${collectibleType}`);
     return null;
   }
-  
+
   const { nodes } = useGLTF(assetPath, true);
 
-  const geometry = Object.values(nodes).find(n => n instanceof THREE.Mesh)?.geometry;
+  const geometry = (Object.values(nodes).find(n => n instanceof THREE.Mesh) as THREE.Mesh | undefined)?.geometry;
 
   useFrame((state) => {
     if (ref.current) {

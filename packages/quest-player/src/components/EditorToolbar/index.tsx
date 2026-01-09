@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import './EditorToolbar.css';
 
-import { CodeLanguage, EditorType } from '../../types';
+import type { EditorType } from '../../types';
 
 interface EditorToolbarProps {
   supportedEditors: EditorType[];

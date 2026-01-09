@@ -153,7 +153,7 @@ export const calculateLogicalLines = (code: string): number => {
         'import', 'export', 'class', 'const', 'let', 'var' // Bao gồm khai báo biến để đảm bảo chúng cũng được tách
     ];
     const structureRegex = new RegExp(`(?<!\\S)\\b(${structureKeywords.join('|')})\\b`, 'g'); // Không phải ký tự non-whitespace trước từ khóa
-    cleanedCode = cleanedCode.replace(structureRegex, (match, p1, offset, string) => {
+    cleanedCode = cleanedCode.replace(structureRegex, (match, _p1, offset, string) => {
         // Nếu từ khóa không ở đầu dòng, chèn một newline trước nó
         if (offset > 0 && string[offset - 1] !== '\n') {
             return '\n' + match;

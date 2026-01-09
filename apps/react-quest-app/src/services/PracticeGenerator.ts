@@ -200,6 +200,7 @@ export class PracticeGenerator {
       parameters,
       mapData: null, // Will be generated when exercise is played
       hints: this.generateHints(template),
+      hintsData: template.hints,
     };
   }
 
@@ -209,7 +210,26 @@ export class PracticeGenerator {
   private generateHints(template: TemplateConfig): string[] {
     const hints: string[] = [];
 
-    // Hint 1: General category hint
+    // Priority: Use extracted hints from markdown
+    if (template.hints) {
+      if (template.hints.description) {
+        hints.push(template.hints.description);
+      }
+      
+      if (template.hints.learningGoals) {
+        hints.push(`Mục tiêu: ${template.hints.learningGoals}`);
+      }
+      
+      if (template.hints.goalDetails && template.hints.goalDetails.length > 0) {
+         hints.push('Chi tiết:');
+         hints.push(...template.hints.goalDetails);
+      }
+      
+      // If we have extracted hints, we can return early or combine with metadata
+      if (hints.length > 0) return hints;
+    }
+
+    // Fallback: General category hint
     hints.push(`Bài này thuộc chủ đề: ${template.metadata.category}`);
 
     // Hint 2: Concept hint

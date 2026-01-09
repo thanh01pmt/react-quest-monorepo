@@ -329,37 +329,223 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
           />
         </div>
 
-        {/* Translations Toggle */}
-        {(titleKey || descriptionKey) && (
-          <div className="sub-section">
-            <button
-              className="toggle-btn"
-              onClick={() => setShowTranslations(!showTranslations)}
-            >
-              <Globe size={14} /> Translations {showTranslations ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-            </button>
-            {showTranslations && (
-              <div className="translations-grid">
-                <div className="field-row">
-                  <label>Title (VI)</label>
-                  <input
-                    type="text"
-                    value={metadata?.translations?.vi?.[titleKey] || ''}
-                    onChange={(e) => handleComplexChange({ path: `translations.vi.${titleKey}`, value: e.target.value })}
-                  />
-                </div>
-                <div className="field-row">
-                  <label>Title (EN)</label>
-                  <input
-                    type="text"
-                    value={metadata?.translations?.en?.[titleKey] || ''}
-                    onChange={(e) => handleComplexChange({ path: `translations.en.${titleKey}`, value: e.target.value })}
-                  />
-                </div>
-              </div>
-            )}
+        {/* Map Content Summary */}
+        <div className="sub-section" style={{ marginTop: '12px' }}>
+          <div className="info-grid" style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '8px',
+            padding: '8px',
+            background: 'rgba(99, 102, 241, 0.1)',
+            borderRadius: '6px'
+          }}>
+            <div className="info-item">
+              <span style={{ fontSize: '11px', color: '#888' }}>Crystals</span>
+              <strong style={{ fontSize: '16px', color: '#fbbf24' }}>
+                {metadata.gameConfig?.collectibles?.filter((c: any) => c.type === 'crystal').length || 0}
+              </strong>
+            </div>
+            <div className="info-item">
+              <span style={{ fontSize: '11px', color: '#888' }}>Keys</span>
+              <strong style={{ fontSize: '16px', color: '#3b82f6' }}>
+                {metadata.gameConfig?.collectibles?.filter((c: any) => c.type === 'key').length || 0}
+              </strong>
+            </div>
+            <div className="info-item">
+              <span style={{ fontSize: '11px', color: '#888' }}>Switches</span>
+              <strong style={{ fontSize: '16px', color: '#8b5cf6' }}>
+                {metadata.gameConfig?.interactibles?.filter((i: any) => i.type === 'switch').length || 0}
+              </strong>
+            </div>
+            <div className="info-item">
+              <span style={{ fontSize: '11px', color: '#888' }}>Portals</span>
+              <strong style={{ fontSize: '16px', color: '#06b6d4' }}>
+                {metadata.gameConfig?.interactibles?.filter((i: any) => i.type === 'portal').length || 0}
+              </strong>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Generated Task Description */}
+        <div className="field-row" style={{ marginTop: '12px' }}>
+          <label>Task (Auto)</label>
+          <div style={{
+            fontSize: '12px',
+            color: '#c4b5fd',
+            padding: '8px',
+            background: 'rgba(139, 92, 246, 0.1)',
+            borderRadius: '4px',
+            border: '1px solid #6366f1'
+          }}>
+            {(() => {
+              const collectibles = metadata.gameConfig?.collectibles || [];
+              const interactibles = metadata.gameConfig?.interactibles || [];
+              const crystalCount = collectibles.filter((c: any) => c.type === 'crystal').length;
+              const keyCount = collectibles.filter((c: any) => c.type === 'key').length;
+              const switchCount = interactibles.filter((i: any) => i.type === 'switch').length;
+
+              const tasks: string[] = [];
+              if (crystalCount > 0) tasks.push(`Thu thập ${crystalCount} pha lê`);
+              if (keyCount > 0) tasks.push(`Thu thập ${keyCount} chìa khóa`);
+              if (switchCount > 0) tasks.push(`Bật ${switchCount} công tắc`);
+
+              if (tasks.length === 0) return 'Tìm đường về đích.';
+              return `${tasks.join(', ')} và tìm đường về đích.`;
+            })()}
+          </div>
+        </div>
+
+        {/* Hints Section - Student Guidance */}
+        <div className="sub-section" style={{ marginTop: '12px' }}>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#c4b5fd',
+            marginBottom: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            💡 Hints (Student Guidance)
+          </div>
+          <div className="field-row">
+            <label>Title</label>
+            <input
+              type="text"
+              value={metadata?.hints?.title || ''}
+              onChange={(e) => handleComplexChange({ path: 'hints.title', value: e.target.value })}
+              placeholder="e.g., Palindrome Path"
+            />
+          </div>
+          <div className="field-row">
+            <label>Description</label>
+            <textarea
+              value={metadata?.hints?.description || ''}
+              onChange={(e) => handleComplexChange({ path: 'hints.description', value: e.target.value })}
+              placeholder="Main hint for students..."
+              rows={2}
+              style={{ resize: 'vertical', width: '100%' }}
+            />
+          </div>
+          <div className="field-row">
+            <label>Learning Goals</label>
+            <input
+              type="text"
+              value={metadata?.hints?.learningGoals || ''}
+              onChange={(e) => handleComplexChange({ path: 'hints.learningGoals', value: e.target.value })}
+              placeholder="e.g., Recognize repeating patterns"
+            />
+          </div>
+          {/* Show goal details if present */}
+          {metadata?.hints?.goalDetails && metadata.hints.goalDetails.length > 0 && (
+            <div style={{
+              fontSize: '11px',
+              color: '#888',
+              marginTop: '4px',
+              padding: '6px 8px',
+              background: 'rgba(0,0,0,0.2)',
+              borderRadius: '4px'
+            }}>
+              {metadata.hints.goalDetails.map((detail: string, idx: number) => (
+                <div key={idx}>• {detail}</div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Translations Toggle */}
+        <div className="sub-section">
+          <button
+            className="toggle-btn"
+            onClick={() => setShowTranslations(!showTranslations)}
+          >
+            <Globe size={14} /> Translations {showTranslations ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          </button>
+          {showTranslations && (
+            <div className="translations-grid">
+              {/* Topic */}
+              <div className="field-row">
+                <label>Topic</label>
+                <input
+                  type="text"
+                  value={metadata?.topic || ''}
+                  onChange={(e) => handleComplexChange({ path: 'topic', value: e.target.value })}
+                  placeholder="topic-title-..."
+                />
+              </div>
+
+              {/* Title (VI) */}
+              <div className="field-row">
+                <label>Title (VI)</label>
+                <input
+                  type="text"
+                  value={metadata?.translations?.vi?.[titleKey] || ''}
+                  onChange={(e) => handleComplexChange({ path: `translations.vi.${titleKey}`, value: e.target.value })}
+                  placeholder="Tiêu đề bài tập"
+                />
+              </div>
+
+              {/* Title (EN) */}
+              <div className="field-row">
+                <label>Title (EN)</label>
+                <input
+                  type="text"
+                  value={metadata?.translations?.en?.[titleKey] || ''}
+                  onChange={(e) => handleComplexChange({ path: `translations.en.${titleKey}`, value: e.target.value })}
+                  placeholder="Exercise Title"
+                />
+              </div>
+
+              {/* Description (VI) */}
+              <div className="field-row">
+                <label>Description (VI)</label>
+                <textarea
+                  value={metadata?.translations?.vi?.[descriptionKey] || ''}
+                  onChange={(e) => handleComplexChange({ path: `translations.vi.${descriptionKey}`, value: e.target.value })}
+                  placeholder="Mô tả nhiệm vụ chi tiết..."
+                  rows={3}
+                  style={{ resize: 'vertical', width: '100%' }}
+                />
+              </div>
+
+              {/* Description (EN) */}
+              <div className="field-row">
+                <label>Description (EN)</label>
+                <textarea
+                  value={metadata?.translations?.en?.[descriptionKey] || ''}
+                  onChange={(e) => handleComplexChange({ path: `translations.en.${descriptionKey}`, value: e.target.value })}
+                  placeholder="Detailed task description..."
+                  rows={3}
+                  style={{ resize: 'vertical', width: '100%' }}
+                />
+              </div>
+
+              {/* Topic Title (VI) */}
+              {metadata?.topic && (
+                <>
+                  <div className="field-row">
+                    <label>Topic Title (VI)</label>
+                    <input
+                      type="text"
+                      value={metadata?.translations?.vi?.[metadata.topic] || ''}
+                      onChange={(e) => handleComplexChange({ path: `translations.vi.${metadata.topic}`, value: e.target.value })}
+                      placeholder="Tên chủ đề"
+                    />
+                  </div>
+                  <div className="field-row">
+                    <label>Topic Title (EN)</label>
+                    <input
+                      type="text"
+                      value={metadata?.translations?.en?.[metadata.topic] || ''}
+                      onChange={(e) => handleComplexChange({ path: `translations.en.${metadata.topic}`, value: e.target.value })}
+                      placeholder="Topic Name"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </CollapsibleSection>
 
       {/* ============================================================ */}

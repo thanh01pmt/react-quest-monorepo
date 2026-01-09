@@ -22,6 +22,13 @@ export interface TemplatePreset {
   tags?: string[];
   category?: string;
   concepts?: string[];
+  // Hints for student guidance (extracted from template markdown)
+  hints?: {
+    title: string;
+    description: string;
+    learningGoals?: string;
+    goalDetails?: string[];
+  };
 }
 
 /**

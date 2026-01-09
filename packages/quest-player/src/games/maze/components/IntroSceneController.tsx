@@ -83,7 +83,7 @@ type TrajectoryFn = (
 /**
  * Dronie: Camera bay lùi ra xa, giữ tâm ở trung tâm
  */
-const dronieTrajectory: TrajectoryFn = (t, config, mapCenter, initialPos) => {
+const dronieTrajectory: TrajectoryFn = (t, config, mapCenter, _initialPos) => {
     const distance = config.distance ?? DEFAULT_DISTANCE;
 
     // Bắt đầu gần, bay lùi ra xa

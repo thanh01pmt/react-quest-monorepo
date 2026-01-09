@@ -136,6 +136,65 @@ function extractCodeBlocks(content) {
     };
 }
 
+/**
+ * Extract hints from template markdown content
+ * Parses title (# heading), description paragraph, and Academic Concept/Learning Goals section
+ */
+function extractHints(markdownContent) {
+    const hints = {
+        title: '',
+        description: '',
+        learningGoals: undefined,  // Standardized field name
+        goalDetails: []            // Bullet points from the section
+    };
+
+    // Remove code blocks first
+    const contentWithoutCode = markdownContent.replace(/```[\s\S]*?```/g, '');
+
+    // Extract title (first # heading)
+    const titleMatch = contentWithoutCode.match(/^#\s+(.+)$/m);
+    if (titleMatch) {
+        hints.title = titleMatch[1].trim();
+    }
+
+    // Extract description (paragraph after title, before next ## heading)
+    const descMatch = contentWithoutCode.match(/^#\s+.+\n\n([\s\S]*?)(?=\n##|\n$)/m);
+    if (descMatch) {
+        hints.description = descMatch[1].trim();
+    }
+
+    // Try to extract "Academic Concept" section first
+    let goalMatch = contentWithoutCode.match(/##\s+Academic\s+Concept[:\s]*([^\n]*)\n([\s\S]*?)(?=\n##|\n$)/i);
+
+    // If not found, try "Learning Goals"
+    if (!goalMatch) {
+        goalMatch = contentWithoutCode.match(/##\s+Learning\s+Goals?[:\s]*([^\n]*)\n([\s\S]*?)(?=\n##|\n$)/i);
+    }
+
+    // If still not found, try "Learning Objective"
+    if (!goalMatch) {
+        goalMatch = contentWithoutCode.match(/##\s+Learning\s+Objectives?[:\s]*([^\n]*)\n([\s\S]*?)(?=\n##|\n$)/i);
+    }
+
+    if (goalMatch) {
+        hints.learningGoals = goalMatch[1].trim() || undefined;
+
+        // Extract bullet points
+        const bullets = goalMatch[2].match(/^[-*]\s+(.+)$/gm);
+        if (bullets) {
+            hints.goalDetails = bullets.map(b => b.replace(/^[-*]\s+/, '').trim());
+        }
+
+        // If no inline title but has bullets, use first bullet as title
+        if (!hints.learningGoals && hints.goalDetails.length > 0) {
+            hints.learningGoals = hints.goalDetails[0];
+            hints.goalDetails = hints.goalDetails.slice(1);
+        }
+    }
+
+    return hints;
+}
+
 function getAllFiles(dirPath, arrayOfFiles = []) {
     const files = fs.readdirSync(dirPath);
 
@@ -191,7 +250,8 @@ function generate() {
             parameters,
             solutionCode,
             descriptionMarkdown,
-            rawContent
+            rawContent,
+            hints: extractHints(content)
         };
 
         templates.push(templateConfig);

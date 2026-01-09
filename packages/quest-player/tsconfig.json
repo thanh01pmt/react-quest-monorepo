@@ -4,7 +4,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": ".",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     // Bắt buộc phải có "composite": true khi dự án này được tham chiếu bởi dự án khác
     "composite": true,
     // Các tùy chọn quan trọng để tạo file định nghĩa kiểu (.d.ts)
@@ -15,6 +17,16 @@
     "esModuleInterop": true
   },
   // Bao gồm tất cả các file .ts và .tsx trong thư mục src VÀ file theme.ts ở gốc
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json", "theme.ts", "vite.config.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.json",
+    "src/types/**/*.d.ts",
+    "theme.ts",
+    "vite.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

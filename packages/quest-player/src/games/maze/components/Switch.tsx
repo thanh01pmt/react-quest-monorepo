@@ -80,9 +80,9 @@ export const SwitchComponent: React.FC<SwitchProps> = ({ position, isOn }) => {
   }, [clonedScene]);
 
   // Animate the switch
-  useFrame((state) => {
+  useFrame((_state) => {
     if (ref.current) {
-      const time = state.clock.getElapsedTime();
+      // const time = state.clock.getElapsedTime();
       // Constant rotation
       // ref.current.rotation.y = time * 0.5;
       // Bobbing animation

@@ -90,7 +90,7 @@ export const initPythonGenerator = () => {
     return [code, Order.FUNCTION_CALL];
   };
 
-  pythonGenerator.forBlock['maze_is_item_present'] = function(block: Blockly.Block) {
+  pythonGenerator.forBlock['maze_is_item_present'] = function(_block: Blockly.Block) {
     const code = 'isItemPresent()';
     return [code, Order.FUNCTION_CALL];
   };

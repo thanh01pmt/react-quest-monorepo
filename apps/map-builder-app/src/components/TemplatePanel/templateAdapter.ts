@@ -122,6 +122,8 @@ export function convertToPreset(template: TemplateConfig): TemplatePreset {
     // Add for toolbox auto-selection
     tags: template.metadata.tags || [],
     category: template.metadata.category,
+    // Hints for student guidance
+    hints: template.hints,
   };
 }
 

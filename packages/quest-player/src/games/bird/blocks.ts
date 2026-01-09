@@ -2,7 +2,7 @@
 
 import * as Blockly from 'blockly/core';
 import { javascriptGenerator, Order } from 'blockly/javascript';
-import { FieldAngle } from '@blockly/field-angle';
+// import { FieldAngle } from '@blockly/field-angle';
 import type { TFunction } from 'i18next'; // Import TFunction
 
 // Sửa hàm init

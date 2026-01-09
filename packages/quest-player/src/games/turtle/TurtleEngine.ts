@@ -4,7 +4,7 @@ import Interpreter from 'js-interpreter';
 import type { IGameEngine, GameConfig, GameState, TurtleConfig, SolutionConfig, StepResult } from '../../types';
 import type { TurtleGameState, DrawingCommand, TurtleCharacterState } from './types';
 
-type Interpreter = any;
+// type Interpreter = any;
 
 const EXECUTION_TIMEOUT_TICKS = 100000;
 const PAUSE_EVERY_N_STEPS = 1000;
@@ -100,7 +100,7 @@ export class TurtleEngine implements IGameEngine {
     };
 
     const initApiHeadless = (interpreter: Interpreter, globalObject: any) => {
-        const wrap = (func: Function) => interpreter.createNativeFunction(func);
+        const wrap = (func: (...args: any[]) => any) => interpreter.createNativeFunction(func);
         const move = (dist: number) => {
             const { turtle } = localState;
             if (turtle.penDown) {
