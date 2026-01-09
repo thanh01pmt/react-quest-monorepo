@@ -16,6 +16,13 @@ A simple linear path collecting crystals with random spacing between them.
 
 ## Solution & Parameters
 
+## Features
+
+- **Straight Line**: `_TURN_STYLE_ = 'straight'` ensures linear collection
+- **Varied Spacing**: Random seed creates different collection intervals
+- **Clean Start**: `_NO_ITEM_AT_ = 'noItemStart'` ensures first block is empty for player start
+
+```js
 // Parameters
 var _MIN_STEPS_ = 3;
 var _MAX_STEPS_ = 8;
@@ -29,3 +36,5 @@ var _SEED_ = random(1, 99999);
 
 // Solution
 randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_);
+moveForward();
+```

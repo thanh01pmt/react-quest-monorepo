@@ -19,8 +19,15 @@ A simple path with crystals to collect. Perfect for learning basic movement comm
 - Practice `moveForward()` command
 - Learn `collectItem()` command
 
+## Features
+
+- **Straight Path**: `_TURN_STYLE_ = 'straight'` ensures a single line
+- **No Joining Items**: `_NO_ITEM_AT_ = 'noItemStart'` prevents items at start position
+- **Safe Traversal**: `_HAS_JUMP_ = 'noJump'` keeps it simple for beginners
+
 ## Solution & Parameters
 
+```js
 // Parameters
 var _MIN_STEPS_ = 3;
 var _MAX_STEPS_ = 8;
@@ -34,3 +41,5 @@ var _SEED_ = random(1, 99999);
 
 // Solution
 randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_);
+moveForward();
+```

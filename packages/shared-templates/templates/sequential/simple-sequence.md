@@ -19,8 +19,15 @@ Learn the basics of sequential programming by executing commands in order.
 - Practice basic commands
 - Learn that each command runs one after another
 
+## Features
+
+- **Random Generation**: All parameters are adjustable for maximum variety
+- **Dynamic Challenges**: Can include jumps, turns, and various items
+- **Flexible Difficulty**: Adjust `_HAS_JUMP_` and `_TURN_STYLE_` to change complexity
+
 ## Solution & Parameters
 
+```js
 // Parameters
 var _MIN_STEPS_ = 3;
 var _MAX_STEPS_ = 6;
@@ -37,4 +44,5 @@ var _SEED_ = random(1, 99999);
 // This will create a random sequence of moves, turns, and collections.
 // Users can adjust all parameters to customize the sequence
 randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_);
-
+moveForward();
+```
