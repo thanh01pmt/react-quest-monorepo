@@ -26,7 +26,7 @@ var _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid
 var _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump
 var _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: noItemStart, noItemEnd, noItemBoth
 var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
-var _SEED_ = 99999;
+var _SEED_ = random(1, 99999);
 
 // Solution
 // Segment 1
