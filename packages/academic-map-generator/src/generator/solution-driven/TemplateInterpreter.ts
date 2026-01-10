@@ -1480,6 +1480,7 @@ export class TemplateInterpreter {
                 if (arg === 'noJump') hasJump = false;
                 
                 // noItemAt filter
+                if (arg === 'null') noItemAt = undefined; // No restriction
                 if (arg === 'noItemStart') noItemAt = 'start';
                 if (arg === 'noItemEnd') noItemAt = 'end';
                 if (arg === 'noItemBoth') noItemAt = 'both';

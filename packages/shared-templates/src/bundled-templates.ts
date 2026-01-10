@@ -871,18 +871,56 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MIN_PAIRS_",
         "displayName": "Min Pairs",
         "type": "number",
-        "defaultValue": 2
+        "defaultValue": 3
       },
       {
         "name": "_MAX_PAIRS_",
         "displayName": "Max Pairs",
         "type": "number",
-        "defaultValue": 4
+        "defaultValue": 5
+      },
+      {
+        "name": "_INTERACTION_",
+        "displayName": "Interaction",
+        "type": "string",
+        "defaultValue": "crystal"
+      },
+      {
+        "name": "_TURN_STYLE_",
+        "displayName": "Turn Style",
+        "type": "string",
+        "defaultValue": "straight"
+      },
+      {
+        "name": "_TURN_POINT_",
+        "displayName": "Turn Point",
+        "type": "string",
+        "defaultValue": "null"
+      },
+      {
+        "name": "_HAS_JUMP_",
+        "displayName": "Has Jump",
+        "type": "string",
+        "defaultValue": "noJump"
+      },
+      {
+        "name": "_NO_ITEM_AT_",
+        "displayName": "No Item At",
+        "type": "string",
+        "defaultValue": "random"
+      },
+      {
+        "name": "_SEED_",
+        "displayName": "Seed",
+        "type": "int",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 99999
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_PAIRS_ = 2;\nvar _MAX_PAIRS_ = 4;\nvar PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < PAIRS; i++) {\n  // Even: Walk\n  moveForward();\n  collectItem();\n  \n  // Odd: Jump Up\n  jumpUp();\n  collectItem();\n}\n\nmoveForward();",
-    "descriptionMarkdown": "# Alternating Move\n\nA pattern that changes action based on whether the step count is Odd or Even.\n\n## Academic Concept: Parity (Modulo 2)\n- Logic: `if (i % 2 == 0) ActionA else ActionB`\n\n## Solution & Parameters",
-    "rawContent": "---\nid: logic-alt-move\nname: \"Alternating Move\"\ncategory: logic\nconcepts: [\"loop\", \"conditional\", \"modulo\"]\ndifficulty: 3\ntags: [\"logic\", \"parity\", \"even_odd\"]\nauthor: system\nversion: 2\ndescription: \"Alternate between walking and jumping, collecting crystals\"\n---\n\n# Alternating Move\n\nA pattern that changes action based on whether the step count is Odd or Even.\n\n## Academic Concept: Parity (Modulo 2)\n- Logic: `if (i % 2 == 0) ActionA else ActionB`\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_PAIRS_ = 2;\nvar _MAX_PAIRS_ = 4;\nvar PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < PAIRS; i++) {\n  // Even: Walk\n  moveForward();\n  collectItem();\n  \n  // Odd: Jump Up\n  jumpUp();\n  collectItem();\n}\n\nmoveForward();\n```\n",
+    "solutionCode": "// Parameters\nvar _MIN_PAIRS_ = 3;\nvar _MAX_PAIRS_ = 5;\nvar PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);\n\n// Full Parameter Set (Standardized)\nvar _INTERACTION_ = 'crystal';\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump'; // We override this per step\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Solution\nfor (let i = 0; i < PAIRS; i++) {\n  // Even: Walk (Normal move)\n  // Use randomPattern to generate a simple move-collect segment\n  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'noJump', _NO_ITEM_AT_, _SEED_ + (i*2));\n  \n  // Odd: Jump Up\n  // Use randomPattern to generate a jump-collect segment\n  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'withJump', _NO_ITEM_AT_, _SEED_ + (i*2) + 1);\n}",
+    "descriptionMarkdown": "# Alternating Move\n\nA pattern that changes action based on whether the step count is Odd or Even.\n\n## Academic Concept: Parity (Modulo 2)\n- Logic: `if (i % 2 == 0) ActionA else ActionB`\n\n## Features\n- **Alternating Actions**: Switches between walking and jumping every step.\n- **Parity Logic**: Uses odd/even checks to decide action.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: logic-alt-move\nname: \"Alternating Move\"\ncategory: logic\nconcepts: [\"loop\", \"conditional\", \"modulo\"]\ndifficulty: 3\ntags: [\"logic\", \"parity\", \"even_odd\"]\nauthor: system\nversion: 2\ndescription: \"Alternate between walking and jumping, collecting crystals\"\n---\n\n# Alternating Move\n\nA pattern that changes action based on whether the step count is Odd or Even.\n\n## Academic Concept: Parity (Modulo 2)\n- Logic: `if (i % 2 == 0) ActionA else ActionB`\n\n## Features\n- **Alternating Actions**: Switches between walking and jumping every step.\n- **Parity Logic**: Uses odd/even checks to decide action.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_PAIRS_ = 3;\nvar _MAX_PAIRS_ = 5;\nvar PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);\n\n// Full Parameter Set (Standardized)\nvar _INTERACTION_ = 'crystal';\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump'; // We override this per step\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Solution\nfor (let i = 0; i < PAIRS; i++) {\n  // Even: Walk (Normal move)\n  // Use randomPattern to generate a simple move-collect segment\n  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'noJump', _NO_ITEM_AT_, _SEED_ + (i*2));\n  \n  // Odd: Jump Up\n  // Use randomPattern to generate a jump-collect segment\n  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'withJump', _NO_ITEM_AT_, _SEED_ + (i*2) + 1);\n}\n```\n",
     "hints": {
       "title": "Alternating Move",
       "description": "A pattern that changes action based on whether the step count is Odd or Even.",
@@ -918,18 +956,56 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MIN_SIZE_",
         "displayName": "Min Size",
         "type": "number",
-        "defaultValue": 2
+        "defaultValue": 3
       },
       {
         "name": "_MAX_SIZE_",
         "displayName": "Max Size",
         "type": "number",
-        "defaultValue": 3
+        "defaultValue": 4
+      },
+      {
+        "name": "_INTERACTION_",
+        "displayName": "Interaction",
+        "type": "string",
+        "defaultValue": "crystal"
+      },
+      {
+        "name": "_TURN_STYLE_",
+        "displayName": "Turn Style",
+        "type": "string",
+        "defaultValue": "straight"
+      },
+      {
+        "name": "_TURN_POINT_",
+        "displayName": "Turn Point",
+        "type": "string",
+        "defaultValue": "null"
+      },
+      {
+        "name": "_HAS_JUMP_",
+        "displayName": "Has Jump",
+        "type": "string",
+        "defaultValue": "noJump"
+      },
+      {
+        "name": "_NO_ITEM_AT_",
+        "displayName": "No Item At",
+        "type": "string",
+        "defaultValue": "random"
+      },
+      {
+        "name": "_SEED_",
+        "displayName": "Seed",
+        "type": "int",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 99999
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_SIZE_ = 2;\nvar _MAX_SIZE_ = 3;\nvar SIZE = random(_MIN_SIZE_, _MAX_SIZE_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\nmoveForward();\n\nfor (let row = 0; row < SIZE; row++) {\n  for (let col = 0; col < SIZE; col++) {\n    // Checkerboard logic: collect only on \"black\" squares\n    if ((row + col) % 2 == 1) {\n      collectItem();\n    }\n    \n    if (col < SIZE - 1) {\n      moveForward();\n    }\n  }\n  \n  // Move to next row (if not last)\n  if (row < SIZE - 1) {\n    // Raster scan: return to start of row, then go up\n    turnAround();\n    for (let k = 0; k < SIZE - 1; k++) {\n      moveForward();\n    }\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n\nmoveForward();",
-    "descriptionMarkdown": "# Logic Checkerboard\n\nTraverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a parity condition.\n\n## Academic Concept: 2D Parity\n- White square: `(row + col) % 2 == 0`\n- Black square: `(row + col) % 2 == 1`\n\n## Solution & Parameters",
-    "rawContent": "---\nid: logic-checkerboard\nname: \"Logic Checkerboard\"\ncategory: logic\nconcepts: [\"nested_loop\", \"conditional\", \"coordinates\"]\ndifficulty: 5\ntags: [\"logic\", \"grid\", \"checkerboard\", \"2d_array\"]\nauthor: system\nversion: 2\ndescription: \"Traverse a grid and interact only on 'Black' squares (checkerboard pattern)\"\n---\n\n# Logic Checkerboard\n\nTraverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a parity condition.\n\n## Academic Concept: 2D Parity\n- White square: `(row + col) % 2 == 0`\n- Black square: `(row + col) % 2 == 1`\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_SIZE_ = 2;\nvar _MAX_SIZE_ = 3;\nvar SIZE = random(_MIN_SIZE_, _MAX_SIZE_);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\nmoveForward();\n\nfor (let row = 0; row < SIZE; row++) {\n  for (let col = 0; col < SIZE; col++) {\n    // Checkerboard logic: collect only on \"black\" squares\n    if ((row + col) % 2 == 1) {\n      collectItem();\n    }\n    \n    if (col < SIZE - 1) {\n      moveForward();\n    }\n  }\n  \n  // Move to next row (if not last)\n  if (row < SIZE - 1) {\n    // Raster scan: return to start of row, then go up\n    turnAround();\n    for (let k = 0; k < SIZE - 1; k++) {\n      moveForward();\n    }\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n\nmoveForward();\n```\n",
+    "solutionCode": "// Parameters\nvar _MIN_SIZE_ = 3;\nvar _MAX_SIZE_ = 4;\nvar SIZE = random(_MIN_SIZE_, _MAX_SIZE_);\n\n// Full Parameter Set (Standardized)\nvar _INTERACTION_ = 'crystal';\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump';\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// We simulate the grid traversal. randomPattern is used for the *steps*.\n// We control *where* items appear by checking parity and using 'noItemAt' param.\nfor (let row = 0; row < SIZE; row++) {\n  for (let col = 0; col < SIZE; col++) {\n    \n    // Checkerboard logic: collect only on \"black\" squares (row+col is odd)\n    // If black: Allow random item (or force it). If white: No item.\n    let itemCondition = 'true'; // Default no item\n    if ((row + col) % 2 == 1) {\n       itemCondition = 'false'; // Allow item (noItemAt=false)\n    }\n\n    // Generate 1 step. \n    // randomPattern(length, interaction, nested, turnIdx, turnDir, style, point, jump, noItemAt, seed)\n    randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, itemCondition, _SEED_ + (row * SIZE) + col);\n    \n    // For grid movement, we might need a turn at the end of row.\n    // BUT randomPattern handles linear segments. The turns are manual.\n    // The inner loop handles columns.\n  }\n  \n  // End of Row: Return to start of next row logic (Zigzag or Raster)\n  // Standard template uses Raster (return to start and shift up/down) or Zigzag.\n  // Let's use Zigzag for efficiency if continuous path, but the template description implies specific 2D raster feel?\n  // Original used raster scan. Let's stick to valid grid movement.\n  \n  if (row < SIZE - 1) {\n      if (row % 2 == 0) {\n          turnRight(); moveForward(); turnRight(); // Move down/next\n      } else {\n          turnLeft(); moveForward(); turnLeft(); // Move down/next\n      }\n      // Note: This is simplified zigzag row transition. \n      // Genuine Raster (return to start) is harder to automate cleanly without teleports or long walks.\n      // We'll update the logic to be Zigzag Grid traversal for simplicity in generator.\n  }\n}",
+    "descriptionMarkdown": "# Logic Checkerboard\n\nTraverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a parity condition.\n\n## Academic Concept: 2D Parity\n- White square: `(row + col) % 2 == 0`\n- Black square: `(row + col) % 2 == 1`\n\n## Features\n- **Grid Traversal**: Scanning a 2D space (rows and cols).\n- **Conditional Logic**: Only acting on specific coordinates (Checkerboard pattern).\n\n## Solution & Parameters",
+    "rawContent": "---\nid: logic-checkerboard\nname: \"Logic Checkerboard\"\ncategory: logic\nconcepts: [\"nested_loop\", \"conditional\", \"coordinates\"]\ndifficulty: 5\ntags: [\"logic\", \"grid\", \"checkerboard\", \"2d_array\"]\nauthor: system\nversion: 2\ndescription: \"Traverse a grid and interact only on 'Black' squares (checkerboard pattern)\"\n---\n\n# Logic Checkerboard\n\nTraverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a parity condition.\n\n## Academic Concept: 2D Parity\n- White square: `(row + col) % 2 == 0`\n- Black square: `(row + col) % 2 == 1`\n\n## Features\n- **Grid Traversal**: Scanning a 2D space (rows and cols).\n- **Conditional Logic**: Only acting on specific coordinates (Checkerboard pattern).\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_SIZE_ = 3;\nvar _MAX_SIZE_ = 4;\nvar SIZE = random(_MIN_SIZE_, _MAX_SIZE_);\n\n// Full Parameter Set (Standardized)\nvar _INTERACTION_ = 'crystal';\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump';\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Helper function\nfunction turnAround() {\n  turnRight();\n  turnRight();\n}\n\n// Solution\n// We simulate the grid traversal. randomPattern is used for the *steps*.\n// We control *where* items appear by checking parity and using 'noItemAt' param.\nfor (let row = 0; row < SIZE; row++) {\n  for (let col = 0; col < SIZE; col++) {\n    \n    // Checkerboard logic: collect only on \"black\" squares (row+col is odd)\n    // If black: Allow random item (or force it). If white: No item.\n    let itemCondition = 'true'; // Default no item\n    if ((row + col) % 2 == 1) {\n       itemCondition = 'false'; // Allow item (noItemAt=false)\n    }\n\n    // Generate 1 step. \n    // randomPattern(length, interaction, nested, turnIdx, turnDir, style, point, jump, noItemAt, seed)\n    randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, itemCondition, _SEED_ + (row * SIZE) + col);\n    \n    // For grid movement, we might need a turn at the end of row.\n    // BUT randomPattern handles linear segments. The turns are manual.\n    // The inner loop handles columns.\n  }\n  \n  // End of Row: Return to start of next row logic (Zigzag or Raster)\n  // Standard template uses Raster (return to start and shift up/down) or Zigzag.\n  // Let's use Zigzag for efficiency if continuous path, but the template description implies specific 2D raster feel?\n  // Original used raster scan. Let's stick to valid grid movement.\n  \n  if (row < SIZE - 1) {\n      if (row % 2 == 0) {\n          turnRight(); moveForward(); turnRight(); // Move down/next\n      } else {\n          turnLeft(); moveForward(); turnLeft(); // Move down/next\n      }\n      // Note: This is simplified zigzag row transition. \n      // Genuine Raster (return to start) is harder to automate cleanly without teleports or long walks.\n      // We'll update the logic to be Zigzag Grid traversal for simplicity in generator.\n  }\n}\n```\n",
     "hints": {
       "title": "Logic Checkerboard",
       "description": "Traverse a 2D grid, but only act when the coordinate sum (row + col) satisfies a parity condition.",
@@ -962,47 +1038,10 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
       "version": 5,
       "description": "Collect crystals AND toggle switches with different spacing"
     },
-    "parameters": [
-      {
-        "name": "_MIN_REPEATS_",
-        "displayName": "Min Repeats",
-        "type": "number",
-        "defaultValue": 2
-      },
-      {
-        "name": "_MAX_REPEATS_",
-        "displayName": "Max Repeats",
-        "type": "number",
-        "defaultValue": 3
-      },
-      {
-        "name": "_MIN_SPACE_CRYSTAL_",
-        "displayName": "Min Space Crystal",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "name": "_MAX_SPACE_CRYSTAL_",
-        "displayName": "Max Space Crystal",
-        "type": "number",
-        "defaultValue": 2
-      },
-      {
-        "name": "_MIN_SPACE_SWITCH_",
-        "displayName": "Min Space Switch",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "name": "_MAX_SPACE_SWITCH_",
-        "displayName": "Max Space Switch",
-        "type": "number",
-        "defaultValue": 1
-      }
-    ],
-    "solutionCode": "var _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 3;\nvar _MIN_SPACE_CRYSTAL_ = 0;\nvar _MAX_SPACE_CRYSTAL_ = 2;\nvar _MIN_SPACE_SWITCH_ = 0;\nvar _MAX_SPACE_SWITCH_ = 1;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE_CRYSTAL = random(_MIN_SPACE_CRYSTAL_, _MAX_SPACE_CRYSTAL_);\nvar SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);\n\nmoveForward();\n\n// Zigzag pattern to avoid circular path\nfor (let i = 0; i < REPEATS; i++) {\n  // Phase 1: Crystal Spacing\n  for (let c = 0; c < SPACE_CRYSTAL + 1; c++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Phase 2: Switch Spacing\n  for (let s = 0; s < SPACE_SWITCH + 1; s++) {\n    moveForward();\n  }\n  toggleSwitch();\n  \n  // Alternate turn direction\n  if (i % 2 == 0) {\n    turnRight();\n    moveForward();\n    turnRight();\n  } else {\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n\n// Final exit\ncollectItem();\nmoveForward();",
-    "descriptionMarkdown": "# Micro Mixed Interact\n\nCollect crystals and toggle switches.\n\n## Solution & Parameters",
-    "rawContent": "---\nid: micro-mixed-interact\nname: \"Micro Mixed Interact\"\ncategory: logic\nconcepts: [\"micropattern\", \"crystal\", \"switch\", \"mixed\"]\ndifficulty: 4\ntags: [\"logic\", \"crystal\", \"switch\", \"interact\"]\nauthor: system\nversion: 5\ndescription: \"Collect crystals AND toggle switches with different spacing\"\n---\n\n# Micro Mixed Interact\n\nCollect crystals and toggle switches.\n\n## Solution & Parameters\n\n```js\nvar _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 3;\nvar _MIN_SPACE_CRYSTAL_ = 0;\nvar _MAX_SPACE_CRYSTAL_ = 2;\nvar _MIN_SPACE_SWITCH_ = 0;\nvar _MAX_SPACE_SWITCH_ = 1;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE_CRYSTAL = random(_MIN_SPACE_CRYSTAL_, _MAX_SPACE_CRYSTAL_);\nvar SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);\n\nmoveForward();\n\n// Zigzag pattern to avoid circular path\nfor (let i = 0; i < REPEATS; i++) {\n  // Phase 1: Crystal Spacing\n  for (let c = 0; c < SPACE_CRYSTAL + 1; c++) {\n    moveForward();\n  }\n  collectItem();\n  \n  // Phase 2: Switch Spacing\n  for (let s = 0; s < SPACE_SWITCH + 1; s++) {\n    moveForward();\n  }\n  toggleSwitch();\n  \n  // Alternate turn direction\n  if (i % 2 == 0) {\n    turnRight();\n    moveForward();\n    turnRight();\n  } else {\n    turnLeft();\n    moveForward();\n    turnLeft();\n  }\n}\n\n// Final exit\ncollectItem();\nmoveForward();\n```\n",
+    "parameters": [],
+    "solutionCode": "## Features\n- **Mixed Interaction**: Combines crystals and switches in one path.\n- **Variable Spacing**: Uses different random lengths for spacing between different item types.\n\n## Solution & Parameters",
+    "descriptionMarkdown": "# Micro Mixed Interact\n\nCollect crystals and toggle switches.\n\n## Solution & Parameters\n\njs\n// Parameters\nvar _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 4;\nvar _MIN_SPACE_CRYSTAL_ = 1;\nvar _MAX_SPACE_CRYSTAL_ = 2;\nvar _MIN_SPACE_SWITCH_ = 1;\nvar _MAX_SPACE_SWITCH_ = 2;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE_CRYSTAL = random(_MIN_SPACE_CRYSTAL_, _MAX_SPACE_CRYSTAL_);\nvar SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);\n\n// Full Parameter Set (Standardized)\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump';\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Solution\nfor (let i = 0; i < REPEATS; i++) {\n  // Phase 1: Crystal Segment\n  // Spacing + 1 Item. randomPattern length = Space + 1? No, logic is \"Space moves\" then \"Item\".\n  // randomPattern(Length) generally distributes items.\n  // To strictly enforce \"Space then Item\", we can do:\n  // randomPattern(SPACE_CRYSTAL, 'none', ...) + randomPattern(1, 'crystal', ...)\n  \n  randomPattern(SPACE_CRYSTAL, 'none', true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, 'true', _SEED_ + (i*4));\n  randomPattern(1, 'crystal', true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, 'false', _SEED_ + (i*4)+1);\n  \n  // Phase 2: Switch Segment\n  randomPattern(SPACE_SWITCH, 'none', true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, 'true', _SEED_ + (i*4)+2);\n  randomPattern(1, 'switch', true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, 'false', _SEED_ + (i*4)+3);\n  \n  // Alternate turn direction\n  if (i % 2 == 0) {\n    turnRight();\n    moveForward(); // Connector\n    turnRight();\n  } else {\n    turnLeft();\n    moveForward(); // Connector\n    turnLeft();\n  }\n}\n```",
+    "rawContent": "---\nid: micro-mixed-interact\nname: \"Micro Mixed Interact\"\ncategory: logic\nconcepts: [\"micropattern\", \"crystal\", \"switch\", \"mixed\"]\ndifficulty: 4\ntags: [\"logic\", \"crystal\", \"switch\", \"interact\"]\nauthor: system\nversion: 5\ndescription: \"Collect crystals AND toggle switches with different spacing\"\n---\n\n# Micro Mixed Interact\n\nCollect crystals and toggle switches.\n\n## Solution & Parameters\n\n```js\n## Features\n- **Mixed Interaction**: Combines crystals and switches in one path.\n- **Variable Spacing**: Uses different random lengths for spacing between different item types.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_REPEATS_ = 2;\nvar _MAX_REPEATS_ = 4;\nvar _MIN_SPACE_CRYSTAL_ = 1;\nvar _MAX_SPACE_CRYSTAL_ = 2;\nvar _MIN_SPACE_SWITCH_ = 1;\nvar _MAX_SPACE_SWITCH_ = 2;\n\nvar REPEATS = random(_MIN_REPEATS_, _MAX_REPEATS_);\nvar SPACE_CRYSTAL = random(_MIN_SPACE_CRYSTAL_, _MAX_SPACE_CRYSTAL_);\nvar SPACE_SWITCH = random(_MIN_SPACE_SWITCH_, _MAX_SPACE_SWITCH_);\n\n// Full Parameter Set (Standardized)\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump';\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Solution\nfor (let i = 0; i < REPEATS; i++) {\n  // Phase 1: Crystal Segment\n  // Spacing + 1 Item. randomPattern length = Space + 1? No, logic is \"Space moves\" then \"Item\".\n  // randomPattern(Length) generally distributes items.\n  // To strictly enforce \"Space then Item\", we can do:\n  // randomPattern(SPACE_CRYSTAL, 'none', ...) + randomPattern(1, 'crystal', ...)\n  \n  randomPattern(SPACE_CRYSTAL, 'none', true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, 'true', _SEED_ + (i*4));\n  randomPattern(1, 'crystal', true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, 'false', _SEED_ + (i*4)+1);\n  \n  // Phase 2: Switch Segment\n  randomPattern(SPACE_SWITCH, 'none', true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, 'true', _SEED_ + (i*4)+2);\n  randomPattern(1, 'switch', true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, 'false', _SEED_ + (i*4)+3);\n  \n  // Alternate turn direction\n  if (i % 2 == 0) {\n    turnRight();\n    moveForward(); // Connector\n    turnRight();\n  } else {\n    turnLeft();\n    moveForward(); // Connector\n    turnLeft();\n  }\n}\n```\n",
     "hints": {
       "title": "Micro Mixed Interact",
       "description": "Collect crystals and toggle switches.",
@@ -1112,18 +1151,56 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MIN_CYCLES_",
         "displayName": "Min Cycles",
         "type": "number",
-        "defaultValue": 2
+        "defaultValue": 3
       },
       {
         "name": "_MAX_CYCLES_",
         "displayName": "Max Cycles",
         "type": "number",
-        "defaultValue": 3
+        "defaultValue": 5
+      },
+      {
+        "name": "_INTERACTION_",
+        "displayName": "Interaction",
+        "type": "string",
+        "defaultValue": "crystal"
+      },
+      {
+        "name": "_TURN_STYLE_",
+        "displayName": "Turn Style",
+        "type": "string",
+        "defaultValue": "straight"
+      },
+      {
+        "name": "_TURN_POINT_",
+        "displayName": "Turn Point",
+        "type": "string",
+        "defaultValue": "null"
+      },
+      {
+        "name": "_HAS_JUMP_",
+        "displayName": "Has Jump",
+        "type": "string",
+        "defaultValue": "noJump"
+      },
+      {
+        "name": "_NO_ITEM_AT_",
+        "displayName": "No Item At",
+        "type": "string",
+        "defaultValue": "random"
+      },
+      {
+        "name": "_SEED_",
+        "displayName": "Seed",
+        "type": "int",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 99999
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_CYCLES_ = 2;\nvar _MAX_CYCLES_ = 3;\nvar CYCLES = random(_MIN_CYCLES_, _MAX_CYCLES_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < CYCLES; i++) {\n  // Case 0: Move\n  moveForward();\n  \n  // Case 1: Jump Up\n  jumpUp();\n  \n  // Case 2: Collect & Move\n  collectItem();\n  moveForward();\n}\n\nmoveForward();",
-    "descriptionMarkdown": "# Three-Way Cycle\n\nA pattern that repeats every 3 steps, teaching Modulo 3 logic.\n\n## Academic Concept: Modulo N\n- Case 0: Action A\n- Case 1: Action B\n- Case 2: Action C\n\n## Solution & Parameters",
-    "rawContent": "---\nid: logic-3-way\nname: \"Three-Way Cycle\"\ncategory: logic\nconcepts: [\"loop\", \"conditional\", \"modulo\"]\ndifficulty: 5\ntags: [\"logic\", \"modulo\", \"cycle\", \"pattern\"]\nauthor: system\nversion: 2\ndescription: \"A repeating cycle of 3 actions: Move -> Jump -> Collect\"\n---\n\n# Three-Way Cycle\n\nA pattern that repeats every 3 steps, teaching Modulo 3 logic.\n\n## Academic Concept: Modulo N\n- Case 0: Action A\n- Case 1: Action B\n- Case 2: Action C\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_CYCLES_ = 2;\nvar _MAX_CYCLES_ = 3;\nvar CYCLES = random(_MIN_CYCLES_, _MAX_CYCLES_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < CYCLES; i++) {\n  // Case 0: Move\n  moveForward();\n  \n  // Case 1: Jump Up\n  jumpUp();\n  \n  // Case 2: Collect & Move\n  collectItem();\n  moveForward();\n}\n\nmoveForward();\n```\n",
+    "solutionCode": "// Parameters\nvar _MIN_CYCLES_ = 3;\nvar _MAX_CYCLES_ = 5;\nvar CYCLES = random(_MIN_CYCLES_, _MAX_CYCLES_);\n\n// Full Parameter Set (Standardized)\nvar _INTERACTION_ = 'crystal';\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump';\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Solution\nfor (let i = 0; i < CYCLES; i++) {\n  // Case 0: Move (Simple Walk)\n  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'noJump', _NO_ITEM_AT_, _SEED_ + (i*3));\n  \n  // Case 1: Jump Up\n  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'withJump', _NO_ITEM_AT_, _SEED_ + (i*3) + 1);\n  \n  // Case 2: Collect & Move (Move with guaranteed item or just standard pattern)\n  // Logic says \"Collect & Move\". randomPattern(1) basically does Move+Collect if item exists.\n  // We'll force an item here to distinguish it from Case 0 if Case 0 was random.\n  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'noJump', 'false', _SEED_ + (i*3) + 2);\n}",
+    "descriptionMarkdown": "# Three-Way Cycle\n\nA pattern that repeats every 3 steps, teaching Modulo 3 logic.\n\n## Academic Concept: Modulo N\n- Case 0: Action A\n- Case 1: Action B\n- Case 2: Action C\n\n## Features\n- **Modulo Logic**: Repeats a pattern every 3 steps (0, 1, 2).\n- **Cycle**: A repeating sequence of Move, Jump, Collect+Move.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: logic-3-way\nname: \"Three-Way Cycle\"\ncategory: logic\nconcepts: [\"loop\", \"conditional\", \"modulo\"]\ndifficulty: 5\ntags: [\"logic\", \"modulo\", \"cycle\", \"pattern\"]\nauthor: system\nversion: 2\ndescription: \"A repeating cycle of 3 actions: Move -> Jump -> Collect\"\n---\n\n# Three-Way Cycle\n\nA pattern that repeats every 3 steps, teaching Modulo 3 logic.\n\n## Academic Concept: Modulo N\n- Case 0: Action A\n- Case 1: Action B\n- Case 2: Action C\n\n## Features\n- **Modulo Logic**: Repeats a pattern every 3 steps (0, 1, 2).\n- **Cycle**: A repeating sequence of Move, Jump, Collect+Move.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_CYCLES_ = 3;\nvar _MAX_CYCLES_ = 5;\nvar CYCLES = random(_MIN_CYCLES_, _MAX_CYCLES_);\n\n// Full Parameter Set (Standardized)\nvar _INTERACTION_ = 'crystal';\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump';\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Solution\nfor (let i = 0; i < CYCLES; i++) {\n  // Case 0: Move (Simple Walk)\n  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'noJump', _NO_ITEM_AT_, _SEED_ + (i*3));\n  \n  // Case 1: Jump Up\n  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'withJump', _NO_ITEM_AT_, _SEED_ + (i*3) + 1);\n  \n  // Case 2: Collect & Move (Move with guaranteed item or just standard pattern)\n  // Logic says \"Collect & Move\". randomPattern(1) basically does Move+Collect if item exists.\n  // We'll force an item here to distinguish it from Case 0 if Case 0 was random.\n  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'noJump', 'false', _SEED_ + (i*3) + 2);\n}\n```\n",
     "hints": {
       "title": "Three-Way Cycle",
       "description": "A pattern that repeats every 3 steps, teaching Modulo 3 logic.",
@@ -2192,12 +2269,50 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MAX_GROUPS_",
         "displayName": "Max Groups",
         "type": "number",
-        "defaultValue": 4
+        "defaultValue": 5
+      },
+      {
+        "name": "_INTERACTION_",
+        "displayName": "Interaction",
+        "type": "string",
+        "defaultValue": "crystal"
+      },
+      {
+        "name": "_TURN_STYLE_",
+        "displayName": "Turn Style",
+        "type": "string",
+        "defaultValue": "straight"
+      },
+      {
+        "name": "_TURN_POINT_",
+        "displayName": "Turn Point",
+        "type": "string",
+        "defaultValue": "null"
+      },
+      {
+        "name": "_HAS_JUMP_",
+        "displayName": "Has Jump",
+        "type": "string",
+        "defaultValue": "noJump"
+      },
+      {
+        "name": "_NO_ITEM_AT_",
+        "displayName": "No Item At",
+        "type": "string",
+        "defaultValue": "random"
+      },
+      {
+        "name": "_SEED_",
+        "displayName": "Seed",
+        "type": "int",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 99999
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_START_ = 1;\nvar _MAX_START_ = 2;\nvar START = random(_MIN_START_, _MAX_START_);\n\nvar _MIN_STEP_ = 1;\nvar _MAX_STEP_ = 2;\nvar STEP = random(_MIN_STEP_, _MAX_STEP_);\n\nvar _MIN_GROUPS_ = 3;\nvar _MAX_GROUPS_ = 4;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < GROUPS - 1; i++) {\n  let count = START + i * STEP;\n  for (let j = 0; j < count; j++) {\n    collectItem();\n    moveForward();\n  }\n  \n  turnRight();\n  moveForward();\n  turnRight();\n}\n\n// Last Group (No turn)\nlet lastCount = START + (GROUPS - 1) * STEP;\nfor (let k = 0; k < lastCount; k++) {\n  collectItem();\n  moveForward();\n}",
-    "descriptionMarkdown": "# Arithmetic Collect\n\nCollect items where the count increases linearly each time.\n\n## Academic Concept: Arithmetic Progression\n- Sequence: $a, a+d, a+2d, ...$\n- Here: Number of items to collect increases by `STEP`.\n\n## Solution & Parameters",
-    "rawContent": "---\nid: arithmetic-collect\nname: \"Arithmetic Collect\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"arithmetic_progression\", \"nested_loop\"]\ndifficulty: 4\ntags: [\"math\", \"progression\", \"collect\"]\nauthor: system\nversion: 1\ndescription: \"Collect increasing numbers of items (1, 2, 3...)\"\n---\n\n# Arithmetic Collect\n\nCollect items where the count increases linearly each time.\n\n## Academic Concept: Arithmetic Progression\n- Sequence: $a, a+d, a+2d, ...$\n- Here: Number of items to collect increases by `STEP`.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_START_ = 1;\nvar _MAX_START_ = 2;\nvar START = random(_MIN_START_, _MAX_START_);\n\nvar _MIN_STEP_ = 1;\nvar _MAX_STEP_ = 2;\nvar STEP = random(_MIN_STEP_, _MAX_STEP_);\n\nvar _MIN_GROUPS_ = 3;\nvar _MAX_GROUPS_ = 4;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Solution\nmoveForward();\n\nfor (let i = 0; i < GROUPS - 1; i++) {\n  let count = START + i * STEP;\n  for (let j = 0; j < count; j++) {\n    collectItem();\n    moveForward();\n  }\n  \n  turnRight();\n  moveForward();\n  turnRight();\n}\n\n// Last Group (No turn)\nlet lastCount = START + (GROUPS - 1) * STEP;\nfor (let k = 0; k < lastCount; k++) {\n  collectItem();\n  moveForward();\n}\n```\n",
+    "solutionCode": "// Parameters\nvar _MIN_START_ = 1;\nvar _MAX_START_ = 2;\nvar START = random(_MIN_START_, _MAX_START_);\n\nvar _MIN_STEP_ = 1;\nvar _MAX_STEP_ = 2;\nvar STEP = random(_MIN_STEP_, _MAX_STEP_);\n\nvar _MIN_GROUPS_ = 3;\nvar _MAX_GROUPS_ = 5;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Full Parameter Set (Standardized)\nvar _INTERACTION_ = 'crystal';\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump';\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Solution\nfor (let i = 0; i < GROUPS; i++) {\n  let count = START + i * STEP; // Arithmetic progression\n  \n  // Generate segment of length 'count'\n  randomPattern(count, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + i);\n  \n  // Turn logic between groups (except last)\n  if (i < GROUPS - 1) {\n    turnRight();\n    // No extra move needed if randomPattern connects directly, \n    // but typically we want spacing or a \"connector\" step.\n    // randomPattern ends at a cell. Turn happens there.\n    // If we duplicate logic from original: \"turnRight(); moveForward(); turnRight();\" -> U-turn spacing?\n    // Let's implement a simple connector move.\n    \n    // NOTE: Original code was turnRight -> move -> turnRight (U-turnish or Corner?)\n    // This implies a \"winding\" path or \"rows\". \n    // Let's mimic a simple row switch.\n    \n    moveForward(); // Connector step\n    turnRight();\n  }\n}",
+    "descriptionMarkdown": "# Arithmetic Collect\n\nCollect items where the count increases linearly each time.\n\n## Academic Concept: Arithmetic Progression\n- Sequence: $a, a+d, a+2d, ...$\n- Here: Number of items to collect increases by `STEP`.\n\n## Features\n- **Arithmetic Progression**: The number of items/steps increases by a fixed `STEP` amount each group.\n- **Nested Loops**: Inner loop length depends on the outer loop variable.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: arithmetic-collect\nname: \"Arithmetic Collect\"\ncategory: progression\nconcepts: [\"loop\", \"variable\", \"arithmetic_progression\", \"nested_loop\"]\ndifficulty: 4\ntags: [\"math\", \"progression\", \"collect\"]\nauthor: system\nversion: 1\ndescription: \"Collect increasing numbers of items (1, 2, 3...)\"\n---\n\n# Arithmetic Collect\n\nCollect items where the count increases linearly each time.\n\n## Academic Concept: Arithmetic Progression\n- Sequence: $a, a+d, a+2d, ...$\n- Here: Number of items to collect increases by `STEP`.\n\n## Features\n- **Arithmetic Progression**: The number of items/steps increases by a fixed `STEP` amount each group.\n- **Nested Loops**: Inner loop length depends on the outer loop variable.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_START_ = 1;\nvar _MAX_START_ = 2;\nvar START = random(_MIN_START_, _MAX_START_);\n\nvar _MIN_STEP_ = 1;\nvar _MAX_STEP_ = 2;\nvar STEP = random(_MIN_STEP_, _MAX_STEP_);\n\nvar _MIN_GROUPS_ = 3;\nvar _MAX_GROUPS_ = 5;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Full Parameter Set (Standardized)\nvar _INTERACTION_ = 'crystal';\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump';\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Solution\nfor (let i = 0; i < GROUPS; i++) {\n  let count = START + i * STEP; // Arithmetic progression\n  \n  // Generate segment of length 'count'\n  randomPattern(count, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + i);\n  \n  // Turn logic between groups (except last)\n  if (i < GROUPS - 1) {\n    turnRight();\n    // No extra move needed if randomPattern connects directly, \n    // but typically we want spacing or a \"connector\" step.\n    // randomPattern ends at a cell. Turn happens there.\n    // If we duplicate logic from original: \"turnRight(); moveForward(); turnRight();\" -> U-turn spacing?\n    // Let's implement a simple connector move.\n    \n    // NOTE: Original code was turnRight -> move -> turnRight (U-turnish or Corner?)\n    // This implies a \"winding\" path or \"rows\". \n    // Let's mimic a simple row switch.\n    \n    moveForward(); // Connector step\n    turnRight();\n  }\n}\n```\n",
     "hints": {
       "title": "Arithmetic Collect",
       "description": "Collect items where the count increases linearly each time.",
@@ -2596,18 +2711,56 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_MIN_GROUPS_",
         "displayName": "Min Groups",
         "type": "number",
-        "defaultValue": 2
+        "defaultValue": 3
       },
       {
         "name": "_MAX_GROUPS_",
         "displayName": "Max Groups",
         "type": "number",
-        "defaultValue": 4
+        "defaultValue": 5
+      },
+      {
+        "name": "_INTERACTION_",
+        "displayName": "Interaction",
+        "type": "string",
+        "defaultValue": "crystal"
+      },
+      {
+        "name": "_TURN_STYLE_",
+        "displayName": "Turn Style",
+        "type": "string",
+        "defaultValue": "straight"
+      },
+      {
+        "name": "_TURN_POINT_",
+        "displayName": "Turn Point",
+        "type": "string",
+        "defaultValue": "null"
+      },
+      {
+        "name": "_HAS_JUMP_",
+        "displayName": "Has Jump",
+        "type": "string",
+        "defaultValue": "noJump"
+      },
+      {
+        "name": "_NO_ITEM_AT_",
+        "displayName": "No Item At",
+        "type": "string",
+        "defaultValue": "random"
+      },
+      {
+        "name": "_SEED_",
+        "displayName": "Seed",
+        "type": "int",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 99999
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_GROUPS_ = 2;\nvar _MAX_GROUPS_ = 4;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Solution\n// Walk 1 step, then 2 steps, then 3 steps, etc.\nmoveForward();\n\nfor (let group = 0; group < GROUPS; group++) {\n  let stepsInGroup = group + 1;\n  for (let step = 0; step < stepsInGroup; step++) {\n    collectItem();\n    moveForward();\n  }\n  \n  // Turn for next group (except last)\n  if (group < GROUPS - 1) {\n    turnRight();\n    moveForward();\n    turnLeft();\n  }\n}\n\nmoveForward();",
-    "descriptionMarkdown": "# Simple Increase\n\nA simple introduction to increasing patterns.\n\n## Learning Goals\n- Recognize increasing sequences\n- Understand progression\n\n## Solution & Parameters",
-    "rawContent": "---\nid: prog-simple-increase\nname: \"Simple Increase\"\ncategory: progression\nconcepts: [\"variable\", \"arithmetic_progression\"]\ndifficulty: 2\ntags: [\"math\", \"progression\", \"increment\"]\nauthor: system\nversion: 3\ndescription: \"Simple increasing pattern (1, 2, 3 steps)\"\n---\n\n# Simple Increase\n\nA simple introduction to increasing patterns.\n\n## Learning Goals\n- Recognize increasing sequences\n- Understand progression\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_GROUPS_ = 2;\nvar _MAX_GROUPS_ = 4;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Solution\n// Walk 1 step, then 2 steps, then 3 steps, etc.\nmoveForward();\n\nfor (let group = 0; group < GROUPS; group++) {\n  let stepsInGroup = group + 1;\n  for (let step = 0; step < stepsInGroup; step++) {\n    collectItem();\n    moveForward();\n  }\n  \n  // Turn for next group (except last)\n  if (group < GROUPS - 1) {\n    turnRight();\n    moveForward();\n    turnLeft();\n  }\n}\n\nmoveForward();\n```\n",
+    "solutionCode": "// Parameters\nvar _MIN_GROUPS_ = 3;\nvar _MAX_GROUPS_ = 5;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Full Parameter Set (Standardized)\nvar _INTERACTION_ = 'crystal';\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump';\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Solution\n// Walk 1 step, then 2 steps, then 3 steps, etc.\nfor (let group = 0; group < GROUPS; group++) {\n  let stepsInGroup = group + 1; // 1, 2, 3...\n  \n  // Generate segment of length 'stepsInGroup'\n  randomPattern(stepsInGroup, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + group);\n  \n  // Turn for next group (simple zigzag/stairs turn)\n  if (group < GROUPS - 1) {\n    turnRight();\n    moveForward(); // Connector\n    turnLeft();\n  }\n}",
+    "descriptionMarkdown": "# Simple Increase\n\nA simple introduction to increasing patterns.\n\n## Learning Goals\n- Recognize increasing sequences\n- Understand progression\n\n## Features\n- **Increasing Pattern**: 1 step, then 2 steps, then 3 steps.\n- **Progression Logic**: Visualizes how linear growth looks in movement.\n\n## Solution & Parameters",
+    "rawContent": "---\nid: prog-simple-increase\nname: \"Simple Increase\"\ncategory: progression\nconcepts: [\"variable\", \"arithmetic_progression\"]\ndifficulty: 2\ntags: [\"math\", \"progression\", \"increment\"]\nauthor: system\nversion: 3\ndescription: \"Simple increasing pattern (1, 2, 3 steps)\"\n---\n\n# Simple Increase\n\nA simple introduction to increasing patterns.\n\n## Learning Goals\n- Recognize increasing sequences\n- Understand progression\n\n## Features\n- **Increasing Pattern**: 1 step, then 2 steps, then 3 steps.\n- **Progression Logic**: Visualizes how linear growth looks in movement.\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_GROUPS_ = 3;\nvar _MAX_GROUPS_ = 5;\nvar GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);\n\n// Full Parameter Set (Standardized)\nvar _INTERACTION_ = 'crystal';\nvar _TURN_STYLE_ = 'straight';\nvar _TURN_POINT_ = 'null';\nvar _HAS_JUMP_ = 'noJump';\nvar _NO_ITEM_AT_ = 'random';\nvar _SEED_ = random(1, 99999);\n\n// Solution\n// Walk 1 step, then 2 steps, then 3 steps, etc.\nfor (let group = 0; group < GROUPS; group++) {\n  let stepsInGroup = group + 1; // 1, 2, 3...\n  \n  // Generate segment of length 'stepsInGroup'\n  randomPattern(stepsInGroup, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + group);\n  \n  // Turn for next group (simple zigzag/stairs turn)\n  if (group < GROUPS - 1) {\n    turnRight();\n    moveForward(); // Connector\n    turnLeft();\n  }\n}\n```\n",
     "hints": {
       "title": "Simple Increase",
       "description": "A simple introduction to increasing patterns.",

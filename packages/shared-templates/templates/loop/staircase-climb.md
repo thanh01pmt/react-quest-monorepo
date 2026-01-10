@@ -32,11 +32,11 @@ var _MAX_STEPS_ = 5;
 var STEPS = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Full Parameter Set (Standardized)
-var _INTERACTION_ = 'crystal';
-var _TURN_STYLE_ = 'straight';
-var _TURN_POINT_ = 'null';
-var _HAS_JUMP_ = 'withJump'; // Force jumps for staircase
-var _NO_ITEM_AT_ = 'random';
+var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key
+var _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, random
+var _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random
+var _HAS_JUMP_ = 'withJump'; // OPTIONS: random, withJump, noJump
+var _NO_ITEM_AT_ = 'null'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth
 var _SEED_ = random(1, 99999);
 
 // Solution

@@ -32,11 +32,11 @@ var _MAX_PATH_LENGTH_ = 5;
 var PATH_LENGTH = random(_MIN_PATH_LENGTH_, _MAX_PATH_LENGTH_);
 
 // Full Parameter Set (Standardized)
-var _INTERACTION_ = 'crystal'; // Default, but overridden by randomness
-var _TURN_STYLE_ = 'straight';
-var _TURN_POINT_ = 'null';
-var _HAS_JUMP_ = 'noJump';
-var _NO_ITEM_AT_ = 'random'; // Crucial: Places items randomly (or not)
+var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key
+var _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, random
+var _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random
+var _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump
+var _NO_ITEM_AT_ = 'null'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth
 var _SEED_ = random(1, 99999);
 
 // Solution
