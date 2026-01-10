@@ -136,3 +136,33 @@ export type {
   BlockAction
 } from './solution-driven';
 
+// ============================================================================
+// POST-PROCESSOR
+// ============================================================================
+
+export {
+  executePostProcessor,
+  executePostProcessors,
+  fillBoundingBox,
+  extendShape,
+  findSwitchPositions,
+  calculateBoundingBox,
+  generateShapeCoords,
+  coordKey
+} from './solution-driven/post-processor';
+
+export type {
+  PostProcessorConfig,
+  FillBoundingBoxConfig,
+  ExtendShapeConfig,
+  PostProcessorContext,
+  PostProcessorResult,
+  FillBoundingBoxResult,
+  ExtendShapeResult,
+  Coord3D,
+  GeneratedBlock,
+  BoundingBox,
+  ShapeType,
+  BiasDirection,
+  LevelMode
+} from './solution-driven/post-processor';

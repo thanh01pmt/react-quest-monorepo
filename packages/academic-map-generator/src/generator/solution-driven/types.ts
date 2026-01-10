@@ -180,6 +180,9 @@ export interface ExecutionTrace {
   totalMoves: number;
   totalCollects: number;
   loopIterations: number;
+  
+  /** Post-processor configurations for deferred execution */
+  postProcessConfigs?: import('./post-processor').PostProcessorConfig[];
 }
 
 // ============================================================================

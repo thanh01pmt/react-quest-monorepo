@@ -2642,38 +2642,32 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
   },
   {
     "metadata": {
-      "id": "crystal-trail-full",
-      "name": "Crystal Trail: Master",
+      "id": "crystal-garden-basic",
+      "name": "Crystal Garden",
       "category": "sequential",
       "concepts": [
         "sequential",
-        "turns",
-        "jumps"
+        "optimization"
       ],
-      "difficulty": 3,
+      "difficulty": 2,
       "tags": [
         "moveForward",
-        "turn",
-        "jump",
-        "collectItem",
-        "mixed"
+        "turnLeft",
+        "turnRight",
+        "collectItem"
       ],
       "author": "system",
       "version": 1,
-      "description": "Complex path combining turns and jumps"
+      "description": "Collect crystals in an open garden - find the optimal path"
     },
     "parameters": [
       {
-        "name": "_MIN_STEPS_",
-        "displayName": "Min Steps",
-        "type": "number",
-        "defaultValue": 4
-      },
-      {
-        "name": "_MAX_STEPS_",
-        "displayName": "Max Steps",
-        "type": "number",
-        "defaultValue": 6
+        "name": "_LEN_",
+        "displayName": "Len",
+        "type": "int",
+        "defaultValue": 3,
+        "min": 3,
+        "max": 5
       },
       {
         "name": "_INTERACTION_",
@@ -2685,19 +2679,19 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "name": "_TURN_STYLE_",
         "displayName": "Turn Style",
         "type": "string",
-        "defaultValue": "random"
+        "defaultValue": "randomLeftRight"
       },
       {
         "name": "_TURN_POINT_",
         "displayName": "Turn Point",
         "type": "string",
-        "defaultValue": "end"
+        "defaultValue": "random"
       },
       {
         "name": "_HAS_JUMP_",
         "displayName": "Has Jump",
         "type": "string",
-        "defaultValue": "random"
+        "defaultValue": "noJump"
       },
       {
         "name": "_NO_ITEM_AT_",
@@ -2706,9 +2700,84 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "defaultValue": "noItemBoth"
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 5;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'random'; // OPTIONS: null, start, end, mid, random, null\nvar _HAS_JUMP_ = 'withJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'random'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'end'; // OPTIONS: null, start, end, mid, random, null\nvar _HAS_JUMP_ = 'random'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nfor (let i = 0; i < random(3, 5); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}",
-    "descriptionMarkdown": "# Crystal Trail: Master\n\nThe ultimate sequential challenge combining turns and jumps on a long path.\n\n## Learning Goals\n- Integrate all movement commands\n- Solve complex pathfinding problems\n- Handle mixed obstacle types\n\n## Features\n\n- **Complex Path**: `_TURN_STYLE_ = 'randomLeftRight'` mixed with `_HAS_JUMP_ = 'withJump'`\n- **Full Randomized**: Uses random seed for endless variations\n- **Extended Length**: Composes multiple patterns for a longer quest\n\n## Solution & Parameters",
-    "rawContent": "---\nid: crystal-trail-full\nname: \"Crystal Trail: Master\"\ncategory: sequential\nconcepts: [\"sequential\", \"turns\", \"jumps\"]\ndifficulty: 3\ntags: [\"moveForward\", \"turn\", \"jump\", \"collectItem\", \"mixed\"]\nauthor: system\nversion: 1\ndescription: \"Complex path combining turns and jumps\"\n---\n\n# Crystal Trail: Master\n\nThe ultimate sequential challenge combining turns and jumps on a long path.\n\n## Learning Goals\n- Integrate all movement commands\n- Solve complex pathfinding problems\n- Handle mixed obstacle types\n\n## Features\n\n- **Complex Path**: `_TURN_STYLE_ = 'randomLeftRight'` mixed with `_HAS_JUMP_ = 'withJump'`\n- **Full Randomized**: Uses random seed for endless variations\n- **Extended Length**: Composes multiple patterns for a longer quest\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 5;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'random'; // OPTIONS: null, start, end, mid, random, null\nvar _HAS_JUMP_ = 'withJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\n// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'random'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'end'; // OPTIONS: null, start, end, mid, random, null\nvar _HAS_JUMP_ = 'random'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nfor (let i = 0; i < random(3, 5); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}\n```\n",
+    "solutionCode": "// Parameters\nvar _LEN_ = random(3, 5);\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, randomLeftRight\nvar _TURN_POINT_ = 'random'; // OPTIONS: start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n\n// Post-process: Fill the bounding box to create open area\npostProcess({ type: 'fillBoundingBox', offset: 1, material: 'grass', walkable: true });",
+    "descriptionMarkdown": "# Crystal Garden\n\nAn open-area map where players must strategize to collect all crystals efficiently.\nUnlike trail maps, there are multiple valid paths.\n\n## Learning Goals\n- Strategic thinking - choosing optimal routes\n- Understanding there can be multiple solutions\n- Practicing movement commands in 2D space\n\n## Features\n\n- **Open Arena**: `fillBoundingBox` creates an open area around the path\n- **Multiple Routes**: Players can choose different paths to collect items\n- **Strategic Gameplay**: Encourages optimization thinking\n\n## Solution & Parameters",
+    "rawContent": "---\nid: crystal-garden-basic\nname: \"Crystal Garden\"\ncategory: sequential\nconcepts: [\"sequential\", \"optimization\"]\ndifficulty: 2\ntags: [\"moveForward\", \"turnLeft\", \"turnRight\", \"collectItem\"]\nauthor: system\nversion: 1\ndescription: \"Collect crystals in an open garden - find the optimal path\"\n---\n\n# Crystal Garden\n\nAn open-area map where players must strategize to collect all crystals efficiently.\nUnlike trail maps, there are multiple valid paths.\n\n## Learning Goals\n- Strategic thinking - choosing optimal routes\n- Understanding there can be multiple solutions\n- Practicing movement commands in 2D space\n\n## Features\n\n- **Open Arena**: `fillBoundingBox` creates an open area around the path\n- **Multiple Routes**: Players can choose different paths to collect items\n- **Strategic Gameplay**: Encourages optimization thinking\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _LEN_ = random(3, 5);\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, randomLeftRight\nvar _TURN_POINT_ = 'random'; // OPTIONS: start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n\n// Post-process: Fill the bounding box to create open area\npostProcess({ type: 'fillBoundingBox', offset: 1, material: 'grass', walkable: true });\n```\n",
+    "hints": {
+      "title": "Crystal Garden",
+      "description": "An open-area map where players must strategize to collect all crystals efficiently.\nUnlike trail maps, there are multiple valid paths.",
+      "learningGoals": "- Strategic thinking - choosing optimal routes",
+      "goalDetails": [
+        "Understanding there can be multiple solutions",
+        "Practicing movement commands in 2D space"
+      ]
+    }
+  },
+  {
+    "metadata": {
+      "id": "crystal-trail-full",
+      "name": "Crystal Trail: Master",
+      "category": "sequential",
+      "concepts": [
+        "sequential",
+        "turns",
+        "jumps"
+      ],
+      "difficulty": 3,
+      "tags": [
+        "moveForward",
+        "turnLeft",
+        "turnRight",
+        "jump",
+        "collectItem"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Complex path combining turns and jumps"
+    },
+    "parameters": [
+      {
+        "name": "_LEN_",
+        "displayName": "Len",
+        "type": "int",
+        "defaultValue": 5,
+        "min": 5,
+        "max": 8
+      },
+      {
+        "name": "_INTERACTION_",
+        "displayName": "Interaction",
+        "type": "string",
+        "defaultValue": "crystal"
+      },
+      {
+        "name": "_TURN_STYLE_",
+        "displayName": "Turn Style",
+        "type": "string",
+        "defaultValue": "randomLeftRight"
+      },
+      {
+        "name": "_TURN_POINT_",
+        "displayName": "Turn Point",
+        "type": "string",
+        "defaultValue": "random"
+      },
+      {
+        "name": "_HAS_JUMP_",
+        "displayName": "Has Jump",
+        "type": "string",
+        "defaultValue": "withJump"
+      },
+      {
+        "name": "_NO_ITEM_AT_",
+        "displayName": "No Item At",
+        "type": "string",
+        "defaultValue": "noItemBoth"
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _LEN_ = random(5, 8);\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, randomLeftRight, random\nvar _TURN_POINT_ = 'random'; // OPTIONS: start, end, mid, random\nvar _HAS_JUMP_ = 'withJump'; // OPTIONS: withJump, random\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));",
+    "descriptionMarkdown": "# Crystal Trail: Master\n\nThe ultimate sequential challenge combining turns and jumps on a long path.\n\n## Learning Goals\n- Integrate all movement commands\n- Solve complex pathfinding problems\n- Handle mixed obstacle types\n\n## Features\n\n- **Complex Path**: `_TURN_STYLE_ = 'randomLeftRight'` mixed with `_HAS_JUMP_ = 'withJump'`\n- **Random Variations**: Uses random seed for variety\n- **Longer Path**: Extended length for challenge\n\n## Solution & Parameters",
+    "rawContent": "---\nid: crystal-trail-full\nname: \"Crystal Trail: Master\"\ncategory: sequential\nconcepts: [\"sequential\", \"turns\", \"jumps\"]\ndifficulty: 3\ntags: [\"moveForward\", \"turnLeft\", \"turnRight\", \"jump\", \"collectItem\"]\nauthor: system\nversion: 1\ndescription: \"Complex path combining turns and jumps\"\n---\n\n# Crystal Trail: Master\n\nThe ultimate sequential challenge combining turns and jumps on a long path.\n\n## Learning Goals\n- Integrate all movement commands\n- Solve complex pathfinding problems\n- Handle mixed obstacle types\n\n## Features\n\n- **Complex Path**: `_TURN_STYLE_ = 'randomLeftRight'` mixed with `_HAS_JUMP_ = 'withJump'`\n- **Random Variations**: Uses random seed for variety\n- **Longer Path**: Extended length for challenge\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _LEN_ = random(5, 8);\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, randomLeftRight, random\nvar _TURN_POINT_ = 'random'; // OPTIONS: start, end, mid, random\nvar _HAS_JUMP_ = 'withJump'; // OPTIONS: withJump, random\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n```\n",
     "hints": {
       "title": "Crystal Trail: Master",
       "description": "The ultimate sequential challenge combining turns and jumps on a long path.",
@@ -2732,8 +2801,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
       "tags": [
         "moveForward",
         "jump",
-        "collectItem",
-        "basic"
+        "collectItem"
       ],
       "author": "system",
       "version": 1,
@@ -2741,16 +2809,12 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
     },
     "parameters": [
       {
-        "name": "_MIN_STEPS_",
-        "displayName": "Min Steps",
-        "type": "number",
-        "defaultValue": 2
-      },
-      {
-        "name": "_MAX_STEPS_",
-        "displayName": "Max Steps",
-        "type": "number",
-        "defaultValue": 4
+        "name": "_LEN_",
+        "displayName": "Len",
+        "type": "int",
+        "defaultValue": 3,
+        "min": 3,
+        "max": 5
       },
       {
         "name": "_INTERACTION_",
@@ -2783,9 +2847,9 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "defaultValue": "noItemBoth"
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 2;\nvar _MAX_STEPS_ = 4;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random, null\nvar _HAS_JUMP_ = 'withJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nfor (let i = 0; i < random(3, 4); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}",
+    "solutionCode": "// Parameters\nvar _LEN_ = random(3, 5);\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'straight'; // OPTIONS: straight, null\nvar _TURN_POINT_ = 'null'; // OPTIONS: null\nvar _HAS_JUMP_ = 'withJump'; // OPTIONS: withJump\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));",
     "descriptionMarkdown": "# Crystal Trail: Jumps\n\nA straight path that introduces obstacles requiring the jump command.\n\n## Learning Goals\n- Practice `jump()` command\n- Combine movement with jumping\n- Maintain sequential logic\n\n## Features\n\n- **Straight Path**: `_TURN_STYLE_ = 'straight'` keeps the direction constant\n- **Jumps Required**: `_HAS_JUMP_ = 'withJump'` introduces gaps/obstacles\n- **Sequential**: Linear progression without complex turning\n\n## Solution & Parameters",
-    "rawContent": "---\nid: crystal-trail-straight-jump\nname: \"Crystal Trail: Jumps\"\ncategory: sequential\nconcepts: [\"sequential\", \"jumps\"]\ndifficulty: 2\ntags: [\"moveForward\", \"jump\", \"collectItem\", \"basic\"]\nauthor: system\nversion: 1\ndescription: \"Collect crystals along a straight path using jumps\"\n---\n\n# Crystal Trail: Jumps\n\nA straight path that introduces obstacles requiring the jump command.\n\n## Learning Goals\n- Practice `jump()` command\n- Combine movement with jumping\n- Maintain sequential logic\n\n## Features\n\n- **Straight Path**: `_TURN_STYLE_ = 'straight'` keeps the direction constant\n- **Jumps Required**: `_HAS_JUMP_ = 'withJump'` introduces gaps/obstacles\n- **Sequential**: Linear progression without complex turning\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 2;\nvar _MAX_STEPS_ = 4;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random, null\nvar _HAS_JUMP_ = 'withJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nfor (let i = 0; i < random(3, 4); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}\n```\n",
+    "rawContent": "---\nid: crystal-trail-straight-jump\nname: \"Crystal Trail: Jumps\"\ncategory: sequential\nconcepts: [\"sequential\", \"jumps\"]\ndifficulty: 2\ntags: [\"moveForward\", \"jump\", \"collectItem\"]\nauthor: system\nversion: 1\ndescription: \"Collect crystals along a straight path using jumps\"\n---\n\n# Crystal Trail: Jumps\n\nA straight path that introduces obstacles requiring the jump command.\n\n## Learning Goals\n- Practice `jump()` command\n- Combine movement with jumping\n- Maintain sequential logic\n\n## Features\n\n- **Straight Path**: `_TURN_STYLE_ = 'straight'` keeps the direction constant\n- **Jumps Required**: `_HAS_JUMP_ = 'withJump'` introduces gaps/obstacles\n- **Sequential**: Linear progression without complex turning\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _LEN_ = random(3, 5);\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'straight'; // OPTIONS: straight, null\nvar _TURN_POINT_ = 'null'; // OPTIONS: null\nvar _HAS_JUMP_ = 'withJump'; // OPTIONS: withJump\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n```\n",
     "hints": {
       "title": "Crystal Trail: Jumps",
       "description": "A straight path that introduces obstacles requiring the jump command.",
@@ -2807,8 +2871,7 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
       "difficulty": 1,
       "tags": [
         "moveForward",
-        "collectItem",
-        "basic"
+        "collectItem"
       ],
       "author": "system",
       "version": 1,
@@ -2816,16 +2879,12 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
     },
     "parameters": [
       {
-        "name": "_MIN_STEPS_",
-        "displayName": "Min Steps",
-        "type": "number",
-        "defaultValue": 3
-      },
-      {
-        "name": "_MAX_STEPS_",
-        "displayName": "Max Steps",
-        "type": "number",
-        "defaultValue": 5
+        "name": "_LEN_",
+        "displayName": "Len",
+        "type": "int",
+        "defaultValue": 3,
+        "min": 3,
+        "max": 5
       },
       {
         "name": "_INTERACTION_",
@@ -2858,11 +2917,11 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "defaultValue": "noItemBoth"
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 5;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random, null\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nfor (let i = 0; i < random(3, 4); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}",
-    "descriptionMarkdown": "# Crystal Trail\n\nA simple path with crystals to collect. Perfect for learning basic movement commands.\n\n## Learning Goals\n- Understand sequential execution\n- Practice `moveForward()` command\n- Learn `collectItem()` command\n\n## Features\n\n- **Straight Path**: `_TURN_STYLE_ = 'straight'` ensures a single line\n- **No Joining Items**: `_NO_ITEM_AT_ = 'noItemStart'` prevents items at start position\n- **Safe Traversal**: `_HAS_JUMP_ = 'noJump'` keeps it simple for beginners\n\n## Solution & Parameters",
-    "rawContent": "---\nid: crystal-trail-basic\nname: \"Crystal Trail: Basic\"\ncategory: sequential\nconcepts: [\"sequential\"]\ndifficulty: 1\ntags: [\"moveForward\", \"collectItem\", \"basic\"]\nauthor: system\nversion: 1\ndescription: \"Collect crystals along a straight path\"\n---\n\n# Crystal Trail\n\nA simple path with crystals to collect. Perfect for learning basic movement commands.\n\n## Learning Goals\n- Understand sequential execution\n- Practice `moveForward()` command\n- Learn `collectItem()` command\n\n## Features\n\n- **Straight Path**: `_TURN_STYLE_ = 'straight'` ensures a single line\n- **No Joining Items**: `_NO_ITEM_AT_ = 'noItemStart'` prevents items at start position\n- **Safe Traversal**: `_HAS_JUMP_ = 'noJump'` keeps it simple for beginners\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 3;\nvar _MAX_STEPS_ = 5;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random, null\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nfor (let i = 0; i < random(3, 4); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}\n```\n",
+    "solutionCode": "// Parameters\nvar _LEN_ = random(3, 5);\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'straight'; // OPTIONS: straight, null\nvar _TURN_POINT_ = 'null'; // OPTIONS: null\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));",
+    "descriptionMarkdown": "# Crystal Trail: Basic\n\nA simple path with crystals to collect. Perfect for learning basic movement commands.\n\n## Learning Goals\n- Understand sequential execution\n- Practice `moveForward()` command\n- Learn `collectItem()` command\n\n## Features\n\n- **Straight Path**: `_TURN_STYLE_ = 'straight'` ensures a single line\n- **Simple Pattern**: One pattern per map\n- **Safe Traversal**: `_HAS_JUMP_ = 'noJump'` keeps it simple for beginners\n\n## Solution & Parameters",
+    "rawContent": "---\nid: crystal-trail-basic\nname: \"Crystal Trail: Basic\"\ncategory: sequential\nconcepts: [\"sequential\"]\ndifficulty: 1\ntags: [\"moveForward\", \"collectItem\"]\nauthor: system\nversion: 1\ndescription: \"Collect crystals along a straight path\"\n---\n\n# Crystal Trail: Basic\n\nA simple path with crystals to collect. Perfect for learning basic movement commands.\n\n## Learning Goals\n- Understand sequential execution\n- Practice `moveForward()` command\n- Learn `collectItem()` command\n\n## Features\n\n- **Straight Path**: `_TURN_STYLE_ = 'straight'` ensures a single line\n- **Simple Pattern**: One pattern per map\n- **Safe Traversal**: `_HAS_JUMP_ = 'noJump'` keeps it simple for beginners\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _LEN_ = random(3, 5);\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'straight'; // OPTIONS: straight, null\nvar _TURN_POINT_ = 'null'; // OPTIONS: null\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n```\n",
     "hints": {
-      "title": "Crystal Trail",
+      "title": "Crystal Trail: Basic",
       "description": "A simple path with crystals to collect. Perfect for learning basic movement commands.",
       "learningGoals": "- Understand sequential execution",
       "goalDetails": [
@@ -2893,16 +2952,12 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
     },
     "parameters": [
       {
-        "name": "_MIN_STEPS_",
-        "displayName": "Min Steps",
-        "type": "number",
-        "defaultValue": 4
-      },
-      {
-        "name": "_MAX_STEPS_",
-        "displayName": "Max Steps",
-        "type": "number",
-        "defaultValue": 8
+        "name": "_LEN_",
+        "displayName": "Len",
+        "type": "int",
+        "defaultValue": 4,
+        "min": 4,
+        "max": 6
       },
       {
         "name": "_INTERACTION_",
@@ -2935,9 +2990,9 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "defaultValue": "noItemBoth"
       }
     ],
-    "solutionCode": "// Parameters\n// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 8;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'end'; // OPTIONS: start, end, mid, random, null\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nfor (let i = 0; i < random(2, 4); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}",
-    "descriptionMarkdown": "# Crystal Trail: Turns\n\nA winding path that requires the player to turn left and right to collect crystals.\n\n## Learning Goals\n- Practice `turnLeft()` and `turnRight()`\n- Navigate changing directions\n- Plan path ahead\n\n## Features\n\n- **Winding Path**: `_TURN_STYLE_ = 'randomLeftRight'` creates twists and turns\n- **No Jumps**: `_HAS_JUMP_ = 'noJump'` focuses solely on turning logistics\n- **Dynamic Turns**: `_TURN_POINT_ = 'random'` varies where turns occur\n\n## Solution & Parameters",
-    "rawContent": "---\nid: crystal-trail-turn\nname: \"Crystal Trail: Turns\"\ncategory: sequential\nconcepts: [\"sequential\", \"turns\"]\ndifficulty: 2\ntags: [\"moveForward\", \"turnLeft\", \"turnRight\", \"collectItem\"]\nauthor: system\nversion: 1\ndescription: \"Collect crystals on a winding path with turns\"\n---\n\n# Crystal Trail: Turns\n\nA winding path that requires the player to turn left and right to collect crystals.\n\n## Learning Goals\n- Practice `turnLeft()` and `turnRight()`\n- Navigate changing directions\n- Plan path ahead\n\n## Features\n\n- **Winding Path**: `_TURN_STYLE_ = 'randomLeftRight'` creates twists and turns\n- **No Jumps**: `_HAS_JUMP_ = 'noJump'` focuses solely on turning logistics\n- **Dynamic Turns**: `_TURN_POINT_ = 'random'` varies where turns occur\n\n## Solution & Parameters\n\n```js\n// Parameters\n// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 8;\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'end'; // OPTIONS: start, end, mid, random, null\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution\nfor (let i = 0; i < random(2, 4); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}\n```\n",
+    "solutionCode": "// Parameters\nvar _LEN_ = random(4, 6);\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, randomLeftRight\nvar _TURN_POINT_ = 'end'; // OPTIONS: start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));",
+    "descriptionMarkdown": "# Crystal Trail: Turns\n\nA winding path that requires the player to turn left and right to collect crystals.\n\n## Learning Goals\n- Practice `turnLeft()` and `turnRight()`\n- Navigate changing directions\n- Plan path ahead\n\n## Features\n\n- **Winding Path**: `_TURN_STYLE_ = 'randomLeftRight'` creates twists and turns\n- **No Jumps**: `_HAS_JUMP_ = 'noJump'` focuses solely on turning logistics\n- **Dynamic Turns**: `_TURN_POINT_ = 'end'` varies where turns occur\n\n## Solution & Parameters",
+    "rawContent": "---\nid: crystal-trail-turn\nname: \"Crystal Trail: Turns\"\ncategory: sequential\nconcepts: [\"sequential\", \"turns\"]\ndifficulty: 2\ntags: [\"moveForward\", \"turnLeft\", \"turnRight\", \"collectItem\"]\nauthor: system\nversion: 1\ndescription: \"Collect crystals on a winding path with turns\"\n---\n\n# Crystal Trail: Turns\n\nA winding path that requires the player to turn left and right to collect crystals.\n\n## Learning Goals\n- Practice `turnLeft()` and `turnRight()`\n- Navigate changing directions\n- Plan path ahead\n\n## Features\n\n- **Winding Path**: `_TURN_STYLE_ = 'randomLeftRight'` creates twists and turns\n- **No Jumps**: `_HAS_JUMP_ = 'noJump'` focuses solely on turning logistics\n- **Dynamic Turns**: `_TURN_POINT_ = 'end'` varies where turns occur\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _LEN_ = random(4, 6);\nvar _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, randomLeftRight\nvar _TURN_POINT_ = 'end'; // OPTIONS: start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n```\n",
     "hints": {
       "title": "Crystal Trail: Turns",
       "description": "A winding path that requires the player to turn left and right to collect crystals.",
@@ -2945,6 +3000,79 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
       "goalDetails": [
         "Navigate changing directions",
         "Plan path ahead"
+      ]
+    }
+  },
+  {
+    "metadata": {
+      "id": "switch-island",
+      "name": "Switch Islands",
+      "category": "sequential",
+      "concepts": [
+        "sequential",
+        "toggleSwitch"
+      ],
+      "difficulty": 3,
+      "tags": [
+        "moveForward",
+        "turnLeft",
+        "turnRight",
+        "toggleSwitch"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Navigate to switch islands branching off the main path"
+    },
+    "parameters": [
+      {
+        "name": "_LEN_",
+        "displayName": "Len",
+        "type": "int",
+        "defaultValue": 4,
+        "min": 4,
+        "max": 6
+      },
+      {
+        "name": "_INTERACTION_",
+        "displayName": "Interaction",
+        "type": "string",
+        "defaultValue": "switch"
+      },
+      {
+        "name": "_TURN_STYLE_",
+        "displayName": "Turn Style",
+        "type": "string",
+        "defaultValue": "randomLeftRight"
+      },
+      {
+        "name": "_TURN_POINT_",
+        "displayName": "Turn Point",
+        "type": "string",
+        "defaultValue": "end"
+      },
+      {
+        "name": "_HAS_JUMP_",
+        "displayName": "Has Jump",
+        "type": "string",
+        "defaultValue": "noJump"
+      },
+      {
+        "name": "_NO_ITEM_AT_",
+        "displayName": "No Item At",
+        "type": "string",
+        "defaultValue": "noItemBoth"
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _LEN_ = random(4, 6);\nvar _INTERACTION_ = 'switch'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, randomLeftRight\nvar _TURN_POINT_ = 'end'; // OPTIONS: start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: noJump, withJump\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n\n// Post-process: Extend square islands at each switch position\npostProcess({ \n    type: 'extendShape', \n    shape: 'square', \n    size: 3, \n    bias: 'left',\n    levelMode: 'same',\n    material: 'stone',\n    connectPath: true\n});",
+    "descriptionMarkdown": "# Switch Islands\n\nA path with switches that extend into small island areas for exploration.\n\n## Learning Goals\n- Understanding branching paths\n- Toggle switches at specific locations\n- Spatial reasoning with side paths\n\n## Features\n\n- **Extended Areas**: `extendShape` creates exploration zones at switch locations\n- **Main + Side Paths**: Players follow main path and detour to islands\n- **Sequential Commands**: No loops required\n\n## Solution & Parameters",
+    "rawContent": "---\nid: switch-island\nname: \"Switch Islands\"\ncategory: sequential\nconcepts: [\"sequential\", \"toggleSwitch\"]\ndifficulty: 3\ntags: [\"moveForward\", \"turnLeft\", \"turnRight\", \"toggleSwitch\"]\nauthor: system\nversion: 1\ndescription: \"Navigate to switch islands branching off the main path\"\n---\n\n# Switch Islands\n\nA path with switches that extend into small island areas for exploration.\n\n## Learning Goals\n- Understanding branching paths\n- Toggle switches at specific locations\n- Spatial reasoning with side paths\n\n## Features\n\n- **Extended Areas**: `extendShape` creates exploration zones at switch locations\n- **Main + Side Paths**: Players follow main path and detour to islands\n- **Sequential Commands**: No loops required\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _LEN_ = random(4, 6);\nvar _INTERACTION_ = 'switch'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, randomLeftRight\nvar _TURN_POINT_ = 'end'; // OPTIONS: start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: noJump, withJump\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\n\n// Solution: Single pattern (no loops for sequential)\nrandomPattern(_LEN_, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n\n// Post-process: Extend square islands at each switch position\npostProcess({ \n    type: 'extendShape', \n    shape: 'square', \n    size: 3, \n    bias: 'left',\n    levelMode: 'same',\n    material: 'stone',\n    connectPath: true\n});\n```\n",
+    "hints": {
+      "title": "Switch Islands",
+      "description": "A path with switches that extend into small island areas for exploration.",
+      "learningGoals": "- Understanding branching paths",
+      "goalDetails": [
+        "Toggle switches at specific locations",
+        "Spatial reasoning with side paths"
       ]
     }
   },

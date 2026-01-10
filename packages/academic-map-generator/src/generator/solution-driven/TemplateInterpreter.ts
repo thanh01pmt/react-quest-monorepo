@@ -32,6 +32,7 @@ import {
 } from './types';
 import { SeededRandom } from './utils';
 import { getRandomPattern, MicroPattern, ActionType } from '@repo/shared-templates';
+import { PostProcessorConfig } from './post-processor';
 
 // ============================================================================
 // LEXER
@@ -87,6 +88,7 @@ enum TokenType {
   RPAREN = 'RPAREN',
   SEMICOLON = 'SEMICOLON',
   COMMA = 'COMMA',
+  COLON = 'COLON',      // : (for object literals)
   
   EOF = 'EOF'
 }
@@ -184,6 +186,9 @@ class Lexer {
           break;
         case ',':
           tokens.push(this.makeToken(TokenType.COMMA, ','));
+          break;
+        case ':':
+          tokens.push(this.makeToken(TokenType.COLON, ':'));
           break;
         case '=':
           if (this.input[this.position + 1] === '=') {
@@ -669,6 +674,10 @@ class Parser {
           this.consume(TokenType.RPAREN, 'Expected )');
           return expr;
       }
+      // Object literals: { key: value, ... }
+      if (this.check(TokenType.LBRACE)) {
+          return this.parseObjectLiteral();
+      }
       throw new Error(`Unexpected token in expression: ${this.peek().value}`);
   }
 
@@ -798,6 +807,48 @@ class Parser {
     return { type: 'FunctionCall', name, arguments: args };
   }
 
+  /**
+   * Parse object literal: { key: value, key2: value2 }
+   * Returns: { type: 'ObjectLiteral', properties: [{ key, value }] }
+   */
+  private parseObjectLiteral(): any {
+    this.consume(TokenType.LBRACE, 'Expected {');
+    const properties: Array<{ key: string; value: any }> = [];
+    
+    while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+      // Parse key (identifier or string)
+      let key: string;
+      if (this.check(TokenType.IDENTIFIER)) {
+        key = this.advance().value;
+      } else if (this.check(TokenType.STRING)) {
+        key = this.advance().value;
+      } else {
+        throw new Error(`Expected property key, got ${this.peek().type}`);
+      }
+      
+      // Expect colon separator
+      if (this.check(TokenType.COLON)) {
+        this.advance();
+      } else if (this.check(TokenType.ASSIGN)) {
+        // Also support '=' for flexibility
+        this.advance();
+      }
+      
+      // Parse value
+      const value = this.parseExpression();
+      
+      properties.push({ key, value });
+      
+      // Optional comma
+      if (this.check(TokenType.COMMA)) {
+        this.advance();
+      }
+    }
+    
+    this.consume(TokenType.RBRACE, 'Expected }');
+    return { type: 'ObjectLiteral', properties };
+  }
+
   // === Helpers ===
 
   private check(type: TokenType): boolean {
@@ -845,6 +896,7 @@ export class TemplateInterpreter {
   private rng?: SeededRandom;
   private initialDirection: Direction = 1; // Capture starting direction
   private lastPattern: MicroPattern | null = null; // Store last generated pattern for repeatLastPattern()
+  private postProcessConfigs: PostProcessorConfig[] = []; // Store post-processor configs for deferred execution
 
   /**
    * Execute a template with resolved parameters
@@ -865,6 +917,7 @@ export class TemplateInterpreter {
     this.totalMoves = 0;
     this.totalCollects = 0;
     this.lastPattern = null; // Reset last pattern
+    this.postProcessConfigs = []; // Reset post-processor configs
     
     // Capture initial direction before any actions
     this.initialDirection = this.context.direction;
@@ -906,7 +959,8 @@ export class TemplateInterpreter {
       endDirection: this.context.direction,
       totalMoves: this.totalMoves,
       totalCollects: this.totalCollects,
-      loopIterations: this.loopIterations
+      loopIterations: this.loopIterations,
+      postProcessConfigs: this.postProcessConfigs // Return stored configs for deferred execution
     };
   }
 
@@ -1699,6 +1753,20 @@ export class TemplateInterpreter {
       case 'toggleswitch':
         this.doInteract('switch');
         break;
+
+      // === Post-Processor Support ===
+      case 'postprocess': {
+        // Parse config from arguments (single object argument expected)
+        const configArg = node.arguments[0];
+        if (configArg) {
+          const config = this.parsePostProcessConfig(configArg);
+          if (config) {
+            this.postProcessConfigs.push(config);
+            console.log('[Interpreter] Registered postProcess:', config.type);
+          }
+        }
+        break;
+      }
       
       default:
         // User-defined functions (e.g., turnAround, collectItems)
@@ -1716,6 +1784,36 @@ export class TemplateInterpreter {
       this.executeBlock(funcDef.body);
     }
   }
+
+  /**
+   * Parse postProcess() function argument into PostProcessorConfig
+   * Supports object literal syntax: postProcess({ type: 'fillBoundingBox', offset: 2 })
+   */
+  private parsePostProcessConfig(arg: any): PostProcessorConfig | null {
+    // The argument should be an ObjectLiteral AST node
+    // We need to evaluate each property
+    if (!arg || arg.type !== 'ObjectLiteral') {
+      console.warn('[Interpreter] postProcess expects an object literal argument');
+      return null;
+    }
+
+    const config: Record<string, any> = {};
+    
+    for (const prop of arg.properties || []) {
+      const key = prop.key;
+      const value = this.evaluateExpression(prop.value);
+      config[key] = value;
+    }
+
+    // Validate required 'type' field
+    if (!config.type) {
+      console.warn('[Interpreter] postProcess config must have a "type" field');
+      return null;
+    }
+
+    return config as PostProcessorConfig;
+  }
+
 
   // === Actions ===
 

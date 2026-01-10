@@ -18,6 +18,12 @@ import { SolutionBuilder } from './SolutionBuilder';
 import { Item, PathInfo } from '../../core';
 import { AcademicConcept } from '../../analyzer';
 import { SeededRandom } from './utils';
+import {
+  executePostProcessors,
+  PostProcessorContext,
+  Coord3D,
+  GeneratedBlock
+} from './post-processor';
 
 
 
@@ -60,6 +66,24 @@ export class SolutionDrivenGenerator {
 
     // Execute template
     const trace = this.interpreter.execute(template, params, rng);
+    
+    // Apply post-processors if any
+    let additionalBlocks: GeneratedBlock[] = [];
+    if (trace.postProcessConfigs && trace.postProcessConfigs.length > 0) {
+      const context: PostProcessorContext = {
+        pathCoords: trace.pathCoords.map(c => ({ x: c[0], y: c[1], z: c[2] })),
+        blocks: trace.pathCoords.map(c => ({ x: c[0], y: c[1] - 1, z: c[2], model: 'ground' })),
+        interactibles: trace.items
+          .filter(i => i.type === 'switch' || i.type === 'gate')
+          .map(i => ({ type: i.type, position: { x: i.position[0], y: i.position[1], z: i.position[2] } }))
+      };
+      
+      additionalBlocks = executePostProcessors(context, trace.postProcessConfigs);
+      console.log('[SolutionDrivenGenerator] PostProcessor generated', additionalBlocks.length, 'blocks');
+    }
+    
+    // Store additional blocks in trace for builder to use
+    (trace as any).additionalBlocks = additionalBlocks;
     
     // Build output
     const pathInfo = this.builder.buildPathInfo(trace);
