@@ -1524,6 +1524,13 @@ export class TemplateInterpreter {
             if (hasJump) {
                 requiredMin = Math.max(requiredMin, 3);
             }
+
+            // Mixed needs more space (Item + Move + Item + buffers)
+            // Min theoretical for Mixed: 3 (I-M-I). with noItemStart: 4 (M-I-M-I). with noItemBoth: 5 (M-I-M-I-M).
+            // Safe default: 5
+            if (interactionType === 'mixed') {
+                requiredMin = Math.max(requiredMin, 5);
+            }
             
             if (maxLength < requiredMin) {
                 console.warn(`[GeneicMapGenerator] Auto-adjusting maxLength from ${maxLength} to ${requiredMin} for ${turnStyle || 'basic'} style.`);
@@ -1544,35 +1551,79 @@ export class TemplateInterpreter {
         else if (['turnLeft', 'turnRight'].includes(turnStyle as string)) minLen = 3;
         
         if (hasJump) minLen = Math.max(minLen, 3);
+        if (interactionType === 'mixed') minLen = Math.max(minLen, 5);
         
         if (finalMaxLength < minLen) finalMaxLength = minLen;
 
         // Interaction Type Handling
-        // 'mixed' -> undefined (allows any type in patterns)
-        // 'null' -> undefined (allows any type, but we will STRIP items later)
-        let filterInteractionType = interactionType;
-        if (interactionType === 'mixed') filterInteractionType = undefined;
-        if (interactionType === 'null') filterInteractionType = undefined; // We'll get a pattern then strip items
+        // Default is 'crystal' if not provided.
+        // 'mixed' -> undefined (allows any type)
+        // 'null' -> undefined (allows any type, stripped later)
+        let filterInteractionType: 'crystal' | 'switch' | 'key' | 'mixed' | undefined = 'crystal'; // Default
+        
+        if (interactionType) {
+            if (interactionType === 'null') {
+                filterInteractionType = undefined;
+            } else if (interactionType === 'mixed') {
+                filterInteractionType = 'mixed';
+            } else {
+                filterInteractionType = interactionType as any;
+            }
+        }
 
-        const pattern = getRandomPattern({
-          maxLength: finalMaxLength,
-          interactionType: filterInteractionType || 'crystal', // Default to crystal if undefined AND no specific preference? No, if undefined, getRandomPattern might expect input. 
-                                                              // Actually getRandomPattern checks 'interactionType' optional.
-                                                              // But if we pass undefined, it might pick any. 
-                                                              // Let's stick to user intent. If mixed -> undefined. 
-                                                              // If null -> also undefined for fetching, but stripped.
-                                                              // Wait, if I pass 'undefined', does it default to 'crystal'?
-                                                              // Checking micro-patterns.ts: getAllPatterns filters: if (interactionType && p.interactionType...
-                                                              // So undefined means "ALL types allowed". Perfect for mixed.
-          nestedLoopCompatible: nestedCompatible,
-          netTurn: netTurn,
-          movementStyle: movementStyle,
-          turnStyle: turnStyle,
-          turnPoint: turnPoint,
-          hasJump: hasJump,
-          noItemAt: noItemAt,
-          seed: seedToUse
-        });
+        // IMPORTANT: If interactionType is 'null', we strictly want patterns WITHOUT items.
+        // Rule 2 normally requires >=1 item, which causes uTurn/zTurn to fail finding short patterns (need 5 moves + 1 item = 6).
+        // So we disable Rule 2 and remove item actions from the set.
+        let actionsToUse: string[] | undefined = undefined;
+        let requireInteraction = true;
+
+        if (interactionType === 'null') {
+             requireInteraction = false;
+             actionsToUse = ['moveForward', 'turnLeft', 'turnRight']; // Basic movement
+             if (hasJump) actionsToUse.push('jump'); // Add jump if eligible
+             // Note: 'jump' is handled by hasJump filter, but we need it in actionSet if we override it.
+             // Actually, hasJump logic in getRandomPattern relies on options.
+             // But if we override 'actions', we must include everything we might want.
+             // Is 'hasJump' guaranteed to be passed? Yes.
+             // But let's check: if `hasJump` is false, 'jump' is excluded by logic? 
+             // No, getRandomPattern uses `actions` to build permutations. 
+             // If we limit `actionsToUse` to just move/turn, and `hasJump` is true, it will fail to find patterns with jumps.
+             // So we must include 'jump' in actionsToUse to optionally allow it.
+             actionsToUse.push('jump'); 
+             // We don't need 'jumpUp/Down' here as they are template-only for 3D?
+             // Actually `getRandomPattern` defaults exclude them unless `includeTemplateActions`.
+        }
+
+        let pattern = null;
+        let currentMax = finalMaxLength;
+        const HARD_LIMIT = 12;
+
+        while (!pattern && currentMax <= HARD_LIMIT) {
+             pattern = getRandomPattern({
+              maxLength: currentMax,
+              interactionType: filterInteractionType, // Pass explicitly computed value
+              nestedLoopCompatible: nestedCompatible,
+              netTurn: netTurn,
+              movementStyle: movementStyle,
+              turnStyle: turnStyle,
+              turnPoint: turnPoint,
+              hasJump: hasJump,
+              noItemAt: noItemAt,
+              seed: seedToUse,
+              // New options for null interaction
+              requireInteraction: requireInteraction,
+              actions: actionsToUse as any,
+            });
+
+            if (!pattern) {
+                // If not found, relax length constraint
+                currentMax++;
+            }
+        }
+        
+        // Update finalMaxLength in case we used a larger one, for future reference if needed
+        finalMaxLength = currentMax - 1; // Since loop incs after fail, currentMax is the one that SUCCEEDED (or limit + 1)
+
 
         if (pattern) {
           console.log('[GenericMapGenerator] Selected pattern:', {

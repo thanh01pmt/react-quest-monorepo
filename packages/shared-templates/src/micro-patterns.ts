@@ -98,6 +98,9 @@ export interface GeneratorOptions {
   
   /** Seeded RNG for reproducibility */
   seed?: number;
+  
+  /** Require at least one interaction? Default: true */
+  requireInteraction?: boolean;
 }
 
 // =============================================================================
@@ -172,10 +175,10 @@ function isAtomic(actions: ActionType[]): boolean {
   return true;
 }
 
-function isValidPattern(actions: ActionType[], maxConsecutivePos: number): boolean {
+function isValidPattern(actions: ActionType[], maxConsecutivePos: number, requireInteraction: boolean = true): boolean {
   if (actions.length < 2 || actions.length > 10) return false;
   if (!hasPositionAction(actions)) return false;
-  if (!hasInteractionAction(actions)) return false;
+  if (requireInteraction && !hasInteractionAction(actions)) return false;
   if (!noConsecutiveTurns(actions)) return false;
   if (!positionBetweenInteractions(actions)) return false;  // Rule: position-change between interactions
   if (!maxConsecutive(actions, maxConsecutivePos)) return false;
@@ -275,17 +278,26 @@ function getPatternMeta(actions: ActionType[]): MicroPattern {
     turnStyle = 'straight';
     turnPoint = 'null';
   } else {
-    // Check for U-Turn
-    if (netTurn === 180) { 
-      turnStyle = 'uTurn';
-      turnPoint = 'mid'; // Default for multi-turn u-turn
-    } else if (netTurn === 0) {
-      // Check for Z-Turn (netTurn 0 but has turns)
-      // Since turnCount > 1 (checked by logic flow) and netTurn is 0, it implies L...R or R...L
-      // And since we enforce noConsecutiveTurns, there must be moves in between.
-      turnStyle = 'zTurn';
-      turnPoint = 'mid'; 
-    }
+    // Check for U-Turn and Z-Turn
+    // Strict definition:
+    // uTurn: Exact 2 turns, SAME direction (L,L or R,R) -> Net 180
+    // zTurn: Exact 2 turns, OPPOSITE direction (L,R or R,L) -> Net 0
+    
+    // We get the actual turn actions
+    const turns = actions.filter(isDirectionAction);
+    
+    if (turnCount === 2) {
+        if (turns[0] === turns[1]) {
+            turnStyle = 'uTurn';
+            turnPoint = 'mid'; 
+        } else {
+            turnStyle = 'zTurn';
+            turnPoint = 'mid';
+        }
+    } 
+    // What about 3 turns? LLL -> R. LLR -> Straight. 
+    // For now, only classifying 2-turn patterns as specific shapes.
+    // Others remain 'straight' (default) but have turnCount > 1.
     // For patterns with > 1 turn, we don't assign simplified metadata (or assign a "complex" tag if we had one)
     // But for now, we just leave them compatible with basic fields, but filter logic will skip them if turnStyle is requested
      // We can assign defaults but indicate they are multi-turn
@@ -380,6 +392,7 @@ export function getAllPatterns(options: GeneratorOptions = {}): MicroPattern[] {
     turnPoint,
     hasJump,
     noItemAt,
+    requireInteraction = true,
   } = options;
   
   // Build action set
@@ -397,7 +410,7 @@ export function getAllPatterns(options: GeneratorOptions = {}): MicroPattern[] {
   
   for (let len = minLength; len <= maxLength; len++) {
     for (const perm of generatePermutations(actionSet, len)) {
-      if (!isValidPattern(perm, maxConsecutivePosition)) continue;
+      if (!isValidPattern(perm, maxConsecutivePosition, requireInteraction)) continue;
       
       const meta = getPatternMeta(perm);
       
@@ -459,6 +472,7 @@ export function getRandomPattern(options: GeneratorOptions = {}): MicroPattern |
     hasJump,
     noItemAt,
     seed = Date.now(),
+    requireInteraction = true,
   } = options;
   
   // Build action set
@@ -479,7 +493,7 @@ export function getRandomPattern(options: GeneratorOptions = {}): MicroPattern |
   // Reservoir sampling with k=1
   for (let len = minLength; len <= maxLength; len++) {
     for (const perm of generatePermutations(actionSet, len)) {
-      if (!isValidPattern(perm, maxConsecutivePosition)) continue;
+      if (!isValidPattern(perm, maxConsecutivePosition, requireInteraction)) continue;
       
       const meta = getPatternMeta(perm);
       
