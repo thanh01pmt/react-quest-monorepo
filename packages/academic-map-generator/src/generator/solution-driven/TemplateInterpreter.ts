@@ -1431,7 +1431,7 @@ export class TemplateInterpreter {
       case 'random_pattern': {
         const maxLength = node.arguments[0] ? this.evaluateExpression(node.arguments[0]) : undefined;
         let interactionType = node.arguments[1] ? this.evaluateExpression(node.arguments[1]) : undefined; // string
-        if (interactionType === 'null') interactionType = undefined;
+        // if (interactionType === 'null') interactionType = undefined; // REMOVED: Keep 'null' string to handle stripping later
 
         // Parse optional arguments (index 2 onwards)
         // We support mixed ordering for convenience:
