@@ -17,26 +17,34 @@ A pattern that changes action based on whether the step count is Odd or Even.
 ## Academic Concept: Parity (Modulo 2)
 - Logic: `if (i % 2 == 0) ActionA else ActionB`
 
+## Features
+- **Alternating Actions**: Switches between walking and jumping every step.
+- **Parity Logic**: Uses odd/even checks to decide action.
+
 ## Solution & Parameters
 
 ```js
 // Parameters
-var _MIN_PAIRS_ = 2;
-var _MAX_PAIRS_ = 4;
+var _MIN_PAIRS_ = 3;
+var _MAX_PAIRS_ = 5;
 var PAIRS = random(_MIN_PAIRS_, _MAX_PAIRS_);
 
-// Solution
-moveForward();
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump'; // We override this per step
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
 
+// Solution
 for (let i = 0; i < PAIRS; i++) {
-  // Even: Walk
-  moveForward();
-  collectItem();
+  // Even: Walk (Normal move)
+  // Use randomPattern to generate a simple move-collect segment
+  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'noJump', _NO_ITEM_AT_, _SEED_ + (i*2));
   
   // Odd: Jump Up
-  jumpUp();
-  collectItem();
+  // Use randomPattern to generate a jump-collect segment
+  randomPattern(1, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, 'withJump', _NO_ITEM_AT_, _SEED_ + (i*2) + 1);
 }
-
-moveForward();
 ```
