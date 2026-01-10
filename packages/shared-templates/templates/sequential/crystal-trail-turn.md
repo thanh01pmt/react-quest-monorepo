@@ -29,17 +29,18 @@ A winding path that requires the player to turn left and right to collect crysta
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 3;
-var _MAX_STEPS_ = 5;
+// Parameters
+var _MIN_STEPS_ = 4;
+var _MAX_STEPS_ = 8;
 var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null
 var _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null
-var _TURN_POINT_ = 'random'; // OPTIONS: null, start, end, mid, random, null
+var _TURN_POINT_ = 'end'; // OPTIONS: start, end, mid, random, null
 var _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null
 var _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null
 var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
-for (let i = 0; i < random(3, 5); i++) {
+for (let i = 0; i < random(2, 4); i++) {
     randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));
 }
 ```

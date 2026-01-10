@@ -29,8 +29,8 @@ A straight path that introduces obstacles requiring the jump command.
 
 ```js
 // Parameters
-var _MIN_STEPS_ = 3;
-var _MAX_STEPS_ = 5;
+var _MIN_STEPS_ = 2;
+var _MAX_STEPS_ = 4;
 var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null
 var _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null
 var _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random, null
@@ -39,7 +39,7 @@ var _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noIte
 var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
 
 // Solution
-for (let i = 0; i < random(3, 5); i++) {
+for (let i = 0; i < random(3, 4); i++) {
     randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));
 }
 ```
