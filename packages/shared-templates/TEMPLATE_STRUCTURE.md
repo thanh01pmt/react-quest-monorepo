@@ -80,8 +80,8 @@ randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_IT
 | Parameter | Type | Options | Description |
 |-----------|------|---------|-------------|
 | `_MIN/MAX_STEPS_` | number | Integer | Length range of the pattern |
-| `_INTERACTION_` | string | `'crystal'`, `'switch'`, `'key'`, `'mixed'`, `'null'` | Type of item ('mixed'=random, 'null'=none) |
-| `_TURN_STYLE_` | string | `'straight'`, `'turnLeft'`, `'turnRight'`, `'uTurn'`, `'zTurn'`, `'randomLeftRight'`, `'random'`, `'null'` | Movement shape |
+| `_INTERACTION_` | string | `'crystal'`, `'switch'`, `'key'`, `'mixed'`, `'null'` | Type ('mixed'=both types, 'null'=none) |
+| `_TURN_STYLE_` | string | `'straight'`, `'turnLeft'`, `'turnRight'`, `'uTurn'`, `'zTurn'`, `'randomLeftRight'`, `'random'`, `'null'` | Shape ('uTurn'=LL/RR, 'zTurn'=LR/RL) |
 | `_TURN_POINT_` | string | `'null'`, `'start'`, `'mid'`, `'end'`, `'random'` | Turn position |
 | `_HAS_JUMP_` | string | `'random'`, `'withJump'`, `'noJump'`, `'null'` | Include jumps |
 | `_NO_ITEM_AT_` | string | `'random'`, `'noItemStart'`, `'noItemEnd'`, `'noItemBoth'`, `'null'` | Boundary constraints |

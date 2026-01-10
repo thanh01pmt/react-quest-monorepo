@@ -65,7 +65,7 @@ export function extractVariables(code: string): TemplateVariable[] {
       .join(' ');
 
     const options = optionsComment 
-      ? optionsComment.split(',').map(s => s.trim()) 
+      ? Array.from(new Set(optionsComment.split(',').map(s => s.trim()).filter(Boolean)))
       : undefined;
     
     variables.set(name, {

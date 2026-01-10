@@ -52,7 +52,10 @@ interface MicroPattern {
   
   // New: Turn metadata
   turnCount: number;             // Số lượng turn trong pattern
-  turnStyle: 'turnLeft' | 'straight' | 'turnRight' | 'uTurn' | 'zTurn';  // Loại turn (nếu turnCount <= 1 hoặc exception)
+  turnStyle: 'turnLeft' | 'straight' | 'turnRight' | 'uTurn' | 'zTurn';
+  // Strict Definitions:
+  // - uTurn: Chính xác 2 lần rẽ CÙNG chiều (L-L hoặc R-R).
+  // - zTurn: Chính xác 2 lần rẽ KHÁC chiều (L-R hoặc R-L).
   turnPoint: 'start' | 'end' | 'mid' | 'null';       // Vị trí turn (nếu turnCount <= 1)
   
   // New: Jump and interaction metadata
@@ -80,10 +83,11 @@ Pattern phải có ≥1 action thay đổi vị trí.
 ```
 
 #### Rule 2: Interaction Requirement
-Pattern phải có ≥1 action tương tác (collect hoặc toggle).
+Pattern thường phải có ≥1 action tương tác (collect hoặc toggle).
+**Ngoại lệ**: Nếu `interactionType='null'`, rule này bị vô hiệu hóa để cho phép tạo pattern chỉ có movement.
 ```
 ✅ M_C (có collectItem)
-❌ M_M_L (không có interaction)
+❌ M_M_L (không có interaction - trừ khi requireInteraction=false)
 ```
 
 #### Rule 3: Direction-Only Constraint
@@ -143,10 +147,19 @@ Giữa 2 interaction actions phải có ≥1 position-changing action.
 ```
 
 #### Rule 10: Auto-Adjust Length (System Limit)
-Hệ thống sẽ tự động tăng `maxLength` nếu style yêu cầu độ phức tạp cao hơn:
-- `uTurn`, `zTurn` -> `maxLength` tối thiểu là **5**.
+Hệ thống sẽ tự động tăng `maxLength` (Fallback) nếu style yêu cầu độ phức tạp cao hơn hoặc không tìm thấy pattern phù hợp:
+- `uTurn`, `zTurn`, `mixed` -> `maxLength` tối thiểu là **5**.
 - `turnLeft`, `turnRight`, `hasJump` -> `maxLength` tối thiểu là **3**.
-- Nếu `maxLength` người dùng nhập vào nhỏ hơn mức này, hệ thống sẽ tự động override.
+- **Fallback Logic**: Nếu không tìm thấy pattern với độ dài yêu cầu, hệ thống sẽ tự động nới lỏng `maxLength` (+1, +2...) cho đến khi tìm thấy pattern hợp lệ (ưu tiên tính đúng đắn của pattern hơn độ dài).
+
+#### Rule 11: Turns Must Have Moves
+Giữa bất kỳ 2 lệnh rẽ (Turn) nào phải có ít nhất 1 lệnh di chuyển (Move/Jump). 
+- **Lý do**: Pattern dạng `Turn -> Interaction -> Turn` (VD: `L C R`) về mặt hình học vẫn là đường thẳng (hoặc quay 180 độ tại chỗ) do không có sự thay đổi vị trí giữa 2 lần rẽ.
+- Rule này đảm bảo các pattern `uTurn`, `zTurn` có hình dạng hình học rõ ràng (có độ rộng).
+```
+✅ L_M_R (Turn - Move - Turn) -> Z-Shape
+❌ L_C_R (Turn - Collect - Turn) -> Straight Line geometry
+```
 
 ### 2.4. Net Turn Calculation
 
