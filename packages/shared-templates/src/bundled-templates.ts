@@ -3086,14 +3086,163 @@ export const BUNDLED_TEMPLATES: TemplateConfig[] = [
         "displayName": "No Item At",
         "type": "string",
         "defaultValue": "noItemBoth"
+      },
+      {
+        "name": "_PP_SHAPE_",
+        "displayName": "Pp Shape",
+        "type": "string",
+        "defaultValue": "square"
+      },
+      {
+        "name": "_PP_SIZE_MIN_",
+        "displayName": "Pp Size Min",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_PP_SIZE_MAX_",
+        "displayName": "Pp Size Max",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_PP_BIAS_",
+        "displayName": "Pp Bias",
+        "type": "string",
+        "defaultValue": "left"
+      },
+      {
+        "name": "_PP_MATERIAL_",
+        "displayName": "Pp Material",
+        "type": "string",
+        "defaultValue": "grass"
       }
     ],
-    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'switch'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'end'; // OPTIONS: null, start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution: Create a path with switches\nfor (let i = 0; i < random(2, 3); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}\n\n// Post-process: Extend square islands at each switch position\npostProcess({ \n    type: 'extendShape', \n    shape: 'square', \n    size: 3, \n    bias: 'left',\n    levelMode: 'same',\n    material: 'stone',\n    connectPath: true\n});",
+    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'switch'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'end'; // OPTIONS: null, start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution: Create a path with switches\nfor (let i = 0; i < random(2, 4); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}\n\n// Post-Process Parameters\nvar _PP_SHAPE_ = 'square'; // OPTIONS: square, mountain, circle\nvar _PP_SIZE_MIN_ = 2; // OPTIONS: 2, 3, 4, 5\nvar _PP_SIZE_MAX_ = 3; // OPTIONS: 2, 3, 4, 5\nvar _PP_BIAS_ = 'left'; // OPTIONS: center, left, right\nvar _PP_MATERIAL_ = 'grass'; // OPTIONS: grass, stone, water, ice\n\n// Post-process: Extend square islands at each switch position\npostProcess({ \n    type: 'extendShape', \n    shape: _PP_SHAPE_, \n    size: [_PP_SIZE_MIN_, _PP_SIZE_MAX_], \n    bias: _PP_BIAS_,\n    levelMode: 'same',\n    material: _PP_MATERIAL_,\n    connectPath: true\n});",
     "descriptionMarkdown": "# Switch Islands\n\nA path with switches that extend into small island areas for exploration.\n\n## Learning Goals\n- Understanding branching paths\n- Toggle switches at specific locations\n- Spatial reasoning with side paths\n\n## Features\n\n- **Extended Areas**: `extendShape` creates exploration zones at switch locations\n- **Main + Side Paths**: Players follow main path and detour to islands\n- **3D Compatible**: Works with flat and elevated maps\n\n## Solution & Parameters",
-    "rawContent": "---\nid: switch-island\nname: \"Switch Islands\"\ncategory: sequential\nconcepts: [\"sequential\", \"toggleSwitch\", \"exploration\"]\ndifficulty: 3\ntags: [\"moveForward\", \"toggleSwitch\", \"jump\"]\nauthor: system\nversion: 1\ndescription: \"Navigate to switch islands branching off the main path\"\n---\n\n# Switch Islands\n\nA path with switches that extend into small island areas for exploration.\n\n## Learning Goals\n- Understanding branching paths\n- Toggle switches at specific locations\n- Spatial reasoning with side paths\n\n## Features\n\n- **Extended Areas**: `extendShape` creates exploration zones at switch locations\n- **Main + Side Paths**: Players follow main path and detour to islands\n- **3D Compatible**: Works with flat and elevated maps\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'switch'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'end'; // OPTIONS: null, start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution: Create a path with switches\nfor (let i = 0; i < random(2, 3); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}\n\n// Post-process: Extend square islands at each switch position\npostProcess({ \n    type: 'extendShape', \n    shape: 'square', \n    size: 3, \n    bias: 'left',\n    levelMode: 'same',\n    material: 'stone',\n    connectPath: true\n});\n```\n",
+    "rawContent": "---\nid: switch-island\nname: \"Switch Islands\"\ncategory: sequential\nconcepts: [\"sequential\", \"toggleSwitch\", \"exploration\"]\ndifficulty: 3\ntags: [\"moveForward\", \"toggleSwitch\", \"jump\"]\nauthor: system\nversion: 1\ndescription: \"Navigate to switch islands branching off the main path\"\n---\n\n# Switch Islands\n\nA path with switches that extend into small island areas for exploration.\n\n## Learning Goals\n- Understanding branching paths\n- Toggle switches at specific locations\n- Spatial reasoning with side paths\n\n## Features\n\n- **Extended Areas**: `extendShape` creates exploration zones at switch locations\n- **Main + Side Paths**: Players follow main path and detour to islands\n- **3D Compatible**: Works with flat and elevated maps\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'switch'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'end'; // OPTIONS: null, start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution: Create a path with switches\nfor (let i = 0; i < random(2, 4); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}\n\n// Post-Process Parameters\nvar _PP_SHAPE_ = 'square'; // OPTIONS: square, mountain, circle\nvar _PP_SIZE_MIN_ = 2; // OPTIONS: 2, 3, 4, 5\nvar _PP_SIZE_MAX_ = 3; // OPTIONS: 2, 3, 4, 5\nvar _PP_BIAS_ = 'left'; // OPTIONS: center, left, right\nvar _PP_MATERIAL_ = 'grass'; // OPTIONS: grass, stone, water, ice\n\n// Post-process: Extend square islands at each switch position\npostProcess({ \n    type: 'extendShape', \n    shape: _PP_SHAPE_, \n    size: [_PP_SIZE_MIN_, _PP_SIZE_MAX_], \n    bias: _PP_BIAS_,\n    levelMode: 'same',\n    material: _PP_MATERIAL_,\n    connectPath: true\n});\n```\n",
     "hints": {
       "title": "Switch Islands",
       "description": "A path with switches that extend into small island areas for exploration.",
+      "learningGoals": "- Understanding branching paths",
+      "goalDetails": [
+        "Toggle switches at specific locations",
+        "Spatial reasoning with side paths"
+      ]
+    }
+  },
+  {
+    "metadata": {
+      "id": "switch-mountain",
+      "name": "Switch Mountains",
+      "category": "sequential",
+      "concepts": [
+        "sequential",
+        "toggleSwitch",
+        "exploration"
+      ],
+      "difficulty": 3,
+      "tags": [
+        "moveForward",
+        "toggleSwitch",
+        "jump"
+      ],
+      "author": "system",
+      "version": 1,
+      "description": "Navigate to switch islands branching off the main path"
+    },
+    "parameters": [
+      {
+        "name": "_MIN_STEPS_",
+        "displayName": "Min Steps",
+        "type": "number",
+        "defaultValue": 4
+      },
+      {
+        "name": "_MAX_STEPS_",
+        "displayName": "Max Steps",
+        "type": "number",
+        "defaultValue": 6
+      },
+      {
+        "name": "_INTERACTION_",
+        "displayName": "Interaction",
+        "type": "string",
+        "defaultValue": "switch"
+      },
+      {
+        "name": "_TURN_STYLE_",
+        "displayName": "Turn Style",
+        "type": "string",
+        "defaultValue": "randomLeftRight"
+      },
+      {
+        "name": "_TURN_POINT_",
+        "displayName": "Turn Point",
+        "type": "string",
+        "defaultValue": "end"
+      },
+      {
+        "name": "_HAS_JUMP_",
+        "displayName": "Has Jump",
+        "type": "string",
+        "defaultValue": "noJump"
+      },
+      {
+        "name": "_NO_ITEM_AT_",
+        "displayName": "No Item At",
+        "type": "string",
+        "defaultValue": "noItemBoth"
+      },
+      {
+        "name": "_PP_SHAPE_",
+        "displayName": "Pp Shape",
+        "type": "string",
+        "defaultValue": "mountain"
+      },
+      {
+        "name": "_PP_SIZE_MIN_",
+        "displayName": "Pp Size Min",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "name": "_PP_SIZE_MAX_",
+        "displayName": "Pp Size Max",
+        "type": "number",
+        "defaultValue": 5
+      },
+      {
+        "name": "_PP_HEIGHT_MIN_",
+        "displayName": "Pp Height Min",
+        "type": "number",
+        "defaultValue": 3
+      },
+      {
+        "name": "_PP_HEIGHT_MAX_",
+        "displayName": "Pp Height Max",
+        "type": "number",
+        "defaultValue": 5
+      },
+      {
+        "name": "_PP_BIAS_",
+        "displayName": "Pp Bias",
+        "type": "string",
+        "defaultValue": "right"
+      },
+      {
+        "name": "_PP_MATERIAL_",
+        "displayName": "Pp Material",
+        "type": "string",
+        "defaultValue": "stone"
+      }
+    ],
+    "solutionCode": "// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'switch'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'end'; // OPTIONS: null, start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution: Create a path with switches\nfor (let i = 0; i < random(2, 4); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}\n\n// Post-Process Parameters\nvar _PP_SHAPE_ = 'mountain'; // OPTIONS: square, mountain, circle\nvar _PP_SIZE_MIN_ = 2;\nvar _PP_SIZE_MAX_ = 5;\nvar _PP_HEIGHT_MIN_ = 3;\nvar _PP_HEIGHT_MAX_ = 5;\nvar _PP_BIAS_ = 'right'; // OPTIONS: center, left, right\nvar _PP_MATERIAL_ = 'stone'; // OPTIONS: grass, stone, water, ice\n\n// Post-process: Extend square islands at each switch position\npostProcess({ \n    type: 'extendShape', \n    shape: _PP_SHAPE_, \n    size: [_PP_SIZE_MIN_, _PP_SIZE_MAX_], \n    height: [_PP_HEIGHT_MIN_, _PP_HEIGHT_MAX_],\n    bias: _PP_BIAS_,\n    levelMode: 'same',\n    material: _PP_MATERIAL_,\n    connectPath: true\n});",
+    "descriptionMarkdown": "# Switch Mountains\n\nA path with switches that extend into mountainous areas for exploration.\n\n## Learning Goals\n- Understanding branching paths\n- Toggle switches at specific locations\n- Spatial reasoning with side paths\n\n## Features\n\n- **Extended Areas**: `extendShape` creates exploration zones at switch locations\n- **Main + Side Paths**: Players follow main path and detour to mountains\n- **3D Compatible**: Works with flat and elevated maps\n\n## Solution & Parameters",
+    "rawContent": "---\nid: switch-mountain\nname: \"Switch Mountains\"\ncategory: sequential\nconcepts: [\"sequential\", \"toggleSwitch\", \"exploration\"]\ndifficulty: 3\ntags: [\"moveForward\", \"toggleSwitch\", \"jump\"]\nauthor: system\nversion: 1\ndescription: \"Navigate to switch islands branching off the main path\"\n---\n\n# Switch Mountains\n\nA path with switches that extend into mountainous areas for exploration.\n\n## Learning Goals\n- Understanding branching paths\n- Toggle switches at specific locations\n- Spatial reasoning with side paths\n\n## Features\n\n- **Extended Areas**: `extendShape` creates exploration zones at switch locations\n- **Main + Side Paths**: Players follow main path and detour to mountains\n- **3D Compatible**: Works with flat and elevated maps\n\n## Solution & Parameters\n\n```js\n// Parameters\nvar _MIN_STEPS_ = 4;\nvar _MAX_STEPS_ = 6;\nvar _INTERACTION_ = 'switch'; // OPTIONS: crystal, switch, key, mixed, null\nvar _TURN_STYLE_ = 'randomLeftRight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null\nvar _TURN_POINT_ = 'end'; // OPTIONS: null, start, end, mid, random\nvar _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null\nvar _NO_ITEM_AT_ = 'noItemBoth'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth\nvar LEN = random(_MIN_STEPS_, _MAX_STEPS_);\n\n// Solution: Create a path with switches\nfor (let i = 0; i < random(2, 4); i++) {\n    randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));\n}\n\n// Post-Process Parameters\nvar _PP_SHAPE_ = 'mountain'; // OPTIONS: square, mountain, circle\nvar _PP_SIZE_MIN_ = 2;\nvar _PP_SIZE_MAX_ = 5;\nvar _PP_HEIGHT_MIN_ = 3;\nvar _PP_HEIGHT_MAX_ = 5;\nvar _PP_BIAS_ = 'right'; // OPTIONS: center, left, right\nvar _PP_MATERIAL_ = 'stone'; // OPTIONS: grass, stone, water, ice\n\n// Post-process: Extend square islands at each switch position\npostProcess({ \n    type: 'extendShape', \n    shape: _PP_SHAPE_, \n    size: [_PP_SIZE_MIN_, _PP_SIZE_MAX_], \n    height: [_PP_HEIGHT_MIN_, _PP_HEIGHT_MAX_],\n    bias: _PP_BIAS_,\n    levelMode: 'same',\n    material: _PP_MATERIAL_,\n    connectPath: true\n});\n```\n",
+    "hints": {
+      "title": "Switch Mountains",
+      "description": "A path with switches that extend into mountainous areas for exploration.",
       "learningGoals": "- Understanding branching paths",
       "goalDetails": [
         "Toggle switches at specific locations",

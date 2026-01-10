@@ -43,14 +43,21 @@ for (let i = 0; i < random(2, 4); i++) {
     randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, random(1, 99999));
 }
 
+// Post-Process Parameters
+var _PP_SHAPE_ = 'square'; // OPTIONS: square, mountain, circle
+var _PP_SIZE_MIN_ = 2; // OPTIONS: 2, 3, 4, 5
+var _PP_SIZE_MAX_ = 3; // OPTIONS: 2, 3, 4, 5
+var _PP_BIAS_ = 'left'; // OPTIONS: center, left, right
+var _PP_MATERIAL_ = 'grass'; // OPTIONS: grass, stone, water, ice
+
 // Post-process: Extend square islands at each switch position
 postProcess({ 
     type: 'extendShape', 
-    shape: 'square', 
-    size: [2,3], 
-    bias: 'left',
+    shape: _PP_SHAPE_, 
+    size: [_PP_SIZE_MIN_, _PP_SIZE_MAX_], 
+    bias: _PP_BIAS_,
     levelMode: 'same',
-    material: 'grass',
+    material: _PP_MATERIAL_,
     connectPath: true
 });
 ```
