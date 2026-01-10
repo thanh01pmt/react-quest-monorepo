@@ -180,9 +180,7 @@ function isValidPattern(actions: ActionType[], maxConsecutivePos: number, requir
   if (!hasPositionAction(actions)) return false;
   if (requireInteraction && !hasInteractionAction(actions)) return false;
   if (!noConsecutiveTurns(actions)) return false;
-  if (!positionBetweenInteractions(actions)) return false;  // Rule: position-change between interactions
-  if (!maxConsecutive(actions, maxConsecutivePos)) return false;
-  if (!isAtomic(actions)) return false;
+  if (!turnsMustHaveMoves(actions)) return false; // Rule: turns must be separated by movement
   return true;
 }
 
@@ -209,6 +207,46 @@ function positionBetweenInteractions(actions: ActionType[]): boolean {
   }
   
   return true;
+}
+
+
+/**
+ * Rule: Between any two turns, must have ≥1 position-changing action.
+ * Reason: L-R (even with items in between) results in no geometric change.
+ * Reason: L-L (even with items) results in u-turn on spot (reversing).
+ * We want distinct geometric legs.
+ */
+function turnsMustHaveMoves(actions: ActionType[]): boolean {
+    let lastWasTurn = false;
+    
+    // We strictly check: if we see a Turn, we must see a PositionAction before seeing another Turn.
+    // We can iterate and track state.
+    // State 1: No turn seen yet (or last turn "cleared" by move).
+    // State 2: Turn seen, waiting for move.
+    
+    // Actually simpler: Find all indices of turns.
+    // Check if between turn indices there is any position action.
+    
+    let lastTurnIndex = -1;
+    
+    for (let i = 0; i < actions.length; i++) {
+        if (isDirectionAction(actions[i])) {
+            if (lastTurnIndex !== -1) {
+                // Check valid interval
+                // actions[lastTurnIndex+1 ... i-1] must contain position
+                let hasMove = false;
+                for (let j = lastTurnIndex + 1; j < i; j++) {
+                    if (isPositionAction(actions[j])) {
+                        hasMove = true;
+                        break;
+                    }
+                }
+                if (!hasMove) return false;
+            }
+            lastTurnIndex = i;
+        }
+    }
+    return true;
 }
 
 // =============================================================================
