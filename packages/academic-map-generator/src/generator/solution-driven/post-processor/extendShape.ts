@@ -85,6 +85,7 @@ export function extendShape(
   const levelMode = config.levelMode ?? 'same';
   const material = config.material ?? 'grass';
   const connectPath = config.connectPath ?? false;
+  const height = config.height;
 
   // Find switch positions
   const switchPositions = findSwitchPositions(interactibles, pathCoords);
@@ -97,6 +98,16 @@ export function extendShape(
   const existingPositions = new Set<string>();
   for (const block of existingBlocks) {
     existingPositions.add(coordKey({ x: block.x, y: block.y, z: block.z }));
+  }
+  
+  // Build Map of Path Y-levels by Column (X,Z) to enable Height-Aware Collision
+  const pathColumnMap = new Map<string, number[]>();
+  for (const p of pathCoords) {
+    const key = `${p.x},${p.z}`;
+    if (!pathColumnMap.has(key)) {
+      pathColumnMap.set(key, []);
+    }
+    pathColumnMap.get(key)!.push(p.y);
   }
 
   const allNewBlocks: GeneratedBlock[] = [];
@@ -116,7 +127,8 @@ export function extendShape(
       size,
       shapeCenter,
       bias,
-      movementDir
+      movementDir,
+      height
     );
     
     // Generate connector if needed
@@ -130,10 +142,27 @@ export function extendShape(
       );
     }
 
-    // Add blocks for shape (skip existing)
+    // Add blocks for shape (skip existing or overlapping path volume)
     for (const c of shapeCoords) {
       const key = coordKey(c);
-      if (!existingPositions.has(key)) {
+      const columnKey = `${c.x},${c.z}`;
+      
+      // Smart Clipping: Remove ONLY if overlapping existing block OR intersecting path volume
+      let overlapsPath = false;
+      const pathLevels = pathColumnMap.get(columnKey);
+      
+      if (pathLevels) {
+        for (const py of pathLevels) {
+          // Check collision with path volume (Path Y to Path Y + 20 clearance)
+          // User requested clearing up to Y=20 to prevent floating blocks
+          if (c.y >= py - 1 && c.y <= py + 20) {
+            overlapsPath = true;
+            break;
+          }
+        }
+      }
+      
+      if (!existingPositions.has(key) && !overlapsPath) {
         allNewBlocks.push({
           x: c.x,
           y: c.y,

@@ -9,7 +9,7 @@
 // TYPES
 // ============================================================================
 
-export type ShapeType = 'square' | 'rectangle' | 'circle';
+export type ShapeType = 'square' | 'rectangle' | 'circle' | 'mountain';
 export type BiasDirection = 'center' | 'left' | 'right';
 export type LevelMode = 'same' | 'stepDown';
 
@@ -23,11 +23,12 @@ export interface FillBoundingBoxConfig {
 export interface ExtendShapeConfig {
   type: 'extendShape';
   shape?: ShapeType;     // Default: 'square'
-  size?: number | { width: number; height: number }; // Default: 3
+  size?: number | [number, number] | { width: number; height: number }; // Default: 3, or [min, max] for random
   bias?: BiasDirection;  // Default: 'center'
   levelMode?: LevelMode; // Default: 'same'
   material?: string;     // Default: 'grass'
   connectPath?: boolean; // Default: false
+  height?: number | [number, number]; // Default: 3-5
 }
 
 // Future processors (documented, not yet implemented)
@@ -148,12 +149,25 @@ export function getMovementDirection(
   // Clamp index
   const safeIndex = Math.min(index, pathCoords.length - 1);
 
+  // If at start, use next point (Outgoing direction)
+  if (safeIndex === 0) {
+    const current = pathCoords[0];
+    const next = pathCoords[1];
+    const dx = next.x - current.x;
+    const dz = next.z - current.z;
+    
+    if (Math.abs(dx) > Math.abs(dz)) {
+      return dx > 0 ? 90 : 270;
+    } else {
+      return dz > 0 ? 180 : 0;
+    }
+  }
+
   // Use previous point for incoming direction (more reliable at turns)
-  // If at start, use next point
   const current = pathCoords[safeIndex];
-  const prev = safeIndex > 0 ? pathCoords[safeIndex - 1] : pathCoords[safeIndex + 1];
+  const prev = pathCoords[safeIndex - 1];
   
-  // Calculate direction FROM prev TO current (incoming direction)
+  // Calculate direction FROM prev TO current
   const dx = current.x - prev.x;
   const dz = current.z - prev.z;
 
@@ -167,17 +181,29 @@ export function getMovementDirection(
 
 /**
  * Generate coordinates for a shape centered at a point
+ * For 'mountain' shape, creates 3D pyramid with multiple Y levels
  */
 export function generateShapeCoords(
   shape: ShapeType,
-  size: number | { width: number; height: number },
+  size: number | [number, number] | { width: number; height: number },
   center: Coord3D,
   bias: BiasDirection,
-  movementDirection: number
+  movementDirection: number,
+  heightConfig?: number | [number, number]
 ): Coord3D[] {
   const coords: Coord3D[] = [];
-  const y = center.y;
-  const sizeNum = typeof size === 'number' ? size : size.width;
+  const baseY = center.y;
+  
+  // Special handling for mountain shape (3D pyramid) - pass size as-is for random support
+  if (shape === 'mountain') {
+    const mountainSize = Array.isArray(size) ? size : (typeof size === 'number' ? size : size.width);
+    return generateMountainCoords(center, mountainSize, bias, movementDirection, heightConfig);
+  }
+  
+  // For other shapes, convert size to number
+  const sizeNum = Array.isArray(size) 
+    ? Math.floor(Math.random() * (size[1] - size[0] + 1)) + size[0]
+    : (typeof size === 'number' ? size : size.width);
   
   if (bias === 'center') {
     // Center: shape is centered on the path point
@@ -186,7 +212,7 @@ export function generateShapeCoords(
       for (let dz = 0; dz < sizeNum; dz++) {
         const x = center.x - half + dx;
         const z = center.z - half + dz;
-        coords.push({ x, y, z });
+        coords.push({ x, y: baseY, z });
       }
     }
   } else {
@@ -207,11 +233,88 @@ export function generateShapeCoords(
       for (let p = -halfParallel; p < sizeNum - halfParallel; p++) {
         const x = baseX + moveDir.x * p;
         const z = baseZ + moveDir.z * p;
-        coords.push({ x, y, z });
+        coords.push({ x, y: baseY, z });
       }
     }
   }
 
+  return coords;
+}
+
+/**
+ * Generate mountain/pyramid coordinates with multiple Y levels
+ * Creates a stepped pyramid where each higher layer is smaller
+ * @param center - Base center position
+ * @param size - Base size of the mountain (can be number or [min, max] for random)
+ * @param bias - Bias direction
+ * @param movementDirection - Movement direction for biased positioning
+ */
+function generateMountainCoords(
+  center: Coord3D,
+  size: number | [number, number],
+  bias: BiasDirection,
+  movementDirection: number,
+  heightConfig?: number | [number, number]
+): Coord3D[] {
+  const coords: Coord3D[] = [];
+  
+  // Handle size: if array [min, max], randomize. Otherwise use as-is.
+  let baseSize: number;
+  if (Array.isArray(size)) {
+    const [minSize, maxSize] = size;
+    baseSize = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
+  } else {
+    baseSize = size;
+  }
+  
+  // Random mountain height 
+  let minHeight = 3;
+  let maxHeight = 5;
+  
+  if (heightConfig !== undefined) {
+    if (Array.isArray(heightConfig)) {
+      [minHeight, maxHeight] = heightConfig;
+    } else {
+      minHeight = maxHeight = heightConfig;
+    }
+  }
+  
+  const height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+
+  // Calculate center position for the mountain
+  let mountainCenterX = center.x;
+  let mountainCenterZ = center.z;
+
+  if (bias !== 'center') {
+    const perpDir = getPerpendicularDirection(movementDirection, bias);
+    // Offset calculation to ensure gap
+    // Gap = 1 unit (ADJACENT/TOUCHING) from path to the closest edge of the base
+    // Center needs to be at: Gap + HalfBase
+    const halfBase = Math.floor((baseSize - 1) / 2);
+    const offsetAmount = 1 + halfBase;
+    
+    mountainCenterX += perpDir.x * offsetAmount;
+    mountainCenterZ += perpDir.z * offsetAmount;
+  }
+
+  // Generate Symmetric Pyramid
+  for (let layer = 0; layer < height; layer++) {
+    const layerY = center.y + layer;
+    
+    // Layer size shrinks as we go up
+    const shrinkRate = Math.max(1, Math.floor(baseSize / (height - 1)) || 1);
+    const layerSize = Math.max(1, baseSize - layer * shrinkRate);
+    const half = Math.floor((layerSize - 1) / 2);
+
+    for (let dx = 0; dx < layerSize; dx++) {
+      for (let dz = 0; dz < layerSize; dz++) {
+        const x = mountainCenterX - half + dx;
+        const z = mountainCenterZ - half + dz;
+        coords.push({ x, y: layerY, z });
+      }
+    }
+  }
+  
   return coords;
 }
 

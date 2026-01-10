@@ -86,6 +86,8 @@ enum TokenType {
   RBRACE = 'RBRACE',
   LPAREN = 'LPAREN',
   RPAREN = 'RPAREN',
+  LBRACKET = 'LBRACKET',   // [ (for array literals)
+  RBRACKET = 'RBRACKET',   // ] (for array literals)
   SEMICOLON = 'SEMICOLON',
   COMMA = 'COMMA',
   COLON = 'COLON',      // : (for object literals)
@@ -180,6 +182,12 @@ class Lexer {
           break;
         case ')':
           tokens.push(this.makeToken(TokenType.RPAREN, ')'));
+          break;
+        case '[':
+          tokens.push(this.makeToken(TokenType.LBRACKET, '['));
+          break;
+        case ']':
+          tokens.push(this.makeToken(TokenType.RBRACKET, ']'));
           break;
         case ';':
           tokens.push(this.makeToken(TokenType.SEMICOLON, ';'));
@@ -678,6 +686,10 @@ class Parser {
       if (this.check(TokenType.LBRACE)) {
           return this.parseObjectLiteral();
       }
+      // Array literals: [elem1, elem2, ...]
+      if (this.check(TokenType.LBRACKET)) {
+          return this.parseArrayLiteral();
+      }
       throw new Error(`Unexpected token in expression: ${this.peek().value}`);
   }
 
@@ -847,6 +859,27 @@ class Parser {
     
     this.consume(TokenType.RBRACE, 'Expected }');
     return { type: 'ObjectLiteral', properties };
+  }
+
+  /**
+   * Parse array literal: [elem1, elem2, ...]
+   * Returns: { type: 'ArrayLiteral', elements: [...] }
+   */
+  private parseArrayLiteral(): any {
+    this.consume(TokenType.LBRACKET, 'Expected [');
+    const elements: any[] = [];
+    
+    while (!this.check(TokenType.RBRACKET) && !this.isAtEnd()) {
+      elements.push(this.parseExpression());
+      
+      // Optional comma
+      if (this.check(TokenType.COMMA)) {
+        this.advance();
+      }
+    }
+    
+    this.consume(TokenType.RBRACKET, 'Expected ]');
+    return { type: 'ArrayLiteral', elements };
   }
 
   // === Helpers ===
@@ -1297,6 +1330,10 @@ export class TemplateInterpreter {
     }
     if (node.type === 'FunctionCallExpr') {
        return this.evaluateFunctionCallExpr(node);
+    }
+    if (node.type === 'ArrayLiteral') {
+       // Evaluate each element and return as array
+       return node.elements.map((elem: any) => this.evaluateExpression(elem));
     }
     return 0;
   }
