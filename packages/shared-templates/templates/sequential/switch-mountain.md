@@ -1,6 +1,6 @@
 ---
-id: switch-island
-name: "Switch Islands"
+id: switch-mountain
+name: "Switch Mountains"
 category: sequential
 concepts: ["sequential", "toggleSwitch", "exploration"]
 difficulty: 3
@@ -10,9 +10,9 @@ version: 1
 description: "Navigate to switch islands branching off the main path"
 ---
 
-# Switch Islands
+# Switch Mountains
 
-A path with switches that extend into small island areas for exploration.
+A path with switches that extend into mountainous areas for exploration.
 
 ## Learning Goals
 - Understanding branching paths
@@ -22,7 +22,7 @@ A path with switches that extend into small island areas for exploration.
 ## Features
 
 - **Extended Areas**: `extendShape` creates exploration zones at switch locations
-- **Main + Side Paths**: Players follow main path and detour to islands
+- **Main + Side Paths**: Players follow main path and detour to mountains
 - **3D Compatible**: Works with flat and elevated maps
 
 ## Solution & Parameters
@@ -46,11 +46,12 @@ for (let i = 0; i < random(2, 4); i++) {
 // Post-process: Extend square islands at each switch position
 postProcess({ 
     type: 'extendShape', 
-    shape: 'square', 
-    size: [2,3], 
-    bias: 'left',
+    shape: 'mountain', 
+    size: [2,5], 
+    height: [3, 5],
+    bias: 'right',
     levelMode: 'same',
-    material: 'grass',
+    material: 'stone',
     connectPath: true
 });
 ```
