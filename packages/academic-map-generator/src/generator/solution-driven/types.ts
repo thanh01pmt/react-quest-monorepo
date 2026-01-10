@@ -73,6 +73,8 @@ export interface TemplateMeta {
   titleEn?: string;
   descVi?: string;
   descEn?: string;
+  /** Tags for toolbox preset selection (e.g., 'moveForward', 'turnLeft', 'jump', 'loop') */
+  tags?: string[];
 }
 
 /**

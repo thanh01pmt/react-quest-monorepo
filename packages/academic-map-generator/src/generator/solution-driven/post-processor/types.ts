@@ -135,21 +135,27 @@ export function getPerpendicularDirection(
 
 /**
  * Get movement direction from path at given index
+ * Uses the INCOMING direction (from previous point) which is more reliable for switches at turns
  */
 export function getMovementDirection(
   pathCoords: Coord3D[], 
   index: number
 ): number {
-  if (pathCoords.length < 2 || index >= pathCoords.length) {
+  if (pathCoords.length < 2) {
     return 90; // Default: EAST
   }
-
-  // Use next point if available, else use previous
-  const current = pathCoords[index];
-  const next = index < pathCoords.length - 1 ? pathCoords[index + 1] : pathCoords[index - 1];
   
-  const dx = next.x - current.x;
-  const dz = next.z - current.z;
+  // Clamp index
+  const safeIndex = Math.min(index, pathCoords.length - 1);
+
+  // Use previous point for incoming direction (more reliable at turns)
+  // If at start, use next point
+  const current = pathCoords[safeIndex];
+  const prev = safeIndex > 0 ? pathCoords[safeIndex - 1] : pathCoords[safeIndex + 1];
+  
+  // Calculate direction FROM prev TO current (incoming direction)
+  const dx = current.x - prev.x;
+  const dz = current.z - prev.z;
 
   // Determine angle based on delta
   if (Math.abs(dx) > Math.abs(dz)) {
@@ -170,46 +176,38 @@ export function generateShapeCoords(
   movementDirection: number
 ): Coord3D[] {
   const coords: Coord3D[] = [];
-  
-  // Calculate offset for bias
-  let offsetX = 0, offsetZ = 0;
-  if (bias !== 'center') {
-    const perpDir = getPerpendicularDirection(movementDirection, bias);
-    const sizeNum = typeof size === 'number' ? size : Math.max(size.width, size.height);
-    const offsetAmount = Math.floor(sizeNum / 2) + 1;
-    offsetX = perpDir.x * offsetAmount;
-    offsetZ = perpDir.z * offsetAmount;
-  }
-
-  const cx = center.x + offsetX;
-  const cz = center.z + offsetZ;
   const y = center.y;
-
-  if (shape === 'square') {
-    const half = Math.floor((typeof size === 'number' ? size : size.width) / 2);
-    for (let x = cx - half; x <= cx + half; x++) {
-      for (let z = cz - half; z <= cz + half; z++) {
+  const sizeNum = typeof size === 'number' ? size : size.width;
+  
+  if (bias === 'center') {
+    // Center: shape is centered on the path point
+    const half = Math.floor((sizeNum - 1) / 2);
+    for (let dx = 0; dx < sizeNum; dx++) {
+      for (let dz = 0; dz < sizeNum; dz++) {
+        const x = center.x - half + dx;
+        const z = center.z - half + dz;
         coords.push({ x, y, z });
       }
     }
-  } else if (shape === 'rectangle') {
-    const w = typeof size === 'number' ? size : size.width;
-    const h = typeof size === 'number' ? size : size.height;
-    const halfW = Math.floor(w / 2);
-    const halfH = Math.floor(h / 2);
-    for (let x = cx - halfW; x <= cx + halfW; x++) {
-      for (let z = cz - halfH; z <= cz + halfH; z++) {
+  } else {
+    // Biased: shape extends 1 unit away from path, then continues outward
+    const perpDir = getPerpendicularDirection(movementDirection, bias);
+    
+    // Shape starts 1 unit away from path and extends outward
+    // For perpendicular direction: start at center + perpDir*1, extend for 'size' units
+    for (let d = 1; d <= sizeNum; d++) {
+      // For each layer away from path
+      const baseX = center.x + perpDir.x * d;
+      const baseZ = center.z + perpDir.z * d;
+      
+      // Extend shape along the movement axis (parallel to path)
+      const moveDir = DIRECTION_VECTORS[movementDirection] || { x: 0, y: 0, z: 0 };
+      const halfParallel = Math.floor((sizeNum - 1) / 2);
+      
+      for (let p = -halfParallel; p < sizeNum - halfParallel; p++) {
+        const x = baseX + moveDir.x * p;
+        const z = baseZ + moveDir.z * p;
         coords.push({ x, y, z });
-      }
-    }
-  } else if (shape === 'circle') {
-    const radius = typeof size === 'number' ? size : Math.max(size.width, size.height);
-    for (let x = cx - radius; x <= cx + radius; x++) {
-      for (let z = cz - radius; z <= cz + radius; z++) {
-        const dist = Math.sqrt((x - cx) ** 2 + (z - cz) ** 2);
-        if (dist <= radius) {
-          coords.push({ x, y, z });
-        }
       }
     }
   }

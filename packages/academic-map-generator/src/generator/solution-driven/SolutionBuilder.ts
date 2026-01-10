@@ -342,30 +342,59 @@ export class SolutionBuilder {
   }
 
   private buildToolbox(template: CodeTemplate): any {
-    // Build appropriate toolbox based on concept
+    // Build appropriate toolbox based on template tags
+    const tags = template.meta?.tags || [];
+    const hasTag = (t: string) => tags.some(tag => tag.toLowerCase().includes(t.toLowerCase()));
+    
+    // Movement category - always include moveForward
+    const movementBlocks: any[] = [
+      { kind: 'block', type: 'maze_moveForward' }
+    ];
+    
+    // Add turn blocks if tags include turn-related keywords
+    if (hasTag('turn') || hasTag('turnLeft') || hasTag('turnRight')) {
+      movementBlocks.push({ kind: 'block', type: 'maze_turn' });
+    }
+    
+    // Add jump block if tags include jump
+    if (hasTag('jump')) {
+      movementBlocks.push({ kind: 'block', type: 'maze_jump' });
+    }
+    
     const contents: any[] = [
       {
         kind: 'category',
         name: '%{BKY_GAMES_CATMOVEMENT}',
         categorystyle: 'movement_category',
-        contents: [
-          { kind: 'block', type: 'maze_moveForward' },
-          { kind: 'block', type: 'maze_turn' },
-          ...(template.code.includes('jump') ? [{ kind: 'block', type: 'maze_jump' }] : [])
-        ]
-      },
-      {
+        contents: movementBlocks
+      }
+    ];
+    
+    // Actions category
+    const actionBlocks: any[] = [];
+    
+    // Add collect if tags include collect-related keywords
+    if (hasTag('collect') || hasTag('crystal') || hasTag('key')) {
+      actionBlocks.push({ kind: 'block', type: 'maze_collect' });
+    }
+    
+    // Add toggle switch if tags include switch-related keywords
+    if (hasTag('switch') || hasTag('toggle')) {
+      actionBlocks.push({ kind: 'block', type: 'maze_toggle_switch' });
+    }
+    
+    if (actionBlocks.length > 0) {
+      contents.push({
         kind: 'category',
         name: '%{BKY_GAMES_CATACTIONS}',
         categorystyle: 'actions_category',
-        contents: [
-          { kind: 'block', type: 'maze_collect' }
-        ]
-      }
-    ];
+        contents: actionBlocks
+      });
+    }
 
-    // Add loops category if concept involves loops
-    if (template.concept.includes('loop') || template.concept.includes('repeat')) {
+    // Add loops category if tags include loop-related keywords
+    if (hasTag('loop') || hasTag('repeat') || 
+        template.concept.includes('loop') || template.concept.includes('repeat')) {
       contents.push({ kind: 'sep' });
       contents.push({
         kind: 'category',
@@ -373,6 +402,21 @@ export class SolutionBuilder {
         categorystyle: 'loop_category',
         contents: [
           { kind: 'block', type: 'controls_repeat_ext' }
+        ]
+      });
+    }
+    
+    // Add functions category if tags include function-related keywords
+    if (hasTag('function') || hasTag('procedure') ||
+        template.concept.includes('procedure') || template.concept.includes('function')) {
+      contents.push({ kind: 'sep' });
+      contents.push({
+        kind: 'category',
+        name: '%{BKY_GAMES_CATFUNCTIONS}',
+        categorystyle: 'function_category',
+        contents: [
+          { kind: 'block', type: 'procedures_defnoreturn' },
+          { kind: 'block', type: 'procedures_callnoreturn' }
         ]
       });
     }

@@ -618,10 +618,24 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
         badgeColor="blue"
       >
         <div className="field-row">
-          <label>Toolbox Preset</label>
+          <div className="field-row-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <label>Toolbox Preset</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: '#888' }}>
+              <input
+                type="checkbox"
+                checked={getDeepValue(metadata, 'blocklyConfig.autoToolboxPreset') !== false}
+                onChange={(e) => {
+                  handleComplexChange({ path: 'blocklyConfig.autoToolboxPreset', value: e.target.checked });
+                }}
+                style={{ cursor: 'pointer' }}
+              />
+              Auto
+            </label>
+          </div>
           <select
-            className="custom-select"
+            className={`custom-select ${getDeepValue(metadata, 'blocklyConfig.autoToolboxPreset') !== false ? 'disabled-input' : ''}`}
             value={toolboxPresetKey}
+            disabled={getDeepValue(metadata, 'blocklyConfig.autoToolboxPreset') !== false}
             onChange={(e) => {
               const presetKey = e.target.value;
               const selectedToolbox = toolboxPresets[presetKey];
@@ -640,6 +654,11 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
               </option>
             ))}
           </select>
+          {getDeepValue(metadata, 'blocklyConfig.autoToolboxPreset') !== false && (
+            <small style={{ color: '#888', fontSize: '10px', marginTop: '4px', display: 'block' }}>
+              ✨ Auto-selected from template tags when generating
+            </small>
+          )}
         </div>
 
         <div className="field-row">

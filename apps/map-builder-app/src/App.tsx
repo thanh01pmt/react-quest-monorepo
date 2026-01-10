@@ -2182,15 +2182,19 @@ function App() {
   ): string => {
     const allTags = [...tags, ...concepts, category || ''].map(t => t.toLowerCase());
 
-    // Priority 1: Check for specific advanced features
-    const hasFunction = allTags.some(t => ['function', 'procedure', 'decomposition'].includes(t));
-    const hasLoop = allTags.some(t => ['loop', 'for', 'repeat', 'while', 'iteration'].includes(t));
-    const hasConditional = allTags.some(t => ['if', 'conditional', 'logic', 'branch'].includes(t));
-    const hasVariable = allTags.some(t => ['variable', 'var', 'counter'].includes(t));
-    const hasCollect = allTags.some(t => ['collect', 'crystal', 'item'].includes(t));
-    const hasSwitch = allTags.some(t => ['switch', 'toggle', 'interact'].includes(t));
-    const hasTurn = allTags.some(t => ['turn', 'l-shape', 'zigzag'].includes(t));
-    const hasJump = allTags.some(t => ['jump', 'hop', 'gap'].includes(t));
+    // Helper: Check if any tag contains any of the keywords (substring match)
+    const hasKeyword = (...keywords: string[]) =>
+      keywords.some(keyword => allTags.some(tag => tag.includes(keyword)));
+
+    // Priority 1: Check for specific advanced features (using substring matching)
+    const hasFunction = hasKeyword('function', 'procedure', 'decomposition');
+    const hasLoop = hasKeyword('loop', 'for', 'repeat', 'while', 'iteration');
+    const hasConditional = hasKeyword('if', 'conditional', 'logic', 'branch');
+    const hasVariable = hasKeyword('variable', 'var', 'counter');
+    const hasCollect = hasKeyword('collect', 'crystal', 'item', 'key');
+    const hasSwitch = hasKeyword('switch', 'toggle', 'interact');
+    const hasTurn = hasKeyword('turn', 'l-shape', 'zigzag');
+    const hasJump = hasKeyword('jump', 'hop', 'gap');
 
     // Priority 2: Map to "vừa đủ" preset based on features
     // Complex combinations → fuller presets
@@ -3774,8 +3778,46 @@ function App() {
                   // Add blocks (ground layer)
                   // Note: buildGroundBlocks already sets y=0, no need to subtract
                   data.blocks.forEach((block) => {
-                    const asset = assetMap.get('ground.normal') ||
-                      assetMap.get('ground.checker') ||
+                    // Use block.model to determine asset (supports PostProcessor materials)
+                    // Map short material names to asset keys (full GameAssets mapping)
+                    const modelToAssetKey: Record<string, string> = {
+                      // Ground types
+                      'grass': 'ground.normal',
+                      'normal': 'ground.normal',
+                      'checker': 'ground.checker',
+                      'earth': 'ground.earth',
+                      'earthChecker': 'ground.earthChecker',
+                      'mud': 'ground.mud',
+                      'snow': 'ground.snow',
+                      // Stone types (shortcuts)
+                      'stone': 'stone.stone01',
+                      'stone01': 'stone.stone01',
+                      'stone02': 'stone.stone02',
+                      'stone03': 'stone.stone03',
+                      'stone04': 'stone.stone04',
+                      'stone05': 'stone.stone05',
+                      'stone06': 'stone.stone06',
+                      'stone07': 'stone.stone07',
+                      // Wall types (shortcuts)
+                      'brick': 'wall.brick01',
+                      'brick01': 'wall.brick01',
+                      'brick02': 'wall.brick02',
+                      'brick03': 'wall.brick03',
+                      'brick04': 'wall.brick04',
+                      'brick05': 'wall.brick05',
+                      'brick06': 'wall.brick06',
+                      'wallStone': 'wall.stone01',
+                      // Other types
+                      'ice': 'ice.ice01',
+                      'water': 'water.water01',
+                      'lava': 'lava.lava01',
+                    };
+
+                    const assetKey = block.model
+                      ? (modelToAssetKey[block.model] || block.model)
+                      : 'ground.normal';
+                    const asset = assetMap.get(assetKey) ||
+                      assetMap.get('ground.normal') ||
                       buildableAssetGroups.find(g => g.name === 'Ground')?.items[0];
 
                     if (asset) {
@@ -3838,6 +3880,11 @@ function App() {
                   // Also include placement_coords (ground level blocks) for item placement
 
                   // AUTO-SELECT TOOLBOX based on template tags
+                  console.log('[Template Debug] templateMeta:', {
+                    tags: data.templateMeta?.tags,
+                    concepts: data.templateMeta?.concepts,
+                    category: data.templateMeta?.category
+                  });
                   const suggestedToolboxKey = data.templateMeta
                     ? getToolboxFromTemplateTags(
                       data.templateMeta.tags,
@@ -3845,6 +3892,7 @@ function App() {
                       data.templateMeta.category
                     )
                     : 'full_toolbox';
+                  console.log('[Template Debug] suggestedToolboxKey:', suggestedToolboxKey);
 
                   // AUTO-FORCE RANDOM MODE for sensing/logic tasks
                   // This prevents hardcoding solutions by hiding items

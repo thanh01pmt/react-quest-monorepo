@@ -91,20 +91,36 @@ export class SolutionDrivenGenerator {
     const solution = this.builder.buildSolutionConfig(template, trace);
     
     // OVERRIDE: Use Transpiled Solution for optimal structure (AST-based)
-    try {
-        const optimal = this.interpreter.transpile(template, params);
-        console.log('[SolutionDrivenGenerator] Transpile result:', {
-          hasProcedures: optimal?.procedures && Object.keys(optimal.procedures).length > 0,
-          procedureNames: optimal?.procedures ? Object.keys(optimal.procedures) : [],
-          mainLength: optimal?.main?.length
-        });
-        if (optimal) {
-            solution.structuredSolution = optimal;
-            // Recalculate optimal blocks based on AST structure
-            solution.optimalBlocks = this.countBlocks(optimal);
-        }
-    } catch (e) {
-        console.warn('Transpilation failed, falling back to trace solution', e);
+    // BUT only for concepts that actually use loops/functions
+    // Sequential templates should use basicSolution (fully expanded)
+    const concept = template.concept;
+    const usesAdvancedStructures = 
+      concept.includes('loop') || 
+      concept.includes('repeat') || 
+      concept.includes('procedure') || 
+      concept.includes('function') ||
+      concept === 'nested_loop';
+    
+    if (usesAdvancedStructures) {
+      try {
+          const optimal = this.interpreter.transpile(template, params);
+          console.log('[SolutionDrivenGenerator] Transpile result:', {
+            hasProcedures: optimal?.procedures && Object.keys(optimal.procedures).length > 0,
+            procedureNames: optimal?.procedures ? Object.keys(optimal.procedures) : [],
+            mainLength: optimal?.main?.length
+          });
+          if (optimal) {
+              solution.structuredSolution = optimal;
+              // Recalculate optimal blocks based on AST structure
+              solution.optimalBlocks = this.countBlocks(optimal);
+          }
+      } catch (e) {
+          console.warn('Transpilation failed, falling back to trace solution', e);
+      }
+    } else {
+      // For sequential templates, use basicSolution (no loops, no functions)
+      console.log('[SolutionDrivenGenerator] Using basicSolution for sequential concept:', concept);
+      solution.structuredSolution = solution.basicSolution!;
     }
 
     const gameConfig = this.builder.buildGameConfig(template, trace, actualSeed);
