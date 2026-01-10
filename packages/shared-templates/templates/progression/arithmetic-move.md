@@ -38,11 +38,11 @@ var STEP = random(_MIN_STEP_, _MAX_STEP_);
 var ITERATIONS = random(_MIN_ITERS_, _MAX_ITERS_);
 
 // Full Parameter Set (Standardized)
-var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key
-var _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, random
-var _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random
-var _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump
-var _NO_ITEM_AT_ = 'null'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth
+var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null
+var _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null
+var _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random, null
+var _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null
+var _NO_ITEM_AT_ = 'null'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null
 var _SEED_ = random(1, 99999);
 
 // Solution

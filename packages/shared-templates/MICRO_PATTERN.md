@@ -52,7 +52,7 @@ interface MicroPattern {
   
   // New: Turn metadata
   turnCount: number;             // Số lượng turn trong pattern
-  turnStyle: 'turnLeft' | 'straight' | 'turnRight';  // Loại turn (nếu turnCount <= 1)
+  turnStyle: 'turnLeft' | 'straight' | 'turnRight' | 'uTurn' | 'zTurn';  // Loại turn (nếu turnCount <= 1 hoặc exception)
   turnPoint: 'start' | 'end' | 'mid' | 'null';       // Vị trí turn (nếu turnCount <= 1)
   
   // New: Jump and interaction metadata
@@ -117,12 +117,12 @@ Pattern không được là N × pattern nhỏ hơn hợp lệ.
 ✅ M_M_C (không thể chia)
 ```
 
-#### Rule 7: Anti-Oscillation
-Không có 2× cùng hướng turn liên tiếp (180° turn).
+#### Rule 7: No Consecutive Turns
+Không có 2 direction actions liên tiếp nhau (để tránh lãng phí step hoặc self-intersection).
 ```
-❌ L_L_M_C (turnLeft-turnLeft = U-turn)
-❌ R_R_M_C (turnRight-turnRight = U-turn)
-✅ L_R_M_C (left rồi right = ok)
+❌ L_L_M_C (2 turns liên tiếp)
+❌ R_L_M_C (2 turns liên tiếp)
+✅ L_M_R_C (Left và Right cách nhau bởi Move)
 ```
 
 #### Rule 8: Max Consecutive Position Actions
@@ -141,6 +141,12 @@ Giữa 2 interaction actions phải có ≥1 position-changing action.
 ❌ M_C_L_T (direction không đổi vị trí, vẫn cùng ô)
 ✅ M_C_M_T (collect ở ô X, toggle ở ô Y)
 ```
+
+#### Rule 10: Auto-Adjust Length (System Limit)
+Hệ thống sẽ tự động tăng `maxLength` nếu style yêu cầu độ phức tạp cao hơn:
+- `uTurn`, `zTurn` -> `maxLength` tối thiểu là **5**.
+- `turnLeft`, `turnRight`, `hasJump` -> `maxLength` tối thiểu là **3**.
+- Nếu `maxLength` người dùng nhập vào nhỏ hơn mức này, hệ thống sẽ tự động override.
 
 ### 2.4. Net Turn Calculation
 
@@ -202,12 +208,12 @@ const multiple = getRandomPatterns(5, { maxLength: 4 });
 |--------|------|---------|-------|
 | `minLength` | number | 2 | Độ dài pattern tối thiểu |
 | `maxLength` | number | 5 | Độ dài pattern tối đa |
-| `interactionType` | string | - | Filter: 'crystal', 'switch', 'key', 'mixed' |
+| `interactionType` | string | - | Filter: 'crystal', 'switch', 'key', 'mixed', 'null' |
 | `movementStyle` | string | - | Filter: 'straight', 'turn', 'jump', 'mixed' |
 | `nestedLoopCompatible` | boolean | - | Filter: netTurn = 0 |
 | `netTurn` | number | - | Filter: 0, 90, -90, 180 |
-| `turnStyle` | string | - | Filter: 'straight', 'turnLeft', 'turnRight' |
-| `turnPoint` | string | - | Filter: 'null', 'start', 'mid', 'end' |
+| `turnStyle` | string | - | Filter: 'straight', 'turnLeft', 'turnRight', 'uTurn', 'zTurn', 'randomLeftRight', 'null' |
+| `turnPoint` | string | - | Filter: 'null', 'start', 'mid', 'end', 'random' |
 | `hasJump` | boolean | - | Filter: có/không có jump actions |
 | `noItemAt` | string | - | Filter: 'start', 'end', 'both' (không có item ở vị trí đó) |
 | `includeTemplateActions` | boolean | false | Bao gồm jumpUp/jumpDown |
@@ -234,11 +240,11 @@ repeatLastPattern();
 | Argument | Values | Mô tả |
 |----------|--------|-------|
 | `maxLength` | number | Độ dài tối đa |
-| `interactionType` | `'crystal'`, `'switch'`, `'key'` | Loại item |
-| `turnStyle` | `'straight'`, `'turnLeft'`, `'turnRight'` | Kiểu rẽ |
-| `turnPoint` | `'null'`, `'start'`, `'mid'`, `'end'` | Vị trí rẽ |
-| `hasJump` | `'noJump'`, `'withJump'` | Có/không có nhảy |
-| `noItemAt` | `'noItemStart'`, `'noItemEnd'`, `'noItemBoth'` | Không item ở đầu/cuối |
+| `interactionType` | `'crystal'`, `'switch'`, `'key'`, `'mixed'`, `'null'` | Loại item ('mixed': random types, 'null': no items) |
+| `turnStyle` | `'straight'`, `'turnLeft'`, `'turnRight'`, `'uTurn'`, `'zTurn'`, `'randomLeftRight'`, `'random'`, `'null'` | Kiểu rẽ |
+| `turnPoint` | `'null'`, `'start'`, `'mid'`, `'end'`, `'random'` | Vị trí rẽ |
+| `hasJump` | `'noJump'`, `'withJump'`, `'random'`, `'null'` | Có/không có nhảy |
+| `noItemAt` | `'noItemStart'`, `'noItemEnd'`, `'noItemBoth'`, `'random'`, `'null'` | Không item ở đầu/cuối |
 | `seed` | number > 180 | Seed cho reproducible patterns |
 
 ---

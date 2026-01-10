@@ -31,11 +31,11 @@ A simple path with crystals to collect. Perfect for learning basic movement comm
 // Parameters
 var _MIN_STEPS_ = 3;
 var _MAX_STEPS_ = 8;
-var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key
-var _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, random
-var _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random
-var _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump
-var _NO_ITEM_AT_ = 'noItemStart'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth
+var _INTERACTION_ = 'crystal'; // OPTIONS: crystal, switch, key, mixed, null
+var _TURN_STYLE_ = 'straight'; // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null
+var _TURN_POINT_ = 'null'; // OPTIONS: null, start, end, mid, random, null
+var _HAS_JUMP_ = 'noJump'; // OPTIONS: random, withJump, noJump, null
+var _NO_ITEM_AT_ = 'noItemStart'; // OPTIONS: null, noItemStart, noItemEnd, noItemBoth, null
 var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
 var _SEED_ = random(1, 99999);
 

@@ -52,7 +52,7 @@ export interface MicroPattern {
   /** Number of turns in pattern */
   turnCount: number;
   /** Style of turn (if turnCount === 1) */
-  turnStyle: 'turnLeft' | 'straight' | 'turnRight';
+  turnStyle: 'turnLeft' | 'straight' | 'turnRight' | 'uTurn' | 'zTurn';
   /** Position of turn (if turnCount === 1) */
   turnPoint: 'start' | 'end' | 'mid' | 'null';
   
@@ -86,7 +86,7 @@ export interface GeneratorOptions {
   netTurn?: 0 | 90 | -90 | 180;
   
   /** Filter by turn style (requires turnCount <= 1) */
-  turnStyle?: 'turnLeft' | 'straight' | 'turnRight';
+  turnStyle?: 'turnLeft' | 'straight' | 'turnRight' | 'uTurn' | 'zTurn';
   /** Filter by turn point (requires turnCount <= 1) */
   turnPoint?: 'start' | 'end' | 'mid' | 'null';
   
@@ -124,10 +124,11 @@ function hasInteractionAction(actions: ActionType[]): boolean {
   return actions.some(isInteractionAction);
 }
 
-function noOscillation(actions: ActionType[]): boolean {
+function noConsecutiveTurns(actions: ActionType[]): boolean {
   for (let i = 0; i < actions.length - 1; i++) {
-    if (actions[i] === 'turnLeft' && actions[i + 1] === 'turnLeft') return false;
-    if (actions[i] === 'turnRight' && actions[i + 1] === 'turnRight') return false;
+    if (isDirectionAction(actions[i]) && isDirectionAction(actions[i + 1])) {
+        return false;
+    }
   }
   return true;
 }
@@ -175,7 +176,7 @@ function isValidPattern(actions: ActionType[], maxConsecutivePos: number): boole
   if (actions.length < 2 || actions.length > 10) return false;
   if (!hasPositionAction(actions)) return false;
   if (!hasInteractionAction(actions)) return false;
-  if (!noOscillation(actions)) return false;
+  if (!noConsecutiveTurns(actions)) return false;
   if (!positionBetweenInteractions(actions)) return false;  // Rule: position-change between interactions
   if (!maxConsecutive(actions, maxConsecutivePos)) return false;
   if (!isAtomic(actions)) return false;
@@ -224,7 +225,7 @@ function calculateNetTurn(actions: ActionType[]): 0 | 90 | -90 | 180 {
   // Normalize to -180 to 180 range
   net = ((net % 360) + 360) % 360;
   if (net > 180) net -= 360;
-  return net as 0 | 90 | -90 | 180;
+  return net === 180 ? 180 : net as 0 | 90 | -90;
 }
 
 function getPatternMeta(actions: ActionType[]): MicroPattern {
@@ -259,7 +260,7 @@ function getPatternMeta(actions: ActionType[]): MicroPattern {
   const turnIndices = actions.map((a, i) => isDirectionAction(a) ? i : -1).filter(i => i !== -1);
   const turnCount = turnIndices.length;
   
-  let turnStyle: 'turnLeft' | 'straight' | 'turnRight' = 'straight';
+  let turnStyle: 'turnLeft' | 'straight' | 'turnRight' | 'uTurn' | 'zTurn' = 'straight';
   let turnPoint: 'start' | 'end' | 'mid' | 'null' = 'null';
   
   if (turnCount === 1) {
@@ -274,16 +275,38 @@ function getPatternMeta(actions: ActionType[]): MicroPattern {
     turnStyle = 'straight';
     turnPoint = 'null';
   } else {
+    // Check for U-Turn
+    if (netTurn === 180) { 
+      turnStyle = 'uTurn';
+      turnPoint = 'mid'; // Default for multi-turn u-turn
+    } else if (netTurn === 0) {
+      // Check for Z-Turn (netTurn 0 but has turns)
+      // Since turnCount > 1 (checked by logic flow) and netTurn is 0, it implies L...R or R...L
+      // And since we enforce noConsecutiveTurns, there must be moves in between.
+      turnStyle = 'zTurn';
+      turnPoint = 'mid'; 
+    }
     // For patterns with > 1 turn, we don't assign simplified metadata (or assign a "complex" tag if we had one)
     // But for now, we just leave them compatible with basic fields, but filter logic will skip them if turnStyle is requested
      // We can assign defaults but indicate they are multi-turn
      // Actually, let's keep 'straight' and 'null' as defaults for multi-turn to avoid type errors, 
      // but the turnCount > 1 will be used to exclude them if filtering is active.
   }
-  // startsWithItem: true if FIRST action is item (item at START position, before any move)
-  // endsWithItem: true if LAST action is item (item at LAST block)
-  const startsWithItem = isInteractionAction(actions[0]);
-  const endsWithItem = isInteractionAction(actions[actions.length - 1]);
+  // startsWithItem: true if item is at the START position (ignoring initial turns)
+  // endsWithItem: true if item is at the LAST position (ignoring trailing turns)
+  let startsWithItem = false;
+  for (let i = 0; i < actions.length; i++) {
+    if (isInteractionAction(actions[i])) { startsWithItem = true; break; }
+    if (isPositionAction(actions[i])) { startsWithItem = false; break; }
+    // If direction, continue checking next
+  }
+
+  let endsWithItem = false;
+  for (let i = actions.length - 1; i >= 0; i--) {
+     if (isInteractionAction(actions[i])) { endsWithItem = true; break; }
+     if (isPositionAction(actions[i])) { endsWithItem = false; break; }
+     // If direction, continue checking prev
+  }
   
   return { 
     id, actions, actionCount: actions.length, 
@@ -386,11 +409,19 @@ export function getAllPatterns(options: GeneratorOptions = {}): MicroPattern[] {
       
       // New Turn Filter Logic
       // If turnStyle or turnPoint is specified, we STRICTLY require turnCount <= 1
+      // EXCEPTION: 'uTurn' and 'zTurn' styles allow turnCount > 1
       if (turnStyle || turnPoint) {
-        if (meta.turnCount > 1) continue; 
-        
-        if (turnStyle && meta.turnStyle !== turnStyle) continue;
-        if (turnPoint && meta.turnPoint !== turnPoint) continue;
+        if (turnStyle === 'uTurn') {
+            if (meta.turnStyle !== 'uTurn') continue;
+        } else if (turnStyle === 'zTurn') {
+            if (meta.turnStyle !== 'zTurn') continue;
+        } else {
+            // Normal single-turn styles
+            if (meta.turnCount > 1) continue; 
+            
+            if (turnStyle && meta.turnStyle !== turnStyle) continue;
+            if (turnPoint && meta.turnPoint !== turnPoint) continue;
+        }
       }
 
       if (hasJump !== undefined && meta.hasJump !== hasJump) continue;
@@ -459,9 +490,15 @@ export function getRandomPattern(options: GeneratorOptions = {}): MicroPattern |
       if (netTurn !== undefined && meta.netTurn !== netTurn) continue;
       
       if (turnStyle || turnPoint) {
-        if (meta.turnCount > 1) continue; 
-        if (turnStyle && meta.turnStyle !== turnStyle) continue;
-        if (turnPoint && meta.turnPoint !== turnPoint) continue;
+        if (turnStyle === 'uTurn') {
+            if (meta.turnStyle !== 'uTurn') continue;
+        } else if (turnStyle === 'zTurn') {
+            if (meta.turnStyle !== 'zTurn') continue;
+        } else {
+            if (meta.turnCount > 1) continue; 
+            if (turnStyle && meta.turnStyle !== turnStyle) continue;
+            if (turnPoint && meta.turnPoint !== turnPoint) continue;
+        }
       }
       
       if (hasJump !== undefined && meta.hasJump !== hasJump) continue;

@@ -2,6 +2,22 @@
 
 This document defines map "Skeletons" based on algorithmic patterns and documents the **micro-pattern mechanism** used for map generation.
 
+## 📜 Changelog
+
+| Date       | Change                                                              |
+|------------|---------------------------------------------------------------------|
+| 2026-01-10 | Added `turnStyle`: `uTurn`, `zTurn`, `randomLeftRight`, `null`      |
+| 2026-01-10 | Added `turnStyle`: `uTurn`, `zTurn`, `randomLeftRight`, `null` |
+| 2026-01-10 | Enforced `noConsecutiveTurns` constraint (Rule 7) |
+| 2026-01-10 | Added universal `null` option for all filters |
+| 2026-01-10 | Added `turnStyle`, `turnPoint` filters for single-turn patterns |
+| 2026-01-10 | Added `hasJump` filter ('withJump', 'noJump', 'random', 'null') |
+| 2026-01-10 | Added `noItemAt` filter ('start', 'end', 'both', 'random', 'null') |
+| 2026-01-10 | Added `repeatLastPattern()` template function |
+| 2026-01-10 | Added `interactionType`: `mixed` (random), `null` (no items) |
+| 2026-01-10 | Added Auto-Adjust Length Logic (Min 5 for uTurn/zTurn, Min 3 for Turns/Jumps) |
+| 2026-01-10 | Added `seed` parameter for reproducible patterns |
+
 ---
 
 ## 🔧 Micro-Pattern Mechanism (Implementation Rules)

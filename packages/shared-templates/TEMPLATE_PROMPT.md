@@ -56,11 +56,11 @@ description: "[Brief description]"
 // Parameters
 var _MIN_STEPS_ = [number];
 var _MAX_STEPS_ = [number];
-var _INTERACTION_ = '[crystal/switch/key]';
-var _TURN_STYLE_ = '[straight/turnLeft/turnRight]';
-var _TURN_POINT_ = '[null/start/mid/end]';
-var _HAS_JUMP_ = '[random/withJump/noJump]';
-var _NO_ITEM_AT_ = '[random/noItemStart/noItemEnd/noItemBoth]';
+var _INTERACTION_ = '[crystal/switch/key/mixed/random/null]';
+var _TURN_STYLE_ = '[straight/turnLeft/turnRight/uTurn/zTurn/randomLeftRight/random/null]';
+var _TURN_POINT_ = '[null/start/mid/end/random]';
+var _HAS_JUMP_ = '[random/withJump/noJump/null]';
+var _NO_ITEM_AT_ = '[random/noItemStart/noItemEnd/noItemBoth/null]';
 var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
 var _SEED_ = random(1, 99999);
 

@@ -57,11 +57,11 @@ This section contains the executable JavaScript code for generating the map.
 // Parameters
 var _MIN_STEPS_ = 6;
 var _MAX_STEPS_ = 8;
-var _INTERACTION_ = 'crystal';       // OPTIONS: crystal, switch, key
-var _TURN_STYLE_ = 'straight';       // OPTIONS: straight, turnLeft, turnRight
-var _TURN_POINT_ = 'null';           // OPTIONS: null, start, end, mid
-var _HAS_JUMP_ = 'noJump';           // OPTIONS: random, withJump, noJump
-var _NO_ITEM_AT_ = 'noItemBoth';     // OPTIONS: random, noItemStart, noItemEnd, noItemBoth
+var _INTERACTION_ = 'crystal';       // OPTIONS: crystal, switch, key, random, null
+var _TURN_STYLE_ = 'straight';       // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null
+var _TURN_POINT_ = 'null';           // OPTIONS: null, start, end, mid, random
+var _HAS_JUMP_ = 'noJump';           // OPTIONS: random, withJump, noJump, null
+var _NO_ITEM_AT_ = 'noItemBoth';     // OPTIONS: random, noItemStart, noItemEnd, noItemBoth, null
 var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
 var _SEED_ = random(1, 99999);       // REQUIRED: Random seed for pattern generation
 
@@ -80,11 +80,11 @@ randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_IT
 | Parameter | Type | Options | Description |
 |-----------|------|---------|-------------|
 | `_MIN/MAX_STEPS_` | number | Integer | Length range of the pattern |
-| `_INTERACTION_` | string | `'crystal'`, `'switch'`, `'key'` | Type of item to collect/interact |
-| `_TURN_STYLE_` | string | `'straight'`, `'turnLeft'`, `'turnRight'` | Movement shape (straight or turning) |
-| `_TURN_POINT_` | string | `'null'`, `'start'`, `'mid'`, `'end'` | Where the turn occurs (if turnStyle != straight) |
-| `_HAS_JUMP_` | string | `'random'`, `'withJump'`, `'noJump'` | Whether to include jump actions |
-| `_NO_ITEM_AT_` | string | `'random'`, `'noItemStart'`, `'noItemEnd'`, `'noItemBoth'` | Prevent items at start/end of pattern |
+| `_INTERACTION_` | string | `'crystal'`, `'switch'`, `'key'`, `'mixed'`, `'null'` | Type of item ('mixed'=random, 'null'=none) |
+| `_TURN_STYLE_` | string | `'straight'`, `'turnLeft'`, `'turnRight'`, `'uTurn'`, `'zTurn'`, `'randomLeftRight'`, `'random'`, `'null'` | Movement shape |
+| `_TURN_POINT_` | string | `'null'`, `'start'`, `'mid'`, `'end'`, `'random'` | Turn position |
+| `_HAS_JUMP_` | string | `'random'`, `'withJump'`, `'noJump'`, `'null'` | Include jumps |
+| `_NO_ITEM_AT_` | string | `'random'`, `'noItemStart'`, `'noItemEnd'`, `'noItemBoth'`, `'null'` | Boundary constraints |
 | `_SEED_` | number | `random(1, 99999)` | Seed for reproducible random generation |
 
 ## 7. Supported Basic Actions

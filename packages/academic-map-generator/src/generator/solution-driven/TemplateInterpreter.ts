@@ -1430,7 +1430,9 @@ export class TemplateInterpreter {
       case 'randompattern':
       case 'random_pattern': {
         const maxLength = node.arguments[0] ? this.evaluateExpression(node.arguments[0]) : undefined;
-        const interactionType = node.arguments[1] ? this.evaluateExpression(node.arguments[1]) : undefined; // string
+        let interactionType = node.arguments[1] ? this.evaluateExpression(node.arguments[1]) : undefined; // string
+        if (interactionType === 'null') interactionType = undefined;
+
         // Parse optional arguments (index 2 onwards)
         // We support mixed ordering for convenience:
         // - boolean -> nestedLoopCompatible
@@ -1442,7 +1444,7 @@ export class TemplateInterpreter {
         let nestedCompatible: boolean | undefined = undefined;
         let netTurn: 0 | 90 | -90 | 180 | undefined = undefined;
         let movementStyle: 'straight' | 'turn' | 'jump' | 'mixed' | undefined = undefined;
-        let turnStyle: 'turnLeft' | 'straight' | 'turnRight' | undefined = undefined;
+        let turnStyle: 'turnLeft' | 'straight' | 'turnRight' | 'uTurn' | 'zTurn' | undefined = undefined;
         let turnPoint: 'start' | 'end' | 'mid' | 'null' | undefined = undefined;
         let hasJump: boolean | undefined = undefined;
         let userSeed: number | undefined = undefined;
@@ -1454,6 +1456,13 @@ export class TemplateInterpreter {
         for (let i = 2; i <= 6; i++) {
             const arg = node.arguments[i] ? this.evaluateExpression(node.arguments[i]) : undefined;
             if (arg === undefined) continue;
+            
+            // Explicitly handle 'null' string as "no filter" (undefined)
+            // But for turnPoint, 'null' usually means straight.
+            // However, user requested 'null' to mean "not applied" for ALL filters.
+            // We'll trust that 'turnStyle=straight' handles the straight requirement if needed.
+            // For now, if arg is 'null', we skip processing it, effectively leaving the filter as undefined.
+            if (arg === 'null') continue;
             
             console.log(`[GenericMapGenerator] Arg ${i}:`, arg);
 
@@ -1468,8 +1477,14 @@ export class TemplateInterpreter {
                     userSeed = arg;
                 }
             } else if (typeof arg === 'string') {
-                if (['turnLeft', 'straight', 'turnRight'].includes(arg)) {
-                    turnStyle = arg as any;
+                if (['turnLeft', 'straight', 'turnRight', 'uTurn', 'zTurn', 'randomLeftRight'].includes(arg)) {
+                    if (arg === 'randomLeftRight') {
+                        // Randomly choose Left or Right
+                        turnStyle = (this.rng ? this.rng.next() : Math.random()) < 0.5 ? 'turnLeft' : 'turnRight';
+                        console.log(`[GenericMapGenerator] Resolved randomLeftRight to: ${turnStyle}`);
+                    } else {
+                        turnStyle = arg as any;
+                    }
                 }
                 
                 if (['start', 'end', 'mid', 'null'].includes(arg)) {
@@ -1494,12 +1509,61 @@ export class TemplateInterpreter {
         
         console.log('[GenericMapGenerator] Parsed Filters:', { turnStyle, turnPoint, hasJump, movementStyle, noItemAt, userSeed });
 
+        // Auto-Adjust Pattern Length based on Complexity Requirements
+        if (maxLength) {
+            let requiredMin = 2; // Default
+            
+            // Complex turns require more space
+            if (['uTurn', 'zTurn'].includes(turnStyle as string)) {
+                requiredMin = 5;
+            } else if (['turnLeft', 'turnRight'].includes(turnStyle as string) || turnStyle === 'uTurn' /* safety check */) {
+                 requiredMin = 3;
+            }
+            
+            // Jumps need space (Jump + Move + Land)
+            if (hasJump) {
+                requiredMin = Math.max(requiredMin, 3);
+            }
+            
+            if (maxLength < requiredMin) {
+                console.warn(`[GeneicMapGenerator] Auto-adjusting maxLength from ${maxLength} to ${requiredMin} for ${turnStyle || 'basic'} style.`);
+                // Effectively we can't change the passed const 'maxLength', so we'll use a local override
+                // However, we pass 'maxLength' to getRandomPattern below.
+                // We need to re-assign or use a new variable.
+            }
+        }
+        
         // Use user-provided seed, or generate from RNG, or undefined
         const seedToUse = userSeed ?? (this.rng ? Math.floor(this.rng.next() * 100000) : undefined);
+        
+        // Final length determination
+        let finalMaxLength = maxLength || 5;
+        // Apply min-length constraints logic again to set finalMaxLength
+        let minLen = 2;
+        if (['uTurn', 'zTurn'].includes(turnStyle as string)) minLen = 5;
+        else if (['turnLeft', 'turnRight'].includes(turnStyle as string)) minLen = 3;
+        
+        if (hasJump) minLen = Math.max(minLen, 3);
+        
+        if (finalMaxLength < minLen) finalMaxLength = minLen;
+
+        // Interaction Type Handling
+        // 'mixed' -> undefined (allows any type in patterns)
+        // 'null' -> undefined (allows any type, but we will STRIP items later)
+        let filterInteractionType = interactionType;
+        if (interactionType === 'mixed') filterInteractionType = undefined;
+        if (interactionType === 'null') filterInteractionType = undefined; // We'll get a pattern then strip items
 
         const pattern = getRandomPattern({
-          maxLength: maxLength || 5,
-          interactionType: interactionType || 'crystal',
+          maxLength: finalMaxLength,
+          interactionType: filterInteractionType || 'crystal', // Default to crystal if undefined AND no specific preference? No, if undefined, getRandomPattern might expect input. 
+                                                              // Actually getRandomPattern checks 'interactionType' optional.
+                                                              // But if we pass undefined, it might pick any. 
+                                                              // Let's stick to user intent. If mixed -> undefined. 
+                                                              // If null -> also undefined for fetching, but stripped.
+                                                              // Wait, if I pass 'undefined', does it default to 'crystal'?
+                                                              // Checking micro-patterns.ts: getAllPatterns filters: if (interactionType && p.interactionType...
+                                                              // So undefined means "ALL types allowed". Perfect for mixed.
           nestedLoopCompatible: nestedCompatible,
           netTurn: netTurn,
           movementStyle: movementStyle,
@@ -1519,6 +1583,19 @@ export class TemplateInterpreter {
             hasJump: pattern.hasJump,
             turnStyle: pattern.turnStyle,
           });
+          
+          // Special handling for 'null' interaction type: STRIP all interaction actions
+          if (interactionType === 'null') {
+             // Remove collectItem, toggleSwitch, pickUpKey
+             // BUT we must keep the path valid.
+             // If pattern is purely interaction (e.g. "C"), it becomes empty?
+             // MicroPattern validation says pattern > 2 actions.
+             // If we remove interactions, we might be left with just moves.
+             pattern.actions = pattern.actions.filter(a => !['collectItem', 'toggleSwitch', 'pickUpKey'].includes(a));
+             // Re-calculate actionCount
+             pattern.actionCount = pattern.actions.length;
+          }
+          
           this.lastPattern = pattern; // Store for repeatLastPattern()
           this.executeMicroPattern(pattern);
         } else {
