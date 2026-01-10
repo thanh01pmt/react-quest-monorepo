@@ -38,3 +38,27 @@
   - **File liên quan**:
     - `[packages/refs/README.md](packages/refs/README.md)`
     - `[packages/refs/architecture/interpreter.md](packages/refs/architecture/interpreter.md)`
+
+- **Loại thay đổi: Feature**
+  - **Mô tả**: Thêm ứng dụng `guide-builder`, cung cấp công cụ để biên soạn và chỉnh sửa nội dung hướng dẫn.
+  - **Mục tiêu**: Hỗ trợ quy trình tạo tài liệu hướng dẫn một cách trực quan và hiệu quả.
+  - **Tác động**: Mở rộng khả năng của hệ thống với công cụ biên soạn chuyên biệt.
+  - **File liên quan**:
+    - `[apps/guide-builder/README.md](apps/guide-builder/README.md)`
+    - `[apps/guide-builder/package.json](apps/guide-builder/package.json)`
+
+- **Loại thay đổi: Feature**
+  - **Mô tả**: Thêm package `academic-map-generator` bao gồm các công cụ và script để tạo bản đồ học thuật.
+  - **Mục tiêu**: Tự động hóa việc xây dựng cấu trúc và lộ trình học tập từ dữ liệu đầu vào.
+  - **Tác động**: Tăng cường khả năng xử lý dữ liệu học liệu và tạo roadmap tự động.
+  - **File liên quan**:
+    - `[packages/academic-map-generator/package.json](packages/academic-map-generator/package.json)`
+    - `[packages/academic-map-generator/src](packages/academic-map-generator/src)`
+
+- **Loại thay đổi: Documentation/Tooling**
+  - **Mô tả**: Thêm các tài liệu đặc tả (`openspec`) và script tiện ích (`map-gen-script`, root scripts).
+  - **Mục tiêu**: Chuẩn hóa các đặc tả kỹ thuật và cung cấp công cụ hỗ trợ quy trình phát triển.
+  - **Tác động**: Cải thiện quy trình làm việc và đảm bảo tính nhất quán của dữ liệu.
+  - **File liên quan**:
+    - `[openspec](openspec)`
+    - `[scripts/merge-topology-files.sh](scripts/merge-topology-files.sh)`

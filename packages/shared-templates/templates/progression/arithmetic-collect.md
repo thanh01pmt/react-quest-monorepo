@@ -18,6 +18,10 @@ Collect items where the count increases linearly each time.
 - Sequence: $a, a+d, a+2d, ...$
 - Here: Number of items to collect increases by `STEP`.
 
+## Features
+- **Arithmetic Progression**: The number of items/steps increases by a fixed `STEP` amount each group.
+- **Nested Loops**: Inner loop length depends on the outer loop variable.
+
 ## Solution & Parameters
 
 ```js
@@ -31,28 +35,39 @@ var _MAX_STEP_ = 2;
 var STEP = random(_MIN_STEP_, _MAX_STEP_);
 
 var _MIN_GROUPS_ = 3;
-var _MAX_GROUPS_ = 4;
+var _MAX_GROUPS_ = 5;
 var GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);
 
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
+
 // Solution
-moveForward();
-
-for (let i = 0; i < GROUPS - 1; i++) {
-  let count = START + i * STEP;
-  for (let j = 0; j < count; j++) {
-    collectItem();
-    moveForward();
-  }
+for (let i = 0; i < GROUPS; i++) {
+  let count = START + i * STEP; // Arithmetic progression
   
-  turnRight();
-  moveForward();
-  turnRight();
-}
-
-// Last Group (No turn)
-let lastCount = START + (GROUPS - 1) * STEP;
-for (let k = 0; k < lastCount; k++) {
-  collectItem();
-  moveForward();
+  // Generate segment of length 'count'
+  randomPattern(count, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + i);
+  
+  // Turn logic between groups (except last)
+  if (i < GROUPS - 1) {
+    turnRight();
+    // No extra move needed if randomPattern connects directly, 
+    // but typically we want spacing or a "connector" step.
+    // randomPattern ends at a cell. Turn happens there.
+    // If we duplicate logic from original: "turnRight(); moveForward(); turnRight();" -> U-turn spacing?
+    // Let's implement a simple connector move.
+    
+    // NOTE: Original code was turnRight -> move -> turnRight (U-turnish or Corner?)
+    // This implies a "winding" path or "rows". 
+    // Let's mimic a simple row switch.
+    
+    moveForward(); // Connector step
+    turnRight();
+  }
 }
 ```

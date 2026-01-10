@@ -18,32 +18,39 @@ A simple introduction to increasing patterns.
 - Recognize increasing sequences
 - Understand progression
 
+## Features
+- **Increasing Pattern**: 1 step, then 2 steps, then 3 steps.
+- **Progression Logic**: Visualizes how linear growth looks in movement.
+
 ## Solution & Parameters
 
 ```js
 // Parameters
-var _MIN_GROUPS_ = 2;
-var _MAX_GROUPS_ = 4;
+var _MIN_GROUPS_ = 3;
+var _MAX_GROUPS_ = 5;
 var GROUPS = random(_MIN_GROUPS_, _MAX_GROUPS_);
+
+// Full Parameter Set (Standardized)
+var _INTERACTION_ = 'crystal';
+var _TURN_STYLE_ = 'straight';
+var _TURN_POINT_ = 'null';
+var _HAS_JUMP_ = 'noJump';
+var _NO_ITEM_AT_ = 'random';
+var _SEED_ = random(1, 99999);
 
 // Solution
 // Walk 1 step, then 2 steps, then 3 steps, etc.
-moveForward();
-
 for (let group = 0; group < GROUPS; group++) {
-  let stepsInGroup = group + 1;
-  for (let step = 0; step < stepsInGroup; step++) {
-    collectItem();
-    moveForward();
-  }
+  let stepsInGroup = group + 1; // 1, 2, 3...
   
-  // Turn for next group (except last)
+  // Generate segment of length 'stepsInGroup'
+  randomPattern(stepsInGroup, _INTERACTION_, true, 0, 'straight', _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_ + group);
+  
+  // Turn for next group (simple zigzag/stairs turn)
   if (group < GROUPS - 1) {
     turnRight();
-    moveForward();
+    moveForward(); // Connector
     turnLeft();
   }
 }
-
-moveForward();
 ```
