@@ -2,6 +2,43 @@
 
 ## Thay Đổi Gần Đây
 
+### 11/01/2026
+
+- **Loại thay đổi: Feature (Guide Builder)**
+  - **Mô tả**: Nâng cấp UI/UX cho Guide Builder bao gồm giao diện Glassmorphism, nút chuyển đổi Theme, và Selector chọn Map.
+  - **Mục tiêu**: Cải thiện trải nghiệm biên soạn và đồng bộ giao diện với thiết kế hiện đại (Glassmorphism).
+  - **Tác động**: Giao diện trực quan hơn, hỗ trợ "Edit on Click" và các thiết lập tùy chỉnh (theme, map).
+  - **File liên quan**:
+    - `[apps/guide-builder/src/components/XmlBlockEditor/XmlBlockEditor.tsx](apps/guide-builder/src/components/XmlBlockEditor/XmlBlockEditor.tsx)`
+    - `[apps/guide-builder/src/components/XmlBlockEditor/XmlBlockEditor.css](apps/guide-builder/src/components/XmlBlockEditor/XmlBlockEditor.css)`
+    - `[apps/guide-builder/src/components/GuideRenderer.tsx](apps/guide-builder/src/components/GuideRenderer.tsx)`
+
+- **Loại thay đổi: Documentation/Analysis**
+  - **Mô tả**: Thêm các tài liệu phân tích chế độ luyện tập (Practice Mode), ngữ cảnh dự án và các script kiểm thử thuật toán.
+  - **Mục tiêu**: Cung cấp công cụ và tài liệu để phân tích thuật toán tạo bài tập và debug lỗi phát sinh.
+  - **Tác động**: Hỗ trợ việc phát triển và bảo trì tính năng Practice Mode thông qua các test script (random pattern, reproduction).
+  - **File liên quan**:
+    - `[practice_mode_analysis.md](practice_mode_analysis.md)`
+    - `[project-context.md](project-context.md)`
+    - `[test-random-pattern.js](test-random-pattern.js)`
+    - `[task.md](task.md)`
+
+- **Loại thay đổi: Feature (Shared Templates)**
+  - **Mô tả**: Tích hợp toàn bộ thư viện template bài tập (bundled-templates) và các script generate micro-patterns.
+  - **Mục tiêu**: Đảm bảo sẵn sàng nguồn tài nguyên bài tập phong phú cho các ứng dụng client (Quest Player).
+  - **Tác động**: Cung cấp hàng trăm mẫu bài tập (loop, logic, function) đã được parse và validate.
+  - **File liên quan**:
+    - `[packages/shared-templates/src/bundled-templates.ts](packages/shared-templates/src/bundled-templates.ts)`
+    - `[packages/shared-templates/scripts/generate-micro-patterns.ts](packages/shared-templates/scripts/generate-micro-patterns.ts)`
+
+- **Loại thay đổi: Chore**
+  - **Mô tả**: Đồng bộ hóa và commit toàn bộ mã nguồn dự án vào repository (System Initialization).
+  - **Mục tiêu**: Thiết lập trạng thái ban đầu cho repository với đầy đủ các package và ứng dụng.
+  - **Tác động**: Tạo base code đầy đủ cho toàn bộ team để bắt đầu quy trình phát triển CI/CD.
+  - **File liên quan**:
+    - `[package.json](package.json)`
+    - `[pnpm-lock.yaml](pnpm-lock.yaml)`
+
 ### 09/01/2026
 
 - **Loại thay đổi: Chore**
