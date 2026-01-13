@@ -50,12 +50,20 @@ export interface WallExtrusionConfig {
   material?: string;
 }
 
+export interface AddTreesConfig {
+  type: 'addTrees';
+  count?: number | [number, number];  // Default: [3, 5] - min and max tree count
+  treeTypes?: string[];               // Default: ['tree01', 'tree02', 'tree03', 'tree04', 'tree05']
+  excludePath?: boolean;              // Default: true - don't place on path
+}
+
 export type PostProcessorConfig = 
   | FillBoundingBoxConfig 
   | ExtendShapeConfig
   | SidewalkConfig
   | ColumnSupportConfig
-  | WallExtrusionConfig;
+  | WallExtrusionConfig
+  | AddTreesConfig;
 
 export interface Coord3D {
   x: number;

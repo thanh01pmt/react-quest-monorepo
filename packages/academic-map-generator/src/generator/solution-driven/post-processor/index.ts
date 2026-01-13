@@ -12,6 +12,7 @@ export type {
   SidewalkConfig,
   ColumnSupportConfig,
   WallExtrusionConfig,
+  AddTreesConfig,
   ShapeType,
   BiasDirection,
   LevelMode,
@@ -37,10 +38,14 @@ export type { FillBoundingBoxResult } from './fillBoundingBox';
 export { extendShape, findSwitchPositions } from './extendShape';
 export type { ExtendShapeResult, SwitchPosition } from './extendShape';
 
+export { addTrees } from './addTrees';
+export type { AddTreesResult } from './addTrees';
+
 // Main executor
 import { PostProcessorConfig, Coord3D, GeneratedBlock } from './types';
 import { fillBoundingBox, FillBoundingBoxResult } from './fillBoundingBox';
 import { extendShape, ExtendShapeResult } from './extendShape';
+import { addTrees, AddTreesResult } from './addTrees';
 
 export interface PostProcessorContext {
   pathCoords: Coord3D[];
@@ -52,7 +57,7 @@ export interface PostProcessorResult {
   newBlocks: GeneratedBlock[];
   metadata: {
     type: string;
-    details: FillBoundingBoxResult | ExtendShapeResult | null;
+    details: FillBoundingBoxResult | ExtendShapeResult | AddTreesResult | null;
   };
 }
 
@@ -82,6 +87,18 @@ export function executePostProcessor(
       return {
         newBlocks: result.blocks,
         metadata: { type: 'extendShape', details: result }
+      };
+    }
+    
+    case 'addTrees': {
+      const result = addTrees(
+        context.pathCoords,
+        context.blocks,
+        config
+      );
+      return {
+        newBlocks: result.blocks,
+        metadata: { type: 'addTrees', details: result.result }
       };
     }
     
