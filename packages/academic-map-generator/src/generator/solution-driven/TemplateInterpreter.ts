@@ -2012,26 +2012,40 @@ export class TemplateInterpreter {
   }
 
   private doInteract(itemType: string): void {
-    // Check for existing item
-    const exists = this.items.some(i => 
+    const pos = this.context.position;
+    
+    // Check for existing item at current position
+    const itemExists = this.items.some(i => 
       i.type === itemType && 
-      i.position[0] === this.context.position[0] &&
-      i.position[1] === this.context.position[1] &&
-      i.position[2] === this.context.position[2]
+      i.position[0] === pos[0] &&
+      i.position[1] === pos[1] &&
+      i.position[2] === pos[2]
     );
 
-    if (!exists) {
+    if (!itemExists) {
       this.items.push({
         type: itemType,
-        position: [...this.context.position] as Coord
+        position: [...pos] as Coord
       });
     }
-    this.actions.push({
-      type: 'interact',
-      position: [...this.context.position] as Coord,
-      direction: this.context.direction,
-      item: itemType
-    });
+    
+    // Check for existing interact action at same position (avoid duplicate toggleSwitch)
+    const actionExists = this.actions.some(a => 
+      a.type === 'interact' && 
+      a.item === itemType &&
+      a.position[0] === pos[0] &&
+      a.position[1] === pos[1] &&
+      a.position[2] === pos[2]
+    );
+    
+    if (!actionExists) {
+      this.actions.push({
+        type: 'interact',
+        position: [...pos] as Coord,
+        direction: this.context.direction,
+        item: itemType
+      });
+    }
   }
 
   private executeMicroPattern(pattern: MicroPattern): void {
