@@ -115,6 +115,9 @@ const Scene: React.FC<{
 
   if (!activePlayer) return null;
 
+  // DEBUG: Log all blocks being rendered  
+  console.log('[Scene] Rendering blocks:', gameState.blocks.map(b => b.modelKey));
+
   return (
     <group>
       {gameState.blocks.map((block, index) => (

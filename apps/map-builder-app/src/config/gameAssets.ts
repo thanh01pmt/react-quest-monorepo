@@ -16,7 +16,7 @@ const createThumbnailPath = (modelPath?: string): string => {
 function createBuildableAssetGroups(): AssetGroup[] {
   const groups: AssetGroup[] = []; 
 
-  const blockCategories = ['ground', 'stone', 'wall', 'water', 'lava', 'ice'];
+  const blockCategories = ['ground', 'stone', 'wall', 'water', 'lava', 'ice', 'tree'];
   blockCategories.forEach(categoryName => {
     // @ts-ignore
     const categoryAssets = GameAssets.world[categoryName];

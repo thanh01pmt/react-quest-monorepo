@@ -40,6 +40,13 @@ export const GameAssets = {
         ice: {
             ice01: '/assets/maze/models/ice.glb',
         },
+        tree: {
+            tree01: '/assets/maze/models/tree01.glb',
+            tree02: '/assets/maze/models/tree02.glb',
+            tree03: '/assets/maze/models/tree03.glb',
+            tree04: '/assets/maze/models/tree04.glb',
+            tree05: '/assets/maze/models/tree05.glb',
+        },
         misc: {
             crystal: '/assets/maze/models/crystal.glb',
             key: '/assets/maze/models/key.glb',

@@ -103,6 +103,7 @@ function App() {
   const [placementStrategy, setPlacementStrategy] = useState<PedagogyStrategy>(PedagogyStrategy.NONE);
   const [placementDifficulty, setPlacementDifficulty] = useState<'intro' | 'simple' | 'complex'>('simple');
   const [itemGoals, setItemGoals] = useState<{ crystals: number; switches: number }>({ crystals: 3, switches: 0 });
+  const [treeCount, setTreeCount] = useState<number>(3); // Tree decoration count
   const [activeLayer, setActiveLayer] = useState<'all' | 'ground' | 'items'>('all'); // NEW: Layer State
   const [smartSnapEnabled, setSmartSnapEnabled] = useState<boolean>(true); // NEW: Smart Snap State
   const [history, setHistory] = useState<PlacedObject[][]>([[]]); // Mảng lưu các trạng thái của placedObjects
@@ -787,6 +788,28 @@ function App() {
         obj.position[2] + dz
       ]
     })));
+
+    // 6. Also update pathInfo coordinates (placement_coords, path_coords, start_pos, target_pos)
+    setQuestMetadata(prev => {
+      if (!prev?.pathInfo) return prev;
+
+      const updateCoord = (coord: [number, number, number]): [number, number, number] => [
+        coord[0] + dx,
+        coord[1],
+        coord[2] + dz
+      ];
+
+      return {
+        ...prev,
+        pathInfo: {
+          ...prev.pathInfo,
+          placement_coords: prev.pathInfo.placement_coords?.map(updateCoord),
+          path_coords: prev.pathInfo.path_coords?.map(updateCoord),
+          start_pos: prev.pathInfo.start_pos ? updateCoord(prev.pathInfo.start_pos) : undefined,
+          target_pos: prev.pathInfo.target_pos ? updateCoord(prev.pathInfo.target_pos) : undefined,
+        }
+      };
+    });
 
     setHasUserEdit(true);
     // Optional: Log action
@@ -3322,6 +3345,116 @@ function App() {
     alert(`✅ Applied ${suggestedObjects.length} items${constraintsEnabled ? ' with constraints' : ' (random)'}.`);
   }, [questMetadata, placementStrategy, placementDifficulty, itemGoals, assetMap, placementService, constraintsEnabled, excludeStartPos, excludeEndPos]);
 
+  // Handle auto-placing trees on random non-path positions
+  const handleAutoPlaceTrees = useCallback((treeCount: number = 3) => {
+    const pathInfo = questMetadata?.pathInfo;
+    if (!pathInfo?.placement_coords || pathInfo.placement_coords.length === 0) {
+      alert('⚠️ No placement_coords available. Generate ground from the Topology tab first.');
+      return;
+    }
+
+    // Create a set of path coordinates for quick lookup (using XZ only since Y varies)
+    const pathCoordSet = new Set<string>(
+      (pathInfo.path_coords || []).map((coord: [number, number, number]) => `${coord[0]},${coord[2]}`)
+    );
+
+    // Also exclude start and finish positions
+    const startPos = pathInfo.start_pos;
+    const targetPos = pathInfo.target_pos;
+    if (startPos) pathCoordSet.add(`${startPos[0]},${startPos[2]}`);
+    if (targetPos) pathCoordSet.add(`${targetPos[0]},${targetPos[2]}`);
+
+    // Use placement_coords but only select unique (X,Z) positions that are NOT on the path
+    const uniqueXZPositions = new Map<string, [number, number, number]>();
+    for (const coord of pathInfo.placement_coords as [number, number, number][]) {
+      const xzKey = `${coord[0]},${coord[2]}`;
+      // Only add if not on path and not already added
+      if (!pathCoordSet.has(xzKey) && !uniqueXZPositions.has(xzKey)) {
+        uniqueXZPositions.set(xzKey, coord);
+      }
+    }
+
+    const availablePositions = Array.from(uniqueXZPositions.values());
+
+    if (availablePositions.length === 0) {
+      alert('⚠️ No non-path positions available for trees. All placement positions are on the path.');
+      return;
+    }
+
+    // Randomly select positions for trees (up to treeCount)
+    const shuffled = [...availablePositions].sort(() => Math.random() - 0.5);
+    const selectedPositions = shuffled.slice(0, Math.min(treeCount, shuffled.length));
+
+    // Get all tree assets (5 types available)
+    const treeAssets = [
+      assetMap.get('tree.tree01'),
+      assetMap.get('tree.tree02'),
+      assetMap.get('tree.tree03'),
+      assetMap.get('tree.tree04'),
+      assetMap.get('tree.tree05'),
+    ].filter(Boolean);
+
+    if (treeAssets.length === 0) {
+      alert('⚠️ Tree assets not found in asset map.');
+      return;
+    }
+
+    // Create a map to find the highest Y block at each (X,Z) position
+    const highestYAtPosition = new Map<string, number>();
+    placedObjects.filter(o => o.asset.type === 'block').forEach(block => {
+      const key = `${block.position[0]},${block.position[2]}`;
+      const currentY = block.position[1];
+      const existingY = highestYAtPosition.get(key);
+      if (existingY === undefined || currentY > existingY) {
+        highestYAtPosition.set(key, currentY);
+      }
+    });
+
+    // Create tree objects - ONE tree per unique (X,Z) position
+    const newTrees: PlacedObject[] = selectedPositions.map(coord => {
+      const randomTreeAsset = treeAssets[Math.floor(Math.random() * treeAssets.length)]!;
+      const posKey = `${coord[0]},${coord[2]}`;
+      // Get the highest Y at this position, add 1 to place tree on top
+      const baseY = highestYAtPosition.get(posKey) ?? coord[1];
+      return {
+        id: uuidv4(),
+        asset: randomTreeAsset,
+        // Trees are placed on top of the highest block at this X,Z position
+        position: [coord[0], baseY + 1, coord[2]] as [number, number, number],
+        rotation: [0, Math.random() * Math.PI * 2, 0] as [number, number, number], // Random rotation
+        properties: {}
+      };
+    });
+
+    // Remove existing trees and add new ones
+    setPlacedObjectsWithHistory(prev => {
+      const withoutTrees = prev.filter(o =>
+        !o.asset.key.includes('tree')
+      );
+      const updatedObjects = [...withoutTrees, ...newTrees];
+
+      // Also update metadata.gameConfig.blocks to include trees for syncing to Player
+      const blocks = updatedObjects
+        .filter(o => o.asset.type === 'block')
+        .map(o => ({
+          modelKey: o.asset.key,
+          position: { x: o.position[0], y: o.position[1], z: o.position[2] }
+        }));
+
+      setQuestMetadata(prev => ({
+        ...prev,
+        gameConfig: {
+          ...(prev?.gameConfig || {}),
+          blocks
+        }
+      }));
+
+      return updatedObjects;
+    });
+
+    alert(`🌲 Placed ${newTrees.length} trees on non-path positions.`);
+  }, [questMetadata, placedObjects, assetMap]);
+
   // Handle applying items from PlacementVariants (AcademicPlacement)
   const handleApplyVariant = useCallback((items: ItemPlacement[], suggestedToolbox?: string) => {
     console.log('[handleApplyVariant] Called with items:', items);
@@ -3735,6 +3868,49 @@ function App() {
                           >
                             🎲 Apply Random Placement
                           </button>
+
+                          {/* Tree Decoration Section */}
+                          <div className="placement-section" style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #3c3c41' }}>
+                            <h4 style={{ margin: '0 0 8px 0', color: '#fff', fontSize: '13px' }}>🌲 Tree Decoration</h4>
+                            <p style={{ fontSize: '11px', color: '#888', marginBottom: '8px' }}>
+                              Place trees on random non-path positions as obstacles.
+                            </p>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                                <span style={{ fontSize: '11px', color: '#aaa' }}>Count</span>
+                                <input
+                                  type="number"
+                                  value={treeCount}
+                                  onChange={e => setTreeCount(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                                  min={1} max={20}
+                                  style={{ padding: '6px', background: '#3c3c41', border: '1px solid #555', borderRadius: '4px', color: '#fff', width: '100%' }}
+                                />
+                              </label>
+                              <button
+                                onClick={() => handleAutoPlaceTrees(treeCount)}
+                                disabled={!questMetadata?.pathInfo?.path_coords}
+                                style={{
+                                  flex: 2,
+                                  padding: '10px 12px',
+                                  background: !questMetadata?.pathInfo?.path_coords ? '#555' : 'linear-gradient(135deg, #22c55e, #16a34a)',
+                                  color: '#fff',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  fontSize: '13px',
+                                  fontWeight: 'bold',
+                                  cursor: !questMetadata?.pathInfo?.path_coords ? 'not-allowed' : 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                  transition: 'all 0.2s',
+                                  marginTop: '18px'
+                                }}
+                              >
+                                🌲 Add Trees
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       )}
 

@@ -52,6 +52,8 @@ const _NON_WALKABLE_MODELS = [
   'wall.stone01', // Explicitly define the wall stone
   'water',        // Corresponds to water.glb
   'lava',         // Corresponds to lava.glb
+  'tree.tree01',  // Tree obstacle
+  'tree.tree02',  // Tree obstacle
 ];
 
 // All solid blocks are a combination of the two lists above.

@@ -115,12 +115,57 @@ const AssetRenderer = ({ asset, properties, material }: { asset: BuildableAsset,
   // Render mô hình GLB nếu có đường dẫn
   if (asset.path) {
     const { scene } = useGLTF(asset.path);
-    const clonedScene = useMemo(() => scene.clone(), [scene]);
+    const clonedScene = useMemo(() => {
+      const clone = scene.clone();
+      // Properly clone materials to avoid shared material references
+      clone.traverse((child: any) => {
+        if (child.isMesh && child.material) {
+          // Clone the material
+          const clonedMaterial = child.material.clone();
+
+          // Handle materials properly - fixes black rendering for Blender exports
+          // If material has a texture map, handle encoding
+          if (clonedMaterial.map) {
+            clonedMaterial.map = clonedMaterial.map.clone();
+            clonedMaterial.map.colorSpace = 'srgb';
+            clonedMaterial.map.needsUpdate = true;
+          }
+
+          // Ensure color is preserved (for solid color materials from Blender)
+          // This is critical for Blender exports using Base Color without texture
+          if (clonedMaterial.color) {
+            clonedMaterial.color = clonedMaterial.color.clone();
+          }
+
+          // Preserve vertex colors if present
+          if (child.geometry?.attributes?.color) {
+            clonedMaterial.vertexColors = true;
+          }
+
+          clonedMaterial.needsUpdate = true;
+          child.material = clonedMaterial;
+        }
+      });
+      return clone;
+    }, [scene]);
+
     if (material) {
       clonedScene.traverse((child: any) => {
         if (child.isMesh) child.material = material;
       });
     }
+
+    // Special handling for tree models:
+    // - Scale 0.1 (trees are 10x larger than other assets)
+    // - Position offset: trees should stand on surface, not float in center
+    if (asset.key.startsWith('tree.')) {
+      return (
+        <group scale={0.1} position-y={-0.5}>
+          <primitive object={clonedScene} />
+        </group>
+      );
+    }
+
     return <primitive object={clonedScene} />;
   }
 
