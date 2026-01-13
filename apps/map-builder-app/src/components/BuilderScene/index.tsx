@@ -1127,9 +1127,14 @@ export const BuilderScene = forwardRef<SceneController, BuilderSceneProps>((prop
   }));
 
   return (
-    <Canvas shadows camera={{ position: [15, 20, 25], fov: 60 }} onCreated={({ scene }) => { scene.add(new THREE.AmbientLight(0.5)); }}>
+    <Canvas shadows camera={{ position: [15, 20, 25], fov: 60 }} onCreated={({ scene }) => { scene.add(new THREE.AmbientLight(0xffffff, 0.8)); }}>
       <color attach="background" args={['#1e1e1e']} />
-      <directionalLight position={[10, 20, 5]} intensity={1.5} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
+      {/* Main directional light from front-top */}
+      <directionalLight position={[10, 20, 10]} intensity={1.2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
+      {/* Fill light from opposite side to reduce harsh shadows */}
+      <directionalLight position={[-10, 15, -10]} intensity={0.6} />
+      {/* Top light for even illumination */}
+      <directionalLight position={[0, 25, 0]} intensity={0.4} />
       <Suspense fallback={null}>
         <SceneContent {...props} cameraControlsRef={cameraControlsRef} />
       </Suspense>

@@ -276,14 +276,23 @@ export const Maze3DRenderer: IGameRenderer = ({ gameState, gameConfig, cameraMod
         shadows
         style={{ width: '100%', height: '100%' }}
       >
+        {/* Ambient light for overall brightness */}
+        <ambientLight intensity={0.6} />
+
         {environmentNode}
+
+        {/* Main directional light from front-top */}
         <directionalLight
-          position={[10, 20, 35]}
-          intensity={1.5}
+          position={[10, 20, 15]}
+          intensity={0.8}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
         />
+        {/* Fill light from opposite side to reduce harsh shadows */}
+        <directionalLight position={[-10, 15, -10]} intensity={0.3} />
+        {/* Top light for even illumination */}
+        <directionalLight position={[0, 25, 0]} intensity={0.2} />
 
         {/* SceneCamera chỉ đặt vị trí ban đầu nếu không có intro */}
         <SceneCamera blocks={mazeConfig.blocks} skipInitialPosition={isIntroPlaying} />
