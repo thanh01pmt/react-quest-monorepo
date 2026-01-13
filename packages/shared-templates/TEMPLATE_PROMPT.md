@@ -19,9 +19,10 @@ You are an Expert Curriculum Designer and Quest Map Generator. Your goal is to c
     - `_INTERACTION_`, `_TURN_STYLE_`, `_TURN_POINT_`
     - `_HAS_JUMP_`, `_NO_ITEM_AT_`
     - `LEN`
-4.  **Random Seed**: You MUST include `var _SEED_ = random(1, 99999);` and pass it to `randomPattern`.
-5.  **Replayability**: Unless specifically teaching a fixed concept (like "Straight Line"), default parameters should use `'random'` options where appropriate to ensure different results on each run.
-6.  **Features Section**: You must strictly include a `## Features` section explaining the design choices (why a param is fixed vs random).
+5.  **Random Seed**: You MUST include `var _SEED_ = random(1, 99999);` and pass it to `randomPattern`.
+6.  **Replayability**: Unless specifically teaching a fixed concept (like "Straight Line"), default parameters should use `'random'` options where appropriate to ensure different results on each run.
+7.  **Features Section**: You must strictly include a `## Features` section explaining the design choices (why a param is fixed vs random).
+8.  **PostProcess (Optional)**: Use `postProcess()` to add terrain features or decoration. See POST_PROCESS.md for details.
 
 ## Standard Template Boilerplate
 
@@ -56,16 +57,20 @@ description: "[Brief description]"
 // Parameters
 var _MIN_STEPS_ = [number];
 var _MAX_STEPS_ = [number];
-var _INTERACTION_ = '[crystal/switch/key/mixed/random/null]';
+var _INTERACTION_ = '[crystal/switch/key/mixed/null]';
 var _TURN_STYLE_ = '[straight/turnLeft/turnRight/uTurn/zTurn/randomLeftRight/random/null]';
 var _TURN_POINT_ = '[null/start/mid/end/random]';
 var _HAS_JUMP_ = '[random/withJump/noJump/null]';
-var _NO_ITEM_AT_ = '[random/noItemStart/noItemEnd/noItemBoth/null]';
+var _NO_ITEM_AT_ = '[null/noItemStart/noItemEnd/noItemBoth]';
 var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
 var _SEED_ = random(1, 99999);
 
 // Solution
 randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_);
+
+// Optional: Post-processing for terrain/decoration
+// postProcess({ type: 'extendShape', shape: 'mountain', material: 'stone' });
+// postProcess({ type: 'addTrees', count: [3, 5] });
 ```
 ```
 
@@ -95,3 +100,50 @@ If asked to create a path that zigzags and has jumps:
     // Solution
     randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_);
     ```
+
+## Example: Creating a "Mountain Switch Path"
+
+If asked to create a path with switches and mountain terrain:
+
+1.  **Set Parameters**:
+    - `_INTERACTION_` = `'switch'`
+    - `_TURN_STYLE_` = `'randomLeftRight'`
+    - Add `postProcess()` for terrain
+
+2.  **Generate Code**:
+    ```js
+    // Parameters
+    var _MIN_STEPS_ = 4;
+    var _MAX_STEPS_ = 6;
+    var _INTERACTION_ = 'switch';
+    var _TURN_STYLE_ = 'randomLeftRight';
+    var _TURN_POINT_ = 'end';
+    var _HAS_JUMP_ = 'noJump';
+    var _NO_ITEM_AT_ = 'noItemBoth';
+    var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
+    var _SEED_ = random(1, 99999);
+    
+    // Solution: Multiple patterns for varied path
+    for (let i = 0; i < random(2, 4); i++) {
+        randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_ITEM_AT_, _SEED_);
+    }
+    
+    // Post-process: Create mountains at switch positions
+    postProcess({ 
+        type: 'extendShape', 
+        shape: 'mountain', 
+        size: [2, 5], 
+        height: [3, 5],
+        bias: 'right',
+        material: 'stone',
+        connectPath: true
+    });
+    
+    // Post-process: Add trees
+    postProcess({ 
+        type: 'addTrees', 
+        count: [3, 5],
+        excludePath: true
+    });
+    ```
+

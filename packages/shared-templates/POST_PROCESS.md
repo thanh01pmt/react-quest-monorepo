@@ -8,12 +8,20 @@ Add a `postProcess` call at the end of your template file:
 
 ```javascript
 postProcess({
-    type: 'extendShape', // or 'fillBoundingBox'
+    type: 'extendShape', // or 'fillBoundingBox', 'addTrees'
     ...params
 });
 ```
 
-You can call `postProcess` multiple times if needed (currently supports single call in template interpreter, but architecture allows multiple).
+You can call `postProcess` multiple times for layered effects:
+
+```javascript
+// First: Create terrain
+postProcess({ type: 'extendShape', shape: 'mountain', material: 'stone' });
+
+// Second: Add trees
+postProcess({ type: 'addTrees', count: [3, 5], excludePath: true });
+```
 
 ---
 
@@ -46,8 +54,21 @@ postProcess({
 | **height** | `number \| [min, max]` | `[3, 5]` | **(Mountain only)** The height of the pyramid/spire. Random if array. |
 | **bias** | `'center' \| 'left' \| 'right'` | `'center'` | Position relative to the path. `'center'` places shape ON the path. `'left'`/`'right'` places it to the side. |
 | **levelMode** | `'same' \| 'stepDown'` | `'same'` | `'same'`: Shape matches path Y. `'stepDown'`: Shape is 1 block lower than path. |
-| **material** | `string` | `'grass'` | The material model for generated blocks (e.g., `'stone'`, `'grass'`, `'water'`). |
+| **material** | `string` | `'grass'` | Material shorthand: `'grass'`, `'stone'`, `'water'`, `'ice'`, `'sand'`, `'dirt'`. Maps to asset keys like `ground.stoneGrey1`. |
 | **connectPath** | `boolean` | `false` | If true, generates a "connector" bridge from the path to the shape (useful if bias is not center). |
+
+### Material Mapping
+
+The `material` parameter is automatically mapped to full asset keys:
+
+| Material | Asset Key |
+|----------|-----------|
+| `'grass'` | `ground.earthChecker` |
+| `'stone'` | `ground.stoneGrey1` |
+| `'water'` | `ground.waterFull` |
+| `'ice'` | `ground.ice` |
+| `'sand'` | `ground.sandBeach` |
+| `'dirt'` | `ground.dirt` |
 
 ### Important Behaviors
 
@@ -80,8 +101,40 @@ postProcess({
 |-----------|------|---------|-------------|
 | **type** | `'fillBoundingBox'` | Required | Identifier for this processor. |
 | **offset** | `number` | `0` | Y-level offset relative to the **lowest point** of the path. e.g., `-1` puts water 1 block below the lowest path block. |
-| **material** | `string` | `'grass'` | Material for the filled blocks. |
+| **material** | `string` | `'grass'` | Material for the filled blocks. Uses same mapping as `extendShape`. |
 | **walkable** | `boolean` | `true` | Whether the player can walk on these blocks. |
+
+---
+
+## 3. addTrees
+
+Adds tree decorations to non-path positions on the map. Trees are placed on top of the highest existing block at each (x, z) position.
+
+### Configuration
+
+```javascript
+postProcess({ 
+    type: 'addTrees', 
+    count: [3, 5],        // Min and max tree count
+    treeTypes: ['tree.tree01', 'tree.tree02', 'tree.tree03', 'tree.tree04', 'tree.tree05'],
+    excludePath: true     // Don't place on path
+});
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| **type** | `'addTrees'` | Required | Identifier for this processor. |
+| **count** | `number \| [min, max]` | `[3, 5]` | Number of trees to place. If array, a random value in range is chosen. |
+| **treeTypes** | `string[]` | `['tree.tree01', ..., 'tree.tree05']` | Array of tree asset keys to randomly choose from. Must use full key format. |
+| **excludePath** | `boolean` | `true` | If true, trees will not be placed on path coordinates. |
+
+### Important Behaviors
+
+- Trees are placed at `Y + 1` where `Y` is the highest existing block at that `(x, z)` position.
+- Trees are marked as `walkable: false`.
+- If there are fewer available positions than requested `count`, only available positions will be used.
 
 ---
 
@@ -129,3 +182,49 @@ postProcess({
     walkable: false
 });
 ```
+
+### D. Forest Decoration
+Adds 3-5 random trees to non-path areas.
+
+```javascript
+postProcess({ 
+    type: 'addTrees', 
+    count: [3, 5],
+    treeTypes: ['tree.tree01', 'tree.tree02', 'tree.tree03'],
+    excludePath: true
+});
+```
+
+### E. Complete Environment (Multiple PostProcessors)
+Combines terrain extension with tree decoration.
+
+```javascript
+// Create stone mountains at switch positions
+postProcess({ 
+    type: 'extendShape', 
+    shape: 'mountain', 
+    size: [2, 5], 
+    height: [3, 5],
+    bias: 'right',
+    material: 'stone',
+    connectPath: true
+});
+
+// Add trees to the mountains and empty areas
+postProcess({ 
+    type: 'addTrees', 
+    count: [3, 5],
+    excludePath: true
+});
+```
+
+---
+
+## Future Processors (Planned)
+
+| Type | Description | Status |
+|------|-------------|--------|
+| `sidewalk` | Creates walkable borders around areas | Not implemented |
+| `columnSupport` | Adds support columns under elevated platforms | Not implemented |
+| `wallExtrusion` | Creates walls along path edges | Not implemented |
+

@@ -693,6 +693,9 @@ difficulty = f(
 
 | Date | Changes |
 |------|---------|
+| 2026-01-13 | Added `postProcess()` support in TemplateInterpreter for terrain decoration |
+| 2026-01-13 | Added `addTrees` post-processor for tree decoration |
+| 2026-01-13 | Fixed duplicate switch placement via doInteract deduplication |
 | 2026-01-10 | Added `turnStyle`, `turnPoint` filters for single-turn patterns |
 | 2026-01-10 | Added `hasJump` filter ('withJump', 'noJump') |
 | 2026-01-10 | Added `noItemAt` filter ('start', 'end', 'both') |
@@ -711,4 +714,3 @@ difficulty = f(
 | 2026-01-09 | Added ConditionalConfig for sensor-based maps |
 | 2026-01-09 | Added While Loop support (random iterations) |
 | 2026-01-09 | Add Function Extraction strategy (Decomposition) |
-

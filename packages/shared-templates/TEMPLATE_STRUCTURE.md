@@ -57,11 +57,11 @@ This section contains the executable JavaScript code for generating the map.
 // Parameters
 var _MIN_STEPS_ = 6;
 var _MAX_STEPS_ = 8;
-var _INTERACTION_ = 'crystal';       // OPTIONS: crystal, switch, key, random, null
+var _INTERACTION_ = 'crystal';       // OPTIONS: crystal, switch, key, mixed, null
 var _TURN_STYLE_ = 'straight';       // OPTIONS: straight, turnLeft, turnRight, uTurn, zTurn, randomLeftRight, random, null
 var _TURN_POINT_ = 'null';           // OPTIONS: null, start, end, mid, random
 var _HAS_JUMP_ = 'noJump';           // OPTIONS: random, withJump, noJump, null
-var _NO_ITEM_AT_ = 'noItemBoth';     // OPTIONS: random, noItemStart, noItemEnd, noItemBoth, null
+var _NO_ITEM_AT_ = 'noItemBoth';     // OPTIONS: null, noItemStart, noItemEnd, noItemBoth
 var LEN = random(_MIN_STEPS_, _MAX_STEPS_);
 var _SEED_ = random(1, 99999);       // REQUIRED: Random seed for pattern generation
 
@@ -73,6 +73,10 @@ randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_IT
 // moveForward();
 // turnRight();
 // randomPattern(...);
+
+// Optional: Add post-processing for terrain/decoration
+// postProcess({ type: 'extendShape', shape: 'mountain', material: 'stone' });
+// postProcess({ type: 'addTrees', count: [3, 5] });
 ```
 
 ## 6. Parameter Reference
@@ -84,7 +88,7 @@ randomPattern(LEN, _INTERACTION_, _TURN_STYLE_, _TURN_POINT_, _HAS_JUMP_, _NO_IT
 | `_TURN_STYLE_` | string | `'straight'`, `'turnLeft'`, `'turnRight'`, `'uTurn'`, `'zTurn'`, `'randomLeftRight'`, `'random'`, `'null'` | Shape ('uTurn'=LL/RR, 'zTurn'=LR/RL) |
 | `_TURN_POINT_` | string | `'null'`, `'start'`, `'mid'`, `'end'`, `'random'` | Turn position |
 | `_HAS_JUMP_` | string | `'random'`, `'withJump'`, `'noJump'`, `'null'` | Include jumps |
-| `_NO_ITEM_AT_` | string | `'random'`, `'noItemStart'`, `'noItemEnd'`, `'noItemBoth'`, `'null'` | Boundary constraints |
+| `_NO_ITEM_AT_` | string | `'null'`, `'noItemStart'`, `'noItemEnd'`, `'noItemBoth'` | Boundary constraints |
 | `_SEED_` | number | `random(1, 99999)` | Seed for reproducible random generation |
 
 ## 7. Supported Basic Actions
@@ -122,7 +126,7 @@ The template engine supports standard JavaScript control structures which are ma
 Use these functions within `if` or `while` conditions to create logic-based challenges.
 
 | Function | Description | Generator Behavior |
-|----------|-------------|--------------------|
+|----------|-------------|-------------------|
 | `isPathForward()` | Checks if path exists ahead | Always `true` in generator (assumed valid path) |
 | `isPathLeft()` | Checks if path exists to left | Random `true/false` |
 | `isPathRight()` | Checks if path exists to right | Random `true/false` |
@@ -146,11 +150,58 @@ Use these functions within `if` or `while` conditions to create logic-based chal
 - **Call**: `myFunc(10)`
 - **Return**: Supported in logic.
 
+## 13. Post-Processing
+
+Use `postProcess()` to modify the generated map after the path is created. See [POST_PROCESS.md](./POST_PROCESS.md) for full documentation.
+
+### Available Processors
+
+| Type | Description |
+|------|-------------|
+| `extendShape` | Creates terrain extensions (squares, mountains) at switch positions |
+| `fillBoundingBox` | Fills the map bounding box with blocks (ground/water layer) |
+| `addTrees` | Adds tree decorations to non-path positions |
+
+### Example Usage
+
+```js
+// Create stone mountains at switch positions
+postProcess({ 
+    type: 'extendShape', 
+    shape: 'mountain', 
+    size: [2, 5], 
+    height: [3, 5],
+    bias: 'right',
+    material: 'stone',
+    connectPath: true
+});
+
+// Add trees to non-path areas
+postProcess({ 
+    type: 'addTrees', 
+    count: [3, 5],
+    excludePath: true
+});
+```
+
 > [!WARNING] **Unsupported Features**
 > The Template Interpreter is NOT a full JavaScript engine. The following are **NOT supported** for Map Generation logic (calculating coordinates or loops):
 > - **Arrays/Lists**: `[1, 2, 3]` will evaluate to `0` or `undefined`.
-> - **Objects**: `{key: val}` will evaluate to `0` or `undefined`.
+> - **Objects**: `{key: val}` will evaluate to `0` or `undefined` when used as values.
 > - **Classes/OOP**: Class definitions are not processed.
 > - **Complex Native APIs**: `Date`, `Regex`, `String.split()` etc. are not available.
 >
+> **Exception**: Object literals are supported ONLY as arguments to `postProcess()`.
+>
 > You can use these features ONLY if they are purely for the Player's code and do not affect the `randomPattern`, `move`, or `collect` logic path.
+
+---
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2026-01-13 | Added postProcess section (extendShape, fillBoundingBox, addTrees) |
+| 2026-01-10 | Added all filter parameters (_TURN_STYLE_, _TURN_POINT_, etc.) |
+| 2026-01-09 | Initial structure guide |
+

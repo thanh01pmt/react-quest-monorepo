@@ -15,7 +15,8 @@
   "scripts": {
     "build": "node scripts/generate-templates.js && tsc",
     "dev": "node scripts/generate-templates.js && tsc --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "generate-templates": "node scripts/generate-templates.js"
   },
   "dependencies": {
     "gray-matter": "^4.0.3"

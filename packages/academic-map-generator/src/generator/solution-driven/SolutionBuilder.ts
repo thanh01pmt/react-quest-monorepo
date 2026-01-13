@@ -177,12 +177,28 @@ export class SolutionBuilder {
     const additionalBlocks = (trace as any).additionalBlocks as Array<{ x: number; y: number; z: number; model: string; walkable?: boolean }> | undefined;
     if (additionalBlocks && additionalBlocks.length > 0) {
       for (const ab of additionalBlocks) {
+        // Ensure modelKey is properly formatted (e.g., 'stone' -> 'ground.stone')
+        let blockModelKey = ab.model || modelKey;
+        if (blockModelKey && !blockModelKey.includes('.')) {
+          // Map material shorthand to proper ground asset key
+          const materialToAsset: Record<string, string> = {
+            'grass': 'ground.earthChecker',
+            'stone': 'ground.stoneGrey1',
+            'water': 'ground.waterFull',
+            'ice': 'ground.ice',
+            'sand': 'ground.sandBeach',
+            'dirt': 'ground.dirt',
+          };
+          blockModelKey = materialToAsset[blockModelKey] || `ground.${blockModelKey}`;
+        }
+        
         blocks.push({
-          modelKey: ab.model || modelKey,
+          modelKey: blockModelKey,
           position: { x: ab.x, y: ab.y - 1, z: ab.z } // Also one level below walkable level
         });
       }
       console.log('[SolutionBuilder] Added', additionalBlocks.length, 'blocks from PostProcessor');
+      console.log('[SolutionBuilder] PostProcessor block models:', additionalBlocks.map(ab => ab.model).join(', '));
     }
     
     return blocks;

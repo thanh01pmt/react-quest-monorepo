@@ -6,8 +6,10 @@ This document defines map "Skeletons" based on algorithmic patterns and document
 
 | Date       | Change                                                              |
 |------------|---------------------------------------------------------------------|
+| 2026-01-13 | Added `postProcess()` support (extendShape, fillBoundingBox, addTrees) |
+| 2026-01-13 | Added material mapping in SolutionBuilder for post-processed blocks |
+| 2026-01-13 | Fixed duplicate switch placement via doInteract deduplication |
 | 2026-01-10 | Added `turnStyle`: `uTurn`, `zTurn`, `randomLeftRight`, `null`      |
-| 2026-01-10 | Added `turnStyle`: `uTurn`, `zTurn`, `randomLeftRight`, `null` |
 | 2026-01-10 | Enforced `noConsecutiveTurns` constraint (Rule 7) |
 | 2026-01-10 | Added universal `null` option for all filters |
 | 2026-01-10 | Added `turnStyle`, `turnPoint` filters for single-turn patterns |
