@@ -2,11 +2,11 @@
 
 ## Thay Đổi Gần Đây
 
-<<<<<<< HEAD
-### 12/01/2026
-=======
 ### 13/01/2026
->>>>>>> 63f614401cbb1f849e1ccfe86f9c37565211b971
+
+- **Không có thay đổi đáng kể trong 24 giờ qua.**
+
+### 12/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
 
