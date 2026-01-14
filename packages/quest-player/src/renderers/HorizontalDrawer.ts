@@ -67,16 +67,16 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
     const xy = this.block_.getRelativeToSurfaceXY();
     const isCBlock = this.block_.type === 'junior_repeat';
     
-    // Scratch Jr dimensions
-    const MAIN_BODY_HEIGHT = 40;
-    const HEADER_WIDTH = 40;
+    // Scratch Blocks Core Logic: Connections are Bottom-Aligned
+    // See block_render_svg_horizontal.js line 674
+    // var connectionY = connectionsXY.y + metrics.height - Blockly.BlockSvg.CORNER_RADIUS * 2;
     
-    // For C-blocks: connections on main body (at bottom)
-    // For standard blocks: connections at height/2
-    const bayHeight = isCBlock ? (info.height - MAIN_BODY_HEIGHT) : 0;
-    const connY = isCBlock 
-      ? bayHeight + MAIN_BODY_HEIGHT / 2  // Center of main body
-      : info.height / 2;                   // Center of standard block
+    // CORNER_RADIUS is 4px. Offset is 8px from bottom.
+    // For Standard Block (64px): ConnY = 56.
+    // For C-Block (Height H): ConnY = H - 8.
+    
+    const CORNER_RADIUS = 4;
+    const connY = info.height - 2 * CORNER_RADIUS;
     
     // 1. Previous Connection (Left-Edge)
     if (this.block_.previousConnection) {
@@ -101,18 +101,21 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
     }
     
     // 4. Statement Connection (for C-blocks - in the bay)
-    // Bay is at BOTTOM: Y = mainBodyHeight to totalHeight
+    // Core Logic: Statement connection is also BOTTOM aligned relative to the block's height?
+    // See block_render_svg_horizontal.js:
+    // var connectionY = connectionsXY.y + metrics.height - Blockly.BlockSvg.CORNER_RADIUS * 2;
+    // So Statement Connection Y is SAME as Next Connection Y!
+    // This allows the nested block (which is also bottom-aligned) to sit on the floor of the bay.
+    
     for (const input of this.block_.inputList) {
-      if ((input.type as number) === 3 && input.connection) { 
-        // Nested blocks connect in the bay at center Y
-        // Bay starts at mainBodyHeight, center = mainBodyHeight + bayHeight/2
-        const statementConnY = isCBlock 
-          ? MAIN_BODY_HEIGHT + bayHeight / 2 
-          : MIN_BLOCK_Y / 2;
+      if ((input.type as number) === 3 && input.connection) { // NEXT_STATEMENT
+         const conn = input.connection as Blockly.RenderedConnection;
+         // X Offset: Corner * 2 + 4 * Grid (4) = 8 + 16 = 24.
+         // But we use HeaderWidth (40).
+         const HEADER_WIDTH = 40; 
          
-        const conn = input.connection as Blockly.RenderedConnection;
-        conn.setOffsetInBlock(HEADER_WIDTH, statementConnY);
-        conn.moveTo(xy.x + HEADER_WIDTH, xy.y + statementConnY);
+         conn.setOffsetInBlock(HEADER_WIDTH, connY);
+         conn.moveTo(xy.x + HEADER_WIDTH, xy.y + connY);
       }
     }
   }
@@ -181,14 +184,14 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
       return generateHatBlockPath(width, height, rtl);
     } else if (this.hasStatementInput_()) {
       const bayDimensions = this.getStatementBayDimensions_();
-      // Calculate headerWidth (the part with the icon and number field)
-      // Header is at least MIN_BLOCK_X (64px)
-      const headerWidth = Math.max(MIN_BLOCK_X, 64); // Force 64px header
-      // Total width = header + bay + tail
-      const totalWidth = headerWidth + bayDimensions.width + 16; // 16 = TAIL_WIDTH
+      
+      // CRITICAL FIX: Use the calculated width from RenderInfo
+      // RenderInfo.measure() already handles Header + Bay + Tail + NOTCH_WIDTH logic.
+      // Recalculating it here caused desync (missing Notch Width).
+      const totalWidth = this.info_.width;
       
       return generateCBlockPath(
-        totalWidth,        // Total width of the entire block
+        totalWidth,        // Use authoritative width
         MIN_BLOCK_Y,       // Height of header (64px spine)
         bayDimensions.width,
         bayDimensions.height,

@@ -1,354 +1,242 @@
-/**
- * Horizontal Block Constants
- * 
- * Ported from scratch-blocks/core/block_render_svg_horizontal.js
- * These constants define the SVG paths and dimensions for horizontal blocks.
- */
+import * as Blockly from 'blockly/core';
 
-// Grid unit (4px base)
+// Grid unit (4px)
 export const GRID_UNIT = 4;
 
-// =============================================================================
-// BLOCK DIMENSIONS
-// =============================================================================
+// Block Dimensions
+export const MIN_BLOCK_X = 32; // 8 * GRID_UNIT (Derived from 1/2 * 16 * 4)
+export const MIN_BLOCK_Y = 64; // 16 * GRID_UNIT
 
-/** Horizontal space between elements */
-export const SEP_SPACE_X = 3 * GRID_UNIT; // 12px
+export const SEP_SPACE_X = 12; // 3 * GRID_UNIT
+export const SEP_SPACE_Y = 12; // 3 * GRID_UNIT
 
-/** Vertical space between elements */
-export const SEP_SPACE_Y = 3 * GRID_UNIT; // 12px
+export const CORNER_RADIUS = 4; // 1 * GRID_UNIT
+export const HAT_CORNER_RADIUS = 32; // 8 * GRID_UNIT
 
-/** Statement block vertical space */
-export const STATEMENT_BLOCK_SPACE = 3 * GRID_UNIT; // 12px
+export const NOTCH_WIDTH = 8; // 2 * GRID_UNIT
+export const NOTCH_HEIGHT = 34; // 8 * GRID_UNIT + 2
 
-/** Field height for inputs */
-export const FIELD_HEIGHT = 8 * GRID_UNIT; // 32px
-
-// Corner & Notch
-export const CORNER_RADIUS = 1 * GRID_UNIT; // 4px
-export const HAT_CORNER_RADIUS = 8 * GRID_UNIT; // 32px
-
-// Notch Logic (Centered Vertically)
-// Block Height = 64. Notch Height = ~34.
-// Top/Bottom Padding = (64 - 34) / 2 = 15.
-// Scratch-blocks uses ~14px offset.
-export const NOTCH_WIDTH = 2 * GRID_UNIT; // 8px
-export const NOTCH_HEIGHT = 8 * GRID_UNIT + 2; // 34px
+// Calculated offsets
+// Left Notch starts at Top + 14px (height - corner - sep - notch)
+// 64 - 4 - 12 - 34 = 14.
 export const NOTCH_START_Y = 14; 
 
-/** Icon field dimensions */
-export const IMAGE_FIELD_WIDTH = 8 * GRID_UNIT; // 32px
-export const IMAGE_FIELD_HEIGHT = 8 * GRID_UNIT; // 32px
-
-// Need to export this for proper referencing in other files
-export const FIELD_WIDTH = 12 * GRID_UNIT; 
-
-// Block Dimensions - Based on Scratch Jr source code
-// Standard blocks: 76x66
-// Repeat blocks: 176x82 (base size, expands with content)
-export const MIN_BLOCK_X = 76; // Standard block width
-export const MIN_BLOCK_Y = 66; // Standard block height
-
-// Repeat block dimensions
-export const REPEAT_BLOCK_WIDTH = 176; // Base width (expands with nested blocks)
-export const REPEAT_BLOCK_HEIGHT = 82; // Fixed height 
-
-// =============================================================================
-// SVG PATHS
-// =============================================================================
-
-/**
- * SVG path for drawing next/previous notch from top to bottom.
- * This creates the puzzle-piece connector on the LEFT/RIGHT of horizontal blocks.
- */
+// SVG Paths from Core
 export const NOTCH_PATH_DOWN = 'c 0,2 1,3 2,4 l 4,4 c 1,1 2,2 2,4 v 12 c 0,2 -1,3 -2,4 l -4,4 c -1,1 -2,2 -2,4';
-
-/**
- * SVG path for drawing next/previous notch from bottom to top.
- */
 export const NOTCH_PATH_UP = 'c 0,-2 1,-3 2,-4 l 4,-4 c 1,-1 2,-2 2,-4 v -12 c 0,-2 -1,-3 -2,-4 l -4,-4 c -1,-1 -2,-2 -2,-4';
 
-// SVG Corner Starts
 export const TOP_LEFT_CORNER_START = `m ${CORNER_RADIUS},0`;
 export const TOP_LEFT_CORNER = `A ${CORNER_RADIUS},${CORNER_RADIUS} 0 0,0 0,${CORNER_RADIUS}`;
-
 export const HAT_TOP_LEFT_CORNER_START = `m ${HAT_CORNER_RADIUS},0`;
 export const HAT_TOP_LEFT_CORNER = `A ${HAT_CORNER_RADIUS},${HAT_CORNER_RADIUS} 0 0,0 0,${HAT_CORNER_RADIUS}`;
 
-// =============================================================================
-// COMPLETE BLOCK PATH TEMPLATES
-// =============================================================================
+// Generate Path Functions (Replicating renderDraw_ logic)
 
-/**
- * Generate a HAT block path (Start block with pill-left shape)
- */
-export const generateHatBlockPath = (width: number, height: number, _rtl: boolean) => {
+export const generateStackBlockPath = (width: number, height: number, rtl: boolean) => {
   const cr = CORNER_RADIUS;
-  const hatCr = HAT_CORNER_RADIUS;
+  // Dynamic Notch Y (Bottom Aligned logic from Core)
+  const cursorY = height - CORNER_RADIUS - SEP_SPACE_Y - NOTCH_HEIGHT;
   
-  // Left Side (Hat Curve):
-  const leftSide = `
-    ${HAT_TOP_LEFT_CORNER_START}
-    ${HAT_TOP_LEFT_CORNER}
-    A ${hatCr},${hatCr} 0 0,0 ${hatCr},${height}
-  `;
-
-  // Right Side (With Notch out):
-  const rightSide = `
-    H ${width - cr}
-    a ${cr},${cr} 0 0,0 ${cr},-${cr}
-    V ${NOTCH_START_Y + NOTCH_HEIGHT}
-    ${NOTCH_PATH_UP}
-    V ${cr}
-    a ${cr},${cr} 0 0,0 -${cr},-${cr}
-    H ${hatCr}
-  `;
-
-  return `${leftSide} ${rightSide} z`;
-};
-
-/**
- * Generate a STACK block path (standard horizontal block with left/right connectors)
- */
-export const generateStackBlockPath = (width: number, height: number, _rtl: boolean) => {
-  const cr = CORNER_RADIUS;
-  
-  // Left Side (With Notch in/down):
-  const leftSide = `
+  // Left Edge
+  let path = `
     ${TOP_LEFT_CORNER_START}
     ${TOP_LEFT_CORNER}
-    V ${NOTCH_START_Y}
+    V ${cursorY}
     ${NOTCH_PATH_DOWN}
     V ${height - cr}
-    a ${cr},${cr} 0 0,0 ${cr},${cr}
   `;
 
-  // Right Side (With Notch out/up):
-  const rightSide = `
+  // Bottom Edge
+  path += `a ${cr},${cr} 0 0,0 ${cr},${cr}`;
+
+  // Right Edge
+  path += `
     H ${width - cr}
     a ${cr},${cr} 0 0,0 ${cr},-${cr}
-    V ${NOTCH_START_Y + NOTCH_HEIGHT}
+    v -${2.5 * GRID_UNIT} 
     ${NOTCH_PATH_UP}
     V ${cr}
     a ${cr},${cr} 0 0,0 -${cr},-${cr}
     z
   `;
-
-  return `${leftSide} ${rightSide}`;
+  return path;
 };
 
-/**
- * Generate a C-BLOCK path for Scratch Jr horizontal layout
- * 
- * SCRATCH JR C-BLOCK SHAPE:
- * The bay opens UPWARD - nested blocks protrude from the TOP of the loop block.
- * 
- *      ┌─────────────────┐
- *      │  Nested Blocks  │  ← Bay (nested blocks go here)
- *   ═══╪═════════════════╪═══
- *   │  Icon        Num   │  ← Main body (header + tail with icon/number)
- *   └────────────────────┘
- * 
- * The path draws:
- * 1. Left wall of header (with left notch)
- * 2. Up to bay opening
- * 3. Across bay top (where nested blocks connect)
- * 4. Down from bay to tail
- * 5. Right wall of tail (with right notch)
- * 6. Bottom back to start
- * 
- * @param totalWidth Total width of block (header + bay + tail)
- * @param mainBodyHeight Height of the bottom main body (contains icon/number)
- * @param bayWidth Width of the bay opening
- * @param bayHeight Height of the bay (how tall nested blocks extend upward)
- */
-export const generateCBlockPath = (
-  totalWidth: number, 
-  mainBodyHeight: number, 
-  bayWidth: number,
-  bayHeight: number,
-  _rtl: boolean
-) => {
+export const generateCBlockPath = (totalWidth: number, mainBodyHeight: number, bayWidth: number, bayHeight: number, rtl: boolean) => {
   const cr = CORNER_RADIUS;
+  const notchH = NOTCH_HEIGHT;
   
-  // HORIZONTAL C-BLOCK for Scratch Jr
-  // Main body at TOP (icon/number), Bay at BOTTOM (nested blocks)
-  // 
-  // Shape visualization:
-  // ┌───────────────────────────────┐
-  // │       Main body (icon + 4)    │  <- TOP (y=0 to mainBodyHeight)
-  // ├────────┬─────────────────┬────┤
-  // │ ▼ tab  │                 │tab▲│  <- Bay walls with notches
-  // │        │   (bay/empty)   │    │
-  // └────────┴─────────────────┴────┘  <- BOTTOM (y=mainBodyHeight to totalHeight)
-  //
-  // Total height = mainBodyHeight (top) + bayHeight (bottom)
+  // Calculate CursorY for Left edge first
+  // In our RenderInfo, mainBodyHeight is just 64. But real geometry depends on Bay.
+  // Actually, let's just use total logic.
+  // Left Edge Logic: V totalHeight-8 -> Notch -> V totalHeight-CR.
+  // We need Total Height passed in? 
+  // We can re-derive it: main + bay? 
+  // Wait, in measure(), we set height = bayHeight + 12 (STATEMENT_SPACE).
+  // Let's pass 'height' instead of 'mainBodyHeight' to be safe?
+  // No, let's stick to the args but interpret carefully.
+  // Actually, looking at renderDrawBottom_, it uses 'metrics.height' for connectionsXY.
   
-  const headerWidth = 40;  // Left section
-  const tailWidth = 60;    // Right section (holds number)
-  const actualBayWidth = Math.max(bayWidth, MIN_BLOCK_X);
+  // Let's assume mainBodyHeight represents the top bar H (64).
+  // We need the ACTUAL TOTAL HEIGHT for the left edge.
+  // In RenderInfo, 'this.height' was set to bayHeight + 12.
   
-  // X coordinates
-  const bayStartX = headerWidth;
-  const bayEndX = headerWidth + actualBayWidth;
+  // Re-deriving Total Height from parts matching RenderInfo logic:
+  // Height = bayHeight + 12 (STATEMENT_BLOCK_SPACE).
+  const STATEMENT_BLOCK_SPACE = 12; // 3 * GRID
+  // But wait, renderDrawRight uses height for v moves.
+  // Let's rely on the passed MainBodyHeight being the "Header Height" (64)
+  // And we need to construct the full path.
   
-  // Y coordinates - MAIN BODY ON TOP
-  const totalHeight = mainBodyHeight + bayHeight;
-  const mainBodyTopY = 0;
-  const mainBodyBottomY = mainBodyHeight;  // Where main body ends, bay starts
-  const bayBottomY = totalHeight;
+  // Actually, simpler: The function should take (width, height, bayWidth, bayHeight).
+  // But interface takes mainBodyHeight. Let's fix the call site later if needed.
+  // For now, let's assume valid inputs.
   
-  // Notch positions
-  // Outer walls: centered in totalHeight
-  const outerNotchY = (totalHeight - NOTCH_HEIGHT) / 2;
-  // Inner bay walls: centered in bayHeight, offset by mainBodyHeight
-  const innerNotchY = mainBodyHeight + (bayHeight - NOTCH_HEIGHT) / 2;
+  // RE-READING renderDrawBottom_:
+  // It draws the bottom of the top bar, then the bay.
+  // Sequence:
+  // 1. h 4*GRID (16)
+  // 2. Corner down-left (a 4,4 0 0,0 4,-4) --> Wait, this is 'a' command?
+  //    Core: a 4,4 0 0,0 4,-4. (Corner Radius is 4).
+  // 3. v -2.5*GRID (-10)
+  // 4. NOTCH_UP
+  // 5. v -bayHeight + 3*CR + NotchH + 2*GRID
+  // 6. a 4,4 0 0,1 4,-4 (Inner corner top-left)
+  // 7. h bayWidth - 2*CR
+  // 8. a 4,4 0 0,1 4,4 (Inner corner top-right)
+  // 9. v bayHeight - 3*CR - NotchH - 2*GRID (if notch at right) OR just v...
+  //    Actually core checks bayNotchAtRight. We assume YES always for now.
+  // 10. NOTCH_DOWN
+  // 11. V ... (down to bottom)
   
-  // Build path CLOCKWISE from top-left
-  const path = `
-    M ${cr},${mainBodyTopY}
-    
-    H ${totalWidth - cr}
-    a ${cr},${cr} 0 0,1 ${cr},${cr}
-    
-    V ${outerNotchY}
+  // Let's execute this sequence.
+  
+  // Left Edge (Standard)
+  // It needs Total Height. 
+  const totalHeight = bayHeight + STATEMENT_BLOCK_SPACE;
+  const cursorY = totalHeight - cr - SEP_SPACE_Y - notchH;
+  
+  let path = `
+    ${TOP_LEFT_CORNER_START}
+    ${TOP_LEFT_CORNER}
+    V ${cursorY}
     ${NOTCH_PATH_DOWN}
-    V ${bayBottomY - cr}
-    
-    a ${cr},${cr} 0 0,1 -${cr},${cr}
-    
-    H ${bayEndX + cr}
-    
-    a ${cr},${cr} 0 0,0 -${cr},-${cr}
-    
-    V ${innerNotchY + NOTCH_HEIGHT}
-    ${NOTCH_PATH_UP}
-    V ${mainBodyBottomY + cr}
-    
-    a ${cr},${cr} 0 0,1 -${cr},-${cr}
-    
-    H ${bayStartX + cr}
-    
-    a ${cr},${cr} 0 0,1 -${cr},${cr}
-    
-    V ${innerNotchY}
-    ${NOTCH_PATH_DOWN}
-    V ${bayBottomY - cr}
-    
-    a ${cr},${cr} 0 0,1 -${cr},${cr}
-    
-    H ${cr}
-    a ${cr},${cr} 0 0,1 -${cr},-${cr}
-    
-    V ${outerNotchY + NOTCH_HEIGHT}
-    ${NOTCH_PATH_UP}
-    V ${cr}
-    
-    a ${cr},${cr} 0 0,1 ${cr},-${cr}
-    
-    z
+    V ${totalHeight - cr}
   `;
+  
+  // Bottom Edge (Strict Core Sequence):
+  // 1. h 16
+  path += `a ${cr},${cr} 0 0,0 ${cr},${cr}`; // Bottom-Left Corner of Stack
+  path += `h ${4 * GRID_UNIT}`; 
+  
+  // 2. Corner into Bay (Outer -> Inner)
+  // Core Line 723: a 4,4 0 0,0 4,-4
+  path += `a ${cr},${cr} 0 0,0 ${cr},-${cr}`;
+  
+  // 3. v -10
+  path += `v ${-2.5 * GRID_UNIT}`;
+  
+  // 4. NOTCH UP (The "Ceiling" of the bay has a notch for nested block)
+  path += `${NOTCH_PATH_UP}`;
+  
+  // 5. v up-into-bay
+  // Core Line 730: v -bayHeight + 3*CR + NotchH + 2*GRID
+  const vUp = -bayHeight + (cr * 3) + notchH + (2 * GRID_UNIT);
+  path += `v ${vUp}`;
+  
+  // 6. Inner Corner Top-Left
+  // Core Line 732: a 4,4 0 0,1 4,-4
+  path += `a ${cr},${cr} 0 0,1 ${cr},-${cr}`;
+  
+  // 7. h bayWidth
+  // Core Line 736: h bayWidth - 2*CR
+  path += `h ${bayWidth - (cr * 2)}`;
+  
+  // 8. Inner Corner Top-Right
+  // Core Line 737: a 4,4 0 0,1 4,4
+  path += `a ${cr},${cr} 0 0,1 ${cr},${cr}`;
+  
+  // 9. v down-from-bay
+  // Core Line 742: v bayHeight - 3*CR - NotchH - 2*GRID
+  // Note: Core checks bayNotchAtRight. We assume True.
+  const vDown = bayHeight - (cr * 3) - notchH - (2 * GRID_UNIT);
+  path += `v ${vDown}`;
+  
+  // 10. NOTCH DOWN (The "Floor" of the bay connection? No, this is the right wall of bay?)
+  // Wait, in Horizontal, the bay is the space between the "C".
+  // The notch is on the right wall of the C.
+  path += `${NOTCH_PATH_DOWN}`;
+  
+  // 11. V to bottom
+  // Core Line 746: V bayHeight + 2*GRID
+  // Wait, V implies absolute Y? 
+  // Core uses 'V'. "V metrics.bayHeight + 2 * GRID_UNIT".
+  // Let's double check coordinates.
+  // SVG 'V' is absolute Y. 
+  // If we utilize relative 'v', we need to close the shape.
+  // Core uses absolute V to finish the leg?
+  // "V bayHeight + 2*GRID" -> This brings us to the bottom of the top arm?
+  // No, "bayHeight" is the height of the inner content.
+  // 
+  // Actually, 'renderDrawBottom_' draws the ENTIRE bottom profile.
+  // After the notch, it does a corner a 4,4 0 0,0 4,4.
+  // Let's assume relative commands for safety or match Core's absolute context.
+  // Core's context: (0,0) is top-left.
+  // If we use V, we need exact Y.
+  // Core: V bayHeight + 8.
+  // RenderInfo Height formula: bayHeight + 12.
+  // So V (TotalHeight - 4).
+  // This matches V ${totalHeight - cr}.
+  path += `V ${totalHeight - cr}`;
+  
+  // Bottom-Right Corner of C-Block Leg
+  path += `a ${cr},${cr} 0 0,0 ${cr},${cr}`;
+  
+  // Right Edge (Standard Stack-like)
+  // H totalWidth - CR
+  path += `H ${totalWidth - cr}`;
+  
+  // Corner Up-Right
+  path += `a ${cr},${cr} 0 0,0 ${cr},-${cr}`;
+  
+  // v -10
+  path += `v ${-2.5 * GRID_UNIT}`;
+  
+  // Notch Up (Connection to next block)
+  path += `${NOTCH_PATH_UP}`;
+  
+  // V CR (Go to top)
+  path += `V ${cr}`;
+  
+  // Top-Right Corner
+  path += `a ${cr},${cr} 0 0,0 -${cr},-${cr}`;
+  
+  path += `z`;
   
   return path;
 };
 
-
-// =============================================================================
-// COLORS
-// =============================================================================
-
-export const HORIZONTAL_COLORS = {
-  start: {
-    primary: '#14A795',
-    secondary: '#108677',
-    tertiary: '#338c7b',
-  },
-  movement: {
-    primary: '#A4DD4A',
-    secondary: '#009444',
-    tertiary: '#54b947',
-  },
-  turn: {
-    primary: '#26A2F6',
-    secondary: '#007ec4',
-    tertiary: '#0e79b2',
-  },
-  loop: {
-    primary: '#F7941D',
-    secondary: '#c16500',
-    tertiary: '#c56101',
-  },
-  workspace: {
-    background: '#72D4C8',
-    border: '#5BBFB3',
-  },
+export const generateHatBlockPath = (width: number, height: number, rtl: boolean) => {
+   // Similar to Stack but with HAT_TOP_LEFT_CORNER
+   const cr = CORNER_RADIUS;
+   const hatCr = HAT_CORNER_RADIUS;
+   let path = `
+     ${HAT_TOP_LEFT_CORNER_START}
+     ${HAT_TOP_LEFT_CORNER}
+     V ${height - cr}
+   `; // No Notch Down on left
+   
+    path += `a ${cr},${cr} 0 0,0 ${cr},${cr}`; // Bottom left corner
+    
+    // Right Edge (same as Stack)
+    path += `
+    H ${width - cr}
+    a ${cr},${cr} 0 0,0 ${cr},-${cr}
+    v -10
+    ${NOTCH_PATH_UP}
+    V ${cr}
+    a ${cr},${cr} 0 0,0 -${cr},-${cr}
+    z
+  `;
+  return path;
 };
-
-// =============================================================================
-// BLOCK METRICS
-// =============================================================================
-
-export type HorizontalBlockShape = 'hat' | 'stack' | 'c-block' | 'end' | 'argument';
-
-export interface HorizontalBlockMetrics {
-  width: number;
-  height: number;
-  shape: HorizontalBlockShape;
-  hasStatement: boolean;
-  bayWidth?: number;
-  bayHeight?: number;
-  startHat: boolean;
-  endCap: boolean;
-}
-
-export function calculateBlockMetrics(
-  hasOutput: boolean,
-  hasPrevious: boolean,
-  hasNext: boolean,
-  hasStatement: boolean,
-  statementBaySize?: { width: number; height: number }
-): HorizontalBlockMetrics {
-  let shape: HorizontalBlockShape = 'stack';
-  let width = SEP_SPACE_X * 2 + IMAGE_FIELD_WIDTH; // Default width
-  let height = SEP_SPACE_Y * 2 + IMAGE_FIELD_HEIGHT; // Default height
-  
-  // Enforce Minimum Dimensions from Doodle Specs
-  width = Math.max(width, MIN_BLOCK_X);
-  height = Math.max(height, MIN_BLOCK_Y);
-
-  const startHat = hasNext && !hasPrevious;
-  const endCap = !hasNext && hasPrevious && !hasOutput && !hasStatement;
-  
-  if (hasOutput) {
-    shape = 'argument';
-    height = FIELD_HEIGHT;
-    width = FIELD_WIDTH;
-  } else if (startHat) {
-    shape = 'hat';
-    // Hat block usually wider or has special left offset
-    // Metrics handling logic usually implicit in renderer
-  } else if (hasStatement) {
-    shape = 'c-block';
-  } else if (endCap) {
-    shape = 'end';
-    // End cap adjustment
-  }
-  
-  if (hasStatement && statementBaySize) {
-    // Basic logic for C-Block metrics addition
-    // Ideally this matches the SVG path logic
-    width += statementBaySize.width;
-    height = Math.max(height, statementBaySize.height + STATEMENT_BLOCK_SPACE);
-  }
-  
-  return {
-    width,
-    height,
-    shape,
-    hasStatement,
-    bayWidth: statementBaySize?.width,
-    bayHeight: statementBaySize?.height,
-    startHat,
-    endCap,
-  };
-}

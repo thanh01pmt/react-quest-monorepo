@@ -62,6 +62,18 @@ export const juniorTheme = Blockly.Theme.defineTheme('junior', {
       colourSecondary: '#c56101',
       colourTertiary: '#c16500',
     },
+    // Looks blocks (Say)
+    'looks_category': {
+      colourPrimary: '#9966FF',
+      colourSecondary: '#774DCB',
+      colourTertiary: '#5530A0',
+    },
+    // Action blocks (Collect, Toggle) - Red/Orange
+    'actions_category': {
+      colourPrimary: '#FF6680',
+      colourSecondary: '#CD3352',
+      colourTertiary: '#A61A3C',
+    },
   },
   
   componentStyles: {
