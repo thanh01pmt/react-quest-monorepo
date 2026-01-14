@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <!-- Turn Right Arrow Icon -->
+  <g transform="scale(-1,1) translate(-40,0)">
+    <!-- Curved arrow path (mirrored from turn_left) -->
+    <path 
+      d="M30 28 A12 12 0 0 0 18 16 L18 10 L8 18 L18 26 L18 20 A6 6 0 0 1 26 26 L26 28 Z" 
+      fill="#ffffff"
+      stroke="#007ec4"
+      stroke-width="1"
+    />
+  </g>
+</svg>

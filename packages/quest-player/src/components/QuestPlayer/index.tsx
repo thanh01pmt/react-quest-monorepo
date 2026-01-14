@@ -25,6 +25,7 @@ import { DocumentationPanel } from '../DocumentationPanel';
 import { BackgroundMusic } from '../BackgroundMusic';
 import { SettingsPanel } from '../SettingsPanel';
 import { SnippetToolbox } from '../SnippetToolbox';
+import { HorizontalBlocklyRenderer } from '../HorizontalBlocklyRenderer';
 import { useSoundManager } from '../../hooks/useSoundManager';
 import { getToolboxPresetWithFallback } from '../../config/toolboxPresets';
 import type { TurtleRendererHandle } from '../../games/turtle/TurtleRenderer';
@@ -80,7 +81,8 @@ const DEFAULT_SETTINGS: Required<QuestPlayerSettings> = {
   toolboxMode: 'default',
   toolboxPresetKey: 'default',
   environment: 'day',
-  displayLanguage: 'javascript', // Default to JavaScript
+  displayLanguage: 'javascript',
+  blockMode: 'vertical',
 };
 
 let blocklyDefaultEnglishMessages: { [key: string]: string } | null = null;
@@ -986,16 +988,33 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                     />
                   </div>
                   */}
+                  {/* Conditional rendering based on blockMode */}
                   {questData.blocklyConfig && loadedQuestId === questData.id && (
-                    <BlocklyWorkspace
-                      key={blocklyWorkspaceKey}
-                      className="fill-container"
-                      toolboxConfiguration={filteredToolboxConfig || dynamicToolboxConfig}
-                      initialXml={initialXml}
-                      workspaceConfiguration={workspaceConfiguration}
-                      onWorkspaceChange={onWorkspaceChange}
-                      onInject={onInject}
-                    />
+                    settings.blockMode === 'horizontal' ? (
+                      <HorizontalBlocklyRenderer
+                        key={`horizontal-${blocklyWorkspaceKey}`}
+                        height="100%"
+                        showControls={true}
+                        maxBlocks={questData.blocklyConfig.maxBlocks}
+                        onBlocksChange={(xml) => {
+                          // Parse XML and update workspace state
+                          console.log('[QuestPlayer] Horizontal blocks changed:', xml.length);
+                        }}
+                        onCodeChange={(code) => {
+                          setBlocklyGeneratedCode(code);
+                        }}
+                      />
+                    ) : (
+                      <BlocklyWorkspace
+                        key={blocklyWorkspaceKey}
+                        className="fill-container"
+                        toolboxConfiguration={filteredToolboxConfig || dynamicToolboxConfig}
+                        initialXml={initialXml}
+                        workspaceConfiguration={workspaceConfiguration}
+                        onWorkspaceChange={onWorkspaceChange}
+                        onInject={onInject}
+                      />
+                    )
                   )}
                   {questData.blocklyConfig && loadedQuestId !== questData.id && (
                     <div className="emptyState">
@@ -1018,6 +1037,8 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                     onToolboxPresetChange={value => handleSettingsChange({ toolboxPresetKey: value })}
                     environment={settings.environment || 'night'}
                     onEnvironmentChange={value => handleSettingsChange({ environment: value })}
+                    blockMode={settings.blockMode || 'vertical'}
+                    onBlockModeChange={value => handleSettingsChange({ blockMode: value })}
                   />
                 </div>
               </>

@@ -1,0 +1,173 @@
+/**
+ * HorizontalBlocklyRenderer Styles
+ * 
+ * Pill-shaped workspace with bottom flyout for junior mode.
+ */
+
+.horizontal-blockly-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 42px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #72D4C8 0%, #5BBFB3 100%);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.15),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.horizontal-blockly-workspace {
+  flex: 1;
+  width: 100%;
+  min-height: 120px;
+}
+
+/* Override Blockly's default background */
+.horizontal-blockly-container .injectionDiv {
+  background: transparent !important;
+  border-radius: 42px;
+}
+
+.horizontal-blockly-container .blocklySvg {
+  background: transparent !important;
+  border-radius: 42px;
+}
+
+/* Main workspace background - pill shape */
+.horizontal-blockly-container .blocklyMainBackground {
+  fill: rgba(255, 255, 255, 0.15) !important;
+  rx: 42px;
+  ry: 42px;
+}
+
+/* Flyout styling */
+.horizontal-blockly-container .blocklyFlyout {
+  border-radius: 0 0 42px 42px;
+}
+
+.horizontal-blockly-container .blocklyFlyoutBackground {
+  fill: rgba(91, 191, 179, 0.6);
+}
+
+/* Hide scrollbars for cleaner look */
+.horizontal-blockly-container .blocklyScrollbarHorizontal,
+.horizontal-blockly-container .blocklyScrollbarVertical {
+  display: none !important;
+}
+
+/* Control bar */
+.horizontal-blockly-controls {
+  position: absolute;
+  top: 12px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+}
+
+.hb-control-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #14A795;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.hb-control-btn:hover {
+  background: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.hb-control-btn:active {
+  transform: scale(0.95);
+}
+
+.hb-reset-btn {
+  color: #F7941D;
+}
+
+.hb-block-counter {
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Block styling overrides for horizontal mode */
+.horizontal-blockly-container .blocklyDraggable {
+  cursor: grab;
+}
+
+.horizontal-blockly-container .blocklyDraggable:active {
+  cursor: grabbing;
+}
+
+/* Insertion marker */
+.horizontal-blockly-container .blocklyInsertionMarker > .blocklyPath {
+  fill: #FFFFFF;
+  fill-opacity: 0.5;
+  stroke: none;
+}
+
+/* Selection highlight */
+.horizontal-blockly-container .blocklySelected > .blocklyPath {
+  stroke: #FFFFFF;
+  stroke-width: 3px;
+}
+
+/* Block shadows for 3D effect */
+.horizontal-blockly-container [data-shapes="stack"] > .blocklyPath,
+.horizontal-blockly-container [data-shapes="hat"] > .blocklyPath,
+.horizontal-blockly-container [data-shapes="c-block"] > .blocklyPath {
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.2));
+}
+
+/* Toolbox category styling */
+.horizontal-blockly-container .blocklyToolboxDiv {
+  background: transparent;
+}
+
+/* Touch-friendly hit areas */
+@media (pointer: coarse) {
+  .horizontal-blockly-container .blocklyDraggable {
+    touch-action: none;
+  }
+  
+  .hb-control-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+}
+
+/* Animation for blocks entering workspace */
+@keyframes blockPop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.horizontal-blockly-container .blocklyDraggable {
+  animation: blockPop 0.2s ease-out;
+}

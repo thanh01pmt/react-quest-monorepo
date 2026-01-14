@@ -10,6 +10,7 @@ type Renderer = NonNullable<QuestPlayerSettings['renderer']>;
 type BlocklyThemeName = NonNullable<QuestPlayerSettings['blocklyThemeName']>;
 type ColorSchemeMode = NonNullable<QuestPlayerSettings['colorSchemeMode']>;
 type EnvironmentMode = 'day' | 'night';
+type BlockMode = NonNullable<QuestPlayerSettings['blockMode']>;
 
 // Preset keys available in Settings dropdown
 const PRESET_OPTIONS: Array<'default' | ToolboxPresetKey> = [
@@ -33,6 +34,7 @@ interface SettingsPanelProps {
   colorSchemeMode: ColorSchemeMode;
   toolboxPresetKey: 'default' | ToolboxPresetKey;
   environment: EnvironmentMode;
+  blockMode?: BlockMode;
 
   // Các hàm callback để thay đổi giá trị
   onRendererChange: (renderer: Renderer) => void;
@@ -42,6 +44,7 @@ interface SettingsPanelProps {
   onColorSchemeChange: (mode: ColorSchemeMode) => void;
   onToolboxPresetChange: (preset: 'default' | ToolboxPresetKey) => void;
   onEnvironmentChange: (mode: EnvironmentMode) => void;
+  onBlockModeChange?: (mode: BlockMode) => void;
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -59,7 +62,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onColorSchemeChange,
   onToolboxPresetChange,
   environment,
-  onEnvironmentChange
+  onEnvironmentChange,
+  blockMode = 'vertical',
+  onBlockModeChange
 }) => {
   const { t } = useTranslation();
 
@@ -67,6 +72,22 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     <div className={`settings-panel-container ${isOpen ? 'open' : ''}`}>
       <div className="settings-panel">
         <h3>{t('Settings.title')}</h3>
+
+        {/* Block Mode Toggle - NEW */}
+        {onBlockModeChange && (
+          <div className="setting-item setting-item-highlight">
+            <label htmlFor="blockmode-select">{t('Settings.blockMode', 'Block Layout')}</label>
+            <select
+              id="blockmode-select"
+              value={blockMode}
+              onChange={(e) => onBlockModeChange(e.target.value as BlockMode)}
+            >
+              <option value="vertical">{t('Settings.blockModeVertical', '📐 Vertical')}</option>
+              <option value="horizontal">{t('Settings.blockModeHorizontal', '🐰 Junior (Horizontal)')}</option>
+            </select>
+          </div>
+        )}
+
         <div className="setting-item">
           <label htmlFor="renderer-select">{t('Settings.renderer')}</label>
           <select

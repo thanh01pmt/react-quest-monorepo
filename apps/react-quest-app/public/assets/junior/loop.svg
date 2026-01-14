@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <!-- Loop/Repeat Arrow Icon -->
+  <g>
+    <!-- Circular arrow -->
+    <path 
+      d="M32 20 A12 12 0 1 0 20 32" 
+      fill="none"
+      stroke="#ffffff"
+      stroke-width="4"
+      stroke-linecap="round"
+    />
+    <!-- Arrow head -->
+    <path 
+      d="M16 28 L20 34 L24 28" 
+      fill="none"
+      stroke="#ffffff"
+      stroke-width="4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <!-- Inner shadow -->
+    <path 
+      d="M28 20 A8 8 0 1 0 20 28" 
+      fill="none"
+      stroke="#c16500"
+      stroke-width="2"
+      stroke-linecap="round"
+      opacity="0.3"
+    />
+  </g>
+</svg>

@@ -333,6 +333,11 @@ export interface QuestPlayerSettings {
   toolboxPresetKey?: 'default' | 'basic_movement' | 'with_actions' | 'with_loops' | 'with_functions' | 'with_conditionals' | 'full_toolbox' | (string & {});
   environment?: 'day' | 'night';
   displayLanguage?: CodeLanguage;
+  /**
+   * Block layout mode: 'vertical' for standard Scratch-style blocks,
+   * 'horizontal' for Junior Mode (Google Doodle / ScratchJr style)
+   */
+  blockMode?: 'vertical' | 'horizontal';
 }
 
 export type CodeLanguage = 'javascript' | 'python' | 'lua' | 'cpp' | 'swift';

@@ -6,6 +6,15 @@ export type { QuestPlayerProps } from './components/QuestPlayer';
 export * from './components/BlocklyRenderer';
 export * from './components/GuideRenderer';
 
+// Horizontal/Junior Mode components
+export { HorizontalBlocklyRenderer } from './components/HorizontalBlocklyRenderer';
+export { juniorTheme } from './renderers/juniorTheme';
+export { initJuniorBlocks, getJuniorToolbox } from './games/maze/juniorBlocks';
+export { 
+  registerHorizontalRenderer,
+  HorizontalRenderer,
+} from './renderers/HorizontalRenderer';
+
 // Child components (for library mode usage in apps)
 export { Dialog } from './components/Dialog';
 export { QuestImporter } from './components/QuestImporter';
