@@ -2,6 +2,27 @@
 
 ## Thay Đổi Gần Đây
 
+### 14/01/2026
+
+- **Loại thay đổi: System Synchronization (Major Import)**
+  - **Mô tả**: Đồng bộ hóa quy mô lớn mã nguồn dự án (hơn 1800 file), bao gồm toàn bộ nội dung của `quest-player`, `shared-templates`, `refs`, và các cấu hình hệ thống.
+  - **Mục tiêu**: Cập nhật repository để khớp với trạng thái phát triển thực tế, đưa các module cốt lõi vào quản lý phiên bản.
+  - **Tác động**: Hoàn thiện codebase trên remote, cho phép các developer khác pull và chạy toàn bộ hệ thống (Game Engine, Template Gen).
+  - **File liên quan**:
+    - `[packages/quest-player/src/index.ts](packages/quest-player/src/index.ts)`
+    - `[packages/shared-templates/src/index.ts](packages/shared-templates/src/index.ts)`
+    - `[packages/quest-player/src/games/maze/MazeEngine.ts](packages/quest-player/src/games/maze/MazeEngine.ts)`
+    - `[packages/shared-templates/src/bundled-templates.ts](packages/shared-templates/src/bundled-templates.ts)`
+
+- **Loại thay đổi: Documentation Update**
+  - **Mô tả**: Cập nhật và bổ sung tài liệu tham khảo kỹ thuật trong `packages/refs`, bao gồm các hướng dẫn tiếp cận (approaches) và đặc tả kiến trúc.
+  - **Mục tiêu**: Cung cấp tài liệu chi tiết về chiến lược giải quyết vấn đề (pattern-based, solution-driven) và kiến trúc interpreter.
+  - **Tác động**: Giúp định hướng rõ ràng cho việc phát triển các thuật toán và module xử lý bài tập.
+  - **File liên quan**:
+    - `[packages/refs/approaches/02-solution-driven.md](packages/refs/approaches/02-solution-driven.md)`
+    - `[packages/refs/architecture/interpreter.md](packages/refs/architecture/interpreter.md)`
+    - `[packages/refs/specifications/coding.html](packages/refs/specifications/coding.html)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
