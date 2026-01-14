@@ -43,10 +43,15 @@ export const IMAGE_FIELD_HEIGHT = 8 * GRID_UNIT; // 32px
 // Need to export this for proper referencing in other files
 export const FIELD_WIDTH = 12 * GRID_UNIT; 
 
-// Block Dimensions
-// 64x64px
-export const MIN_BLOCK_X = 16 * GRID_UNIT; 
-export const MIN_BLOCK_Y = 16 * GRID_UNIT; 
+// Block Dimensions - Based on Scratch Jr source code
+// Standard blocks: 76x66
+// Repeat blocks: 176x82 (base size, expands with content)
+export const MIN_BLOCK_X = 76; // Standard block width
+export const MIN_BLOCK_Y = 66; // Standard block height
+
+// Repeat block dimensions
+export const REPEAT_BLOCK_WIDTH = 176; // Base width (expands with nested blocks)
+export const REPEAT_BLOCK_HEIGHT = 82; // Fixed height 
 
 // =============================================================================
 // SVG PATHS
@@ -133,63 +138,114 @@ export const generateStackBlockPath = (width: number, height: number, _rtl: bool
 };
 
 /**
- * Generate a C-BLOCK path for horizontal layout (loop block with statement input)
+ * Generate a C-BLOCK path for Scratch Jr horizontal layout
  * 
- * For HORIZONTAL layout, the C-block has a cavity/bay extending to the RIGHT
- * where nested blocks go. Shape is like a horizontal bracket: [ ]
+ * SCRATCH JR C-BLOCK SHAPE:
+ * The bay opens UPWARD - nested blocks protrude from the TOP of the loop block.
  * 
- * The block looks like:
- *   ┌────────────────┐
- *   │ ICON           │──────────┐
- *   │                │  BAY     │
- *   └────────────────┘──────────┘
- *   (nested blocks go in bay)
+ *      ┌─────────────────┐
+ *      │  Nested Blocks  │  ← Bay (nested blocks go here)
+ *   ═══╪═════════════════╪═══
+ *   │  Icon        Num   │  ← Main body (header + tail with icon/number)
+ *   └────────────────────┘
  * 
- * @param width Total width including bay
- * @param height Height of main block area (64px)
- * @param bayWidth Width of the statement bay
- * @param bayHeight Height of nested content
+ * The path draws:
+ * 1. Left wall of header (with left notch)
+ * 2. Up to bay opening
+ * 3. Across bay top (where nested blocks connect)
+ * 4. Down from bay to tail
+ * 5. Right wall of tail (with right notch)
+ * 6. Bottom back to start
+ * 
+ * @param totalWidth Total width of block (header + bay + tail)
+ * @param mainBodyHeight Height of the bottom main body (contains icon/number)
+ * @param bayWidth Width of the bay opening
+ * @param bayHeight Height of the bay (how tall nested blocks extend upward)
  */
 export const generateCBlockPath = (
-  width: number, 
-  height: number, 
-  bayWidth: number, 
-  bayHeight: number, 
+  totalWidth: number, 
+  mainBodyHeight: number, 
+  bayWidth: number,
+  bayHeight: number,
   _rtl: boolean
 ) => {
   const cr = CORNER_RADIUS;
-  const mainWidth = 64; // Width of icon section (left part)
-  const actualBayWidth = Math.max(bayWidth, 64); // At least one block wide
-  const actualBayHeight = Math.max(bayHeight, 48); // Minimum bay height
-  const totalWidth = mainWidth + actualBayWidth;
-  const totalHeight = height + actualBayHeight;
   
-  // The path draws a horizontal C-shape:
-  // Start at top-left, go right, then down-right to create the bay
+  // HORIZONTAL C-BLOCK for Scratch Jr
+  // Main body at TOP (icon/number), Bay at BOTTOM (nested blocks)
+  // 
+  // Shape visualization:
+  // ┌───────────────────────────────┐
+  // │       Main body (icon + 4)    │  <- TOP (y=0 to mainBodyHeight)
+  // ├────────┬─────────────────┬────┤
+  // │ ▼ tab  │                 │tab▲│  <- Bay walls with notches
+  // │        │   (bay/empty)   │    │
+  // └────────┴─────────────────┴────┘  <- BOTTOM (y=mainBodyHeight to totalHeight)
+  //
+  // Total height = mainBodyHeight (top) + bayHeight (bottom)
+  
+  const headerWidth = 40;  // Left section
+  const tailWidth = 60;    // Right section (holds number)
+  const actualBayWidth = Math.max(bayWidth, MIN_BLOCK_X);
+  
+  // X coordinates
+  const bayStartX = headerWidth;
+  const bayEndX = headerWidth + actualBayWidth;
+  
+  // Y coordinates - MAIN BODY ON TOP
+  const totalHeight = mainBodyHeight + bayHeight;
+  const mainBodyTopY = 0;
+  const mainBodyBottomY = mainBodyHeight;  // Where main body ends, bay starts
+  const bayBottomY = totalHeight;
+  
+  // Notch positions
+  // Outer walls: centered in totalHeight
+  const outerNotchY = (totalHeight - NOTCH_HEIGHT) / 2;
+  // Inner bay walls: centered in bayHeight, offset by mainBodyHeight
+  const innerNotchY = mainBodyHeight + (bayHeight - NOTCH_HEIGHT) / 2;
+  
+  // Build path CLOCKWISE from top-left
   const path = `
-    ${TOP_LEFT_CORNER_START}
-    ${TOP_LEFT_CORNER}
-    V ${NOTCH_START_Y}
+    M ${cr},${mainBodyTopY}
+    
+    H ${totalWidth - cr}
+    a ${cr},${cr} 0 0,1 ${cr},${cr}
+    
+    V ${outerNotchY}
     ${NOTCH_PATH_DOWN}
-    V ${totalHeight - cr}
-    a ${cr},${cr} 0 0,0 ${cr},${cr}
+    V ${bayBottomY - cr}
     
-    H ${totalWidth - cr}
-    a ${cr},${cr} 0 0,0 ${cr},-${cr}
-    V ${height + cr}
+    a ${cr},${cr} 0 0,1 -${cr},${cr}
+    
+    H ${bayEndX + cr}
+    
     a ${cr},${cr} 0 0,0 -${cr},-${cr}
     
-    H ${mainWidth + cr}
-    a ${cr},${cr} 0 0,0 -${cr},-${cr}
-    V ${height - actualBayHeight + cr}
-    a ${cr},${cr} 0 0,0 ${cr},-${cr}
+    V ${innerNotchY + NOTCH_HEIGHT}
+    ${NOTCH_PATH_UP}
+    V ${mainBodyBottomY + cr}
     
-    H ${totalWidth - cr}
-    a ${cr},${cr} 0 0,0 ${cr},-${cr}
-    V ${NOTCH_START_Y + NOTCH_HEIGHT}
+    a ${cr},${cr} 0 0,1 -${cr},-${cr}
+    
+    H ${bayStartX + cr}
+    
+    a ${cr},${cr} 0 0,1 -${cr},${cr}
+    
+    V ${innerNotchY}
+    ${NOTCH_PATH_DOWN}
+    V ${bayBottomY - cr}
+    
+    a ${cr},${cr} 0 0,1 -${cr},${cr}
+    
+    H ${cr}
+    a ${cr},${cr} 0 0,1 -${cr},-${cr}
+    
+    V ${outerNotchY + NOTCH_HEIGHT}
     ${NOTCH_PATH_UP}
     V ${cr}
-    a ${cr},${cr} 0 0,0 -${cr},-${cr}
+    
+    a ${cr},${cr} 0 0,1 ${cr},-${cr}
+    
     z
   `;
   

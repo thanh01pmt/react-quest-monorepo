@@ -91,6 +91,13 @@ export const HorizontalBlocklyRenderer: React.FC<HorizontalBlocklyRendererProps>
         }
     }, [t, pathToMedia]);
 
+    // Use refs for callbacks to prevent re-registering listeners (and disposing workspace)
+    // when parent component re-renders
+    const callbacksRef = useRef({ onBlocksChange, onCodeChange });
+    useEffect(() => {
+        callbacksRef.current = { onBlocksChange, onCodeChange };
+    }, [onBlocksChange, onCodeChange]);
+
     // Create/destroy workspace
     useEffect(() => {
         if (!containerRef.current) return;
@@ -98,46 +105,48 @@ export const HorizontalBlocklyRenderer: React.FC<HorizontalBlocklyRendererProps>
         // Determine which renderer to use
         const rendererName = useHorizontalRenderer && horizontalRendererRegistered
             ? 'horizontal'
-            : 'zelos';
+            : 'zelos'; // Fallback to zelos if horizontal not registered
 
-        // Create workspace with horizontal-friendly configuration
+        // Use junior toolbox if horizontal
+        const toolboxConfig = useHorizontalRenderer
+            ? getJuniorToolbox()
+            : undefined;
+
+        // Inject workspace
         const workspace = Blockly.inject(containerRef.current, {
-            theme: juniorTheme,
-            readOnly,
-            horizontalLayout: true,
-            toolboxPosition: 'end', // Bottom
-            move: {
-                scrollbars: true,
-                drag: true,
-                wheel: false
-            },
-            zoom: {
-                controls: false,
-                wheel: false,
-                startScale: 1.0
-            },
-            grid: {
-                spacing: 20,
-                length: 3,
-                colour: '#ffffff20',
-                snap: true,
-            },
             renderer: rendererName,
-            toolbox: getJuniorToolbox(),
-            maxBlocks,
+            theme: juniorTheme, // CRITICAL: Restore theme for correct colors
+            toolbox: toolboxConfig,
+            readOnly: readOnly,
+            scrollbars: true,
+            trashcan: true,
+            sounds: true,
+            media: pathToMedia || 'https://unpkg.com/blockly/media/',
+            zoom: {
+                controls: true,
+                wheel: true,
+                startScale: 1.0,
+                maxScale: 3,
+                minScale: 0.3,
+                scaleSpeed: 1.2,
+            },
+            horizontalLayout: useHorizontalRenderer, // Important for horizontal scrolling
+            toolboxPosition: useHorizontalRenderer ? 'end' : 'start', // Bottom for horizontal
         });
 
         workspaceRef.current = workspace;
 
-        // Listen for changes
-        const changeListener = () => {
-            const currentXml = Blockly.Xml.workspaceToDom(workspace);
-            const xmlText = Blockly.Xml.domToText(currentXml);
-            onBlocksChange?.(xmlText);
+        // Handle block changes
+        const changeListener = (event: Blockly.Events.Abstract) => {
+            if (event.type === Blockly.Events.UI) return; // Ignore UI events
 
             // Generate code
             const code = javascriptGenerator.workspaceToCode(workspace);
-            onCodeChange?.(code);
+            callbacksRef.current.onCodeChange?.(code);
+
+            // Notify blocks changed (xml)
+            const xmlText = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
+            callbacksRef.current.onBlocksChange?.(xmlText);
 
             // Update block count
             setBlockCount(workspace.getAllBlocks(false).length);
@@ -155,8 +164,10 @@ export const HorizontalBlocklyRenderer: React.FC<HorizontalBlocklyRendererProps>
                 createDefaultStartBlock(workspace);
             }
         } else {
-            // No XML provided - create default junior_start block
-            createDefaultStartBlock(workspace);
+            // No XML provided - create default junior_start block (only if empty workspace)
+            if (workspace.getAllBlocks(false).length === 0) {
+                createDefaultStartBlock(workspace);
+            }
         }
 
         // Cleanup
@@ -165,7 +176,9 @@ export const HorizontalBlocklyRenderer: React.FC<HorizontalBlocklyRendererProps>
             workspace.dispose();
             workspaceRef.current = null;
         };
-    }, [readOnly, maxBlocks, pathToMedia, useHorizontalRenderer, onBlocksChange, onCodeChange, xml]);
+        // CRITICAL: Removed onBlocksChange/onCodeChange/xml from deps to prevent dispose loop
+        // xml is only treated as INITIAL value here. Logic for updating xml dynamically should be separate if needed.
+    }, [readOnly, maxBlocks, pathToMedia, useHorizontalRenderer]);
 
     // Handle reset - create new junior_start block
     const handleReset = useCallback(() => {

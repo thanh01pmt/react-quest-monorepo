@@ -88,18 +88,32 @@
 
 > **Root cause identified:** Blocks display vertically because connection positioning still uses vertical logic.
 
-- [ ] 10.1 Implement horizontal connection positioning in `HorizontalRenderInfo.ts`
-  - [ ] 10.1.1 Override `finalize_()` to set `previousConnection` at LEFT side `(x, y + height - 8)`
-  - [ ] 10.1.2 Override to set `nextConnection` at RIGHT side `(x + width, y + height - 8)`
-- [ ] 10.2 Create `HorizontalFlyout.ts` class (port from `rr` class in logo17.2.js)
-  - [ ] 10.2.1 Override `layout_()` to position blocks horizontally with X gaps
-  - [ ] 10.2.2 Override `getMetrics_()` to return contentWidth-based metrics
-  - [ ] 10.2.3 Override scrolling to use horizontal axis
-- [ ] 10.3 Patch `getHeightWidth()` for horizontal block stacking
-  - [ ] 10.3.1 Connected blocks add WIDTH instead of HEIGHT
-  - [ ] 10.3.2 Block height becomes `Math.max()` of stack instead of sum
+- [x] 10.1 Implement horizontal connection positioning in `HorizontalRenderInfo.ts`
+  - [x] 10.1.1 Override `finalize_()` to set `previousConnection` at LEFT side `(x, y + height - 8)`
+  - [x] 10.1.2 Override to set `nextConnection` at RIGHT side `(x + width, y + height - 8)`
+- [x] 10.2 Create `HorizontalFlyout.ts` class (port from `rr` class in logo17.2.js)
+  - [x] 10.2.1 Override `layout_()` to position blocks horizontally with X gaps
+  - [x] 10.2.2 Override `getMetrics_()` to return contentWidth-based metrics
+  - [x] 10.2.3 Override scrolling to use horizontal axis
+- [x] 10.3 Patch `getHeightWidth()` for horizontal block stacking
+  - [x] 10.3.1 Connected blocks add WIDTH instead of HEIGHT
+  - [x] 10.3.2 Block height becomes `Math.max()` of stack instead of sum
+
+## Phase 11: Optimization & Visual Polish (Completed) ✅
+
+- [x] 11.1 Fix C-Block (Loop) Shape & Layout
+  - [x] 11.1.1 Redesign SVG path for Horizontal U-Shape (Right-opening bay)
+  - [x] 11.1.2 Fix Bay positioning (Bottom) vs Main Body (Top)
+  - [x] 11.1.3 Implement Fixed Height scaling strategy (Only width expands)
+- [x] 11.2 Field Positioning & Visibility
+  - [x] 11.2.1 Implement Split Layout: Icon in Header (Left), Number in Tail (Right)
+  - [x] 11.2.2 Increase Tail Width to accommodate number field
+- [x] 11.3 Execution Logic
+  - [x] 11.3.1 Verify Generator traversing horizontal structure
+  - [x] 11.3.2 Confirm integration with Game Engine interpreter
 - [ ] 10.4 Register `HorizontalFlyout` when `horizontalLayout: true`
-- [ ] 10.5 Test drag-drop connection between horizontal blocks
+- [x] 10.5 Test drag-drop connection between horizontal blocks
+- [x] 10.6 Fix C-Block (Loop) shape to match Scratch Jr (U-shape container)
 
 ---
 

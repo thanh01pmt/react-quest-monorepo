@@ -11,10 +11,11 @@
 
 import * as Blockly from 'blockly/core';
 import {
-  SEP_SPACE_X,
   MIN_BLOCK_X,
   MIN_BLOCK_Y,
-} from './HorizontalConstants';
+  REPEAT_BLOCK_WIDTH,
+  SEP_SPACE_X,
+} from './HorizontalConstantProvider';
 
 export class HorizontalRenderInfo extends Blockly.zelos.RenderInfo {
   
@@ -23,148 +24,170 @@ export class HorizontalRenderInfo extends Blockly.zelos.RenderInfo {
   }
 
   /**
-   * Override measure to adjust connection locations for horizontal layout
-   * AND force internal element layout.
-   * 
-   * CRITICAL: For horizontal blocks, we FORCE the height to be MIN_BLOCK_Y (64px)
-   * instead of letting Zelos calculate based on vertical row stacking.
+   * Override measure to manually build the horizontal row layout.
+   * Strategy: Recycle the first row created by super.measure() (which contains the fields)
+   * and discard the rest (vertical stack), then force-layout the elements horizontally.
    */
   override measure() {
-    // Run standard measurement first to get base row/field dimensions
+    // 1. Run standard Zelos measurement to generate Field/Input instances
     super.measure();
     
-    // Check if this is a C-block (has statement input)
-    const hasStatementInput = this.block_.inputList.some(
-      input => (input.type as number) === 3 // NEXT_STATEMENT
-    );
-    
-    // CRITICAL FIX: For horizontal layout, FORCE dimensions to square blocks
-    // Standard blocks should be ~64x64, C-blocks can be taller
-    if (hasStatementInput) {
-      // C-blocks: allow taller but enforce minimum
-      this.width = Math.max(this.width, MIN_BLOCK_X * 2); // Wider for statement bay
-      this.height = Math.max(this.height, MIN_BLOCK_Y * 2); // Taller for nested blocks
-    } else {
-      // Standard blocks: FORCE to 64x64 (not just minimum!)
-      this.width = MIN_BLOCK_X;  // Force width to 64
-      this.height = MIN_BLOCK_Y; // Force height to 64
-    }
-    
-    console.log('[HorizontalRenderInfo] Measured', this.block_.type, 
-                'Width:', this.width, 'Height:', this.height,
-                'HasStatement:', hasStatementInput);
+    // 2. Filter Rows: Keep Header (0) and optionally the Statement Row
+    if (this.rows.length > 0) {
+        const originalRows = this.rows;
+        const headerRow = originalRows[0];
+        const statementRow = originalRows.find(r => r.hasStatement);
+        
+        // Rebuild rows list: always header, plus statement if found
+        this.rows = [headerRow];
+        if (statementRow) {
+           this.rows.push(statementRow);
+        }
+        
+        // 3. Recalculate HEADER Width
+        let headerWidth = SEP_SPACE_X;
+        for (const elem of headerRow.elements) {
+           headerWidth += elem.width + SEP_SPACE_X;
+        }
+        
+        // Check if this is explicitly a C-Block (Loop/Conditional)
+        const isCBlock = this.block_.type === 'junior_repeat';
+        let bayWidth = 0;
+        let bayHeight = 0;
+        
+        console.log(`[HorizontalDebug] Measure ${this.block_.type} | IsCBlock: ${isCBlock}`);
+        
+        if (isCBlock) {
+           console.log(`[HorizontalDebug] C-Block Logic Active for ${this.block_.type}`);
+           // C-BLOCK LOGIC: Calculate Dimensions based on Content
+           
+           // Find the actual statement input to check for connected blocks
+           const statementInput = this.block_.inputList.find(i => (i.type as number) === 3);
+           
+           if (statementInput && statementInput.connection && statementInput.connection.targetBlock()) {
+              const startBlock = statementInput.connection.targetBlock() as Blockly.BlockSvg;
+              
+              // Force measurement of the stack to ensure dims are fresh
+              startBlock.getHeightWidth(); 
+              
+              // Manually traverse the stack to calculate HORIZONTAL dimensions.
+              // Standard getHeightWidth() uses vertical stacking logic (Max Width, Sum Height).
+              // We need Sum Width, Max Height.
+              let curr: Blockly.BlockSvg | null = startBlock;
+              while (curr) {
+                 // Force render if dirty to get accurate dimensions
+                 // Use getHeightWidth() which triggers render() if needed
+                 const dim = curr.getHeightWidth();
+                 const w = dim.width;
+                 const h = dim.height;
+                 
+                 bayWidth += w;
+                 bayHeight = Math.max(bayHeight, h);
+                 
+                 curr = curr.getNextBlock() as Blockly.BlockSvg;
+              }
+           }
+           // Ensure Bay is at least the minimum needed for one standard block
+           bayWidth = Math.max(bayWidth, MIN_BLOCK_X);
+           bayHeight = MIN_BLOCK_Y; // FIXED for horizontal layout
+           
+           // Scratch Jr C-BLOCK with UPWARD-OPENING BAY:
+           // Total height = main body + bay (nested blocks extend UP from main body)
+           
+           const MAIN_BODY_HEIGHT = 40; // Bottom section
+           const HEADER_WIDTH = 40;     // Left section with icon
+           const TAIL_WIDTH = 60;       // Right section with repeat count (increased for visibility)
+           
+           // Total width = header + bay + tail
+           this.width = Math.max(REPEAT_BLOCK_WIDTH, HEADER_WIDTH + bayWidth + TAIL_WIDTH);
+           // SCRATCH JR: Total height = main body + bay (nested blocks extend UPWARD)
+           this.height = MAIN_BODY_HEIGHT + bayHeight;
+           
+           // Update Header Row (main body section)
+           headerRow.width = this.width; // Full width for top bar
+           headerRow.height = MAIN_BODY_HEIGHT;
+           
+           // Update Statement Row (bay area - at TOP of block)
+           if (statementRow) {
+             statementRow.width = bayWidth; 
+             statementRow.height = bayHeight;
+             (statementRow as any).xPos = HEADER_WIDTH; // Starts after header
+             // Bay is at Y=0 (top of block), nested blocks sit inside
+             (statementRow as any).yPos = MAIN_BODY_HEIGHT; // Bay at BOTTOM
+           }
+           
+        } else {
+           // STANDARD BLOCK LOGIC - Fixed 64x64 size
+           this.height = MIN_BLOCK_Y;
+           this.width = MIN_BLOCK_X; // Force 64px width - elements will be centered inside
+           
+           headerRow.width = MIN_BLOCK_X;
+           headerRow.height = MIN_BLOCK_Y;
+        }
+        
+        const mainBodyHeight = isCBlock ? 40 : MIN_BLOCK_Y;
+        const mainBodyY = 0; // Main body always at TOP
 
-    // AGGRESSIVE LAYOUT OVERRIDE
-    // Iterate over rows and force element positions
-    // This bypasses any standard alignment logic that might be failing
-    
-    for (const row of this.rows) {
-       // Force row to match block metrics if single row
-       // (Simplified logic for basic blocks)
-       if (this.rows.length === 1) {
-           row.width = this.width;
-           row.height = this.height;
-           // Force row to start at top-left
-           (row as any).yPos = 0;
-           (row as any).xPos = 0;
-       }
-       
-       // Center elements horizontally and vertically
-       let xCursor = SEP_SPACE_X;
-       
-       for (const elem of row.elements) {
-          // Re-position element
-          // Cast to any because Measurable type definition might lack xPos/yPos 
-          // but internal renderer usage expects it.
-          (elem as any).xPos = xCursor;
-          
-          // Center vertically
-          (elem as any).yPos = (this.height - elem.height) / 2;
-          
-          // Advance cursor
-          xCursor += elem.width + SEP_SPACE_X;
-       }
-     }
+        // Position Header Row (Bottom for C-blocks, Top for others)
+        (headerRow as any).xPos = 0;
+        (headerRow as any).yPos = mainBodyY;
+        
+        // Center elements in header
+        if (isCBlock && this.block_.type === 'junior_repeat') {
+           // Custom layout for Loop: Icon in Header, Number in Tail
+           const TAIL_WIDTH = 60;
+           
+           headerRow.elements.forEach((elem, index) => {
+              // Element 0 is Icon, Element 1 is Number Input
+              if (index === 0) {
+                 // Icon in Header (Left)
+                 (elem as any).xPos = SEP_SPACE_X;
+              } else {
+                 // Number in Tail (Right)
+                 const tailStartX = this.width - TAIL_WIDTH;
+                 // Center horizontally in tail
+                 (elem as any).xPos = tailStartX + (TAIL_WIDTH - elem.width) / 2;
+              }
+              // Center vertically
+              (elem as any).yPos = (mainBodyHeight - elem.height) / 2;
+           });
+        } else {
+           // Standard sequential layout
+           let xCursor = SEP_SPACE_X;
+           for (const elem of headerRow.elements) {
+              (elem as any).xPos = xCursor;
+              // Center element vertically within the main body height
+              (elem as any).yPos = (mainBodyHeight - elem.height) / 2;
+              xCursor += elem.width + SEP_SPACE_X;
+           }
+        }
+        
+        console.log('[HorizontalRenderInfo] Recycled Measure (Dynamic):', this.block_.type, 
+                'W:', this.width, 'H:', this.height, 'Rows:', this.rows.length);
+    } else {
+        // Fallback for empty blocks
+        this.width = MIN_BLOCK_X;
+        this.height = MIN_BLOCK_Y;
+    }
   }
 
   /**
-   * Finalize the geometric information and position connections.
-   * 
-   * CRITICAL: For horizontal layout, both previous and next connections
-   * must have the SAME Y coordinate but different X coordinates.
-   * 
-   * From logo17.2.js lines 1046-1049:
-   *   previousConnection: (x, y + height - 8)        // LEFT side
-   *   nextConnection:     (x + width, y + height - 8) // RIGHT side
-   * 
-   * The "8" offset centers the notch vertically in the connection area.
+   * Finalize the rendering info.
+   * This is where we calculate the final geometry and connection locations.
    */
   override finalize_() {
     super.finalize_();
     
-    // CRITICAL FIX: super.finalize_() recalculates this.width and this.height from rows!
-    // We MUST force our dimensions immediately after calling super.
+    // NOTE: Dimension overrides provided in measure() are authoritative.
+    // We do NOT override them here anymore.
+    // Connection offsets are now enforced in HorizontalDrawer.draw() 
+    // to prevent Zelos from resetting them.
     
-    // Check if this is a C-block (has statement input)
-    const hasStatementInput = this.block_.inputList.some(
-      input => (input.type as number) === 3 // NEXT_STATEMENT
-    );
-    
-    // Force dimensions AGAIN (super.finalize_() overwrote them!)
-    if (hasStatementInput) {
-      this.width = Math.max(MIN_BLOCK_X * 2, this.width);
-      this.height = Math.max(MIN_BLOCK_Y * 2, this.height);
-    } else {
-      this.width = MIN_BLOCK_X;  // Force to 64
-      this.height = MIN_BLOCK_Y; // Force to 64
-    }
-    
-    // CRITICAL: Also force widthWithChildren and heightWithChildren
-    // These are what Blockly uses for highlight/drag bounding box calculations
     (this as any).widthWithChildren = this.width;
     (this as any).heightWithChildren = this.height;
-    
-    // Also ensure the block's own properties are set correctly
-    // Some Blockly operations read these directly
     (this.block_ as any).height = this.height;
     (this.block_ as any).width = this.width;
     
     console.log('[HorizontalRenderInfo] Finalized', this.block_.type, 
-                'Width:', this.width, 'Height:', this.height,
-                'WidthWithChildren:', (this as any).widthWithChildren, 
-                'HeightWithChildren:', (this as any).heightWithChildren);
-    
-    // Calculate the Y offset for connections (same for both)
-    // This positions the notch center at height - 8 from top of block
-    const connectionYOffset = this.height - 8;
-    
-    // Previous Connection → LEFT side at X=0
-    if (this.block_.previousConnection) {
-      this.block_.previousConnection.setOffsetInBlock(0, connectionYOffset);
-    }
-    
-    // Next Connection → RIGHT side at X=width
-    if (this.block_.nextConnection) {
-      this.block_.nextConnection.setOffsetInBlock(this.width, connectionYOffset);
-    }
-    
-    // Output Connection (if any) → LEFT side, same as previous
-    if (this.block_.outputConnection) {
-      this.block_.outputConnection.setOffsetInBlock(0, connectionYOffset);
-    }
-    
-    // Statement inputs (for C-blocks) - position on bottom
-    for (const input of this.block_.inputList) {
-      // NEXT_STATEMENT = 3 in Blockly (for statement inputs)
-      // Use direct number comparison to avoid type issues
-      if ((input.type as number) === 3 && input.connection) {
-        // Statement connection goes at bottom-left inside the bay
-        // Cast to RenderedConnection to access setOffsetInBlock
-        (input.connection as Blockly.RenderedConnection).setOffsetInBlock(16, this.height);
-      }
-    }
-    
-    // NOTE: Icon positioning is done in HorizontalDrawer.centerFieldIcons_()
-    // because RenderInfo runs BEFORE DOM exists
-  }
+                'W:', this.width, 'H:', this.height);  }
 }

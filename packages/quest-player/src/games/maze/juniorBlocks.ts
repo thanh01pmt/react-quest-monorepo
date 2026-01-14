@@ -128,10 +128,6 @@ export function initJuniorBlocks(t: TFunction, pathToMedia = '/assets/junior/') 
       "message0": "%1 %2 %3",
       "args0": [
         {
-          "type": "input_statement",
-          "name": "DO"
-        },
-        {
           "type": "field_image",
           "src": `${pathToMedia}loop.svg`,
           "width": 40,
@@ -145,6 +141,10 @@ export function initJuniorBlocks(t: TFunction, pathToMedia = '/assets/junior/') 
           "min": 1,
           "max": 99,
           "precision": 1,
+        },
+        {
+          "type": "input_statement",
+          "name": "DO"
         }
       ],
       "previousStatement": null,

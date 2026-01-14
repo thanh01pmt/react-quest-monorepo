@@ -7,11 +7,13 @@
 
 import * as Blockly from 'blockly/core';
 import {
+  MIN_BLOCK_X,
+  MIN_BLOCK_Y,
+} from './HorizontalConstantProvider';
+import {
   generateHatBlockPath,
   generateStackBlockPath,
   generateCBlockPath,
-  MIN_BLOCK_X,
-  MIN_BLOCK_Y,
 } from './HorizontalConstants';
 
 /**
@@ -43,46 +45,79 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
     // Apply custom path to all path elements
     this.applyCustomPath_(customPath);
     
-    // Center field icons in the block (now DOM exists)
-    this.centerFieldIcons_();
+    // 4. Center fields explicitly (Standard Zelos might misalign due to our overrides)
+    // REMOVED: centerFieldIcons_ causes fields to overlap in center. 
+    // HorizontalRenderInfo now correctly calculates xPos/yPos for fields.
+    // this.centerFieldIcons_();
+    
+    // CRITICAL: Manually position connections AFTER super.draw() overrides them
+    this.positionConnections_();
   }
   
   /**
-   * Center all field icons within the 64x64 block bounds.
-   * This runs AFTER super.draw() so DOM elements exist.
+   * Force connection locations to match Horizontal Layout.
+   * 
+   * For Scratch Jr C-blocks with UPWARD-OPENING BAY:
+   * - Main body is at bottom, bay extends upward
+   * - Prev/Next connections are on the main body walls
+   * - Statement connection is inside the bay (where nested blocks connect)
    */
-  private centerFieldIcons_() {
-    try {
-      const svgRoot = this.block_.getSvgRoot();
-      if (!svgRoot) return;
-      
-      // Block dimensions (what we forced)
-      const blockWidth = this.info_.width;
-      const blockHeight = this.info_.height;
-      
-      // Find all field groups (.blocklyEditableText or image containers)
-      for (const input of this.block_.inputList) {
-        for (const field of input.fieldRow) {
-          const fieldSvg = field.getSvgRoot?.();
-          if (!fieldSvg) continue;
-          
-          // Get the field's actual size
-          const size = field.getSize?.();
-          if (!size) continue;
-          
-          // Calculate centered position
-          // For 64x64 block with ~40x40 icon: (64-40)/2 = 12
-          const centerX = (blockWidth - size.width) / 2;
-          const centerY = (blockHeight - size.height) / 2;
-          
-          // Apply the transform
-          fieldSvg.setAttribute('transform', `translate(${centerX}, ${centerY})`);
-        }
+  private positionConnections_() {
+    const info = this.info_ as any; 
+    const xy = this.block_.getRelativeToSurfaceXY();
+    const isCBlock = this.block_.type === 'junior_repeat';
+    
+    // Scratch Jr dimensions
+    const MAIN_BODY_HEIGHT = 40;
+    const HEADER_WIDTH = 40;
+    
+    // For C-blocks: connections on main body (at bottom)
+    // For standard blocks: connections at height/2
+    const bayHeight = isCBlock ? (info.height - MAIN_BODY_HEIGHT) : 0;
+    const connY = isCBlock 
+      ? bayHeight + MAIN_BODY_HEIGHT / 2  // Center of main body
+      : info.height / 2;                   // Center of standard block
+    
+    // 1. Previous Connection (Left-Edge)
+    if (this.block_.previousConnection) {
+      const conn = this.block_.previousConnection as Blockly.RenderedConnection;
+      conn.setOffsetInBlock(0, connY);
+      conn.moveTo(xy.x + 0, xy.y + connY);
+    }
+    
+    // 2. Next Connection (Right-Edge)
+    if (this.block_.nextConnection) {
+      const conn = this.block_.nextConnection as Blockly.RenderedConnection;
+      const xOffset = info.width;
+      conn.setOffsetInBlock(xOffset, connY);
+      conn.moveTo(xy.x + xOffset, xy.y + connY);
+    }
+    
+    // 3. Output Connection
+    if (this.block_.outputConnection) {
+      const conn = this.block_.outputConnection as Blockly.RenderedConnection;
+      conn.setOffsetInBlock(0, connY);
+      conn.moveTo(xy.x + 0, xy.y + connY);
+    }
+    
+    // 4. Statement Connection (for C-blocks - in the bay)
+    // Bay is at BOTTOM: Y = mainBodyHeight to totalHeight
+    for (const input of this.block_.inputList) {
+      if ((input.type as number) === 3 && input.connection) { 
+        // Nested blocks connect in the bay at center Y
+        // Bay starts at mainBodyHeight, center = mainBodyHeight + bayHeight/2
+        const statementConnY = isCBlock 
+          ? MAIN_BODY_HEIGHT + bayHeight / 2 
+          : MIN_BLOCK_Y / 2;
+         
+        const conn = input.connection as Blockly.RenderedConnection;
+        conn.setOffsetInBlock(HEADER_WIDTH, statementConnY);
+        conn.moveTo(xy.x + HEADER_WIDTH, xy.y + statementConnY);
       }
-    } catch (e) {
-      console.warn('[HorizontalDrawer] Error centering icons:', e);
     }
   }
+  
+  // centerFieldIcons_ removed - layout handled by HorizontalRenderInfo
 
   /**
    * Apply our custom path to ALL of the block's SVG path elements.
@@ -96,22 +131,21 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
       const pathObject = (this.block_ as any).pathObject;
       
       if (pathObject) {
-        // Update svgPath (main path)
+        // Update svgPath (main path) - this holds the color
         if (pathObject.svgPath && pathObject.svgPath.setAttribute) {
           pathObject.svgPath.setAttribute('d', customPath);
           appliedCount++;
         }
         
-        // Update svgPathDark (3D effect dark line)
+        // HIDE/CLEAR svgPathDark (3D effect dark line)
+        // This was likely causing the "Black Block" issue by overlaying the main path
         if (pathObject.svgPathDark && pathObject.svgPathDark.setAttribute) {
-          pathObject.svgPathDark.setAttribute('d', customPath);
-          appliedCount++;
+          pathObject.svgPathDark.setAttribute('d', ''); // Clear path
         }
         
-        // Update svgPathLight (3D effect light line)
+        // HIDE/CLEAR svgPathLight (3D effect light line)
         if (pathObject.svgPathLight && pathObject.svgPathLight.setAttribute) {
-          pathObject.svgPathLight.setAttribute('d', customPath);
-          appliedCount++;
+          pathObject.svgPathLight.setAttribute('d', ''); // Clear path
         }
         
         // Update svgPathSelected (selection highlight)
@@ -120,32 +154,11 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
           appliedCount++;
         }
         
-        // Try setPath method if exists (updates all paths internally)
-        if (typeof pathObject.setPath === 'function') {
-          pathObject.setPath(customPath);
-          appliedCount++;
-        }
+        // We do NOT use setPath() anymore as it might reset Dark/Light paths
       }
       
-      // Fallback: Query ALL path elements in the block's SVG group
-      const svgRoot = this.block_.getSvgRoot();
-      if (svgRoot) {
-        const allPaths = svgRoot.querySelectorAll('path');
-        allPaths.forEach((pathEl: Element) => {
-          // Update any path that looks like a block path (has 'd' attribute)
-          if (pathEl.hasAttribute('d')) {
-            pathEl.setAttribute('d', customPath);
-            appliedCount++;
-          }
-        });
-      }
-      
-      // Also try block.svgPath_ directly
-      const directSvgPath = (this.block_ as any).svgPath_;
-      if (directSvgPath && directSvgPath.setAttribute) {
-        directSvgPath.setAttribute('d', customPath);
-        appliedCount++;
-      }
+      // DO NOT use querySelectorAll('path') - that would update CHILD blocks too!
+      // Each block's draw() method is responsible for its own path only.
       
       console.log('[HorizontalDrawer] Applied custom path to', appliedCount, 'elements for:', this.block_.type);
       
@@ -168,10 +181,16 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
       return generateHatBlockPath(width, height, rtl);
     } else if (this.hasStatementInput_()) {
       const bayDimensions = this.getStatementBayDimensions_();
+      // Calculate headerWidth (the part with the icon and number field)
+      // Header is at least MIN_BLOCK_X (64px)
+      const headerWidth = Math.max(MIN_BLOCK_X, 64); // Force 64px header
+      // Total width = header + bay + tail
+      const totalWidth = headerWidth + bayDimensions.width + 16; // 16 = TAIL_WIDTH
+      
       return generateCBlockPath(
-        width, 
-        height, 
-        bayDimensions.width, 
+        totalWidth,        // Total width of the entire block
+        MIN_BLOCK_Y,       // Height of header (64px spine)
+        bayDimensions.width,
         bayDimensions.height,
         rtl
       );
@@ -185,45 +204,62 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
    * Helper to check if this is a hat block (Start block)
    */
   private isHatBlock_(): boolean {
-    if (this.block_.type === 'junior_start') {
-      return true;
-    }
-    // Generic: has next but no previous = hat block
-    return !!this.block_.nextConnection && 
-           !this.block_.previousConnection && 
-           !this.block_.outputConnection;
+    // Strict check: Only 'junior_start' is a hat.
+    return this.block_.type === 'junior_start';
   }
 
   /**
    * Helper to check if this block has a statement input (C-Block)
    */
   private hasStatementInput_(): boolean {
-    for (const input of this.block_.inputList) {
-      if ((input.type as number) === 3) { // NEXT_STATEMENT
-        return true;
-      }
+    // Only junior_repeat (Loop) should render as C-Block
+    if (this.block_.type !== 'junior_repeat') {
+      return false;
     }
-    return false;
+    // Verify it actually has a statement input
+    return this.block_.inputList.some(i => (i.type as number) === 3);
   }
 
   /**
-   * Helper to get dimensions of the statement bay
+   * Helper to get dimensions of the statement bay by iterating connected blocks
+   * For HORIZONTAL layout: width expands, height is FIXED at MIN_BLOCK_Y
    */
   private getStatementBayDimensions_(): { width: number, height: number } {
     let bayWidth = 0;
-    let bayHeight = 0;
 
-    for (const row of this.info_.rows) {
-      if (row.hasStatement) {
-        bayHeight = row.height;
-        bayWidth = row.width; 
-        break;
+    // Find the statement input
+    const statementInput = this.block_.inputList.find(i => (i.type as number) === 3);
+    
+    console.log('[HorizontalDrawer] getStatementBayDimensions_ for:', this.block_.type);
+    console.log('[HorizontalDrawer] statementInput:', statementInput ? 'found' : 'NOT FOUND');
+    
+    if (statementInput && statementInput.connection) {
+      const targetBlock = statementInput.connection.targetBlock();
+      console.log('[HorizontalDrawer] targetBlock:', targetBlock ? targetBlock.type : 'NONE');
+      
+      if (targetBlock) {
+        // Iterate through connected blocks to calculate HORIZONTAL width only
+        let curr = targetBlock as Blockly.BlockSvg | null;
+        let blockCount = 0;
+        while (curr) {
+          const dim = curr.getHeightWidth();
+          console.log('[HorizontalDrawer] Child block:', curr.type, 'width:', dim.width, 'height:', dim.height);
+          bayWidth += dim.width;
+          // Height is FIXED - don't accumulate from nested blocks
+          curr = curr.getNextBlock() as Blockly.BlockSvg | null;
+          blockCount++;
+        }
+        console.log('[HorizontalDrawer] Total blocks:', blockCount, 'bayWidth:', bayWidth);
       }
     }
 
-    if (bayHeight === 0) bayHeight = 32; 
-    if (bayWidth === 0) bayWidth = 64;   
+    // Ensure minimum bay size
+    if (bayWidth === 0) bayWidth = MIN_BLOCK_X; // 76px minimum
+    
+    // Height is FIXED at MIN_BLOCK_Y for horizontal layout
+    const bayHeight = MIN_BLOCK_Y; // 66px FIXED
 
+    console.log('[HorizontalDrawer] Final bay dimensions:', bayWidth, 'x', bayHeight);
     return { width: bayWidth, height: bayHeight };
   }
 }
