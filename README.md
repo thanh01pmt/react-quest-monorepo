@@ -2,6 +2,40 @@
 
 ## Thay Đổi Gần Đây
 
+### 15/01/2026
+
+- **Loại thay đổi: Feature (Horizontal Layout)**
+  - **Mô tả**: Triển khai giao diện lập trình khối ngang (Horizontal Layout) lấy cảm hứng từ ScratchJr/Google Doodle, bao gồm renderer tùy chỉnh và bộ block "Junior" dùng icon.
+  - **Mục tiêu**: Cung cấp giao diện lập trình đơn giản hóa, trực quan cho đối tượng học sinh nhỏ tuổi (Junior Mode).
+  - **Tác động**: Cho phép hiển thị và tương tác với các block theo chiều ngang, hỗ trợ các icon trực quan thay vì text.
+  - **File liên quan**:
+    - `[packages/quest-player/src/components/HorizontalBlocklyRenderer/HorizontalBlocklyRenderer.tsx](packages/quest-player/src/components/HorizontalBlocklyRenderer/HorizontalBlocklyRenderer.tsx)`
+    - `[packages/quest-player/src/renderers/HorizontalRenderer.ts](packages/quest-player/src/renderers/HorizontalRenderer.ts)`
+    - `[packages/quest-player/src/games/maze/juniorBlocks.ts](packages/quest-player/src/games/maze/juniorBlocks.ts)`
+
+- **Loại thay đổi: Feature (Quest Player Assets)**
+  - **Mô tả**: Thêm bộ assets SVG cho chế độ Junior (nhân vật thỏ, mũi tên di chuyển, vòng lặp).
+  - **Mục tiêu**: Hỗ trợ hiển thị hình ảnh cho các block và giao diện trong chế độ Horizontal Layout.
+  - **Tác động**: Cung cấp tài nguyên đồ họa cần thiết cho việc render các block Junior.
+  - **File liên quan**:
+    - `[apps/react-quest-app/public/assets/junior/start_rabbit.svg](apps/react-quest-app/public/assets/junior/start_rabbit.svg)`
+    - `[apps/react-quest-app/public/assets/junior/move_forward.svg](apps/react-quest-app/public/assets/junior/move_forward.svg)`
+
+- **Loại thay đổi: Documentation**
+  - **Mô tả**: Thêm tài liệu thiết kế, đề xuất kỹ thuật và danh sách công việc cho tính năng Horizontal Block Layout.
+  - **Mục tiêu**: Ghi lại quyết định thiết kế và lộ trình triển khai cho tính năng mới.
+  - **Tác động**: Cung cấp ngữ cảnh và hướng dẫn cho việc phát triển và bảo trì tính năng layout ngang.
+  - **File liên quan**:
+    - `[packages/quest-player/changes/add-horizontal-block-layout/design.md](packages/quest-player/changes/add-horizontal-block-layout/design.md)`
+    - `[packages/quest-player/changes/add-horizontal-block-layout/proposal.md](packages/quest-player/changes/add-horizontal-block-layout/proposal.md)`
+
+- **Loại thay đổi: Reference**
+  - **Mô tả**: Thêm `logo17.2.js` vào thư mục `refs`.
+  - **Mục tiêu**: Bổ sung tài liệu/mã nguồn tham khảo liên quan đến xử lý ngôn ngữ Logo.
+  - **Tác động**: Lưu trữ nguồn tham khảo kỹ thuật cho dự án.
+  - **File liên quan**:
+    - `[packages/refs/logo17.2.js](packages/refs/logo17.2.js)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
