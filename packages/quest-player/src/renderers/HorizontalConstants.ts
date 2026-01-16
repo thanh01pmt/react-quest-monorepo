@@ -1,4 +1,10 @@
-import * as Blockly from 'blockly/core';
+// Unused Blockly import removed
+
+// ...
+
+// Unused Blockly import removed
+
+// Grid unit (4px)
 
 // Grid unit (4px)
 export const GRID_UNIT = 4;
@@ -32,7 +38,7 @@ export const HAT_TOP_LEFT_CORNER = `A ${HAT_CORNER_RADIUS},${HAT_CORNER_RADIUS} 
 
 // Generate Path Functions (Replicating renderDraw_ logic)
 
-export const generateStackBlockPath = (width: number, height: number, rtl: boolean) => {
+export const generateStackBlockPath = (width: number, height: number, _rtl: boolean) => {
   const cr = CORNER_RADIUS;
   // Dynamic Notch Y (Bottom Aligned logic from Core)
   const cursorY = height - CORNER_RADIUS - SEP_SPACE_Y - NOTCH_HEIGHT;
@@ -62,181 +68,152 @@ export const generateStackBlockPath = (width: number, height: number, rtl: boole
   return path;
 };
 
-export const generateCBlockPath = (totalWidth: number, mainBodyHeight: number, bayWidth: number, bayHeight: number, rtl: boolean) => {
+// Header Width IS THE LEFT PART (Head)
+export const generateCBlockPath = (totalWidth: number, headWidth: number, tailWidth: number, bayWidth: number, bayHeight: number, _rtl: boolean) => {
   const cr = CORNER_RADIUS;
   const notchH = NOTCH_HEIGHT;
   
-  // Calculate CursorY for Left edge first
-  // In our RenderInfo, mainBodyHeight is just 64. But real geometry depends on Bay.
-  // Actually, let's just use total logic.
-  // Left Edge Logic: V totalHeight-8 -> Notch -> V totalHeight-CR.
-  // We need Total Height passed in? 
-  // We can re-derive it: main + bay? 
-  // Wait, in measure(), we set height = bayHeight + 12 (STATEMENT_SPACE).
-  // Let's pass 'height' instead of 'mainBodyHeight' to be safe?
-  // No, let's stick to the args but interpret carefully.
-  // Actually, looking at renderDrawBottom_, it uses 'metrics.height' for connectionsXY.
-  
-  // Let's assume mainBodyHeight represents the top bar H (64).
-  // We need the ACTUAL TOTAL HEIGHT for the left edge.
-  // In RenderInfo, 'this.height' was set to bayHeight + 12.
-  
-  // Re-deriving Total Height from parts matching RenderInfo logic:
-  // Height = bayHeight + 12 (STATEMENT_BLOCK_SPACE).
+  // Total Height for path calculation
+  // We assume bayHeight is the inner height.
+  // The 'spine' (top bar) adds thickness. 
+  // Reference: height = bayHeight + STATEMENT_BLOCK_SPACE
   const STATEMENT_BLOCK_SPACE = 12; // 3 * GRID
-  // But wait, renderDrawRight uses height for v moves.
-  // Let's rely on the passed MainBodyHeight being the "Header Height" (64)
-  // And we need to construct the full path.
-  
-  // Actually, simpler: The function should take (width, height, bayWidth, bayHeight).
-  // But interface takes mainBodyHeight. Let's fix the call site later if needed.
-  // For now, let's assume valid inputs.
-  
-  // RE-READING renderDrawBottom_:
-  // It draws the bottom of the top bar, then the bay.
-  // Sequence:
-  // 1. h 4*GRID (16)
-  // 2. Corner down-left (a 4,4 0 0,0 4,-4) --> Wait, this is 'a' command?
-  //    Core: a 4,4 0 0,0 4,-4. (Corner Radius is 4).
-  // 3. v -2.5*GRID (-10)
-  // 4. NOTCH_UP
-  // 5. v -bayHeight + 3*CR + NotchH + 2*GRID
-  // 6. a 4,4 0 0,1 4,-4 (Inner corner top-left)
-  // 7. h bayWidth - 2*CR
-  // 8. a 4,4 0 0,1 4,4 (Inner corner top-right)
-  // 9. v bayHeight - 3*CR - NotchH - 2*GRID (if notch at right) OR just v...
-  //    Actually core checks bayNotchAtRight. We assume YES always for now.
-  // 10. NOTCH_DOWN
-  // 11. V ... (down to bottom)
-  
-  // Let's execute this sequence.
-  
-  // Left Edge (Standard)
-  // It needs Total Height. 
   const totalHeight = bayHeight + STATEMENT_BLOCK_SPACE;
-  const cursorY = totalHeight - cr - SEP_SPACE_Y - notchH;
   
+  // Start Top-Left
   let path = `
     ${TOP_LEFT_CORNER_START}
     ${TOP_LEFT_CORNER}
+  `;
+  
+  // Left Edge (with Notch)
+  // Determine cursorY for notch start (same as stack block)
+  // notchStartY = 14px from top?
+  const cursorY = totalHeight - cr - SEP_SPACE_Y - notchH;
+  // Actually, left edge length depends on totalHeight.
+  // We use V commands to standard notch positions?
+  // Reference renderDrawLeft_ uses `V cursorY`, `NOTCH`, `V height-cr`.
+  
+  path += `
     V ${cursorY}
     ${NOTCH_PATH_DOWN}
     V ${totalHeight - cr}
   `;
   
-  // Bottom Edge (Strict Core Sequence):
-  // 1. h 16
-  path += `a ${cr},${cr} 0 0,0 ${cr},${cr}`; // Bottom-Left Corner of Stack
-  path += `h ${4 * GRID_UNIT}`; 
-  
-  // 2. Corner into Bay (Outer -> Inner)
-  // Core Line 723: a 4,4 0 0,0 4,-4
-  path += `a ${cr},${cr} 0 0,0 ${cr},-${cr}`;
-  
-  // 3. v -10
-  path += `v ${-2.5 * GRID_UNIT}`;
-  
-  // 4. NOTCH UP (The "Ceiling" of the bay has a notch for nested block)
-  path += `${NOTCH_PATH_UP}`;
-  
-  // 5. v up-into-bay
-  // Core Line 730: v -bayHeight + 3*CR + NotchH + 2*GRID
-  const vUp = -bayHeight + (cr * 3) + notchH + (2 * GRID_UNIT);
-  path += `v ${vUp}`;
-  
-  // 6. Inner Corner Top-Left
-  // Core Line 732: a 4,4 0 0,1 4,-4
-  path += `a ${cr},${cr} 0 0,1 ${cr},-${cr}`;
-  
-  // 7. h bayWidth
-  // Core Line 736: h bayWidth - 2*CR
-  path += `h ${bayWidth - (cr * 2)}`;
-  
-  // 8. Inner Corner Top-Right
-  // Core Line 737: a 4,4 0 0,1 4,4
-  path += `a ${cr},${cr} 0 0,1 ${cr},${cr}`;
-  
-  // 9. v down-from-bay
-  // Core Line 742: v bayHeight - 3*CR - NotchH - 2*GRID
-  // Note: Core checks bayNotchAtRight. We assume True.
-  const vDown = bayHeight - (cr * 3) - notchH - (2 * GRID_UNIT);
-  path += `v ${vDown}`;
-  
-  // 10. NOTCH DOWN (The "Floor" of the bay connection? No, this is the right wall of bay?)
-  // Wait, in Horizontal, the bay is the space between the "C".
-  // The notch is on the right wall of the C.
-  path += `${NOTCH_PATH_DOWN}`;
-  
-  // 11. V to bottom
-  // Core Line 746: V bayHeight + 2*GRID
-  // Wait, V implies absolute Y? 
-  // Core uses 'V'. "V metrics.bayHeight + 2 * GRID_UNIT".
-  // Let's double check coordinates.
-  // SVG 'V' is absolute Y. 
-  // If we utilize relative 'v', we need to close the shape.
-  // Core uses absolute V to finish the leg?
-  // "V bayHeight + 2*GRID" -> This brings us to the bottom of the top arm?
-  // No, "bayHeight" is the height of the inner content.
-  // 
-  // Actually, 'renderDrawBottom_' draws the ENTIRE bottom profile.
-  // After the notch, it does a corner a 4,4 0 0,0 4,4.
-  // Let's assume relative commands for safety or match Core's absolute context.
-  // Core's context: (0,0) is top-left.
-  // If we use V, we need exact Y.
-  // Core: V bayHeight + 8.
-  // RenderInfo Height formula: bayHeight + 12.
-  // So V (TotalHeight - 4).
-  // This matches V ${totalHeight - cr}.
-  path += `V ${totalHeight - cr}`;
-  
-  // Bottom-Right Corner of C-Block Leg
+  // Bottom-Left Corner
   path += `a ${cr},${cr} 0 0,0 ${cr},${cr}`;
   
-  // Right Edge (Standard Stack-like)
-  // H totalWidth - CR
-  path += `H ${totalWidth - cr}`;
+  // --------------------------------------------------
+  // BOTTOM PROFILE: Head -> Bay -> Tail
+  // Reference renderDrawBottom_
+  // --------------------------------------------------
   
-  // Corner Up-Right
+  // 1. Head Bottom
+  // h 4*GRID (16px)
+  path += `h ${headWidth}`; 
+  
+  // 2. Turn UP into Bay (Corner In)
+  // Reference: a 4,4 0 0,0 4,-4  (Counter-clockwise: dx=4, dy=-4)
+  // Scratch uses relative arc.
   path += `a ${cr},${cr} 0 0,0 ${cr},-${cr}`;
   
-  // v -10
-  path += `v ${-2.5 * GRID_UNIT}`;
+  // 3. Inner Left Wall (Up)
+  // v -2.5*GRID (-10px)
+  path += `v -10`;
   
-  // Notch Up (Connection to next block)
-  path += `${NOTCH_PATH_UP}`;
+  // Statement Notch (on Inner Left Wall)
+  // Reference uses NOTCH_PATH_UP.
+  // It effectively draws a notch on the vertical wall?
+  // NOTCH_PATH_UP is: c 0,-2 1,-3 2,-4 ... (Moves 4px right, 4px up...?)
+  path += NOTCH_PATH_UP;
   
-  // V CR (Go to top)
+  // Continue Up to Ceiling
+  // v -bayHeight ... 
+  // We need to reach Top Bar thickness (12px from top).
+  // Current Y is roughly (totalHeight - 4 - 10 - 8 - ...).
+  const topThick = STATEMENT_BLOCK_SPACE; // 12
+  // We want to stop at Y = topThick + cr?
+  // Actually, let's execute the 'Ceiling' at Y = 12?
+  // Calculate remaining vertical distance to Ceiling Corner.
+  // The Wall height is (totalHeight - topThick - bottomCorner - notchArea).
+  // Let's rely on simple geometry:
+  // We went Up 10, then Notch (~? height).
+  // Let's just draw line to Ceiling Y.
+  // Ceiling Y = topThick.
+  // Corner radius consideration: Ceiling line is at Y=topThick. Corner starts at Y=topThick+cr.
+  // So V to `topThick + cr`.
+  path += `V ${topThick + cr}`;
+  
+  // 4. Ceiling Corner (Left)
+  // Turn Right: a cr,cr 0 0,1 cr,-cr  (dx=4, dy=-4) -> Ends at Y=topThick.
+  path += `a ${cr},${cr} 0 0,1 ${cr},-${cr}`;
+  
+  // 5. Ceiling (Right)
+  // h bayWidth - 2*cr
+  path += `h ${bayWidth - 2*cr}`;
+  
+  // 6. Ceiling Corner (Right)
+  // Turn Down: a cr,cr 0 0,1 cr,cr (dx=4, dy=4)
+  path += `a ${cr},${cr} 0 0,1 ${cr},${cr}`;
+  
+  // 7. Inner Right Wall (Down)
+  // V to bottom corner start.
+  // Bottom inner corner starts at Y = totalHeight - cr - 4 (corner radius offset).
+  // Actually the corner is `a cr,cr 0 0,0 cr,cr` (dx=4, dy=4).
+  // Ends at Y = totalHeight.
+  // So we V to `totalHeight - cr`.
+  path += `V ${totalHeight - cr}`;
+  
+  // 8. Turn Out (Corner Out)
+  // a cr,cr 0 0,0 cr,cr  (dx=4, dy=4)
+  path += `a ${cr},${cr} 0 0,0 ${cr},${cr}`;
+  
+  // 9. Tail Bottom
+  // Leftover width.
+  // totalWidth = head + 4 + bay + 4 + tail.
+  // Or roughly.
+  // We just H to right edge corner.
+  path += `H ${totalWidth - cr}`;
+  
+  // --------------------------------------------------
+  // Right Edge
+  // --------------------------------------------------
+  
+  // Bottom-Right Corner
+  path += `a ${cr},${cr} 0 0,0 ${cr},-${cr}`;
+  
+  // Edge Up
+  // V to notch start?
+  // Use generateStackBlockPath logic for right edge
+  path += `v -${2.5 * GRID_UNIT}`; 
+  path += NOTCH_PATH_UP;
   path += `V ${cr}`;
   
   // Top-Right Corner
   path += `a ${cr},${cr} 0 0,0 -${cr},-${cr}`;
   
-  path += `z`;
+  // Top Edge
+  path += `z`; // Close path (H 0 implies implicit close)
   
   return path;
 };
 
-export const generateHatBlockPath = (width: number, height: number, rtl: boolean) => {
+export const generateHatBlockPath = (width: number, height: number, _rtl: boolean) => {
    // Similar to Stack but with HAT_TOP_LEFT_CORNER
    const cr = CORNER_RADIUS;
-   const hatCr = HAT_CORNER_RADIUS;
-   let path = `
-     ${HAT_TOP_LEFT_CORNER_START}
-     ${HAT_TOP_LEFT_CORNER}
-     V ${height - cr}
-   `; // No Notch Down on left
    
-    path += `a ${cr},${cr} 0 0,0 ${cr},${cr}`; // Bottom left corner
-    
-    // Right Edge (same as Stack)
-    path += `
+   return `
+    ${HAT_TOP_LEFT_CORNER_START}
+    ${HAT_TOP_LEFT_CORNER}
+    V ${height - cr}
+    a ${cr},${cr} 0 0,0 ${cr},${cr}
     H ${width - cr}
     a ${cr},${cr} 0 0,0 ${cr},-${cr}
     v -10
     ${NOTCH_PATH_UP}
     V ${cr}
     a ${cr},${cr} 0 0,0 -${cr},-${cr}
-    z
-  `;
-  return path;
+    H ${HAT_CORNER_RADIUS}
+    a ${HAT_CORNER_RADIUS},${HAT_CORNER_RADIUS} 0 0,1 -${HAT_CORNER_RADIUS},-${HAT_CORNER_RADIUS}
+    z`;
 };

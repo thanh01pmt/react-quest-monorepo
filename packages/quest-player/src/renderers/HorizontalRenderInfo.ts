@@ -2,20 +2,27 @@
  * Horizontal Render Info
  * 
  * Custom RenderInfo for Horizontal Blocks.
- * Overrides the geometry calculation to map connections horizontally:
- * - Previous Connection -> Left (x=0, y=NOTCH_START_Y)
- * - Next Connection -> Right (x=width, y=NOTCH_START_Y)
+ * Based on Scratch Blocks block_render_svg_horizontal.js
  * 
- * Also centers icons (fields) within the block.
+ * Key differences from vertical Blockly:
+ * - Previous/Next connections are LEFT/RIGHT (not top/bottom)
+ * - Icon field is RIGHT-BOTTOM aligned (not centered)
+ * - C-blocks expand horizontally (not vertically)
  */
 
 import * as Blockly from 'blockly/core';
-import {
-  MIN_BLOCK_X,
-  MIN_BLOCK_Y,
-  REPEAT_BLOCK_WIDTH,
-  SEP_SPACE_X,
-} from './HorizontalConstantProvider';
+
+// Constants matching Scratch Blocks (GRID_UNIT = 4)
+const GRID_UNIT = 4;
+const SEP_SPACE_X = 3 * GRID_UNIT;  // 12
+const SEP_SPACE_Y = 3 * GRID_UNIT;  // 12
+const IMAGE_FIELD_WIDTH = 10 * GRID_UNIT;  // 40
+const IMAGE_FIELD_HEIGHT = 10 * GRID_UNIT; // 40
+const MIN_BLOCK_X = 0.5 * 16 * GRID_UNIT;  // 32
+const MIN_BLOCK_Y = 16 * GRID_UNIT;         // 64
+const CORNER_RADIUS = 1 * GRID_UNIT;        // 4
+const NOTCH_WIDTH = 2 * GRID_UNIT;          // 8
+const STATEMENT_BLOCK_SPACE = 3 * GRID_UNIT; // 12
 
 export class HorizontalRenderInfo extends Blockly.zelos.RenderInfo {
   
@@ -24,194 +31,129 @@ export class HorizontalRenderInfo extends Blockly.zelos.RenderInfo {
   }
 
   /**
-   * Override measure to manually build the horizontal row layout.
-   * Strategy: Recycle the first row created by super.measure() (which contains the fields)
-   * and discard the rest (vertical stack), then force-layout the elements horizontally.
+   * Override measure to compute horizontal block metrics.
+   * Reference: block_render_svg_horizontal.js renderCompute_ (lines 429-526)
    */
   override measure() {
-    // 1. Run standard Zelos measure to init fields
+    // Run standard Zelos measure to initialize fields
     super.measure();
     
-    // 2. Clear rows but keep references
     if (this.rows.length === 0) return;
+    
+    // Keep only the first row (header) and statement row
     const originalRows = this.rows;
     const headerRow = originalRows[0];
     const statementRow = originalRows.find(r => r.hasStatement);
     this.rows = [headerRow];
     if (statementRow) this.rows.push(statementRow);
 
-    // 3. Init Metrics (matching Scratch metric structure conceptually)
-    let width = 0;
-    let height = 0;
+    // --- Compute metrics exactly like Scratch Blocks ---
     let bayHeight = 0;
     let bayWidth = 0;
-    let bayNotchAtRight = true;
-    const isCBlock = !!statementRow; // Has statement = C-Block candidate
+    const hasStatement = !!statementRow;
+    const isStartHat = this.block_.nextConnection && !this.block_.previousConnection;
+    const isEndCap = !this.block_.nextConnection && this.block_.previousConnection && 
+                     !this.block_.outputConnection && !hasStatement;
 
-    // 4. Compute Bay Dimensions (if C-Block)
-    if (isCBlock && this.block_ instanceof Blockly.BlockSvg) {
-        // Find statement input
-        const input = this.block_.inputList.find(i => i.type === Blockly.NEXT_STATEMENT);
-        if (input) {
-             bayHeight = MIN_BLOCK_Y; // Base Bay Height
-             bayWidth = MIN_BLOCK_X;  // Base Bay Width
-
-             if (input.connection && input.connection.targetConnection) {
-                 const linkedBlock = input.connection.targetBlock() as Blockly.BlockSvg;
-                 // Get dimensions of linked stack
-                 const bBox = linkedBlock.getHeightWidth(); // This returns Max Width, Sum Height (Standard)
-                 // Wait, Scratch Horizontal needs Sum Width, Max Height?
-                 // Actually Scratch Core uses bBox.height/width directly. 
-                 // In Horizontal Scratch, standard blocks are W:64, H:64. 
-                 // A stack of 2 blocks has W:128, H:64.
-                 // Zelos.getHeightWidth() might behave differently.
-                 // We will trust our custom traverse logic if needed, but let's try bBox first.
-                 // Actually, let's use the traversal logic from before as it's safer for Horizontal.
-                 
-                 let stackWidth = 0;
-                 let stackHeight = 0;
-                 let curr: Blockly.BlockSvg | null = linkedBlock;
-                 while(curr) {
-                     // [Fix] Use cached dimensions instead of recursive getHeightWidth()
-                     // getHeightWidth() sums the stack height (Vertical logic), causing C-Block to grow indefinetely.
-                     // We want individual block dimensions: Width accumulates, Height is MAX.
-                     // Children are rendered before parents, so .width/.height are populated.
-                     const w = (curr as any).width || MIN_BLOCK_X;
-                     const h = (curr as any).height || MIN_BLOCK_Y;
-                     
-                     stackWidth += w;
-                     stackHeight = Math.max(stackHeight, h);
-                     
-                     // Notch Compensation: If block has a next connection, it likely added NOTCH_WIDTH.
-                     // We typically want the visuals to abut effectively.
-                     // If we sum widths, we get the total row length. This is correct.
-                     
-                     curr = curr.getNextBlock() as Blockly.BlockSvg;
-                 }
-                 
-                 bayHeight = Math.max(bayHeight, stackHeight);
-                 bayWidth = Math.max(bayWidth, stackWidth);
-                 
-                 // Check notch at right
-                 // var linkedBlock = input.connection.targetBlock();
-                 // if (linkedBlock && !linkedBlock.lastConnectionInStack()) { ... }
-             } else {
-                 // Empty bay: Reduce width by Notch Width?
-                 // Core: metrics.bayWidth -= Blockly.BlockSvg.NOTCH_WIDTH;
-                 // But MIN_BLOCK_X is 32. 
-                 // Let's stick to base bay width.
-             }
-        }
-    }
-
-    // 5. Compute Width/Height (Core Logic)
-    // Always render image field at 40x40 px 
-    // Normal block sizing: SEP * 2 + FIELD_WIDTH
-    // Core: metrics.width = SEP_SPACE_X * 2 + IMAGE_FIELD_WIDTH
-    // SEP=12, IMG=40 => 24+40 = 64. Correct.
-    width = MIN_BLOCK_X; 
-    height = MIN_BLOCK_Y;
-
-    // Is C-Block?
-    if (isCBlock) {
-        // metrics.width += metrics.bayWidth + 4 * CORNER_RADIUS + 2 * GRID_UNIT;
-        // CORNER_RADIUS=4, GRID=4. 
-        // 4*4 + 2*4 = 16 + 8 = 24.
-        const CORNER_RADIUS = 4; // match constants
-        const GRID_UNIT = 4;
-        width += bayWidth + 4 * CORNER_RADIUS + 2 * GRID_UNIT; 
+    // Compute bay dimensions if C-block
+    if (hasStatement && this.block_ instanceof Blockly.BlockSvg) {
+      const input = this.block_.inputList.find(i => i.type === (Blockly.NEXT_STATEMENT as any));
+      if (input) {
+        bayHeight = MIN_BLOCK_Y;
+        bayWidth = MIN_BLOCK_X;
         
-        // metrics.height = metrics.bayHeight + STATEMENT_BLOCK_SPACE;
-        // STATEMENT_BLOCK_SPACE = 12 (3 * GRID)
-        const STATEMENT_BLOCK_SPACE = 12;
-        height = bayHeight + STATEMENT_BLOCK_SPACE;
+        if (input.connection && input.connection.targetConnection) {
+          const linkedBlock = input.connection.targetBlock() as Blockly.BlockSvg;
+          let curr: Blockly.BlockSvg | null = linkedBlock;
+          let stackWidth = 0;
+          let stackHeight = 0;
+          
+          while (curr) {
+            const w = (curr as any).width || MIN_BLOCK_X;
+            const h = (curr as any).height || MIN_BLOCK_Y;
+            stackWidth += w;
+            stackWidth -= NOTCH_WIDTH; // Exclude connected notch width
+            stackHeight = Math.max(stackHeight, h);
+            curr = curr.getNextBlock() as Blockly.BlockSvg;
+          }
+          
+          bayHeight = Math.max(bayHeight, stackHeight);
+          bayWidth = Math.max(bayWidth, stackWidth);
+        }
+      }
     }
 
-    // 6. Loop Block Specifics (Junior Repeat)
-    // The previous logic added TAIL_WIDTH (60) for the number.
-    // Core doesn't mention tails because it puts fields as shadow blocks.
-    // Since we put field inside, we need space.
-    if (this.block_.type === 'junior_repeat') {
-        const TAIL_WIDTH = 64; // Approx space for number
-        width += TAIL_WIDTH;
+    // Reference: lines 502-524
+    // Standard block: width = SEP*2 + IMAGE = 64, height = 64
+    let width = SEP_SPACE_X * 2 + IMAGE_FIELD_WIDTH;  // 12*2 + 40 = 64
+    let height = SEP_SPACE_Y * 2 + IMAGE_FIELD_HEIGHT; // 12*2 + 40 = 64
+
+    if (hasStatement) {
+      // C-block: width += bayWidth + 4*CORNER + 2*GRID
+      width += bayWidth + 4 * CORNER_RADIUS + 2 * GRID_UNIT;  // +bayW +16 +8 = +bayW +24
+      height = bayHeight + STATEMENT_BLOCK_SPACE;  // bayH + 12
     }
 
-    // 7. Store Dimensions
+    if (isStartHat) {
+      // Hat blocks are 1 grid unit wider
+      width += GRID_UNIT;  // +4
+    }
+
+    if (isEndCap) {
+      // End caps are 1 grid unit wider
+      width += GRID_UNIT;  // +4
+    }
+
+    // Store dimensions
     this.width = width;
     this.height = height;
-    
-    // 8. Update Rows
-    headerRow.width = this.width;
-    headerRow.height = MIN_BLOCK_Y; // The 'spine' is always 64
+    headerRow.width = width;
+    headerRow.height = MIN_BLOCK_Y;
 
     if (statementRow) {
-        statementRow.width = bayWidth;
-        statementRow.height = bayHeight;
-        // Positioning handled in HorizontalConstants/Drawer via SVG
+      statementRow.width = bayWidth;
+      statementRow.height = bayHeight;
     }
 
-    // 9. Element Positioning (Recycled from previous working logic)
-    // We keep the "Icon Left, Number Tail" logic as it visually matches.
-     if (this.block_.type === 'junior_repeat') {
-           const TAIL_WIDTH = 60;
-           headerRow.elements.forEach((elem, index) => {
-              if (index === 0) {
-                 (elem as any).xPos = SEP_SPACE_X;
-              } else {
-                 // Fixed Tail Position
-                 // We need to calculate based on the Visual Width (without next connection)
-                 // But wait, width is about to be modified by finalize/draw?
-                 // Let's safe-guard:
-                 const visualWidth = width; 
-                 (elem as any).xPos = visualWidth - TAIL_WIDTH + (TAIL_WIDTH - elem.width) / 2;
-              }
-              (elem as any).yPos = Math.floor((MIN_BLOCK_Y - elem.height) / 2) + 2;
-           });
-    } else {
-        // Standard centering
-        let xCursor = SEP_SPACE_X;
-        for (const elem of headerRow.elements) {
-            (elem as any).xPos = xCursor;
-            (elem as any).yPos = Math.floor((MIN_BLOCK_Y - elem.height) / 2) + 2;
-            xCursor += elem.width + SEP_SPACE_X;
+    // --- Position Image Field: RIGHT-BOTTOM aligned ---
+    // Reference: renderDraw_ lines 558-591
+    // imageFieldX = width - imageFieldSize.width - SEP_SPACE_X / 1.5
+    // imageFieldY = height - imageFieldSize.height - SEP_SPACE_Y
+    for (const elem of headerRow.elements) {
+      if ((elem as any).field) {
+        const field = (elem as any).field;
+        const fieldWidth = elem.width || IMAGE_FIELD_WIDTH;
+        const fieldHeight = elem.height || IMAGE_FIELD_HEIGHT;
+        
+        let imageX = width - fieldWidth - SEP_SPACE_X / 1.5;
+        let imageY = height - fieldHeight - SEP_SPACE_Y;
+        
+        if (isEndCap) {
+          // End caps offset image by 1 grid unit
+          imageX -= GRID_UNIT;
         }
+        
+        (elem as any).xPos = imageX;
+        (elem as any).yPos = imageY;
+      }
     }
   }
 
   /**
    * Finalize the rendering info.
-   * This is where we calculate the final geometry and connection locations.
    */
   override finalize_() {
     super.finalize_();
     
-    // NOTE: Dimension overrides provided in measure() are authoritative.
-    // We do NOT override them here anymore.
-    // Connection offsets are now enforced in HorizontalDrawer.draw() 
-    // to prevent Zelos from resetting them.
+    // CRITICAL: Apply NOTCH_WIDTH after all calculations
+    // Reference: line 802 - this.width += Blockly.BlockSvg.NOTCH_WIDTH
+    if (this.block_.nextConnection) {
+      this.width += NOTCH_WIDTH;  // +8
+    }
     
     (this as any).widthWithChildren = this.width;
     (this as any).heightWithChildren = this.height;
     (this.block_ as any).height = this.height;
     (this.block_ as any).width = this.width;
-    
-    console.log('[HorizontalRenderInfo] Finalized', this.block_.type, 
-                'W:', this.width, 'H:', this.height);
-
-    // [Fix] Defer Loop Number Positioning to ensure it sticks to the tail
-    // This is necessary because Layout phase runs before Width is expanded by children
-    if ((this as any).isCBlock && this.block_.type === 'junior_repeat') {
-        const headerRow = this.rows[0];
-        console.log('[HorizontalRenderInfo] Deferred Position Junior Repeat:', this.width);
-        if (headerRow && headerRow.elements.length > 1) {
-            const numField = headerRow.elements[1]; 
-            const TAIL_WIDTH = 60;
-            // Center in tail relative to FINAL width
-            // Force update
-            const newX = this.width - TAIL_WIDTH + (TAIL_WIDTH - numField.width) / 2;
-            console.log('[HorizontalRenderInfo] Moving Number Field to:', newX, 'Width:', this.width);
-            (numField as any).xPos = newX;
-        }
-    }
   }
 }

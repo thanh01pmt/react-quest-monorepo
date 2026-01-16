@@ -242,30 +242,26 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   }, [currentEditor, aceCode, blocklyGeneratedCode]);
 
   const handleSettingsChange = useCallback((newSettings: Partial<QuestPlayerSettings>) => {
-    setSettings(prev => {
-      const updated = { ...prev, ...newSettings };
+    const updated = { ...settings, ...newSettings };
+    setSettings(updated);
 
-      // If Blockly-related settings changed, regenerate workspace key to force remount
-      // We check newSettings compared to prev to see if update is needed, but here we just check if keys exist
-      const blocklySettingsChanged =
-        newSettings.renderer !== undefined ||
-        newSettings.blocklyThemeName !== undefined ||
-        newSettings.gridEnabled !== undefined ||
-        newSettings.colorSchemeMode !== undefined ||
-        newSettings.toolboxPresetKey !== undefined; // Force re-render when toolbox preset changes
+    // If Blockly-related settings changed, regenerate workspace key to force remount
+    const blocklySettingsChanged =
+      newSettings.renderer !== undefined ||
+      newSettings.blocklyThemeName !== undefined ||
+      newSettings.gridEnabled !== undefined ||
+      newSettings.colorSchemeMode !== undefined ||
+      newSettings.toolboxPresetKey !== undefined; // Force re-render when toolbox preset changes
 
-      if (blocklySettingsChanged) {
-        setBlocklyWorkspaceKey(`settings-${Date.now()}`);
-      }
+    if (blocklySettingsChanged) {
+      setBlocklyWorkspaceKey(`settings-${Date.now()}`);
+    }
 
-      // Notify parent if callback exists
-      if (props.onSettingsChange) {
-        props.onSettingsChange(updated);
-      }
-
-      return updated;
-    });
-  }, [props.onSettingsChange]);
+    // Notify parent if callback exists
+    if (props.onSettingsChange) {
+      props.onSettingsChange(updated);
+    }
+  }, [settings, props.onSettingsChange]);
 
   useEffect(() => {
     // Hàm async để khởi tạo blocks

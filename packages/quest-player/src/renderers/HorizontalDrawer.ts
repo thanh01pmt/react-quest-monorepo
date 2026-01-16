@@ -9,6 +9,8 @@ import * as Blockly from 'blockly/core';
 import {
   MIN_BLOCK_X,
   MIN_BLOCK_Y,
+  C_BLOCK_HEAD_WIDTH,
+  C_BLOCK_TAIL_WIDTH
 } from './HorizontalConstantProvider';
 import {
   generateHatBlockPath,
@@ -30,28 +32,48 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
    * Override draw() to let parent build, then replace SVG path directly.
    */
   override draw() {
-    // Let the parent do its default drawing
-    super.draw();
-    
-    // Now replace the path with our custom horizontal path
-    const customPath = this.getHorizontalBlockPath_();
-    
-    // DEBUG: Log the actual path content
-    console.log('[HorizontalDrawer] Block:', this.block_.type, 
-                'Width:', this.info_.width, 
-                'Height:', this.info_.height);
-    console.log('[HorizontalDrawer] Path preview (first 200 chars):', customPath.substring(0, 200));
-    
-    // Apply custom path to all path elements
-    this.applyCustomPath_(customPath);
-    
-    // 4. Center fields explicitly (Standard Zelos might misalign due to our overrides)
-    // REMOVED: centerFieldIcons_ causes fields to overlap in center. 
-    // HorizontalRenderInfo now correctly calculates xPos/yPos for fields.
-    // this.centerFieldIcons_();
-    
-    // CRITICAL: Manually position connections AFTER super.draw() overrides them
-    this.positionConnections_();
+    try {
+      // 1. Draw the block outline path (Standard Zelos)
+      super.draw();
+      
+      // 2. Generate custom path for Horizontal Block
+      const customPath = this.getHorizontalBlockPath_();
+      
+      // 3. Apply custom path to all path elements
+      this.applyCustomPath_(customPath);
+      
+      // 4. Force Position Fields based on RenderInfo (RIGHT-BOTTOM aligned)
+      // Reference: block_render_svg_horizontal.js renders fields explicitly.
+      const info = this.info_ as any;
+      if (info.rows && info.rows[0]) {
+         for (const elem of info.rows[0].elements) {
+             // Check if element has 'field' property and calculated xPos/yPos
+             if (elem.xPos !== undefined && elem.yPos !== undefined) {
+                 // The element might be a wrapper, actual field is elem.field
+                 const field = elem.field || (elem instanceof Blockly.Field ? elem : null);
+                 if (field && field.getSvgRoot) {
+                     const root = field.getSvgRoot();
+                     if (root) {
+                        root.setAttribute('transform', 
+                            `translate(${elem.xPos}, ${elem.yPos})`);
+                     }
+                 }
+             }
+         }
+      }
+      
+      // 5. Position connections (Match new width/height)
+      this.positionConnections_();
+      
+    } catch (e) {
+      console.error('[HorizontalDrawer] Error applying path:', e);
+      // Fallback
+       const w = this.info_.width || 32;
+       const h = this.info_.height || 64;
+       const cr = 4;
+       const fallback = `M 0,${cr} a ${cr},${cr} 0 0,1 ${cr},-${cr} H ${w-cr} a ${cr},${cr} 0 0,1 ${cr},${cr} V ${h-cr} a ${cr},${cr} 0 0,1 -${cr},${cr} H ${cr} a ${cr},${cr} 0 0,1 -${cr},-${cr} z`;
+       this.applyCustomPath_(fallback);
+    }
   }
   
   /**
@@ -65,7 +87,9 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
   private positionConnections_() {
     const info = this.info_ as any; 
     const xy = this.block_.getRelativeToSurfaceXY();
-    const isCBlock = this.block_.type === 'junior_repeat';
+    // const isCBlock = this.block_.type === 'junior_repeat'; // Unused
+    // Removing to fix TS6133
+    // const isCBlock = this.block_.type === 'junior_repeat';
     
     // Scratch Blocks Core Logic: Connections are Bottom-Aligned
     // See block_render_svg_horizontal.js line 674
@@ -110,17 +134,15 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
     for (const input of this.block_.inputList) {
       if ((input.type as number) === 3 && input.connection) { // NEXT_STATEMENT
          const conn = input.connection as Blockly.RenderedConnection;
-         // X Offset: Corner * 2 + 4 * Grid (4) = 8 + 16 = 24.
-         // But we use HeaderWidth (40).
-         const HEADER_WIDTH = 40; 
+         // Stick to C_BLOCK_HEAD_WIDTH (16px) as the header width
+         // This ensures the nested block starts right after the thin "Head"
+         const HEADER_WIDTH = C_BLOCK_HEAD_WIDTH; 
          
          conn.setOffsetInBlock(HEADER_WIDTH, connY);
          conn.moveTo(xy.x + HEADER_WIDTH, xy.y + connY);
       }
     }
   }
-  
-  // centerFieldIcons_ removed - layout handled by HorizontalRenderInfo
 
   /**
    * Apply our custom path to ALL of the block's SVG path elements.
@@ -167,12 +189,19 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
       
     } catch (e) {
       console.error('[HorizontalDrawer] Error applying path:', e);
+       // Fallback: Apply a basic rect path so block is visible
+       const w = this.info_.width || 100;
+       const h = this.info_.height || 64;
+       const cr = 4;
+       // Simple rounded rect
+       const fallback = `M 0,${cr} a ${cr},${cr} 0 0,1 ${cr},-${cr} H ${w-cr} a ${cr},${cr} 0 0,1 ${cr},${cr} V ${h-cr} a ${cr},${cr} 0 0,1 -${cr},${cr} H ${cr} a ${cr},${cr} 0 0,1 -${cr},-${cr} z`;
+       this.applyCustomPath_(fallback);
     }
   }
 
-  /**
-   * Generate the complete SVG path for this block based on its type.
-   */
+
+
+
   private getHorizontalBlockPath_(): string {
     // Ensure minimum dimensions
     const width = Math.max(this.info_.width, MIN_BLOCK_X);
@@ -192,7 +221,8 @@ export class HorizontalDrawer extends Blockly.zelos.Drawer {
       
       return generateCBlockPath(
         totalWidth,        // Use authoritative width
-        MIN_BLOCK_Y,       // Height of header (64px spine)
+        C_BLOCK_HEAD_WIDTH, // 16px
+        C_BLOCK_TAIL_WIDTH, // 76px
         bayDimensions.width,
         bayDimensions.height,
         rtl

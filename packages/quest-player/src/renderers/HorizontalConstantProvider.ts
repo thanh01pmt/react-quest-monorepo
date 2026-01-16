@@ -13,25 +13,39 @@
 import * as Blockly from 'blockly/core';
 
 // =============================================================================
-// DIMENSION CONSTANTS
+// =============================================================================
+// DIMENSION CONSTANTS - Based on scratch-blocks/core/block_render_svg_horizontal.js
 // =============================================================================
 
 export const GRID_UNIT = 4;
 
-// Scratch Jr dimensions
-export const STANDARD_BLOCK_WIDTH = 76;
-export const STANDARD_BLOCK_HEIGHT = 66;
-export const REPEAT_BLOCK_WIDTH = 176;
-export const REPEAT_BLOCK_HEIGHT = 82;
+// Scratch Blocks dimensions (Pixel values)
+export const MIN_BLOCK_X = 32;       // 8 * GRID_UNIT
+export const MIN_BLOCK_Y = 64;       // 16 * GRID_UNIT
+export const STANDARD_BLOCK_WIDTH = MIN_BLOCK_X; // Alias
+export const STANDARD_BLOCK_HEIGHT = MIN_BLOCK_Y; // Alias
+
+export const REPEAT_BLOCK_WIDTH = 96; // Approximate default
+export const REPEAT_BLOCK_HEIGHT = 72; // Approximate default
+
+// C-Block specific dimensions
+export const C_BLOCK_HEAD_WIDTH = 16;  // 4 * GRID_UNIT
+export const C_BLOCK_TAIL_WIDTH = 16;  // 4 * GRID_UNIT (Default Tail same as Head thickness?)
+// Reference doesn't strictly define "Tail Width" constant, it calculates total width.
+// But for our path generator we need a value. 
+// Standard blocks use head + gap + tail? Actually reference just adds bayWidth.
+// We'll stick to calculated widths in RenderInfo.
 
 // Spacing between elements
-export const SEP_SPACE_X = GRID_UNIT * 3; // 12px
+export const SEP_SPACE_X = 12; // 3 * GRID_UNIT
+export const SEP_SPACE_Y = 12; // 3 * GRID_UNIT
 
-// Connection sizes (from Scratch Jr Block.js notchSize)
-const NOTCH_SIZE = 11;
+// Connection sizes
+const NOTCH_SIZE = 8; // 2 * GRID_UNIT (Reference: NOTCH_WIDTH)
+// Reference NOTCH_HEIGHT is 34 (8*GRID + 2)
 
 // Hat block corner
-const HAT_CORNER_RADIUS = 32;
+const HAT_CORNER_RADIUS = 32; // 8 * GRID_UNIT
 
 /**
  * Custom ConstantProvider for Horizontal Block Layout
@@ -186,7 +200,5 @@ export class HorizontalConstantProvider extends Blockly.zelos.ConstantProvider {
 }
 
 // Export alias constants for compatibility with existing code
-export {
-  STANDARD_BLOCK_WIDTH as MIN_BLOCK_X,
-  STANDARD_BLOCK_HEIGHT as MIN_BLOCK_Y,
-};
+// Removed duplicates since they are exported directly above.
+
