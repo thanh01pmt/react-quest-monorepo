@@ -2,6 +2,45 @@
 
 ## Thay Đổi Gần Đây
 
+### 15/01/2026
+
+- **Loại thay đổi: Feature (Quest Player)**
+  - **Mô tả**: Cập nhật toàn diện bố cục ngang (Horizontal Layout) và tích hợp các game engine (Maze, Bird, Pond, Turtle).
+  - **Mục tiêu**: Hoàn thiện trải nghiệm người dùng với giao diện ngang và hỗ trợ đầy đủ các loại bài tập game.
+  - **Tác động**: Cung cấp giao diện chơi game và làm bài tập chính thức, thay thế hoặc nâng cấp giao diện cũ.
+  - **File liên quan**:
+    - `[packages/quest-player/src/renderers/HorizontalRenderer.ts](packages/quest-player/src/renderers/HorizontalRenderer.ts)`
+    - `[packages/quest-player/src/games/maze/MazeEngine.ts](packages/quest-player/src/games/maze/MazeEngine.ts)`
+    - `[packages/quest-player/src/games/bird/BirdEngine.ts](packages/quest-player/src/games/bird/BirdEngine.ts)`
+
+- **Loại thay đổi: Feature (Guide Builder)**
+  - **Mô tả**: Cập nhật Editor với khả năng chỉnh sửa XML block và Map Selector mới.
+  - **Mục tiêu**: Tăng cường khả năng biên soạn bài tập và hướng dẫn trực quan.
+  - **Tác động**: Người dùng có thể chọn bản đồ và chỉnh sửa block XML trực tiếp.
+  - **File liên quan**:
+    - `[apps/guide-builder/src/components/XmlBlockEditor/XmlBlockEditor.tsx](apps/guide-builder/src/components/XmlBlockEditor/XmlBlockEditor.tsx)`
+    - `[apps/guide-builder/src/components/MapSelector/MapSelector.tsx](apps/guide-builder/src/components/MapSelector/MapSelector.tsx)`
+
+- **Loại thay đổi: Feature (Shared Templates)**
+  - **Mô tả**: Cập nhật thư viện templates và các script sinh mã (generate micro-patterns).
+  - **Mục tiêu**: Đồng bộ hóa thư viện mẫu bài tập với các yêu cầu mới của Quest Player.
+  - **Tác động**: Đảm bảo tính nhất quán của dữ liệu bài tập giữa các ứng dụng.
+  - **File liên quan**:
+    - `[packages/shared-templates/src/bundled-templates.ts](packages/shared-templates/src/bundled-templates.ts)`
+    - `[packages/shared-templates/scripts/generate-micro-patterns.ts](packages/shared-templates/scripts/generate-micro-patterns.ts)`
+
+- **Loại thay đổi: Documentation (Refs)**
+  - **Mô tả**: Cập nhật chi tiết các tài liệu đặc tả kiến trúc, error recovery và interpreter.
+  - **Mục tiêu**: Cung cấp tài liệu tham khảo sâu về kỹ thuật cho hệ thống mới.
+  - **Tác động**: Hỗ trợ developer trong việc hiểu và mở rộng hệ thống xử lý lỗi và trình thông dịch.
+  - **File liên quan**:
+    - `[packages/refs/architecture/interpreter.md](packages/refs/architecture/interpreter.md)`
+    - `[packages/refs/architecture/error-recovery.md](packages/refs/architecture/error-recovery.md)`
+
+### 14/01/2026
+
+- **Không có thay đổi đáng kể trong 24 giờ qua.**
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
