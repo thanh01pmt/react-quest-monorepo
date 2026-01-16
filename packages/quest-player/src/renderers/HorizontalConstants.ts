@@ -69,7 +69,7 @@ export const generateStackBlockPath = (width: number, height: number, _rtl: bool
 };
 
 // Header Width IS THE LEFT PART (Head)
-export const generateCBlockPath = (totalWidth: number, headWidth: number, tailWidth: number, bayWidth: number, bayHeight: number, _rtl: boolean) => {
+export const generateCBlockPath = (totalWidth: number, headWidth: number, _tailWidth: number, bayWidth: number, bayHeight: number, _rtl: boolean) => {
   const cr = CORNER_RADIUS;
   const notchH = NOTCH_HEIGHT;
   

@@ -121,7 +121,6 @@ export class HorizontalRenderInfo extends Blockly.zelos.RenderInfo {
     // imageFieldY = height - imageFieldSize.height - SEP_SPACE_Y
     for (const elem of headerRow.elements) {
       if ((elem as any).field) {
-        const field = (elem as any).field;
         const fieldWidth = elem.width || IMAGE_FIELD_WIDTH;
         const fieldHeight = elem.height || IMAGE_FIELD_HEIGHT;
         
