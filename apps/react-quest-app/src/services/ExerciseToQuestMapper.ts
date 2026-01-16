@@ -401,13 +401,12 @@ console.log('[ExerciseToQuestMapper] BUNDLED_TEMPLATES loaded:', BUNDLED_TEMPLAT
 console.log('[ExerciseToQuestMapper] Template IDs:', BUNDLED_TEMPLATES.map(t => t.metadata.id).join(', '));
 
 /**
- * Convert GeneratedExercise to Quest format using SolutionDrivenGenerator
+ * Generate map data (SolutionDrivenResult) for an exercise
+ * This handles the random generation, retries, and validation.
  */
-export function exerciseToQuest(exercise: GeneratedExercise, index: number): Quest {
-  console.log(`[ExerciseToQuest] ===== Processing exercise ${index} =====`);
+export function generateExerciseMapData(exercise: GeneratedExercise): SolutionDrivenResult {
+  console.log(`[ExerciseToQuest] ===== Generating Map Data for ${exercise.id} =====`);
   console.log(`[ExerciseToQuest] templateId: "${exercise.templateId}"`);
-  console.log(`[ExerciseToQuest] concept: "${exercise.concept}"`);
-  console.log(`[ExerciseToQuest] parameters:`, exercise.parameters);
 
   // 1. Try to find actual template in registry or bundled fallback
   let registryTemplate = templateRegistry.get(exercise.templateId);
@@ -416,32 +415,20 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
   if (!registryTemplate) {
       console.log(`[ExerciseToQuest] Registry lookup failed. Searching BUNDLED_TEMPLATES for: "${exercise.templateId}"`);
       registryTemplate = BUNDLED_TEMPLATES.find(t => t.metadata.id === exercise.templateId);
-      if (registryTemplate) {
-          console.log(`[ExerciseToQuest] ✓ Found in BUNDLED_TEMPLATES:`, exercise.templateId);
-      } else {
-          console.warn(`[ExerciseToQuest] ✗ NOT FOUND in BUNDLED_TEMPLATES. Available IDs:`, 
-            BUNDLED_TEMPLATES.slice(0, 5).map(t => t.metadata.id), '...');
-      }
   }
 
-  console.log(`[ExerciseToQuest] Template lookup result:`, registryTemplate ? 'FOUND' : 'NOT FOUND');
-  
   let resolvedCode = '';
 
   if (registryTemplate) {
     // Case A: Smart Template (Loaded from registry/bundle)
-    console.log(`[ExerciseToQuest] Using TEMPLATE. solutionCode length:`, registryTemplate.solutionCode.length);
     resolvedCode = prepareTemplateCode(registryTemplate.solutionCode, exercise.parameters);
   } else {
     // Case B: Legacy/Fallback (using concept presets)
     console.warn(`[ExerciseToQuest] Template NOT found. Using FALLBACK concept: "${exercise.concept}"`);
     const preset = CONCEPT_TEMPLATES[exercise.concept] || DEFAULT_TEMPLATE;
-    console.log(`[ExerciseToQuest] Fallback preset code:\n`, preset.code);
     resolvedCode = resolveTemplateCode(preset.code, exercise.difficulty);
-    console.log(`[ExerciseToQuest] Resolved fallback code:\n`, resolvedCode);
   }
   
-  // 3. Generate map using generateFromCode
   let result: SolutionDrivenResult | null = null;
   const MAX_RETRIES = 5; // Aggressive retry count to avoid fallback
 
@@ -450,31 +437,25 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
       
       try {
         // Create modified parameters with range-aware variation
-        // Each attempt tries different values within allowed [min, max] range
         const attemptParams: Record<string, number | boolean | string> = {};
         
         for (const [key, value] of Object.entries(exercise.parameters)) {
           if (typeof value === 'number') {
-            // Find the template parameter definition to get min/max
             const paramDef = registryTemplate?.parameters.find(p => p.name === key);
             const min = paramDef?.min ?? (value - 2);
             const max = paramDef?.max ?? (value + 3);
             const rangeSize = max - min + 1;
             
-            // Generate alternative value based on attempt number
-            // Pattern: initial → max → (other values cycling)
             let newValue: number;
             if (attempt === 1) {
-              newValue = value; // First attempt uses original value
+              newValue = value; 
             } else if (attempt === 2) {
-              newValue = max; // Second attempt tries max
+              newValue = max;
             } else {
-              // Subsequent attempts: cycle through range from initial towards min, then wrap
               const offset = (attempt - 2) % rangeSize;
               newValue = min + ((value - min - offset + rangeSize) % rangeSize);
             }
             
-            // Clamp to valid range
             attemptParams[key] = Math.max(min, Math.min(max, newValue));
           } else {
             attemptParams[key] = value;
@@ -484,8 +465,6 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
         // Re-resolve code with attempt-specific parameters
         if (registryTemplate) {
            resolvedCode = prepareTemplateCode(registryTemplate.solutionCode, attemptParams);
-        } else {
-           // Preset logic
         }
         
         let attemptCode = resolvedCode;
@@ -493,8 +472,7 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
             attemptCode = prepareTemplateCode(resolvedCode, {});
         }
 
-        console.log(`[ExerciseToQuest] Generation Attempt ${attempt}/${MAX_RETRIES} with params:`, attemptParams);
-        
+        console.log(`[ExerciseToQuest] Generation Attempt ${attempt}/${MAX_RETRIES}`);
         candidateCode = attemptCode;
         
         result = generateFromCode(candidateCode, {
@@ -502,50 +480,57 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
           gradeLevel: '3-5',
         });
   
-        // Basic validation: Must have items and actions
+        // Basic validation
         if (result.trace.items.length === 0 && result.trace.actions.length < 5) {
-           console.warn("[ExerciseToQuest] Generated map is trivial/empty. Code:", candidateCode);
            throw new Error("Generated map is too empty/trivial");
         }
         
-        // Position validation - reject if items at start/finish
+        // Position validation
         const validation = validateMapResult(result);
         if (!validation.valid) {
-           console.warn("[ExerciseToQuest] Map validation failed:", validation.reason);
            throw new Error(`Position collision: ${validation.reason}`);
         }
   
-        console.log(`[ExerciseToQuest] Generation SUCCESS at attempt ${attempt}. Trace:`, {
-            pathLength: result.trace.pathCoords.length,
-            items: result.trace.items.length,
-        });
-        
+        console.log(`[ExerciseToQuest] Generation SUCCESS at attempt ${attempt}`);
         break; // Success!
       } catch (err) {
-        console.warn(`[ExerciseToQuest] Attempt ${attempt}/${MAX_RETRIES} failed for Template: ${exercise.templateId}`);
-        console.warn(`[ExerciseToQuest] Reason: ${(err as any).message}`);
-        
+        console.warn(`[ExerciseToQuest] Attempt ${attempt} failed: ${(err as any).message}`);
         if (attempt === MAX_RETRIES) {
           console.error('[ExerciseToQuest] ALL RETRIES FAILED.');
-          console.error(`[ExerciseToQuest] Context - Template: ${exercise.templateId}, Concept: ${exercise.concept}, Diff: ${exercise.difficulty}`);
-          console.error('[ExerciseToQuest] FINAL FAILED CODE:', candidateCode || resolvedCode);
-          console.error('[ExerciseToQuest] Stack Trace:', err);
         }
       }
   }
 
-  // Final Fallback if all retries failed
+  // Final Fallback
   if (!result) {
-    console.error('[ExerciseToQuest] CRITICAL FAILURE: Initiating Ultimate Fallback (Default Sequential).');
-    console.error(`[ExerciseToQuest] This indicates that template "${exercise.templateId}" is chemically unstable or invalid.`);
-    console.warn(`[ExerciseToQuest] Failed Concept: ${exercise.concept}, Difficulty: ${exercise.difficulty}`);
-    
+    console.error('[ExerciseToQuest] Initiating Ultimate Fallback.');
     result = generateFromCode(`moveForward();collectItem();moveForward();`, {
       concept: 'sequential',
       gradeLevel: '3-5',
     });
   }
+
+  return result;
+}
+
+/**
+ * Convert GeneratedExercise to Quest format using SolutionDrivenGenerator
+ */
+export function exerciseToQuest(exercise: GeneratedExercise, index: number): Quest {
+  // 1. Get map result (use cached or generate new)
+  let result: SolutionDrivenResult;
   
+  if (exercise.mapData) {
+    console.log(`[ExerciseToQuest] Using CACHED map data for exercise ${index}`);
+    result = exercise.mapData as SolutionDrivenResult;
+  } else {
+    console.log(`[ExerciseToQuest] Generating NEW map data for exercise ${index}`);
+    result = generateExerciseMapData(exercise);
+  }
+  
+  const registryTemplate = templateRegistry.get(exercise.templateId) || 
+                          BUNDLED_TEMPLATES.find(t => t.metadata.id === exercise.templateId);
+
   // 4. Extract gameConfig from result
   const gameConfig = result.gameConfig.gameConfig;
   const solution = result.solution;
@@ -559,7 +544,6 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
   } : undefined;
 
   // FAILSAFE: Ensure finish position has a ground block
-  // (Fixes issue where finish marker floats in air if trace.endPosition isn't in pathCoords)
   const finishPos = gameConfig.finish || { x: 5, y: 1, z: 0 };
   const hasFinishBlock = gameConfig.blocks.some((b: any) => 
     (b.position?.x ?? b.x) === finishPos.x && 
@@ -568,7 +552,6 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
   );
   
   if (!hasFinishBlock && gameConfig.blocks) {
-    console.warn(`⚠️ Missing ground block for finish at [${finishPos.x}, ${finishPos.y}, ${finishPos.z}]. Adding failsafe block.`);
     gameConfig.blocks.push({
       modelKey: 'ground.earthChecker',
       position: { x: finishPos.x, y: finishPos.y - 1, z: finishPos.z }

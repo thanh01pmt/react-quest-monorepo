@@ -20,7 +20,7 @@ import { PracticeSidebar } from '../components/PracticeSidebar';
 import { createPracticeGenerator } from '../services/PracticeGenerator';
 import { saveSession, getIncompleteSessions } from '../services/SessionStorage';
 import { updateProgress } from '../services/ProgressService';
-import { exerciseToQuest } from '../services/ExerciseToQuestMapper';
+import { exerciseToQuest, generateExerciseMapData } from '../services/ExerciseToQuestMapper';
 import '../App.css';
 
 // Wrapped QuestPlayer
@@ -79,6 +79,44 @@ export function PracticeContent({
         }
         loadExistingSession();
     }, []);
+
+    // Ensure map data is generated and persisted for current exercise
+    useEffect(() => {
+        if (!session || !currentExercise) return;
+
+        // If mapData is missing, generate it and update session
+        if (!currentExercise.mapData) {
+            console.log(`[PracticeContent] Missing mapData for ${currentExercise.id}. Generating and persisting...`);
+
+            try {
+                // Generate map data synchronously
+                const mapData = generateExerciseMapData(currentExercise);
+
+                // Update session state locally and persist
+                setSession(prevSession => {
+                    if (!prevSession) return null;
+
+                    const updatedExercises = [...prevSession.exercises];
+                    // Update the specific exercise with generated mapData
+                    updatedExercises[currentExerciseIndex] = {
+                        ...currentExercise,
+                        mapData
+                    };
+
+                    const newSession = {
+                        ...prevSession,
+                        exercises: updatedExercises
+                    };
+
+                    // Side effect: Save to session storage
+                    saveSession(newSession);
+                    return newSession;
+                });
+            } catch (error) {
+                console.error("[PracticeContent] Failed to generate map data:", error);
+            }
+        }
+    }, [currentExercise, currentExerciseIndex, session]); // Re-run when switching exercises
 
     // Handle starting a new practice session
     const handleStart = useCallback(async (config: PracticeConfig) => {
