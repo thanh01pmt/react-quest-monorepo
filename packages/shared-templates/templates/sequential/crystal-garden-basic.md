@@ -46,4 +46,12 @@ for (let i = 0; i < random(2, 3); i++) {
 
 // Post-process: Fill the bounding box to create open area
 postProcess({ type: 'fillBoundingBox', offset: 1, material: 'grass', walkable: true });
+
+// Add trees to non-path positions
+postProcess({ 
+    type: 'addTrees', 
+    count: [3, 5],        // Min và max số cây
+    treeTypes: ['tree.tree01', 'tree.tree02', 'tree.tree03', 'tree.tree04', 'tree.tree05'],
+    excludePath: true     // Không đặt trên path
+});
 ```

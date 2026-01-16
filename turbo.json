@@ -12,6 +12,7 @@
       "dependsOn": [
         "^build"
       ],
+      "inputs": ["src/**", "templates/**/*.md", "package.json", "tsconfig.json"],
       "outputs": [
         "dist/**"
       ]
