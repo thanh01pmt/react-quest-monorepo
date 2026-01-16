@@ -13,6 +13,7 @@ import type {
   AcademicConcept
 } from './types';
 import { parseTemplate } from './parser';
+import { BUNDLED_TEMPLATES } from './bundled-templates';
 
 // ============================================================================
 // BUNDLED TEMPLATES (imported statically)
@@ -36,6 +37,12 @@ export class TemplateRegistry {
     if (this.initialized) return;
     
     // Load bundled templates
+    // 1. Load from generated BUNDLED_TEMPLATES (primary source)
+    for (const template of BUNDLED_TEMPLATES) {
+      this.templates.set(template.metadata.id, template);
+    }
+    
+    // 2. Load from manual registration (fallback/testing)
     for (const [id, template] of bundledTemplates) {
       this.templates.set(id, template);
     }

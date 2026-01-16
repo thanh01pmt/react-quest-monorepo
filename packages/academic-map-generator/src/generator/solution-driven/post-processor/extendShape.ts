@@ -40,6 +40,10 @@ export function findSwitchPositions(
   pathCoords: Coord3D[]
 ): SwitchPosition[] {
   const switches = interactibles.filter(i => i.type === 'switch');
+  console.log('[extendShape] findSwitchPositions - Found switches:', switches.length, 'Total interactibles:', interactibles.length);
+  if (switches.length > 0) {
+      console.log('[extendShape] First switch:', switches[0]);
+  }
   
   return switches.map(sw => {
     const coord: Coord3D = {
@@ -87,8 +91,11 @@ export function extendShape(
   const connectPath = config.connectPath ?? false;
   const height = config.height;
 
+  console.log('[extendShape] Config:', { shape, size, bias, levelMode, material, connectPath, height });
+
   // Find switch positions
   const switchPositions = findSwitchPositions(interactibles, pathCoords);
+  console.log('[extendShape] Switch positions mapped:', switchPositions.length);
   
   if (switchPositions.length === 0) {
     return { blocks: [], extensions: [] };
@@ -172,7 +179,20 @@ export function extendShape(
         });
         existingPositions.add(key);
       }
+      if (!existingPositions.has(key) && !overlapsPath) {
+        allNewBlocks.push({
+          x: c.x,
+          y: c.y,
+          z: c.z,
+          model: material,
+          walkable: true
+        });
+        existingPositions.add(key);
+      } else {
+         // console.log('[extendShape] Block skipped:', key, 'Existing:', existingPositions.has(key), 'Overlaps:', overlapsPath);
+      }
     }
+    console.log('[extendShape] Blocks added for switch:', allNewBlocks.length);
 
     // Add blocks for connector (skip existing)
     for (const c of connectorCoords) {

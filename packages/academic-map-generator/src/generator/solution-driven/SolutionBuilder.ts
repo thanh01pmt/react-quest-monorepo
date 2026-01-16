@@ -183,8 +183,8 @@ export class SolutionBuilder {
           // Map material shorthand to proper ground asset key
           const materialToAsset: Record<string, string> = {
             'grass': 'ground.earthChecker',
-            'stone': 'ground.stoneGrey1',
-            'water': 'ground.waterFull',
+            'stone': 'stone.stone01',
+            'water': 'water.water01',
             'ice': 'ground.ice',
             'sand': 'ground.sandBeach',
             'dirt': 'ground.dirt',
