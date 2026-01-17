@@ -404,7 +404,7 @@ console.log('[ExerciseToQuestMapper] Template IDs:', BUNDLED_TEMPLATES.map(t => 
  * Generate map data (SolutionDrivenResult) for an exercise
  * This handles the random generation, retries, and validation.
  */
-export function generateExerciseMapData(exercise: GeneratedExercise): SolutionDrivenResult {
+export function generateExerciseMapData(exercise: GeneratedExercise): SolutionDrivenResult & { referenceCode: string } {
   console.log(`[ExerciseToQuest] ===== Generating Map Data for ${exercise.id} =====`);
   console.log(`[ExerciseToQuest] templateId: "${exercise.templateId}"`);
 
@@ -430,6 +430,7 @@ export function generateExerciseMapData(exercise: GeneratedExercise): SolutionDr
   }
   
   let result: SolutionDrivenResult | null = null;
+  let finalCode = '';
   const MAX_RETRIES = 5; // Aggressive retry count to avoid fallback
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -478,6 +479,7 @@ export function generateExerciseMapData(exercise: GeneratedExercise): SolutionDr
         result = generateFromCode(candidateCode, {
           concept: exercise.concept as any,
           gradeLevel: '3-5',
+          seed: `${exercise.id}-${attempt}`, // Use ID + attempt for consistent retries
         });
   
         // Basic validation
@@ -492,6 +494,7 @@ export function generateExerciseMapData(exercise: GeneratedExercise): SolutionDr
         }
   
         console.log(`[ExerciseToQuest] Generation SUCCESS at attempt ${attempt}`);
+        finalCode = candidateCode;
         break; // Success!
       } catch (err) {
         console.warn(`[ExerciseToQuest] Attempt ${attempt} failed: ${(err as any).message}`);
@@ -504,13 +507,15 @@ export function generateExerciseMapData(exercise: GeneratedExercise): SolutionDr
   // Final Fallback
   if (!result) {
     console.error('[ExerciseToQuest] Initiating Ultimate Fallback.');
-    result = generateFromCode(`moveForward();collectItem();moveForward();`, {
+    finalCode = `moveForward();collectItem();moveForward();`;
+    result = generateFromCode(finalCode, {
       concept: 'sequential',
       gradeLevel: '3-5',
+      seed: exercise.id,
     });
   }
 
-  return result;
+  return { ...result, referenceCode: finalCode };
 }
 
 /**
@@ -595,6 +600,8 @@ export function exerciseToQuest(exercise: GeneratedExercise, index: number): Que
     hints: exercise.hintsData || {
       description: exercise.hints.join('\n\n'),
     },
+    // Add resolved code as reference solution
+    referenceCode: (result as any).referenceCode,
     blocklyConfig: {
       toolbox: PRACTICE_TOOLBOX,
       maxBlocks: calculatedMaxBlocks,

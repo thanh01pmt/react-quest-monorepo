@@ -284,6 +284,9 @@ export interface Quest {
     concepts?: string[];
     category?: string;
   };
+  
+  /** Source code of the solution for reference */
+  referenceCode?: string;
 }
 
 // =================================================================

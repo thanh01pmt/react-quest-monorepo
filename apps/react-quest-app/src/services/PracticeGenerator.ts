@@ -58,12 +58,7 @@ const DIFFICULTY_RANGES: Record<DifficultyLevel, [number, number]> = {
   very_hard: [9, 10],
 };
 
-/**
- * Generate a unique ID
- */
-function generateId(): string {
-  return `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
+
 
 /**
  * Practice Generator class
@@ -75,6 +70,16 @@ export class PracticeGenerator {
   constructor(seed: number, templates: TemplateConfig[]) {
     this.rng = new SeededRandom(seed);
     this.templates = templates;
+  }
+
+  /**
+   * Generate a deterministic unique ID
+   */
+  private generateId(): string {
+    const randomPart = Math.floor(this.rng.next() * 1000000).toString(36);
+    const suffix = Math.floor(this.rng.next() * 1000000).toString(36);
+    // REMOVED Date.now() to ensure determinism across machines/times
+    return `ex_${randomPart}_${suffix}`;
   }
 
   /**
@@ -123,8 +128,31 @@ export class PracticeGenerator {
       : this.templates.filter(t => t.metadata.category === category);
 
     if (availableTemplates.length === 0) {
-      console.warn(`[PracticeGenerator] No templates found for category: ${category}`);
-      return [];
+      console.warn(`[PracticeGenerator] No templates found for category: ${category}. Using fallback.`);
+      
+      const fallbackTemplate: TemplateConfig = {
+        metadata: {
+          id: `fallback-${category}`,
+          category: category,
+          difficulty: minDiff,
+          concepts: [category],
+          tags: ['fallback'],
+          name: `${category} (Fallback)`,
+          description: `Practice exercise for ${category}`,
+          version: 1,
+          author: 'system',
+        },
+        parameters: [],
+        descriptionMarkdown: '',
+        rawContent: '',
+        solutionCode: 'moveForward();collectItem();moveForward();', // Basic valid code
+        hints: {
+          title: `Practice ${category}`,
+          description: `Practice task for ${category}`
+        }
+      };
+      // Use fallback
+      availableTemplates.push(fallbackTemplate);
     }
 
     const exercises: GeneratedExercise[] = [];
@@ -193,7 +221,7 @@ export class PracticeGenerator {
     const displayConcept = template.metadata.category;
 
     return {
-      id: generateId(),
+      id: this.generateId(),
       templateId: template.metadata.id,
       concept: displayConcept,
       difficulty: template.metadata.difficulty,

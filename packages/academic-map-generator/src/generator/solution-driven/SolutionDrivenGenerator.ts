@@ -378,6 +378,7 @@ export function generateFromCode(
     concept?: AcademicConcept;
     gradeLevel?: GradeLevel;
     params?: Record<string, number>;
+    seed?: string;
   } = {}
 ): SolutionDrivenResult {
   // Auto-detect parameters from code
@@ -404,8 +405,8 @@ export function generateFromCode(
   const generator = new SolutionDrivenGenerator();
   
   if (options.params) {
-    return generator.generateWithParams(template, options.params);
+    return generator.generateWithParams(template, options.params, options.seed);
   }
   
-  return generator.generate(template);
+  return generator.generate(template, options.seed);
 }

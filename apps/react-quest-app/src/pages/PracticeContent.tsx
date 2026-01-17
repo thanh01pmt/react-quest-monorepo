@@ -6,9 +6,11 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
     QuestPlayer,
+    Dialog,
     LanguageSelector,
     type Quest,
     type QuestPlayerSettings,
@@ -21,6 +23,7 @@ import { createPracticeGenerator } from '../services/PracticeGenerator';
 import { saveSession, getIncompleteSessions } from '../services/SessionStorage';
 import { updateProgress } from '../services/ProgressService';
 import { exerciseToQuest, generateExerciseMapData } from '../services/ExerciseToQuestMapper';
+import { saveSharedSession, getSharedSession } from '../services/SharedSessionService';
 import '../App.css';
 
 // Wrapped QuestPlayer
@@ -42,6 +45,7 @@ export function PracticeContent({
     onLanguageChange,
 }: PracticeContentProps) {
     const { t, i18n } = useTranslation();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     // Session state
     const [session, setSession] = useState<PracticeSession | null>(null);
@@ -50,6 +54,8 @@ export function PracticeContent({
     // Sidebar state
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+    const [showSolutionDialog, setShowSolutionDialog] = useState(false);
+    const [isMapGenerating, setIsMapGenerating] = useState(false);
 
     // Current exercise and quest
     const currentExercise = session?.exercises[currentExerciseIndex];
@@ -78,7 +84,95 @@ export function PracticeContent({
             }
         }
         loadExistingSession();
+        loadExistingSession();
     }, []);
+
+    // Helper to generate share URL
+    // Handle Sharing via Firestore
+    const handleShare = useCallback(async () => {
+        if (!session) return;
+
+        try {
+            // Persist full session (with generated maps) to Firestore
+            const shareId = await saveSharedSession(session);
+
+            // Generate simple share URL with ID
+            const params = new URLSearchParams();
+            params.set('shareId', shareId);
+
+            const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+            navigator.clipboard.writeText(url);
+            alert(t('Practice.share_copied', 'Link copied to clipboard!'));
+        } catch (e) {
+            console.error('Failed to share session', e);
+            alert('Failed to generate share link. Please try again.');
+        }
+    }, [session, t]);
+
+    // Handle Shared Session Loading (Legacy + Firestore)
+    useEffect(() => {
+        const shareId = searchParams.get('shareId');
+
+        // New: Load from Firestore
+        if (shareId && !session) {
+            async function loadShared() {
+                try {
+                    const sharedSession = await getSharedSession(shareId!);
+                    if (sharedSession) {
+                        saveSession(sharedSession);
+                        setSession(sharedSession);
+                        setCurrentExerciseIndex(0);
+                        // Clean URL? Maybe not needed, keeps context.
+                    } else {
+                        console.error("Shared session not found");
+                        alert("Shared session not found or expired.");
+                    }
+                } catch (e) {
+                    console.error("Failed to load shared session", e);
+                }
+            }
+            loadShared();
+            return;
+        }
+
+        // Legacy: Load from URL config (Backwards compatibility)
+        const mode = searchParams.get('mode');
+        const configStr = searchParams.get('config');
+
+        if (mode === 'share' && configStr && !session) {
+            try {
+                const config = JSON.parse(atob(configStr)) as PracticeConfig;
+                // Force new seed if provided separately, otherwise use config's seed
+                const seedParam = searchParams.get('seed');
+                if (seedParam) {
+                    config.seed = parseInt(seedParam, 10);
+                }
+
+                // Combine templates for generator
+                // For shared sessions, strictly use BUNDLED_TEMPLATES to ensure determinism
+                // This prevents local/custom templates from desynchronizing the RNG calls.
+                const allTemplates = [...BUNDLED_TEMPLATES].sort((a, b) =>
+                    a.metadata.id.localeCompare(b.metadata.id)
+                );
+
+                // Note: We deliberately ignore templateRegistry here because the receiver 
+                // won't have the sender's local templates/registry state.
+
+                // Auto-start session
+                const generator = createPracticeGenerator(config, allTemplates);
+                const newSession = generator.generateSession(config);
+
+                saveSession(newSession);
+                setSession(newSession);
+                setCurrentExerciseIndex(0);
+
+                // Clear params to avoid re-triggering on reload if not desired
+                // setSearchParams({}); 
+            } catch (e) {
+                console.error("[PracticeContent] Failed to load shared session", e);
+            }
+        }
+    }, [searchParams, session]); // Check on mount/params change
 
     // Ensure map data is generated and persisted for current exercise
     useEffect(() => {
@@ -86,41 +180,60 @@ export function PracticeContent({
 
         // If mapData is missing, generate it and update session
         if (!currentExercise.mapData) {
-            console.log(`[PracticeContent] Missing mapData for ${currentExercise.id}. Generating and persisting...`);
+            setIsMapGenerating(true);
 
-            try {
-                // Generate map data synchronously
-                const mapData = generateExerciseMapData(currentExercise);
+            // Use timeout to allow UI to render Loading state
+            const timer = setTimeout(() => {
+                try {
+                    console.log(`[PracticeContent] Generating mapData for ${currentExercise.id}...`);
+                    // Generate map data synchronously (but now unblocked via timeout)
+                    const mapData = generateExerciseMapData(currentExercise);
 
-                // Update session state locally and persist
-                setSession(prevSession => {
-                    if (!prevSession) return null;
+                    // Update session state locally and persist
+                    setSession(prevSession => {
+                        if (!prevSession) return null;
 
-                    const updatedExercises = [...prevSession.exercises];
-                    // Update the specific exercise with generated mapData
-                    updatedExercises[currentExerciseIndex] = {
-                        ...currentExercise,
-                        mapData
-                    };
+                        const updatedExercises = [...prevSession.exercises];
+                        // Update the specific exercise with generated mapData
+                        updatedExercises[currentExerciseIndex] = {
+                            ...currentExercise,
+                            mapData
+                        };
 
-                    const newSession = {
-                        ...prevSession,
-                        exercises: updatedExercises
-                    };
+                        const newSession = {
+                            ...prevSession,
+                            exercises: updatedExercises
+                        };
 
-                    // Side effect: Save to session storage
-                    saveSession(newSession);
-                    return newSession;
-                });
-            } catch (error) {
-                console.error("[PracticeContent] Failed to generate map data:", error);
-            }
+                        // Side effect: Save to session storage
+                        saveSession(newSession);
+                        return newSession;
+                    });
+                } catch (error) {
+                    console.error("[PracticeContent] Failed to generate map data:", error);
+                } finally {
+                    setIsMapGenerating(false);
+                }
+            }, 50);
+
+            return () => clearTimeout(timer);
+        } else {
+            // Map data exists, ensure loading is off
+            setIsMapGenerating(false);
         }
     }, [currentExercise, currentExerciseIndex, session]); // Re-run when switching exercises
 
     // Handle starting a new practice session
     const handleStart = useCallback(async (config: PracticeConfig) => {
-        const generator = createPracticeGenerator(config, templateRegistry.getAll());
+        // Combine templates for generator
+        const allTemplates = [...templateRegistry.getAll()];
+        BUNDLED_TEMPLATES.forEach(t => {
+            if (!allTemplates.some(rt => rt.metadata.id === t.metadata.id)) {
+                allTemplates.push(t);
+            }
+        });
+
+        const generator = createPracticeGenerator(config, allTemplates);
         const newSession = generator.generateSession(config);
 
         await saveSession(newSession);
@@ -188,10 +301,19 @@ export function PracticeContent({
         setSession(updatedSession);
 
         // Move to next exercise if available
-        if (result.isSuccess && currentExerciseIndex + 1 < session.exercises.length) {
-            setTimeout(() => {
-                setCurrentExerciseIndex(currentExerciseIndex + 1);
-            }, 1500); // Short delay to show success
+        if (result.isSuccess) {
+            // Play success sound
+            try {
+                const audio = new Audio('/assets/maze/win.mp3');
+                audio.volume = 0.4;
+                audio.play().catch(() => { });
+            } catch (e) { }
+
+            if (currentExerciseIndex + 1 < session.exercises.length) {
+                setTimeout(() => {
+                    setCurrentExerciseIndex(currentExerciseIndex + 1);
+                }, 1500); // Short delay to show success
+            }
         }
     }, [session, currentExercise, currentExerciseIndex]);
 
@@ -273,10 +395,36 @@ export function PracticeContent({
                     onChange={onLanguageChange}
                     onIconClick={isSidebarCollapsed ? () => setIsSidebarCollapsed(false) : undefined}
                 />
+
+                <div style={{ display: session ? 'block' : 'none', width: '100%', marginTop: '12px' }}>
+                    <button
+                        onClick={handleShare}
+                        className="practice-footer-btn share"
+                        title={t('Practice.share_tooltip', 'Share this session')}
+                    >
+                        <span>🔗</span>
+                        {!isSidebarCollapsed && <span>{t('Practice.share', 'Share')}</span>}
+                    </button>
+
+                    <button
+                        onClick={() => setShowSolutionDialog(true)}
+                        className="practice-footer-btn solution"
+                        title={t('Practice.show_solution_tooltip', 'Show reference solution')}
+                        disabled={!currentQuest?.referenceCode}
+                    >
+                        <span>💡</span>
+                        {!isSidebarCollapsed && <span>{t('Practice.show_solution', 'Solution')}</span>}
+                    </button>
+                </div>
             </PracticeSidebar>
 
             <main className="main-content-area practice-main">
-                {isSessionComplete ? (
+                {isMapGenerating ? (
+                    <div className="practice-loading">
+                        <div className="spinner"></div>
+                        <p>{t('Practice.generating', 'Generating Challenge...')}</p>
+                    </div>
+                ) : isSessionComplete ? (
                     renderCompleteScreen()
                 ) : currentQuest ? (
                     <MemoizedQuestPlayer
@@ -292,6 +440,33 @@ export function PracticeContent({
                     renderEmptyState()
                 )}
             </main>
+
+            {/* Solution Dialog */}
+            {showSolutionDialog && currentQuest?.referenceCode && (
+                <Dialog
+                    isOpen={true}
+                    onClose={() => setShowSolutionDialog(false)}
+                    title={t('Practice.solution_title', 'Reference Solution')}
+                >
+                    <div className="solution-content" style={{ padding: '20px', maxHeight: '60vh', overflow: 'auto' }}>
+                        <p style={{ marginBottom: '10px', color: 'var(--text-secondary)' }}>
+                            {t('Practice.solution_desc', 'This is one possible solution. There may be others!')}
+                        </p>
+                        <pre style={{
+                            background: '#1e1e1e',
+                            color: '#d4d4d4',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            overflowX: 'auto',
+                            fontFamily: 'monospace',
+                            fontSize: '14px',
+                            lineHeight: '1.5'
+                        }}>
+                            <code>{currentQuest.referenceCode}</code>
+                        </pre>
+                    </div>
+                </Dialog>
+            )}
         </div>
     );
 }
