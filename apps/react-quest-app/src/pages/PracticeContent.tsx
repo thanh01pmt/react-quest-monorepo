@@ -87,25 +87,50 @@ export function PracticeContent({
         loadExistingSession();
     }, []);
 
-    // Helper to generate share URL
-    // Handle Sharing via Firestore
-    const handleShare = useCallback(async () => {
+    // Share Modal State
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
+
+    // Initial Share Click -> Open Modal
+    const handleShareClick = useCallback(() => {
+        if (!session) return;
+        setShowShareModal(true);
+    }, [session]);
+
+    // Perform the actual share with selected mode
+    const handleConfirmShare = useCallback(async (mode: 'clean' | 'full') => {
         if (!session) return;
 
+        setIsSharing(true);
         try {
-            // Persist full session (with generated maps) to Firestore
-            const shareId = await saveSharedSession(session);
+            // New Advanced Share Service
+            // Use anonymous ID if not logged in (TODO: integrate real Auth context if available)
+            const userId = 'anonymous';
+            const shareId = await saveSharedSession(session, userId); // Fallback to full for now or use new API
 
-            // Generate simple share URL with ID
+            // We need to import shareSession from service to use modes properly
+            // But for now let's update the import in the file header first or cast
+            const { shareSession } = await import('../services/SharedSessionService');
+
+            const finalShareId = await shareSession(session, mode, userId);
+
+            // Generate URL
             const params = new URLSearchParams();
-            params.set('shareId', shareId);
-
+            params.set('shareId', finalShareId);
             const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+
             navigator.clipboard.writeText(url);
-            alert(t('Practice.share_copied', 'Link copied to clipboard!'));
+            alert(mode === 'clean'
+                ? t('Practice.share_clean_copied', "Challenge Link copied! (Progress reset)")
+                : t('Practice.share_full_copied', "Snapshot Link copied! (Progress saved)")
+            );
+
+            setShowShareModal(false);
         } catch (e) {
             console.error('Failed to share session', e);
             alert('Failed to generate share link. Please try again.');
+        } finally {
+            setIsSharing(false);
         }
     }, [session, t]);
 
@@ -398,7 +423,7 @@ export function PracticeContent({
 
                 <div style={{ display: session ? 'block' : 'none', width: '100%', marginTop: '12px' }}>
                     <button
-                        onClick={handleShare}
+                        onClick={handleShareClick}
                         className="practice-footer-btn share"
                         title={t('Practice.share_tooltip', 'Share this session')}
                     >
@@ -464,6 +489,76 @@ export function PracticeContent({
                         }}>
                             <code>{currentQuest.referenceCode}</code>
                         </pre>
+                    </div>
+                </Dialog>
+            )}
+
+            {/* Share Selection Dialog */}
+            {showShareModal && (
+                <Dialog
+                    isOpen={true}
+                    onClose={() => setShowShareModal(false)}
+                    title={t('Practice.share_title', 'Share Practice Session')}
+                >
+                    <div className="share-dialog-content" style={{ padding: '20px', color: 'var(--text-primary)' }}>
+                        <p style={{ marginBottom: '20px' }}>
+                            {t('Practice.share_prompt', 'How would you like to share this session?')}
+                        </p>
+
+                        <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: '1fr 1fr' }}>
+                            {/* Option 1: Clean (Challenge) */}
+                            <button
+                                onClick={() => handleConfirmShare('clean')}
+                                disabled={isSharing}
+                                className="share-option-btn"
+                                style={{
+                                    padding: '16px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '8px',
+                                    background: 'var(--surface-color)',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                    opacity: isSharing ? 0.7 : 1
+                                }}
+                            >
+                                <div style={{ fontSize: '24px', marginBottom: '8px' }}>⚔️</div>
+                                <strong style={{ display: 'block', marginBottom: '4px' }}>
+                                    {t('Practice.share_clean', 'Challenge Friend')}
+                                </strong>
+                                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    {t('Practice.share_clean_desc', 'Resets progress. They start from the beginning.')}
+                                </span>
+                            </button>
+
+                            {/* Option 2: Full (Snapshot) */}
+                            <button
+                                onClick={() => handleConfirmShare('full')}
+                                disabled={isSharing}
+                                className="share-option-btn"
+                                style={{
+                                    padding: '16px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '8px',
+                                    background: 'var(--surface-color)',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                    opacity: isSharing ? 0.7 : 1
+                                }}
+                            >
+                                <div style={{ fontSize: '24px', marginBottom: '8px' }}>📸</div>
+                                <strong style={{ display: 'block', marginBottom: '4px' }}>
+                                    {t('Practice.share_full', 'Share Progress')}
+                                </strong>
+                                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    {t('Practice.share_full_desc', 'Includes your current level and scores.')}
+                                </span>
+                            </button>
+                        </div>
+                        {isSharing && (
+                            <p style={{ marginTop: '16px', textAlign: 'center', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                                {t('Practice.sharing_processing', 'Generating link...')}
+                            </p>
+                        )}
                     </div>
                 </Dialog>
             )}

@@ -10,6 +10,11 @@ import {
   doc, 
   getDoc, 
   addDoc,
+  setDoc,
+  query,
+  where,
+  getDocs,
+  limit,
   serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -20,40 +25,111 @@ const SHARED_SESSIONS_COLLECTION = 'shared_practice_sessions';
 
 export interface SharedSessionData {
   serializedSession: string; // JSON string of PracticeSession
+  originalSessionId: string; // ID of the session being shared (for deduplication)
+  userId: string; // Creator ID
+  shareType: 'clean' | 'full'; // Share mode
   createdAt: any;
-  createdBy?: string;
+  updatedAt?: any;
 }
 
 /**
  * Save a practice session to Firestore for sharing
  * Returns the document ID (shareId)
  */
-export async function saveSharedSession(session: PracticeSession, userId?: string): Promise<string> {
+/**
+ * Share a session with Clean or Full mode.
+ * - Checks for existing shares to prevent duplicates.
+ * - Overwrites if content has changed.
+ * - Creates new if clean.
+ */
+export async function shareSession(
+  session: PracticeSession, 
+  mode: 'clean' | 'full',
+  userId: string = 'anonymous'
+): Promise<string> {
   try {
-    // Simply stringify the entire session object.
-    // This avoids Firestore issues with:
-    // 1. Nested arrays (pathCoords)
-    // 2. undefined values (JSON.stringify removes them)
-    // 3. Complex nested objects
-    const serializedSession = JSON.stringify(session);
+    // 1. Prepare Session Data based on mode
+    let sessionToShare = { ...session };
     
-    const sessionData = {
+    if (mode === 'clean') {
+      // Reset progress data for "Clean" share (Challenge friends)
+      sessionToShare = {
+        ...session,
+        currentIndex: 0,
+        results: [],
+        startedAt: new Date(),
+        completedAt: undefined,
+        exercises: session.exercises.map(ex => ({
+          ...ex,
+          // Keep mapData but clear user-specifics? 
+          // Actually generated mapData is part of the challenge, so keep it.
+          // Reset any user solution if we ever stored it inside exercise (currently we don't seem to)
+        }))
+      };
+    }
+
+    const serializedSession = JSON.stringify(sessionToShare);
+    const originalSessionId = session.id;
+
+    // 2. Check for existing share
+    // Logic: Find doc where originalSessionId == id AND userId == currentUserId AND shareType == mode
+    // Limit 1.
+    const q = query(
+      collection(db, SHARED_SESSIONS_COLLECTION),
+      where("originalSessionId", "==", originalSessionId),
+      where("userId", "==", userId),
+      where("shareType", "==", mode),
+      limit(1)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      // Found existing share!
+      const existingDoc = querySnapshot.docs[0];
+      const existingData = existingDoc.data() as SharedSessionData;
+
+      if (existingData.serializedSession === serializedSession) {
+        console.log('[SharedSessionService] Content unchanged. Returning existing ID:', existingDoc.id);
+        return existingDoc.id;
+      } else {
+        console.log('[SharedSessionService] Content changed. Overwriting existing doc:', existingDoc.id);
+        await setDoc(doc(db, SHARED_SESSIONS_COLLECTION, existingDoc.id), {
+          ...existingData,
+          serializedSession,
+          updatedAt: serverTimestamp()
+        });
+        return existingDoc.id;
+      }
+    }
+
+    // 3. Create NEW share
+    const sessionData: SharedSessionData = {
       serializedSession,
+      originalSessionId,
+      userId,
+      shareType: mode,
       createdAt: serverTimestamp(),
-      createdBy: userId || 'anonymous',
-      version: 2 // Bump version to indicate new format
+      updatedAt: serverTimestamp()
     };
 
     const docRef = await addDoc(collection(db, SHARED_SESSIONS_COLLECTION), sessionData);
-    console.log('[SharedSessionService] Session saved with ID:', docRef.id);
+    console.log('[SharedSessionService] New session shared with ID:', docRef.id);
     return docRef.id;
+
   } catch (error) {
-    console.error('[SharedSessionService] Failed to save shared session:', error);
-    if (error instanceof Error) {
-        console.error('Error details:', error.message, error.stack);
-    }
+    console.error('[SharedSessionService] Failed to share session:', error);
     throw error;
   }
+}
+
+/**
+ * Legacy wrapper for backward compatibility if needed, 
+ * or just an alias for 'full' share for now.
+ * @deprecated Use shareSession instead
+ */
+export async function saveSharedSession(session: PracticeSession, userId?: string): Promise<string> {
+  return shareSession(session, 'full', userId);
 }
 
 /**
