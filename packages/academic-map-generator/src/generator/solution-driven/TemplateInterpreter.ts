@@ -1990,24 +1990,26 @@ export class TemplateInterpreter {
       i.position[2] === this.context.position[2]
     );
 
+    // Only add item AND record action if item doesn't already exist at this position
+    // This prevents solution from having more collectItem blocks than actual crystals
     if (!exists) {
       this.items.push({
         type: itemType,
         position: [...this.context.position] as Coord
       });
-    }
-    this.actions.push({
-      type: 'collect',
-      position: [...this.context.position] as Coord,
-      direction: this.context.direction,
-      item: itemType
-    });
-    this.totalCollects++;
-    
-    if (itemType === 'crystal') {
-      this.context.inventory.crystals++;
-    } else if (itemType === 'key') {
-      this.context.inventory.keys++;
+      this.actions.push({
+        type: 'collect',
+        position: [...this.context.position] as Coord,
+        direction: this.context.direction,
+        item: itemType
+      });
+      this.totalCollects++;
+      
+      if (itemType === 'crystal') {
+        this.context.inventory.crystals++;
+      } else if (itemType === 'key') {
+        this.context.inventory.keys++;
+      }
     }
   }
 
