@@ -2,6 +2,32 @@
 
 ## Thay Đổi Gần Đây
 
+### 17/01/2026
+
+- **Loại thay đổi: Fix**
+  - **Mô tả**: Sửa lỗi tái tạo màn chơi (regenerate) trong chế độ Luyện tập (Practice Mode), đảm bảo vị trí đích và block đất được sinh ra chính xác.
+  - **Mục tiêu**: Khắc phục tình trạng lỗi vị trí đích (Finish Position Issue) và tăng tính ổn định cho thuật toán sinh map ngẫu nhiên.
+  - **Tác động**: Người chơi sẽ không còn gặp lỗi đích đến không hợp lệ hoặc thiếu block đất khi chơi chế độ Practice.
+  - **File liên quan**:
+    - `[practice_mode_analysis.md](practice_mode_analysis.md)`
+    - `[test-random-pattern.js](test-random-pattern.js)`
+    - `[reproduction.js](reproduction.js)`
+
+- **Loại thay đổi: Documentation/Analysis**
+  - **Mô tả**: Thêm tài liệu phân tích kỹ thuật cho Practice Mode và các script kiểm thử để tái hiện lỗi.
+  - **Mục tiêu**: Cung cấp cái nhìn sâu sắc về nguyên nhân lỗi (Uniformity Issue, Finish Position Issue) và giải pháp đã áp dụng.
+  - **Tác động**: Hỗ trợ developer trong việc debug và mở rộng thư viện Template sau này.
+  - **File liên quan**:
+    - `[practice_mode_analysis.md](practice_mode_analysis.md)`
+    - `[project-context.md](project-context.md)`
+
+- **Loại thay đổi: Chore**
+  - **Mô tả**: Cập nhật trạng thái toàn bộ mã nguồn (System Re-sync).
+  - **Mục tiêu**: Đồng bộ hóa code base với các thay đổi mới nhất từ môi trường phát triển (bao gồm 1890 file).
+  - **Tác động**: Đảm bảo repository phản ánh đúng trạng thái hiện tại của dự án.
+  - **File liên quan**:
+    - `[package.json](package.json)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
