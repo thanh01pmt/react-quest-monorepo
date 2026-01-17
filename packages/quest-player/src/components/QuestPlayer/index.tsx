@@ -780,7 +780,8 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   const workspaceConfiguration = useMemo(() => ({
     theme: blocklyTheme,
     renderer: settings.renderer,
-    trashcan: true,
+    trashcan: !questData?.blocklyConfig?.readOnly,
+    readOnly: questData?.blocklyConfig?.readOnly ?? false,
     zoom: { controls: true, wheel: false, startScale: 1.0, maxScale: 3, minScale: 0.3, scaleSpeed: 1.2 },
     move: {
       scrollbars: {
@@ -799,7 +800,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       snap: true
     } : undefined,
     sounds: settings.soundsEnabled,
-  }), [blocklyTheme, settings, effectiveColorScheme]);
+  }), [blocklyTheme, settings, effectiveColorScheme, questData?.blocklyConfig?.readOnly]);
 
   const handleBlocklyPanelResize = useCallback(() => {
     setTimeout(() => {

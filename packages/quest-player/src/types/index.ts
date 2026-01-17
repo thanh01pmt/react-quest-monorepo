@@ -42,6 +42,7 @@ export interface BlocklyConfig {
   toolbox: ToolboxJSON;
   maxBlocks?: number;
   startBlocks?: string;
+  readOnly?: boolean;
 }
 
 export type GameConfig = MazeConfig | TurtleConfig | PondConfig | BirdConfig;
@@ -247,6 +248,9 @@ export interface SolutionConfig {
   optimalBlocks?: number;
   optimalLines?: number;
   solutionMaxBlocks?: number;
+  rawActions?: string[];
+  structuredSolution?: { main: any[]; procedures?: Record<string, any[]> };
+  basicSolution?: { main: any[]; procedures?: Record<string, any[]> };
 }
 
 // =================================================================

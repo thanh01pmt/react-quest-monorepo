@@ -24,6 +24,8 @@ import { saveSession, getIncompleteSessions } from '../services/SessionStorage';
 import { updateProgress } from '../services/ProgressService';
 import { exerciseToQuest, generateExerciseMapData } from '../services/ExerciseToQuestMapper';
 import { saveSharedSession, getSharedSession } from '../services/SharedSessionService';
+import { convertSolutionToXml } from '@repo/academic-map-generator';
+import { BlocklyWorkspace } from '@repo/quest-player';
 import '../App.css';
 
 // Wrapped QuestPlayer
@@ -54,7 +56,7 @@ export function PracticeContent({
     // Sidebar state
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-    const [showSolutionDialog, setShowSolutionDialog] = useState(false);
+    const [showSolutionMode, setShowSolutionMode] = useState(false);
     const [isMapGenerating, setIsMapGenerating] = useState(false);
 
     // Current exercise and quest
@@ -62,10 +64,26 @@ export function PracticeContent({
 
     // Convert current exercise to Quest format for QuestPlayer
     // Convert current exercise to Quest format for QuestPlayer
+    // Convert current exercise to Quest format, optionally showing solution
     const currentQuest: Quest | null = useMemo(() => {
         if (!currentExercise) return null;
-        return exerciseToQuest(currentExercise, currentExerciseIndex);
-    }, [currentExercise, currentExerciseIndex]);
+        const baseQuest = exerciseToQuest(currentExercise, currentExerciseIndex);
+
+        // If showing solution mode, override startBlocks with solution and make read-only
+        if (showSolutionMode && baseQuest.solution?.structuredSolution) {
+            const solutionXml = convertSolutionToXml(baseQuest.solution.structuredSolution as any);
+            return {
+                ...baseQuest,
+                blocklyConfig: {
+                    ...baseQuest.blocklyConfig,
+                    startBlocks: solutionXml,
+                    readOnly: true,
+                }
+            } as Quest;
+        }
+
+        return baseQuest;
+    }, [currentExercise, currentExerciseIndex, showSolutionMode]);
 
     // Initialize templates
     useEffect(() => {
@@ -296,6 +314,9 @@ export function PracticeContent({
 
     // Handle QuestPlayer completion
     const handleQuestComplete = useCallback((result: QuestCompletionResult) => {
+        // Skip recording when in solution mode - user is just viewing/testing the solution
+        if (showSolutionMode) return;
+
         if (!session || !currentExercise) return;
 
         const exerciseResult = {
@@ -340,7 +361,7 @@ export function PracticeContent({
                 }, 1500); // Short delay to show success
             }
         }
-    }, [session, currentExercise, currentExerciseIndex]);
+    }, [session, currentExercise, currentExerciseIndex, showSolutionMode]);
 
     // Render empty state
     const renderEmptyState = () => (
@@ -432,13 +453,17 @@ export function PracticeContent({
                     </button>
 
                     <button
-                        onClick={() => setShowSolutionDialog(true)}
-                        className="practice-footer-btn solution"
-                        title={t('Practice.show_solution_tooltip', 'Show reference solution')}
-                        disabled={!currentQuest?.referenceCode}
+                        onClick={() => setShowSolutionMode(!showSolutionMode)}
+                        className={`practice-footer-btn solution ${showSolutionMode ? 'active' : ''}`}
+                        title={showSolutionMode
+                            ? t('Practice.hide_solution_tooltip', 'Return to your code')
+                            : t('Practice.show_solution_tooltip', 'Show reference solution')}
+                        disabled={!currentQuest?.solution?.structuredSolution}
                     >
-                        <span>💡</span>
-                        {!isSidebarCollapsed && <span>{t('Practice.show_solution', 'Solution')}</span>}
+                        <span>{showSolutionMode ? '✏️' : '💡'}</span>
+                        {!isSidebarCollapsed && <span>{showSolutionMode
+                            ? t('Practice.hide_solution', 'Back to Code')
+                            : t('Practice.show_solution', 'Solution')}</span>}
                     </button>
                 </div>
             </PracticeSidebar>
@@ -453,7 +478,7 @@ export function PracticeContent({
                     renderCompleteScreen()
                 ) : currentQuest ? (
                     <MemoizedQuestPlayer
-                        key={currentQuest.id}
+                        key={`${currentQuest.id}-${showSolutionMode ? 'solution' : 'edit'}`}
                         isStandalone={false}
                         language={i18n.language}
                         questData={currentQuest}
@@ -465,33 +490,6 @@ export function PracticeContent({
                     renderEmptyState()
                 )}
             </main>
-
-            {/* Solution Dialog */}
-            {showSolutionDialog && currentQuest?.referenceCode && (
-                <Dialog
-                    isOpen={true}
-                    onClose={() => setShowSolutionDialog(false)}
-                    title={t('Practice.solution_title', 'Reference Solution')}
-                >
-                    <div className="solution-content" style={{ padding: '20px', maxHeight: '60vh', overflow: 'auto' }}>
-                        <p style={{ marginBottom: '10px', color: 'var(--text-secondary)' }}>
-                            {t('Practice.solution_desc', 'This is one possible solution. There may be others!')}
-                        </p>
-                        <pre style={{
-                            background: '#1e1e1e',
-                            color: '#d4d4d4',
-                            padding: '16px',
-                            borderRadius: '8px',
-                            overflowX: 'auto',
-                            fontFamily: 'monospace',
-                            fontSize: '14px',
-                            lineHeight: '1.5'
-                        }}>
-                            <code>{currentQuest.referenceCode}</code>
-                        </pre>
-                    </div>
-                </Dialog>
-            )}
 
             {/* Share Selection Dialog */}
             {showShareModal && (

@@ -20,6 +20,9 @@ export { Dialog } from './components/Dialog';
 export { QuestImporter } from './components/QuestImporter';
 export { LanguageSelector } from './components/LanguageSelector';
 
+// Re-export BlocklyWorkspace for solution display
+export { BlocklyWorkspace } from 'react-blockly';
+
 // Type exports for consumers
 export type {
   Quest,
