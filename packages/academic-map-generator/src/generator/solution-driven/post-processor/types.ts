@@ -197,20 +197,22 @@ export function generateShapeCoords(
   center: Coord3D,
   bias: BiasDirection,
   movementDirection: number,
-  heightConfig?: number | [number, number]
+  heightConfig?: number | [number, number],
+  rng?: () => number
 ): Coord3D[] {
+  const random = rng || Math.random;
   const coords: Coord3D[] = [];
   const baseY = center.y;
   
   // Special handling for mountain shape (3D pyramid) - pass size as-is for random support
   if (shape === 'mountain') {
     const mountainSize = Array.isArray(size) ? size : (typeof size === 'number' ? size : size.width);
-    return generateMountainCoords(center, mountainSize, bias, movementDirection, heightConfig);
+    return generateMountainCoords(center, mountainSize, bias, movementDirection, heightConfig, rng);
   }
   
   // For other shapes, convert size to number
   const sizeNum = Array.isArray(size) 
-    ? Math.floor(Math.random() * (size[1] - size[0] + 1)) + size[0]
+    ? Math.floor(random() * (size[1] - size[0] + 1)) + size[0]
     : (typeof size === 'number' ? size : size.width);
   
   if (bias === 'center') {
@@ -262,15 +264,17 @@ function generateMountainCoords(
   size: number | [number, number],
   bias: BiasDirection,
   movementDirection: number,
-  heightConfig?: number | [number, number]
+  heightConfig?: number | [number, number],
+  rng?: () => number
 ): Coord3D[] {
+  const random = rng || Math.random;
   const coords: Coord3D[] = [];
   
   // Handle size: if array [min, max], randomize. Otherwise use as-is.
   let baseSize: number;
   if (Array.isArray(size)) {
     const [minSize, maxSize] = size;
-    baseSize = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
+    baseSize = Math.floor(random() * (maxSize - minSize + 1)) + minSize;
   } else {
     baseSize = size;
   }
@@ -287,7 +291,8 @@ function generateMountainCoords(
     }
   }
   
-  const height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+  
+  const height = Math.floor(random() * (maxHeight - minHeight + 1)) + minHeight;
 
   // Calculate center position for the mountain
   let mountainCenterX = center.x;

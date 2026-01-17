@@ -81,7 +81,8 @@ export function extendShape(
   pathCoords: Coord3D[],
   interactibles: Array<{ type: string; position: { x: number; y: number; z: number } }>,
   existingBlocks: GeneratedBlock[],
-  config: ExtendShapeConfig
+  config: ExtendShapeConfig,
+  rng?: () => number
 ): ExtendShapeResult {
   const shape = config.shape ?? 'square';
   const size = config.size ?? 3;
@@ -135,7 +136,8 @@ export function extendShape(
       shapeCenter,
       bias,
       movementDir,
-      height
+      height,
+      rng
     );
     
     // Generate connector if needed

@@ -51,6 +51,7 @@ export interface PostProcessorContext {
   pathCoords: Coord3D[];
   blocks: GeneratedBlock[];
   interactibles: Array<{ type: string; position: { x: number; y: number; z: number } }>;
+  rng?: () => number;
 }
 
 export interface PostProcessorResult {
@@ -82,7 +83,8 @@ export function executePostProcessor(
         context.pathCoords, 
         context.interactibles, 
         context.blocks, 
-        config
+        config,
+        context.rng // Pass the seeded RNG
       );
       return {
         newBlocks: result.blocks,
@@ -94,7 +96,8 @@ export function executePostProcessor(
       const result = addTrees(
         context.pathCoords,
         context.blocks,
-        config
+        config,
+        context.rng // Pass the seeded RNG
       );
       return {
         newBlocks: result.blocks,

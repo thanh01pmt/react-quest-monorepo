@@ -75,7 +75,8 @@ export class SolutionDrivenGenerator {
         blocks: trace.pathCoords.map(c => ({ x: c[0], y: c[1] - 1, z: c[2], model: 'ground' })),
         interactibles: trace.items
           .filter(i => i.type === 'switch' || i.type === 'gate')
-          .map(i => ({ type: i.type, position: { x: i.position[0], y: i.position[1], z: i.position[2] } }))
+          .map(i => ({ type: i.type, position: { x: i.position[0], y: i.position[1], z: i.position[2] } })),
+        rng: () => rng.next() // Pass seeded RNG function
       };
       
       additionalBlocks = executePostProcessors(context, trace.postProcessConfigs);

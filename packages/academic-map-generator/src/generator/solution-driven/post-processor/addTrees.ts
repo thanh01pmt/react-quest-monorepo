@@ -25,8 +25,10 @@ export interface AddTreesResult {
 export function addTrees(
   pathCoords: Coord3D[],
   blocks: GeneratedBlock[],
-  config: AddTreesConfig
+  config: AddTreesConfig,
+  rng?: () => number
 ): { blocks: GeneratedBlock[]; result: AddTreesResult } {
+  const random = rng || Math.random;
   // Default config
   const countConfig = config.count ?? [3, 5];
   const treeTypes = config.treeTypes ?? ['tree.tree01', 'tree.tree02', 'tree.tree03', 'tree.tree04', 'tree.tree05'];
@@ -34,7 +36,7 @@ export function addTrees(
 
   // Calculate actual tree count
   const treeCount = Array.isArray(countConfig)
-    ? Math.floor(Math.random() * (countConfig[1] - countConfig[0] + 1)) + countConfig[0]
+    ? Math.floor(random() * (countConfig[1] - countConfig[0] + 1)) + countConfig[0]
     : countConfig;
 
   // Create set of path coordinates for quick lookup
@@ -67,12 +69,12 @@ export function addTrees(
   }
 
   // Shuffle and select positions
-  const shuffled = [...availablePositions].sort(() => Math.random() - 0.5);
+  const shuffled = [...availablePositions].sort(() => random() - 0.5);
   const selectedPositions = shuffled.slice(0, Math.min(treeCount, shuffled.length));
 
   // Create tree blocks
   const treeBlocks: GeneratedBlock[] = selectedPositions.map(pos => {
-    const randomTreeType = treeTypes[Math.floor(Math.random() * treeTypes.length)];
+    const randomTreeType = treeTypes[Math.floor(random() * treeTypes.length)];
     return {
       x: pos.x,
       y: pos.y + 1, // Trees sit on top of the highest block

@@ -19,8 +19,7 @@ import type { PracticeSession } from '@repo/shared-templates';
 const SHARED_SESSIONS_COLLECTION = 'shared_practice_sessions';
 
 export interface SharedSessionData {
-  config: any; // PracticeConfig
-  exercises: any[]; // GeneratedExercise[] with mapData
+  serializedSession: string; // JSON string of PracticeSession
   createdAt: any;
   createdBy?: string;
 }
@@ -31,13 +30,18 @@ export interface SharedSessionData {
  */
 export async function saveSharedSession(session: PracticeSession, userId?: string): Promise<string> {
   try {
+    // Simply stringify the entire session object.
+    // This avoids Firestore issues with:
+    // 1. Nested arrays (pathCoords)
+    // 2. undefined values (JSON.stringify removes them)
+    // 3. Complex nested objects
+    const serializedSession = JSON.stringify(session);
+    
     const sessionData = {
-      config: session.config,
-      // We must strip out runtime-only fields if any, but mapData is serializable
-      exercises: session.exercises,
+      serializedSession,
       createdAt: serverTimestamp(),
       createdBy: userId || 'anonymous',
-      version: 1
+      version: 2 // Bump version to indicate new format
     };
 
     const docRef = await addDoc(collection(db, SHARED_SESSIONS_COLLECTION), sessionData);
@@ -45,6 +49,9 @@ export async function saveSharedSession(session: PracticeSession, userId?: strin
     return docRef.id;
   } catch (error) {
     console.error('[SharedSessionService] Failed to save shared session:', error);
+    if (error instanceof Error) {
+        console.error('Error details:', error.message, error.stack);
+    }
     throw error;
   }
 }
@@ -60,16 +67,22 @@ export async function getSharedSession(shareId: string): Promise<PracticeSession
     if (docSnap.exists()) {
       const data = docSnap.data() as SharedSessionData;
       
-      // Reconstitute minimal session object
-      // Note: We create a new local session ID, but reuse the exercises
-      return {
-        id: `shared_${shareId}_${Date.now()}`,
-        config: data.config,
-        exercises: data.exercises,
-        currentIndex: 0,
-        results: [],
-        startedAt: new Date(), // Reset start time for the receiver
-      };
+      try {
+        // Parse the full session from JSON string
+        const parsedSession = JSON.parse(data.serializedSession) as PracticeSession;
+        
+        // Return with new ID/Timestamp semantics for the receiver
+        return {
+           ...parsedSession,
+           id: `shared_${shareId}_${Date.now()}`,
+           startedAt: new Date(), // Reset start time
+        };
+      } catch (e) {
+         console.error('[SharedSessionService] Failed to parse serialized session', e);
+         // Fallback for version 1 if needed? 
+         // For now, assume consistent V2 since V1 was broken for complex maps.
+         return null; 
+      }
     } else {
       console.warn('[SharedSessionService] Shared session not found:', shareId);
       return null;
