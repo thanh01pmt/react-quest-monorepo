@@ -963,7 +963,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
             {/* Wrap editor content in vertical PanelGroup for Console */}
             <PanelGroup direction="vertical" style={{ flex: 1, minHeight: 0 }}>
-              <Panel minSize={30} style={{ display: 'flex', flexDirection: 'column' }}>
+              <Panel minSize={30} style={{ display: 'flex', flexDirection: 'column' }} onResize={handleBlocklyPanelResize}>
                 {isQuestReady && dynamicToolboxConfig && isBlocksInitialized ? (
                   <>
                     <div style={{ display: currentEditor !== 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'row', minHeight: 0, width: '100%' }}>
