@@ -116,6 +116,11 @@ export const initPythonGenerator = () => {
     return `say(${msg})\n`;
   };
 
+  pythonGenerator.forBlock['text_print'] = function(block: Blockly.Block) {
+    const msg = pythonGenerator.valueToCode(block, 'TEXT', Order.NONE) || "''";
+    return `print(${msg})\n`;
+  };
+
   pythonGenerator.forBlock['oop_character_say'] = function(block: Blockly.Block) {
     const character = block.getFieldValue('CHARACTER');
     const msg = pythonGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";

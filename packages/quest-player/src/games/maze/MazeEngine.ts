@@ -33,6 +33,10 @@ export interface IMazeEngine extends IGameEngine {
   // OOP-Lite API for multi-character support (Phase 3)
   doActionForCharacter(characterId: string, action: string): void;
   checkPathForCharacter(characterId: string, direction: 0 | 1 | 3): boolean;
+  
+  // Console API
+  doPrint(text: string): void;
+  setPrintCallback(callback: (text: string) => void): void;
 }
 
 // [FIX] Define walkable and non-walkable blocks explicitly to ensure consistency.
@@ -70,6 +74,7 @@ export class MazeEngine implements IMazeEngine {
   private interpreter: any | null = null;
   private highlightedBlockId: string | null = null;
   private executedAction: boolean = false;
+  private printCallback: ((text: string) => void) | null = null;
   
   // Item goals for Random Item Mode (itemGoals < totalItems)
   private itemGoals: { crystal?: number; key?: number } = {};
@@ -369,6 +374,18 @@ export class MazeEngine implements IMazeEngine {
     return result;
   }
 
+  public setPrintCallback(callback: (text: string) => void): void {
+    this.printCallback = callback;
+  }
+
+  public doPrint(text: string): void {
+    if (this.printCallback) {
+      this.printCallback(text);
+    } else {
+      console.log('[MazeEngine] Print:', text);
+    }
+  }
+
   execute(userCode: string): void {
     this.currentState = this.getInitialState();
     this.highlightedBlockId = null;
@@ -415,6 +432,16 @@ export class MazeEngine implements IMazeEngine {
         if (blockId) this.highlight(blockId);
         this.doWait(seconds);
         this.executedAction = true; 
+      }));
+
+      // Print API
+      interpreter.setProperty(globalObject, 'print', interpreter.createNativeFunction((text: any, blockId: string) => {
+        if (blockId) this.highlight(blockId);
+        // Handle non-string types gracefully
+        const message = String(text); 
+        this.doPrint(message);
+        // Print is instantaneous, usually doesn't count as a "step" or "action" that ends the turn,
+        // but it highlights the block.
       }));
 
       // ============================================

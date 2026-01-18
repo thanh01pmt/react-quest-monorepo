@@ -110,6 +110,16 @@ export const initSwiftGenerator = () => {
     return ['itemCount()', Order.FUNCTION_CALL];
   };
 
+  swiftGenerator['maze_say'] = function(block: Blockly.Block) {
+    const msg = javascriptGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
+    return `say(${msg})\n`;
+  };
+
+  swiftGenerator['text_print'] = function(block: Blockly.Block) {
+    const msg = javascriptGenerator.valueToCode(block, 'TEXT', Order.NONE) || "''";
+    return `print(${msg})\n`;
+  };
+
   // Start block
   swiftGenerator['maze_start'] = function(block: Blockly.Block) {
     const jsCode = javascriptGenerator.statementToCode(block, 'DO') || '';
@@ -178,6 +188,8 @@ export const generateSwiftCode = (workspace: Blockly.Workspace): string => {
 @_silgen_name("atFinish") func atFinish() -> Bool
 @_silgen_name("isItemPresent") func isItemPresent() -> Bool
 @_silgen_name("itemCount") func itemCount() -> Int
+@_silgen_name("say") func say(_ msg: String)
+@_silgen_name("print") func print(_ msg: String)
 
 @_cdecl("run")
 public func run() {

@@ -47,6 +47,7 @@ export function init(t: TFunction) {
   Blockly.Msg['MAZE_UNTIL'] = t('Maze.until', 'until');
   Blockly.Msg['MAZE_UNTIL_TOOLTIP'] = t('Maze.untilTooltip', 'Repeat actions until the condition is true.');
   Blockly.Msg['MAZE_DO_CODE'] = t('Maze.doCode', 'do');
+  Blockly.Msg['MAZE_PRINT'] = t('Maze.print', 'print');
 
   const LEFT_TURN = ' ↺';
   const RIGHT_TURN = ' ↻';
@@ -330,6 +331,21 @@ export function init(t: TFunction) {
       "nextStatement": null,
       "style": "actions_category",
       "tooltip": t('Maze.sayTooltip', 'Say something'),
+    },
+    {
+      "type": "text_print",
+      "message0": "%{BKY_MAZE_PRINT} %1",
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "TEXT",
+          "check": "String"
+        }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "style": "text_blocks",
+      "tooltip": "Print the specified text, number or other value."
     }
   ]);
 
@@ -348,6 +364,11 @@ export function init(t: TFunction) {
   javascriptGenerator.forBlock['maze_say'] = function(block: Blockly.Block) {
     const msg = javascriptGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
     return `say(${msg}, 'block_id_${block.id}');\n`;
+  };
+
+  javascriptGenerator.forBlock['text_print'] = function(block: Blockly.Block) {
+    const msg = javascriptGenerator.valueToCode(block, 'TEXT', Order.NONE) || "''";
+    return `print(${msg}, 'block_id_${block.id}');\n`;
   };
 
   // ============================================

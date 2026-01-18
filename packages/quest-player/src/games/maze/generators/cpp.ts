@@ -117,6 +117,18 @@ export const initCppGenerator = () => {
     return ['itemCount()', Order.FUNCTION_CALL];
   };
 
+  cppGenerator['maze_say'] = function(block: Blockly.Block) {
+    const msg = javascriptGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";
+    // Using printf for C++ or std::cout. Let's stick to C-style extern func for simplicity
+    return `say(${msg});\n`;
+  };
+
+  cppGenerator['text_print'] = function(block: Blockly.Block) {
+    const msg = javascriptGenerator.valueToCode(block, 'TEXT', Order.NONE) || "''";
+    // Assuming we expose a 'print' function in C++ environment
+    return `print(${msg});\n`;
+  };
+
   // Start block
   cppGenerator['maze_start'] = function(block: Blockly.Block) {
     const jsCode = javascriptGenerator.statementToCode(block, 'DO') || '';
@@ -189,6 +201,8 @@ extern "C" bool isPathLeft();
 extern "C" bool atFinish();
 extern "C" bool isItemPresent();
 extern "C" int itemCount();
+extern "C" void say(const char* msg);
+extern "C" void print(const char* msg);
 
 void run() {
 `;

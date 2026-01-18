@@ -102,18 +102,7 @@
   pointer-events: none;
 }
 
-/* Hide native Blockly Toolbox to use custom React Toolbox */
-/* NOTE: Do NOT use display: none, as it breaks Blockly's flyout positioning/triggering. */
-.quest-player-container .blocklyToolboxDiv {
-  display: block !important;
-  visibility: hidden !important;
-  height: 0 !important;
-  width: 0 !important;
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
+/* [REMOVED] Native Blockly Toolbox should be visible in Vertical Mode */
 
 .stat-item {
   margin-bottom: 4px;

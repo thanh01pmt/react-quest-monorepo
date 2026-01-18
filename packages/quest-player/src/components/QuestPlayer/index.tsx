@@ -44,6 +44,8 @@ type StandaloneProps = {
   onSettingsChange?: (newSettings: QuestPlayerSettings) => void;
 };
 
+import { ConsolePanel, ConsoleLog } from '../ConsolePanel';
+
 type LibraryProps = {
   isStandalone: false;
   language: string;
@@ -98,6 +100,20 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
   const [internalQuestData, setInternalQuestData] = useState<Quest | null>(null);
   const questData = isStandalone ? internalQuestData : props.questData;
+
+  const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([{
+    type: 'info',
+    message: 'Console ready.',
+    timestamp: Date.now()
+  }]);
+
+  const handleConsoleLog = useCallback((message: string) => {
+    setConsoleLogs(prev => [...prev, {
+      type: 'log',
+      message: message,
+      timestamp: Date.now()
+    }]);
+  }, []);
 
   const [importError, setImportError] = useState<string>('');
   const [dialogState, setDialogState] = useState<{ isOpen: boolean; title: string; message: React.ReactNode }>({ isOpen: false, title: '', message: '' });
@@ -420,7 +436,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     currentGameState, playerStatus, runGame, resetGame,
     pauseGame, resumeGame, stepForward,
     handleActionComplete, handleTeleportComplete
-  } = useGameLoop(engineRef, questData, rendererRef, handleGameEnd, playSound, setHighlightedBlockId, currentEditor, currentUserCode, workspaceRef, blockCount);
+  } = useGameLoop(engineRef, questData, rendererRef, handleGameEnd, playSound, setHighlightedBlockId, currentEditor, currentUserCode, workspaceRef, blockCount, handleConsoleLog);
 
   // Apply block highlighting to Blockly workspace in debug mode
   useEffect(() => {
@@ -945,27 +961,30 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
               theme={effectiveColorScheme}
             />
 
-            {isQuestReady && dynamicToolboxConfig && isBlocksInitialized ? (
-              <>
-                <div style={{ display: currentEditor !== 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'row', minHeight: 0, width: '100%' }}>
-                  <SnippetToolbox currentEditor={currentEditor} allowedCategories={allowedCategories} theme={effectiveColorScheme} />
-                  <div style={{ flex: 1, height: '100%', position: 'relative' }}>
-                    <MonacoEditor
-                      initialCode={aceCode}
-                      onChange={(value) => {
-                        const code = value || '';
-                        // console.log('[DEBUG] Monaco onChange:', code.substring(0, 50) + '...');
-                        setAceCode(code);
-                      }}
-                      language={currentEditor === 'monaco' ? 'javascript' : currentEditor}
-                      readOnly={false} // Phase 2: Open editing for all languages
-                      theme={effectiveColorScheme}
-                    />
-                  </div>
-                </div>
+            {/* Wrap editor content in vertical PanelGroup for Console */}
+            <PanelGroup direction="vertical" style={{ flex: 1, minHeight: 0 }}>
+              <Panel minSize={30} style={{ display: 'flex', flexDirection: 'column' }}>
+                {isQuestReady && dynamicToolboxConfig && isBlocksInitialized ? (
+                  <>
+                    <div style={{ display: currentEditor !== 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'row', minHeight: 0, width: '100%' }}>
+                      <SnippetToolbox currentEditor={currentEditor} allowedCategories={allowedCategories} theme={effectiveColorScheme} />
+                      <div style={{ flex: 1, height: '100%', position: 'relative' }}>
+                        <MonacoEditor
+                          initialCode={aceCode}
+                          onChange={(value) => {
+                            const code = value || '';
+                            // console.log('[DEBUG] Monaco onChange:', code.substring(0, 50) + '...');
+                            setAceCode(code);
+                          }}
+                          language={currentEditor === 'monaco' ? 'javascript' : currentEditor}
+                          readOnly={false} // Phase 2: Open editing for all languages
+                          theme={effectiveColorScheme}
+                        />
+                      </div>
+                    </div>
 
-                <div style={{ display: currentEditor === 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'column', minHeight: 0, width: '100%' }}>
-                  {/* Blockly Search Input - TEMPORARILY DISABLED
+                    <div style={{ display: currentEditor === 'blockly' ? 'flex' : 'none', flex: 1, flexDirection: 'column', minHeight: 0, width: '100%' }}>
+                      {/* Blockly Search Input - TEMPORARILY DISABLED
                   <div style={{ padding: '8px 10px', backgroundColor: 'var(--background-color, #1e1e1e)', borderBottom: '1px solid var(--border-color, #333)' }}>
                     <input
                       type="search"
@@ -985,66 +1004,76 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                     />
                   </div>
                   */}
-                  {/* Conditional rendering based on blockMode */}
-                  {questData.blocklyConfig && loadedQuestId === questData.id && (
-                    settings.blockMode === 'horizontal' ? (
-                      <HorizontalBlocklyRenderer
-                        key={`horizontal-${blocklyWorkspaceKey}`}
-                        height="100%"
-                        showControls={true}
-                        maxBlocks={questData.blocklyConfig.maxBlocks}
-                        onBlocksChange={(xml) => {
-                          // Parse XML and update workspace state
-                          console.log('[QuestPlayer] Horizontal blocks changed:', xml.length);
-                        }}
-                        onCodeChange={(code) => {
-                          setBlocklyGeneratedCode(code);
-                        }}
+                      {/* Conditional rendering based on blockMode */}
+                      {questData.blocklyConfig && loadedQuestId === questData.id && (
+                        settings.blockMode === 'horizontal' ? (
+                          <HorizontalBlocklyRenderer
+                            key={`horizontal-${blocklyWorkspaceKey}`}
+                            height="100%"
+                            showControls={true}
+                            maxBlocks={questData.blocklyConfig.maxBlocks}
+                            onBlocksChange={(xml) => {
+                              // Parse XML and update workspace state
+                              console.log('[QuestPlayer] Horizontal blocks changed:', xml.length);
+                            }}
+                            onCodeChange={(code) => {
+                              setBlocklyGeneratedCode(code);
+                            }}
+                          />
+                        ) : (
+                          <BlocklyWorkspace
+                            key={blocklyWorkspaceKey}
+                            className="fill-container"
+                            toolboxConfiguration={filteredToolboxConfig || dynamicToolboxConfig}
+                            initialXml={initialXml}
+                            workspaceConfiguration={workspaceConfiguration}
+                            onWorkspaceChange={onWorkspaceChange}
+                            onInject={onInject}
+                          />
+                        )
+                      )}
+                      {questData.blocklyConfig && loadedQuestId !== questData.id && (
+                        <div className="emptyState">
+                          <h2>{t('UI.LoadingEditor')}</h2>
+                        </div>
+                      )}
+                      <SettingsPanel
+                        isOpen={isSettingsOpen}
+                        renderer={settings.renderer || 'zelos'}
+                        onRendererChange={value => handleSettingsChange({ renderer: value })}
+                        blocklyThemeName={settings.blocklyThemeName || 'zelos'}
+                        onBlocklyThemeNameChange={value => handleSettingsChange({ blocklyThemeName: value })}
+                        gridEnabled={settings.gridEnabled ?? true}
+                        onGridChange={value => handleSettingsChange({ gridEnabled: value })}
+                        soundsEnabled={settings.soundsEnabled ?? true}
+                        onSoundsChange={value => handleSettingsChange({ soundsEnabled: value })}
+                        colorSchemeMode={settings.colorSchemeMode || 'auto'}
+                        onColorSchemeChange={value => handleSettingsChange({ colorSchemeMode: value })}
+                        toolboxPresetKey={settings.toolboxPresetKey || 'default'}
+                        onToolboxPresetChange={value => handleSettingsChange({ toolboxPresetKey: value })}
+                        environment={settings.environment || 'night'}
+                        onEnvironmentChange={value => handleSettingsChange({ environment: value })}
+                        blockMode={settings.blockMode || 'vertical'}
+                        onBlockModeChange={value => handleSettingsChange({ blockMode: value })}
                       />
-                    ) : (
-                      <BlocklyWorkspace
-                        key={blocklyWorkspaceKey}
-                        className="fill-container"
-                        toolboxConfiguration={filteredToolboxConfig || dynamicToolboxConfig}
-                        initialXml={initialXml}
-                        workspaceConfiguration={workspaceConfiguration}
-                        onWorkspaceChange={onWorkspaceChange}
-                        onInject={onInject}
-                      />
-                    )
-                  )}
-                  {questData.blocklyConfig && loadedQuestId !== questData.id && (
-                    <div className="emptyState">
-                      <h2>{t('UI.LoadingEditor')}</h2>
+
                     </div>
-                  )}
-                  <SettingsPanel
-                    isOpen={isSettingsOpen}
-                    renderer={settings.renderer || 'zelos'}
-                    onRendererChange={value => handleSettingsChange({ renderer: value })}
-                    blocklyThemeName={settings.blocklyThemeName || 'zelos'}
-                    onBlocklyThemeNameChange={value => handleSettingsChange({ blocklyThemeName: value })}
-                    gridEnabled={settings.gridEnabled ?? true}
-                    onGridChange={value => handleSettingsChange({ gridEnabled: value })}
-                    soundsEnabled={settings.soundsEnabled ?? true}
-                    onSoundsChange={value => handleSettingsChange({ soundsEnabled: value })}
-                    colorSchemeMode={settings.colorSchemeMode || 'auto'}
-                    onColorSchemeChange={value => handleSettingsChange({ colorSchemeMode: value })}
-                    toolboxPresetKey={settings.toolboxPresetKey || 'default'}
-                    onToolboxPresetChange={value => handleSettingsChange({ toolboxPresetKey: value })}
-                    environment={settings.environment || 'night'}
-                    onEnvironmentChange={value => handleSettingsChange({ environment: value })}
-                    blockMode={settings.blockMode || 'vertical'}
-                    onBlockModeChange={value => handleSettingsChange({ blockMode: value })}
-                  />
-                </div>
-              </>
-            ) : (
-              <div className="emptyState">
-                <h2>{questLoaderError ? t('UI.Error') : t('UI.LoadingEditor')}</h2>
-                {questLoaderError && <p style={{ color: 'red' }}>{questLoaderError}</p>}
-              </div>
-            )}
+                  </>
+                ) : (
+                  <div className="emptyState">
+                    <h2>{questLoaderError ? t('UI.Error') : t('UI.LoadingEditor')}</h2>
+                    {questLoaderError && <p style={{ color: 'red' }}>{questLoaderError}</p>}
+                  </div>
+                )}
+              </Panel>
+              <PanelResizeHandle className="h-2 bg-gray-700 hover:bg-blue-500 transition-colors cursor-row-resize separator-horizontal" />
+              <Panel defaultSize={25} minSize={5} collapsible={true}>
+                <ConsolePanel
+                  logs={consoleLogs}
+                  onClear={() => setConsoleLogs([])}
+                />
+              </Panel>
+            </PanelGroup>
           </div>
         </Panel>
       </PanelGroup>

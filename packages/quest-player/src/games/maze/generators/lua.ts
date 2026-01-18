@@ -106,6 +106,11 @@ export const initLuaGenerator = () => {
     return `say(${msg})\n`;
   };
 
+  luaGenerator.forBlock['text_print'] = function(block: Blockly.Block) {
+    const msg = luaGenerator.valueToCode(block, 'TEXT', Order.NONE) || "''";
+    return `print(${msg})\n`;
+  };
+
   luaGenerator.forBlock['oop_character_say'] = function(block: Blockly.Block) {
     const character = block.getFieldValue('CHARACTER');
     const msg = luaGenerator.valueToCode(block, 'MSG', Order.NONE) || "''";

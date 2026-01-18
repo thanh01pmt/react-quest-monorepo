@@ -58,7 +58,8 @@ export const useGameLoop = (
   currentEditor: EditorType,
   userCode: string,
   workspaceRef: React.RefObject<Blockly.WorkspaceSvg>,
-  blockCount: number // New parameter
+  blockCount: number, // New parameter
+  onConsoleLog: (message: string) => void // [NEW] Callback for console logs
 ) => {
   const [playerStatus, setPlayerStatus] = useState<PlayerStatus>('idle');
   const [currentGameState, setCurrentGameState] = useState<GameState | null>(null);
@@ -183,7 +184,25 @@ export const useGameLoop = (
     }
     return true;
     return true;
+    return true;
   }, [engineRef, questData, executionLog, rendererRef, onGameEnd, playSound, setHighlightedBlockId, currentEditor, userCode, workspaceRef, blockCount]);
+
+  // [NEW] Register console log callback
+  useEffect(() => {
+    const engine = engineRef.current;
+    if (engine && 'setPrintCallback' in engine) {
+      // @ts-ignore
+      engine.setPrintCallback(onConsoleLog);
+    }
+    
+    // Cleanup
+    return () => {
+      if (engine && 'setPrintCallback' in engine) {
+        // @ts-ignore
+        engine.setPrintCallback(null);
+      }
+    };
+  }, [engineRef, onConsoleLog]);
 
   const handleActionComplete = useCallback(() => {
     const engine = engineRef.current;
@@ -251,6 +270,10 @@ export const useGameLoop = (
       setCurrentGameState(precomputedLog[0]);
     } else {
       // Standard JS/Blockly execution
+      // Register print callback before execution
+      if ('setPrintCallback' in engine && typeof (engine as any).setPrintCallback === 'function') {
+        (engine as any).setPrintCallback(onConsoleLog);
+      }
       engine.execute(codeToRun); 
 
       if (engine.step) {
