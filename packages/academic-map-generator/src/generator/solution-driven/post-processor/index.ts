@@ -13,12 +13,14 @@ export type {
   ColumnSupportConfig,
   WallExtrusionConfig,
   AddTreesConfig,
+  AddFogZoneConfig,
   ShapeType,
   BiasDirection,
   LevelMode,
   Coord3D,
   GeneratedBlock,
-  BoundingBox
+  BoundingBox,
+  FogZoneData
 } from './types';
 
 export {
@@ -41,11 +43,15 @@ export type { ExtendShapeResult, SwitchPosition } from './extendShape';
 export { addTrees } from './addTrees';
 export type { AddTreesResult } from './addTrees';
 
+export { addFogZone } from './addFogZone';
+export type { AddFogZoneResult } from './addFogZone';
+
 // Main executor
-import { PostProcessorConfig, Coord3D, GeneratedBlock } from './types';
+import { PostProcessorConfig, Coord3D, GeneratedBlock, FogZoneData } from './types';
 import { fillBoundingBox, FillBoundingBoxResult } from './fillBoundingBox';
 import { extendShape, ExtendShapeResult } from './extendShape';
 import { addTrees, AddTreesResult } from './addTrees';
+import { addFogZone, AddFogZoneResult } from './addFogZone';
 
 export interface PostProcessorContext {
   pathCoords: Coord3D[];
@@ -56,9 +62,10 @@ export interface PostProcessorContext {
 
 export interface PostProcessorResult {
   newBlocks: GeneratedBlock[];
+  newFogZones?: FogZoneData[];
   metadata: {
     type: string;
-    details: FillBoundingBoxResult | ExtendShapeResult | AddTreesResult | null;
+    details: FillBoundingBoxResult | ExtendShapeResult | AddTreesResult | AddFogZoneResult | null;
   };
 }
 
@@ -104,6 +111,20 @@ export function executePostProcessor(
         metadata: { type: 'addTrees', details: result.result }
       };
     }
+
+    case 'addFogZone': {
+      const result = addFogZone(
+        context.pathCoords,
+        context.blocks,
+        config,
+        context.rng
+      );
+      return {
+        newBlocks: result.blocks,
+        newFogZones: result.result.zones,
+        metadata: { type: 'addFogZone', details: result }
+      };
+    }
     
     // Future processors
     case 'sidewalk':
@@ -118,15 +139,21 @@ export function executePostProcessor(
   }
 }
 
+export interface PostProcessingSummary {
+  blocks: GeneratedBlock[];
+  fogZones: FogZoneData[];
+}
+
 /**
  * Execute multiple post-processors in sequence
  */
 export function executePostProcessors(
   context: PostProcessorContext,
   configs: PostProcessorConfig[]
-): GeneratedBlock[] {
+): PostProcessingSummary {
   let currentBlocks = [...context.blocks];
   const allNewBlocks: GeneratedBlock[] = [];
+  const allFogZones: FogZoneData[] = [];
   
   for (const config of configs) {
     const result = executePostProcessor(
@@ -136,7 +163,11 @@ export function executePostProcessors(
     
     allNewBlocks.push(...result.newBlocks);
     currentBlocks = [...currentBlocks, ...result.newBlocks];
+    
+    if (result.newFogZones) {
+      allFogZones.push(...result.newFogZones);
+    }
   }
   
-  return allNewBlocks;
+  return { blocks: allNewBlocks, fogZones: allFogZones };
 }

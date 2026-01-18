@@ -110,6 +110,13 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
                 {activeTab === 'quest' && (
                     <QuestDetailsPanel
                         metadata={props.metadata}
+                        fullQuestData={(() => {
+                            try {
+                                return props.editedJson ? JSON.parse(props.editedJson) : props.metadata;
+                            } catch (e) {
+                                return props.metadata;
+                            }
+                        })()}
                         onMetadataChange={props.onMetadataChange}
                         onSolveMaze={props.onSolveMaze}
                         onImportMap={props.onImportMap}

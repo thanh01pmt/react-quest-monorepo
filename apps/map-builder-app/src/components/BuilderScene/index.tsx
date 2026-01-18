@@ -169,6 +169,32 @@ const AssetRenderer = ({ asset, properties, material }: { asset: BuildableAsset,
     return <primitive object={clonedScene} />;
   }
 
+  // Special rendering for Zones (FogZone)
+  if (asset.type === 'zone') {
+    const scale = properties?.scale || asset.defaultProperties?.scale || { x: 1, y: 1, z: 1 };
+    const color = properties?.color || asset.defaultProperties?.color || '#eeeeee';
+
+    return (
+      <group>
+        {/* Wireframe box to show bounds */}
+        <mesh>
+          <boxGeometry args={[scale.x, scale.y, scale.z]} />
+          <meshBasicMaterial color={color} wireframe />
+        </mesh>
+
+        {/* Semi-transparent filled box */}
+        {!material && (
+          <mesh>
+            <boxGeometry args={[scale.x, scale.y, scale.z]} />
+            <meshBasicMaterial color={color} opacity={0.2} transparent depthWrite={false} />
+          </mesh>
+        )}
+
+        {/* Helper text/icon could go here */}
+      </group>
+    );
+  }
+
   // Render hình khối cơ bản
   const color = properties?.color || '#ffffffff';
 

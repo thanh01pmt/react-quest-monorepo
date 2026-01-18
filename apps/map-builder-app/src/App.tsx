@@ -976,7 +976,18 @@ function App() {
     // thay vì gán cứng giá trị là 1. Mặc định vẫn là 1 nếu không được chỉ định.
     const players = startObject ? [{ id: "player1", start: { x: startObject.position[0], y: startObject.position[1], z: startObject.position[2], direction: parseFloat(startObject.properties?.direction) || 0 } }] : [];
 
-    const gameConfig = { type: "maze", renderer: "3d", blocks, players, collectibles, interactibles, finish };
+    // Extract Fog Zones
+    const fogZones = placedObjects.filter(o => o.asset.type === 'zone').map(o => ({
+      id: o.id,
+      position: { x: o.position[0], y: o.position[1], z: o.position[2] },
+      scale: o.properties?.scale || o.asset.defaultProperties?.scale,
+      color: o.properties?.color || o.asset.defaultProperties?.color,
+      density: o.properties?.density ?? o.asset.defaultProperties?.density,
+      opacity: o.properties?.opacity ?? o.asset.defaultProperties?.opacity,
+      noiseSpeed: o.properties?.noiseSpeed ?? o.asset.defaultProperties?.noiseSpeed
+    }));
+
+    const gameConfig = { type: "maze", renderer: "3d", blocks, players, collectibles, interactibles, fogZones, finish };
 
     // Nếu có siêu dữ liệu, kết hợp nó với gameConfig mới
     if (questMetadata) {
@@ -2485,6 +2496,16 @@ function App() {
       }
     }] : [];
 
+    const fogZones = sourceObjects.filter(o => o.asset.type === 'zone')
+      .map(o => ({
+        position: { x: o.position[0], y: o.position[1], z: o.position[2] },
+        scale: o.properties.scale || { x: 4, y: 1, z: 4 },
+        color: o.properties.color || '#cccccc',
+        density: o.properties.density || 0.1,
+        opacity: o.properties.opacity || 0.5,
+        noiseSpeed: o.properties.noiseSpeed || 0.2
+      }));
+
     const gameConfig = {
       type: 'maze',
       renderer: '3d',
@@ -2492,7 +2513,8 @@ function App() {
       players,
       finish,
       collectibles,
-      interactibles
+      interactibles,
+      fogZones
     };
 
     console.log('[buildGameConfigFromPlacedObjects] GameConfig populated:', {
@@ -2515,6 +2537,14 @@ function App() {
       const blocks = placedObjects.filter(o => o.asset.type === 'block').map(o => ({ modelKey: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
       const collectibles = placedObjects.filter(o => o.asset.type === 'collectible').map((o, i) => ({ id: `c${i + 1}`, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
       const interactibles = placedObjects.filter(o => o.asset.type === 'interactible').map(o => ({ id: o.id, type: o.asset.key, ...o.properties, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
+      const fogZones = placedObjects.filter(o => o.asset.type === 'zone').map(o => ({
+        position: { x: o.position[0], y: o.position[1], z: o.position[2] },
+        scale: o.properties.scale || { x: 4, y: 1, z: 4 },
+        color: o.properties.color || '#cccccc',
+        density: o.properties.density || 0.1,
+        opacity: o.properties.opacity || 0.5,
+        noiseSpeed: o.properties.noiseSpeed || 0.2
+      }));
       const finishObject = placedObjects.find(o => o.asset.key === 'finish');
       const startObject = placedObjects.find(o => o.asset.key === 'player_start');
 
@@ -2553,6 +2583,7 @@ function App() {
         players,
         collectibles,
         interactibles,
+        fogZones,
         finish
       };
 
@@ -4023,6 +4054,30 @@ function App() {
                       });
                     }
                   });
+
+                  // Add Fog Zones
+                  if (data.gameConfig?.gameConfig?.fogZones) {
+                    const fogZoneAsset = assetMap.get('fog_zone') ||
+                      buildableAssetGroups.flatMap(g => g.items).find(a => a.key === 'fog_zone');
+
+                    if (fogZoneAsset) {
+                      data.gameConfig.gameConfig.fogZones.forEach((zone: any) => {
+                        newObjects.push({
+                          id: uuidv4(),
+                          asset: fogZoneAsset,
+                          position: [zone.position.x, zone.position.y, zone.position.z] as [number, number, number],
+                          rotation: [0, 0, 0] as [number, number, number],
+                          properties: {
+                            scale: zone.scale,
+                            color: zone.color,
+                            density: zone.density,
+                            opacity: zone.opacity,
+                            noiseSpeed: zone.noiseSpeed
+                          }
+                        });
+                      });
+                    }
+                  }
 
                   // Add player start
                   const playerAsset = assetMap.get('player_start');

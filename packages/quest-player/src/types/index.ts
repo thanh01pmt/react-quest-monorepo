@@ -166,6 +166,18 @@ export interface IntroSceneConfig {
   loops?: number;
 }
 
+export interface FogZone {
+  id: string;
+  // Position is center of the fog zone box
+  position: { x: number, y: number, z: number };
+  // Size of the fog zone box
+  scale: { x: number, y: number, z: number };
+  color: string;
+  density: number;
+  noiseSpeed?: number;
+  opacity?: number;
+}
+
 export interface MazeConfig {
   type: 'maze';
   renderer?: '2d' | '3d';
@@ -175,6 +187,7 @@ export interface MazeConfig {
   players?: PlayerConfig[];
   collectibles?: Collectible[];
   interactibles?: Interactive[];
+  fogZones?: FogZone[];
   finish: { x: number, y: number, z?: number };
   /** Cấu hình intro scene camera animation (chỉ áp dụng cho 3D renderer) */
   introScene?: IntroSceneConfig;

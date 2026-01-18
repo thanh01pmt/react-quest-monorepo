@@ -18,7 +18,7 @@ export interface BuildableAsset {
   thumbnail: string;
   path?: string;
   primitiveShape?: PrimitiveShape;
-  type: 'block' | 'collectible' | 'interactible' | 'special';
+  type: 'block' | 'collectible' | 'interactible' | 'special' | 'zone';
   defaultProperties?: Record<string, any>;
 }
 

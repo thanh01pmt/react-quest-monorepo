@@ -233,6 +233,17 @@ export class SolutionBuilder {
         position: coordToVector3(item.position)
       }));
 
+    // Build Fog Zones
+    // Use 'any' cast as fogZones might not be fully propagated in types yet
+    const fogZones = ((trace as any).fogZones || []).map((zone: any) => ({
+      position: zone.position,
+      scale: zone.scale,
+      color: zone.color,
+      density: zone.density,
+      opacity: zone.opacity,
+      noiseSpeed: zone.noiseSpeed
+    }));
+
     // Generate ID
     const conceptUpper = template.concept.toUpperCase().replace(/_/g, '');
     const gradeUpper = template.gradeLevel.replace('-', '');
@@ -282,6 +293,7 @@ export class SolutionBuilder {
         }],
         collectibles,
         interactibles,
+        fogZones,
         finish: coordToVector3(trace.endPosition)
       },
       solution,

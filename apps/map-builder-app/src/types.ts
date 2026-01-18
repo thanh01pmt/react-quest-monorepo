@@ -14,7 +14,7 @@ export interface BuildableAsset {
     thumbnail: string;
     path?: string; // Đường dẫn không còn là bắt buộc
     primitiveShape?: PrimitiveShape; // Hình dạng cơ bản để render
-    type: 'block' | 'collectible' | 'interactible' | 'special';
+    type: 'block' | 'collectible' | 'interactible' | 'special' | 'zone';
     defaultProperties?: Record<string, any>;
 }
 

@@ -373,6 +373,14 @@ export interface GeneratedGameConfig {
       type: string;
       position: Vector3Object;
     }>;
+    fogZones?: Array<{
+      position: Vector3Object;
+      scale: Vector3Object;
+      color: string;
+      density: number;
+      opacity: number;
+      noiseSpeed: number;
+    }>;
     finish: Vector3Object;
   };
   solution: SolutionConfig;

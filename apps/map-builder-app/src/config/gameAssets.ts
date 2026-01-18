@@ -106,6 +106,27 @@ function createBuildableAssetGroups(): AssetGroup[] {
 
   groups.push({ name: 'Special', items: specialItems });
 
+  const zoneItems: BuildableAsset[] = [
+    {
+      key: 'fog_zone',
+      name: 'Fog Zone',
+      thumbnail: '/assets/ui/fog.png', 
+      primitiveShape: 'box', 
+      type: 'zone',
+      defaultProperties: { 
+        scale: { x: 4, y: 3, z: 4 }, 
+        color: '#eeeeee', 
+        density: 0.5,
+        noiseSpeed: 0.1,
+        opacity: 0.5
+      }
+    }
+  ];
+
+  if (zoneItems.length > 0) {
+    groups.push({ name: 'Environment', items: zoneItems });
+  }
+
   return groups;
 }
 

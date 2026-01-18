@@ -69,6 +69,7 @@ export class SolutionDrivenGenerator {
     
     // Apply post-processors if any
     let additionalBlocks: GeneratedBlock[] = [];
+    let fogZones: import('./post-processor').FogZoneData[] = [];
     if (trace.postProcessConfigs && trace.postProcessConfigs.length > 0) {
       const context: PostProcessorContext = {
         pathCoords: trace.pathCoords.map(c => ({ x: c[0], y: c[1], z: c[2] })),
@@ -79,12 +80,15 @@ export class SolutionDrivenGenerator {
         rng: () => rng.next() // Pass seeded RNG function
       };
       
-      additionalBlocks = executePostProcessors(context, trace.postProcessConfigs);
-      console.log('[SolutionDrivenGenerator] PostProcessor generated', additionalBlocks.length, 'blocks');
+      const result = executePostProcessors(context, trace.postProcessConfigs);
+      additionalBlocks = result.blocks;
+      fogZones = result.fogZones;
+      console.log('[SolutionDrivenGenerator] PostProcessor generated', additionalBlocks.length, 'blocks,', fogZones.length, 'fog zones');
     }
     
     // Store additional blocks in trace for builder to use
     (trace as any).additionalBlocks = additionalBlocks;
+    (trace as any).fogZones = fogZones;
     
     // Build output
     const pathInfo = this.builder.buildPathInfo(trace);

@@ -57,13 +57,26 @@ export interface AddTreesConfig {
   excludePath?: boolean;              // Default: true - don't place on path
 }
 
+export interface AddFogZoneConfig {
+  type: 'addFogZone';
+  color?: string;        // Default: '#eeeeee'
+  density?: number;      // Default: 0.5
+  opacity?: number;      // Default: 0.5
+  noiseSpeed?: number;   // Default: 0.1
+  boundsMode?: 'auto' | 'path'; // Default: 'auto' (cover all blocks)
+  padding?: number;      // Default: 2
+  height?: number;       // Default: 10
+  yOffset?: number;      // Default: 0
+}
+
 export type PostProcessorConfig = 
   | FillBoundingBoxConfig 
   | ExtendShapeConfig
   | SidewalkConfig
   | ColumnSupportConfig
   | WallExtrusionConfig
-  | AddTreesConfig;
+  | AddTreesConfig
+  | AddFogZoneConfig;
 
 export interface Coord3D {
   x: number;
@@ -86,6 +99,15 @@ export interface BoundingBox {
   maxY: number;
   minZ: number;
   maxZ: number;
+}
+
+export interface FogZoneData {
+  position: { x: number; y: number; z: number };
+  scale: { x: number; y: number; z: number };
+  color: string;
+  density: number;
+  opacity: number;
+  noiseSpeed: number;
 }
 
 // Direction vectors for perpendicular calculations

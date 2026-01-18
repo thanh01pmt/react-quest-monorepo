@@ -13,6 +13,7 @@ import BlockComponent from './components/Block';
 import { Collectible } from './components/Collectible';
 import { Portal } from './components/Portal';
 import { SwitchComponent } from './components/Switch';
+import { FogZone } from './components/FogZone';
 
 interface IGameRenderer extends IGameRendererBase {
   cameraMode?: CameraMode;
@@ -184,6 +185,11 @@ const Scene: React.FC<{
           (gameConfig.finish.z ?? gameConfig.finish.y) * TILE_SIZE
         ]}
       />
+
+      {/* Fog Zones */}
+      {gameConfig.fogZones?.map((zone) => (
+        <FogZone key={zone.id} config={zone} />
+      ))}
 
       <RobotCharacter
         ref={robotRef}

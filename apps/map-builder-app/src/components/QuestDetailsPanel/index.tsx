@@ -13,6 +13,7 @@ import { syncToPlayer, getPlayerUrl, setPlayerUrl as savePlayerUrl, isLocalSync 
 
 interface QuestDetailsPanelProps {
   metadata: Record<string, any> | null;
+  fullQuestData?: Record<string, any>; // NEW: Contains full computed data (blocks, fog, etc.)
   onMetadataChange: (path: string, value: any) => void;
   onSolveMaze: () => void;
   onImportMap: (file: File) => void;
@@ -124,7 +125,7 @@ const countActions = (solution: any): number => {
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
-export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onImportMap, onLoadMapFromUrl }: QuestDetailsPanelProps) {
+export function QuestDetailsPanel({ metadata, fullQuestData, onMetadataChange, onSolveMaze, onImportMap, onLoadMapFromUrl }: QuestDetailsPanelProps) {
   const [isBlocklyModalOpen, setBlocklyModalOpen] = useState(false);
   const [showTranslations, setShowTranslations] = useState(false);
   const [isSolving, setIsSolving] = useState(false);
@@ -342,25 +343,25 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
             <div className="info-item">
               <span style={{ fontSize: '11px', color: '#888' }}>Crystals</span>
               <strong style={{ fontSize: '16px', color: '#fbbf24' }}>
-                {metadata.gameConfig?.collectibles?.filter((c: any) => c.type === 'crystal').length || 0}
+                {(fullQuestData || metadata).gameConfig?.collectibles?.filter((c: any) => c.type === 'crystal').length || 0}
               </strong>
             </div>
             <div className="info-item">
               <span style={{ fontSize: '11px', color: '#888' }}>Keys</span>
               <strong style={{ fontSize: '16px', color: '#3b82f6' }}>
-                {metadata.gameConfig?.collectibles?.filter((c: any) => c.type === 'key').length || 0}
+                {(fullQuestData || metadata).gameConfig?.collectibles?.filter((c: any) => c.type === 'key').length || 0}
               </strong>
             </div>
             <div className="info-item">
               <span style={{ fontSize: '11px', color: '#888' }}>Switches</span>
               <strong style={{ fontSize: '16px', color: '#8b5cf6' }}>
-                {metadata.gameConfig?.interactibles?.filter((i: any) => i.type === 'switch').length || 0}
+                {(fullQuestData || metadata).gameConfig?.interactibles?.filter((i: any) => i.type === 'switch').length || 0}
               </strong>
             </div>
             <div className="info-item">
               <span style={{ fontSize: '11px', color: '#888' }}>Portals</span>
               <strong style={{ fontSize: '16px', color: '#06b6d4' }}>
-                {metadata.gameConfig?.interactibles?.filter((i: any) => i.type === 'portal').length || 0}
+                {(fullQuestData || metadata).gameConfig?.interactibles?.filter((i: any) => i.type === 'portal').length || 0}
               </strong>
             </div>
           </div>
@@ -933,11 +934,12 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
           <button
             className="action-btn secondary full-width"
             onClick={() => {
-              const blob = new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' });
+              const dataToExport = fullQuestData || metadata;
+              const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = `${metadata.id || 'quest'}.json`;
+              a.download = `${dataToExport.id || 'quest'}.json`;
               a.click();
               URL.revokeObjectURL(url);
             }}
@@ -950,7 +952,9 @@ export function QuestDetailsPanel({ metadata, onMetadataChange, onSolveMaze, onI
             className="action-btn primary full-width"
             onClick={() => {
               setSyncStatus({ type: 'idle' });
-              const result = syncToPlayer(metadata, playerUrl);
+              // Use fullQuestData for sync to ensure all placed objects (fog, blocks) are included
+              const dataToSync = fullQuestData || metadata;
+              const result = syncToPlayer(dataToSync, playerUrl);
               if (result.success) {
                 setSyncStatus({ type: 'success', message: 'Quest sent to Player!' });
                 setTimeout(() => setSyncStatus({ type: 'idle' }), 3000);

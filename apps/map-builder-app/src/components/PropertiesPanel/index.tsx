@@ -36,8 +36,44 @@ const renderPropertyInput = (key: string, value: any, onChange: (key: string, va
     );
   }
 
-  // Read-only for known, managed properties
-  if (key === 'targetId' || key === 'type' || key === 'color') {
+  // Special inputs for FogZone properties
+  if (key === 'scale' && typeof value === 'object') {
+    return (
+      <div style={{ display: 'flex', gap: '4px' }}>
+        <input
+          type="number"
+          value={value.x}
+          onChange={(e) => onChange(key, { ...value, x: parseFloat(e.target.value) })}
+          placeholder="X"
+          style={{ width: '33%' }}
+        />
+        <input
+          type="number"
+          value={value.y}
+          onChange={(e) => onChange(key, { ...value, y: parseFloat(e.target.value) })}
+          placeholder="Y"
+          style={{ width: '33%' }}
+        />
+        <input
+          type="number"
+          value={value.z}
+          onChange={(e) => onChange(key, { ...value, z: parseFloat(e.target.value) })}
+          placeholder="Z"
+          style={{ width: '33%' }}
+        />
+      </div>
+    );
+  }
+
+  if (key === 'color') {
+    return <input type="color" value={value} onChange={(e) => onChange(key, e.target.value)} style={{ width: '100%' }} />;
+  }
+
+  if (['density', 'opacity', 'noiseSpeed'].includes(key)) {
+    return <input type="number" step="0.1" value={value} onChange={(e) => onChange(key, parseFloat(e.target.value))} />;
+  }
+
+  if (key === 'targetId' || key === 'type') {
     return <input type="text" value={value ?? 'N/A'} readOnly />;
   }
 
