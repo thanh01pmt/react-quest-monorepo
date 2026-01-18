@@ -435,14 +435,11 @@ export function PracticeContent({
                 isExpanded={isSidebarExpanded}
                 onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 onExpandToggle={() => setIsSidebarExpanded(!isSidebarExpanded)}
+                currentLanguage={settings.language}
+                onLanguageIconClick={() => setIsSidebarCollapsed(false)}
             >
-                <LanguageSelector
-                    language={settings.language}
-                    onChange={onLanguageChange}
-                    onIconClick={isSidebarCollapsed ? () => setIsSidebarCollapsed(false) : undefined}
-                />
-
-                <div style={{ display: session ? 'block' : 'none', width: '100%', marginTop: '12px' }}>
+                {/* Share Button */}
+                <div style={{ display: session ? 'block' : 'none', width: '100%' }}>
                     <button
                         onClick={handleShareClick}
                         className="practice-footer-btn share"
@@ -452,6 +449,7 @@ export function PracticeContent({
                         {!isSidebarCollapsed && <span>{t('Practice.share', 'Share')}</span>}
                     </button>
 
+                    {/* Solution Button */}
                     <button
                         onClick={() => setShowSolutionMode(!showSolutionMode)}
                         className={`practice-footer-btn solution ${showSolutionMode ? 'active' : ''}`}
@@ -465,6 +463,14 @@ export function PracticeContent({
                             ? t('Practice.hide_solution', 'Back to Code')
                             : t('Practice.show_solution', 'Solution')}</span>}
                     </button>
+                </div>
+
+                {/* Language Selector - Full Width at Bottom */}
+                <div style={{ width: '100%', marginTop: '12px' }} className="language-selector-wrapper">
+                    <LanguageSelector
+                        language={settings.language}
+                        onChange={onLanguageChange}
+                    />
                 </div>
             </PracticeSidebar>
 

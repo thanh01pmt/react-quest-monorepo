@@ -83,6 +83,9 @@ interface PracticeSidebarProps {
     onToggle: () => void;
     onExpandToggle: () => void;
     children?: React.ReactNode;
+    // New props for collapsed state
+    currentLanguage?: string;
+    onLanguageIconClick?: () => void;
 }
 
 function createDefaultTopicConfig(category: ConceptCategory): TopicConfig {
@@ -105,6 +108,8 @@ export const PracticeSidebar: React.FC<PracticeSidebarProps> = ({
     onToggle,
     onExpandToggle,
     children,
+    currentLanguage,
+    onLanguageIconClick,
 }) => {
     const { t } = useTranslation();
 
@@ -170,11 +175,61 @@ export const PracticeSidebar: React.FC<PracticeSidebarProps> = ({
 
     // Render collapsed view
     if (isCollapsed) {
+        const LANGUAGE_FLAGS: Record<string, string> = {
+            en: '🇺🇸',
+            vi: '🇻🇳',
+            ja: '🇯🇵',
+            ko: '🇰🇷',
+            zh: '🇨🇳',
+        };
+        const langFlag = LANGUAGE_FLAGS[currentLanguage || 'en'] || '🌐';
+
         return (
             <aside className="practice-sidebar collapsed">
                 <div className="sidebar-header">
                     <button onClick={onToggle} className="toggle-button" aria-label={t('UI.ToggleSidebar')}>
                         <i className="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                {/* Exercise List - Collapsed View (Vertical Stack) */}
+                {session && session.exercises.length > 0 && (
+                    <div className="collapsed-exercise-list">
+                        {session.exercises.map((exercise, index) => {
+                            const isCompleted = index < session.currentIndex;
+                            const isCurrent = index === currentExerciseIndex;
+                            const result = session.results[index];
+
+                            return (
+                                <button
+                                    key={exercise.id}
+                                    className={`collapsed-exercise-item ${isCurrent ? 'current' : ''} ${isCompleted ? 'completed' : ''}`}
+                                    onClick={() => onExerciseSelect(index)}
+                                    title={`${t('Practice.exercise', 'Exercise')} ${index + 1}`}
+                                >
+                                    <span className="exercise-number">{index + 1}</span>
+                                    {isCompleted && (
+                                        <span className={`exercise-status ${result?.success ? 'success' : 'failed'}`}>
+                                            {result?.success ? '✓' : '✗'}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Spacer to push language to bottom */}
+                <div className="collapsed-spacer"></div>
+
+                {/* Language Icon - Bottom of Collapsed View */}
+                <div className="collapsed-language-indicator">
+                    <button
+                        className="collapsed-lang-btn"
+                        onClick={onLanguageIconClick}
+                        title={t('UI.ChangeLanguage', 'Change Language')}
+                    >
+                        <span className="lang-flag">{langFlag}</span>
                     </button>
                 </div>
             </aside>

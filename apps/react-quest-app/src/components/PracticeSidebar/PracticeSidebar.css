@@ -547,3 +547,134 @@
 .theme-dark .practice-footer-btn.share:hover:not(:disabled) {
   background: rgba(59, 130, 246, 0.2);
 }
+
+/* ========================================
+   COLLAPSED STATE - Exercise List & Language
+   ======================================== */
+
+/* Make collapsed sidebar a flex column */
+.practice-sidebar.collapsed {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Exercise List - Vertical Stack */
+.collapsed-exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 4px;
+  overflow-y: auto;
+  max-height: calc(100vh - 150px);
+}
+
+.collapsed-exercise-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #ddd);
+  background: var(--button-bg-color, #f5f5f5);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.collapsed-exercise-item:hover {
+  background: var(--button-hover-bg-color, #e0e0e0);
+  transform: scale(1.1);
+}
+
+.collapsed-exercise-item.current {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-color: #2563eb;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.collapsed-exercise-item.completed {
+  background: #10b981;
+  color: white;
+  border-color: #059669;
+}
+
+.collapsed-exercise-item.completed .exercise-status.failed {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: white;
+  font-size: 10px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collapsed-exercise-item.completed .exercise-status.success {
+  display: none; /* Hide checkmark on completed items, color speaks for itself */
+}
+
+.collapsed-exercise-item .exercise-number {
+  line-height: 1;
+}
+
+/* Spacer to push language to bottom */
+.collapsed-spacer {
+  flex-grow: 1;
+}
+
+/* Language Indicator - Bottom */
+.collapsed-language-indicator {
+  display: flex;
+  justify-content: center;
+  padding: 12px 4px;
+  border-top: 1px solid var(--border-color, #ddd);
+}
+
+.collapsed-lang-btn {
+  background: var(--button-bg-color, #f5f5f5);
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.collapsed-lang-btn:hover {
+  background: var(--button-hover-bg-color, #e0e0e0);
+  transform: scale(1.05);
+}
+
+.collapsed-lang-btn .lang-flag {
+  font-size: 20px;
+}
+
+/* ========================================
+   LANGUAGE SELECTOR - Full Width (Expanded State)
+   ======================================== */
+
+.language-selector-wrapper {
+  width: 100%;
+}
+
+.language-selector-wrapper select,
+.language-selector-wrapper .language-select {
+  width: 100% !important;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+
