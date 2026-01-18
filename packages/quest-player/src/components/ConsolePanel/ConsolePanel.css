@@ -3,12 +3,38 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background-color: var(--console-bg, #1e1e1e);
-  border-top: 1px solid var(--border-color, #333);
+  
+  /* Default variables (Dark Theme base) */
+  --console-bg: #1e1e1e;
+  --console-text: #d4d4d4;
+  --header-bg: #252526;
+  --border-c: #333;
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 13px;
-  color: #d4d4d4;
+  background-color: var(--console-bg);
+  color: var(--console-text);
+  border-top: 1px solid var(--border-c);
   overflow: hidden;
+}
+
+/* Light Theme Overrides */
+.console-panel.theme-light {
+  --console-bg: #f3f3f3;
+  --console-text: #111111;
+  --header-bg: #e0e0e0;
+  --border-c: #ccc;
+  --hover-bg: rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure Dark Theme stays consistent */
+.console-panel.theme-dark {
+  --console-bg: #1e1e1e;
+  --console-text: #d4d4d4;
+  --header-bg: #252526;
+  --border-c: #333;
+  --hover-bg: rgba(255, 255, 255, 0.05);
 }
 
 .console-header {
@@ -16,8 +42,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 4px 10px;
-  background-color: var(--header-bg, #252526);
-  border-bottom: 1px solid var(--border-color, #333);
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-c);
   height: 28px;
   flex-shrink: 0;
   user-select: none;
@@ -25,7 +51,8 @@
 
 .console-title {
   font-weight: bold;
-  color: #ccc;
+  color: var(--console-text);
+  opacity: 0.8;
   font-size: 11px;
   text-transform: uppercase;
 }
@@ -38,7 +65,7 @@
 .console-action-btn {
   background: none;
   border: none;
-  color: #ccc;
+  color: var(--console-text);
   cursor: pointer;
   padding: 2px;
   font-size: 12px;
@@ -51,7 +78,7 @@
 
 .console-action-btn:hover {
   opacity: 1;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--hover-bg);
   border-radius: 3px;
 }
 
@@ -76,7 +103,7 @@
 }
 
 .console-line:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--hover-bg);
 }
 
 .console-line.error {

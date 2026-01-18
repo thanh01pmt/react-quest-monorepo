@@ -1071,6 +1071,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                 <ConsolePanel
                   logs={consoleLogs}
                   onClear={() => setConsoleLogs([])}
+                  theme={effectiveColorScheme}
                 />
               </Panel>
             </PanelGroup>

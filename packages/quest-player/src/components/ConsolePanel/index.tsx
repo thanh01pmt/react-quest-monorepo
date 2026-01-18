@@ -12,12 +12,14 @@ interface ConsolePanelProps {
     logs: ConsoleLog[];
     onClear: () => void;
     className?: string;
+    theme?: 'light' | 'dark' | 'hc-black';
 }
 
 export const ConsolePanel: React.FC<ConsolePanelProps> = ({
     logs,
     onClear,
-    className
+    className,
+    theme = 'dark'
 }) => {
     const { t } = useTranslation();
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -30,7 +32,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({
     }, [logs]);
 
     return (
-        <div className={`console-panel ${className || ''}`}>
+        <div className={`console-panel theme-${theme} ${className || ''}`}>
             <div className="console-header">
                 <span className="console-title">{t('UI.Console', 'Console')}</span>
                 <div className="console-actions">
