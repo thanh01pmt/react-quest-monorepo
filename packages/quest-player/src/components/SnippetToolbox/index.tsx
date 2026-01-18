@@ -20,8 +20,9 @@ export const SnippetToolbox: React.FC<SnippetToolboxProps> = ({ currentEditor, a
     };
 
     const handleDragStart = (e: React.DragEvent, code: string) => {
-        // Sanitize code: remove any $0 placeholders to prevent cursor artifacts
-        const sanitizedCode = code.replace(/\$0/g, '');
+        // Aggressively sanitize code: remove ALL '$' characters to prevent Monaco snippet interpretation
+        const sanitizedCode = code.replace(/\$/g, '');
+        console.log('[SnippetToolbox] Dragging code:', { original: code, sanitized: sanitizedCode });
         e.dataTransfer.setData('text/plain', sanitizedCode);
         e.dataTransfer.effectAllowed = 'copy';
     };
