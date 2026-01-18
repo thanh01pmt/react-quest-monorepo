@@ -9,11 +9,19 @@ interface FogZoneProps {
 
 const TILE_SIZE = 2;
 
-export const FogZone: React.FC<FogZoneProps> = ({ config }) => {
-    const { position, scale, color, density = 0.5, noiseSpeed = 0.1, opacity = 0.5 } = config;
+// Simple hash for stable seed
+const getSeed = (str: string) => {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+        h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+    }
+    return Math.abs(h);
+};
+
+export const FogZone = React.memo(({ config }: FogZoneProps) => {
+    const { id, position, scale, color, density = 0.5, noiseSpeed = 0.1, opacity = 0.5 } = config;
 
     // Convert logical coordinates to world coordinates
-    // Position in config is typically tile-based (integers)
     const worldPos = useMemo(() => new THREE.Vector3(
         position.x * TILE_SIZE,
         position.y * TILE_SIZE,
@@ -26,27 +34,18 @@ export const FogZone: React.FC<FogZoneProps> = ({ config }) => {
         scale.z * TILE_SIZE
     ), [scale]);
 
-    // Cloud component from drei creates "puffs" of cloud distributed in a volume.
-    // We'll try to match the scale.
-    // drei Cloud args: width, depth, height (bounds)
-    // But Cloud signature is: width?: number; depth?: number; segments?: number; texture?: string; color?: ColorRepresentation; ...
-    // It handles "bounds" via width (x) and depth (z). Height is somewhat handled by segments/volume.
-    // Actually, let's use a group and scale it.
+    // Generate stable seed from ID
+    const seed = useMemo(() => getSeed(id || 'fog-zone'), [id]);
 
     return (
         <group position={worldPos}>
-            {/* Visual helper for editing (optional, maybe in builder only) */}
-            {/* <mesh visible={false}>
-         <boxGeometry args={[worldScale.x, worldScale.y, worldScale.z]} />
-         <meshBasicMaterial wireframe color="red" />
-       </mesh> */}
-
             <Cloud
+                seed={seed}
                 position={[0, 0, 0]}
                 opacity={opacity}
                 speed={noiseSpeed} // Animation speed
                 bounds={[worldScale.x, worldScale.y, worldScale.z]} // Spread bounds
-                segments={Math.floor(density * 20) + 10} // Partiles count
+                segments={Math.floor(density * 20) + 10} // Particles count
                 color={color}
             />
 
@@ -63,4 +62,8 @@ export const FogZone: React.FC<FogZoneProps> = ({ config }) => {
             )}
         </group>
     );
-};
+}, (prev, next) => {
+    // Custom comparison to prevent re-render if config content is same
+    // even if reference differs.
+    return JSON.stringify(prev.config) === JSON.stringify(next.config);
+});

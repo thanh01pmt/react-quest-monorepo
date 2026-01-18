@@ -2498,6 +2498,7 @@ function App() {
 
     const fogZones = sourceObjects.filter(o => o.asset.type === 'zone')
       .map(o => ({
+        id: o.id, // Add ID for stable rendering
         position: { x: o.position[0], y: o.position[1], z: o.position[2] },
         scale: o.properties.scale || { x: 4, y: 1, z: 4 },
         color: o.properties.color || '#cccccc',
@@ -2538,6 +2539,7 @@ function App() {
       const collectibles = placedObjects.filter(o => o.asset.type === 'collectible').map((o, i) => ({ id: `c${i + 1}`, type: o.asset.key, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
       const interactibles = placedObjects.filter(o => o.asset.type === 'interactible').map(o => ({ id: o.id, type: o.asset.key, ...o.properties, position: { x: o.position[0], y: o.position[1], z: o.position[2] } }));
       const fogZones = placedObjects.filter(o => o.asset.type === 'zone').map(o => ({
+        id: o.id, // Add stable ID
         position: { x: o.position[0], y: o.position[1], z: o.position[2] },
         scale: o.properties.scale || { x: 4, y: 1, z: 4 },
         color: o.properties.color || '#cccccc',
