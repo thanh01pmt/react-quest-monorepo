@@ -2,6 +2,72 @@
 
 ## Thay Đổi Gần Đây
 
+### 18/01/2026
+
+- **Loại thay đổi: Feature (Quest Player)**
+  - **Mô tả**: Thêm tính năng Fog Zone (vùng sương mù) cho Maze game và Console Panel để hiển thị log.
+  - **Mục tiêu**: Tăng độ khó và tính tương tác cho game Maze, hỗ trợ debug thông qua Console.
+  - **Tác động**: Người chơi sẽ gặp thử thách mới với vùng bị che khuất, developer có thể debug dễ dàng hơn.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+    - `[packages/quest-player/src/components/ConsolePanel/index.tsx](packages/quest-player/src/components/ConsolePanel/index.tsx)`
+    - `[packages/quest-player/src/games/maze/MazeEngine.ts](packages/quest-player/src/games/maze/MazeEngine.ts)`
+
+- **Loại thay đổi: Feature (Academic Map Generator)**
+  - **Mô tả**: Thêm post-processor `addFogZone` để tự động thêm vùng sương mù vào map được sinh ra.
+  - **Mục tiêu**: Tự động hóa việc tạo map có độ phức tạp cao hơn (có fog).
+  - **Tác động**: Các map sinh ra sẽ có thêm yếu tố fog zone dựa trên cấu hình.
+  - **File liên quan**:
+    - `[packages/academic-map-generator/src/generator/solution-driven/post-processor/addFogZone.ts](packages/academic-map-generator/src/generator/solution-driven/post-processor/addFogZone.ts)`
+    - `[packages/academic-map-generator/src/generator/solution-driven/SolutionDrivenGenerator.ts](packages/academic-map-generator/src/generator/solution-driven/SolutionDrivenGenerator.ts)`
+
+- **Loại thay đổi: Fix (Map Builder & Quest App)**
+  - **Mô tả**: Cập nhật UI/UX cho Map Builder và Practice Sidebar, sửa lỗi render Maze 3D.
+  - **Mục tiêu**: Cải thiện trải nghiệm người dùng và sửa các lỗi hiển thị visual.
+  - **Tác động**: Giao diện builder và player ổn định hơn.
+  - **File liên quan**:
+    - `[apps/map-builder-app/src/components/BuilderScene/index.tsx](apps/map-builder-app/src/components/BuilderScene/index.tsx)`
+    - `[apps/react-quest-app/src/components/PracticeSidebar/index.tsx](apps/react-quest-app/src/components/PracticeSidebar/index.tsx)`
+
+- **Loại thay đổi: Feature (Academic Map Generator)**
+  - **Mô tả**: Thêm package `academic-map-generator` để tự động hóa việc tạo bản đồ học thuật, bao gồm các strategy, topology, và generator logic.
+  - **Mục tiêu**: Cung cấp công cụ core để sinh ra cấu trúc bài học và map dựa trên các mẫu sư phạm.
+  - **Tác động**: Tự động hóa quy trình tạo map và bài tập, giảm thiểu thao tác thủ công.
+  - **File liên quan**:
+    - `[packages/academic-map-generator/src/index.ts](packages/academic-map-generator/src/index.ts)`
+    - `[packages/academic-map-generator/src/generator/strategies/StrategyRegistry.ts](packages/academic-map-generator/src/generator/strategies/StrategyRegistry.ts)`
+
+- **Loại thay đổi: Feature (Quest Player)**
+  - **Mô tả**: Tích hợp package `quest-player` với các game engine (Bird, Maze, Pond, Turtle) và UI editor.
+  - **Mục tiêu**: Hoàn thiện client application cho việc chơi và tương tác với các bài tập lập trình.
+  - **Tác động**: Cung cấp môi trường chạy game và editor hoàn chỉnh cho người dùng cuối.
+  - **File liên quan**:
+    - `[packages/quest-player/src/index.ts](packages/quest-player/src/index.ts)`
+
+- **Loại thay đổi: Feature (Shared Templates)**
+  - **Mô tả**: Bổ sung thư viện `shared-templates` chứa các mẫu bài tập chuẩn hóa (loop, logic, function) và script sinh dữ liệu.
+  - **Mục tiêu**: Tạo nguồn tài nguyên bài tập tái sử dụng cho các ứng dụng trong hệ thống.
+  - **Tác động**: Đảm bảo tính nhất quán của dữ liệu bài tập giữa các ứng dụng khác nhau.
+  - **File liên quan**:
+    - `[packages/shared-templates/src/bundled-templates.ts](packages/shared-templates/src/bundled-templates.ts)`
+    - `[packages/shared-templates/templates/loop/LOOP_PROGRESSION.md](packages/shared-templates/templates/loop/LOOP_PROGRESSION.md)`
+
+- **Loại thay đổi: Documentation/Ref**
+  - **Mô tả**: Thêm package `refs` và các tài liệu phân tích kỹ thuật (practice_mode_analysis).
+  - **Mục tiêu**: Lưu trữ tài liệu tham khảo kiến trúc và phân tích thuật toán practice mode.
+  - **Tác động**: Hỗ trợ việc tra cứu và hiểu rõ logic hệ thống cho team phát triển.
+  - **File liên quan**:
+    - `[packages/refs/README.md](packages/refs/README.md)`
+    - `[practice_mode_analysis.md](practice_mode_analysis.md)`
+
+- **Loại thay đổi: Chore**
+  - **Mô tả**: Cập nhật cấu hình dự án gốc và các script tiện ích.
+  - **Mục tiêu**: Đảm bảo môi trường phát triển đồng bộ và cập nhật các dependency mới nhất.
+  - **Tác động**: Ổn định quy trình build và test của toàn bộ monorepo.
+  - **File liên quan**:
+    - `[package.json](package.json)`
+    - `[tsconfig.json](tsconfig.json)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
