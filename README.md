@@ -2,6 +2,19 @@
 
 ## Thay Đổi Gần Đây
 
+### 22/01/2026
+
+- **Không có thay đổi đáng kể trong 24 giờ qua.**
+
+### 18/01/2026
+
+- **Loại thay đổi: Fix**
+  - **Mô tả**: Sửa lỗi liên quan đến sương mù (fog).
+  - **Mục tiêu**: Khắc phục lỗi hiển thị hoặc logic của sương mù trong game để đảm bảo trải nghiệm người chơi.
+  - **Tác động**: Cải thiện tính ổn định của các màn chơi có tính năng sương mù.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
