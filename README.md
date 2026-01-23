@@ -2,6 +2,16 @@
 
 ## Thay Đổi Gần Đây
 
+### 23/01/2026
+
+- **Loại thay đổi: Fix**
+  - **Mô tả**: Sửa lỗi liên quan đến hiệu ứng sương mù (Fog) trong game Maze và cập nhật logic generator.
+  - **Mục tiêu**: Khắc phục sự cố hiển thị vùng FogZone và đảm bảo việc thêm sương mù trong quá trình tạo map hoạt động đúng.
+  - **Tác động**: Đảm bảo trải nghiệm người chơi ổn định khi gặp hiệu ứng sương mù và map được sinh ra chính xác.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+    - `[packages/academic-map-generator/src/generator/solution-driven/post-processor/addFogZone.ts](packages/academic-map-generator/src/generator/solution-driven/post-processor/addFogZone.ts)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
