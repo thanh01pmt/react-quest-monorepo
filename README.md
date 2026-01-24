@@ -2,6 +2,24 @@
 
 ## Thay Đổi Gần Đây
 
+### 24/01/2026
+
+- **Loại thay đổi: Fix (Guide Builder & Renderer)**
+  - **Mô tả**: Các bản sửa lỗi nóng (Hotfix) cho Guide Builder và BlocklyRenderer, bao gồm sửa lỗi vòng lặp vô hạn trong tính toán chiều cao động, lỗi hiển thị frame nhỏ, và lỗi render Blockly.
+  - **Mục tiêu**: Ổn định hiệu năng và hiển thị của trình biên tập hướng dẫn (Guide Builder).
+  - **Tác động**: Khắc phục các vấn đề nghiêm trọng về vòng lặp render và layout bị vỡ.
+  - **File liên quan**:
+    - [packages/quest-player/src/components/GuideRenderer/GuideRenderer.tsx](packages/quest-player/src/components/GuideRenderer/GuideRenderer.tsx)
+    - [packages/quest-player/src/components/HorizontalBlocklyRenderer/HorizontalBlocklyRenderer.tsx](packages/quest-player/src/components/HorizontalBlocklyRenderer/HorizontalBlocklyRenderer.tsx)
+    - [task.md](task.md)
+
+- **Loại thay đổi: Fix (Game Engine)**
+  - **Mô tả**: Sửa lỗi trong component `FogZone` của game Maze.
+  - **Mục tiêu**: Đảm bảo hiệu ứng sương mù hoạt động đúng thiết kế.
+  - **Tác động**: Cải thiện trải nghiệm hình ảnh trong game Maze.
+  - **File liên quan**:
+    - [packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
