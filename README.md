@@ -2,6 +2,15 @@
 
 ## Thay Đổi Gần Đây
 
+### 18/01/2026
+
+- **Loại thay đổi: Fix**
+  - **Mô tả**: Sửa lỗi hiển thị và cập nhật logic render cho component FogZone (vùng sương mù) trong Maze game.
+  - **Mục tiêu**: Đảm bảo hiệu ứng sương mù hiển thị đúng vị trí, mật độ và không gây lỗi visual.
+  - **Tác động**: Cải thiện chất lượng hình ảnh và trải nghiệm người dùng trong các level có sương mù.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
