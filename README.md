@@ -2,6 +2,22 @@
 
 ## Thay Đổi Gần Đây
 
+### 26/01/2026
+
+- **Loại thay đổi: Fix (Quest Player - Fog)**
+  - **Mô tả**: Tối ưu hóa component `FogZone` bằng cách sử dụng `React.memo` với hàm so sánh tùy chỉnh và tạo seed ổn định cho hiệu ứng mây.
+  - **Mục tiêu**: Ngăn chặn việc re-render không cần thiết gây nhấp nháy hoặc reset hiệu ứng sương mù, cải thiện hiệu năng.
+  - **Tác động**: Hiệu ứng sương mù ổn định hơn, không bị thay đổi ngẫu nhiên khi các prop khác của game thay đổi.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+
+- **Loại thay đổi: Fix (Quest Player - Engine)**
+  - **Mô tả**: Cập nhật logic xác định block đi được (`WALKABLE_MODELS`) và sửa lỗi trả về giá trị boolean trong Interpreter.
+  - **Mục tiêu**: Đảm bảo tính nhất quán của va chạm và logic điều kiện trong code người dùng (Blockly/Python).
+  - **Tác động**: Sửa lỗi nhân vật không đi được trên một số block và sửa lỗi các block điều kiện (if) hoạt động sai.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/MazeEngine.ts](packages/quest-player/src/games/maze/MazeEngine.ts)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
