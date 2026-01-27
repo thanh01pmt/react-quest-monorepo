@@ -2,6 +2,15 @@
 
 ## Thay Đổi Gần Đây
 
+### 27/01/2026
+
+- **Loại thay đổi: Fix (Quest Player - Fog)**
+  - **Mô tả**: Cập nhật logic render trong component `FogZone` của game Maze, bao gồm tối ưu hóa `React.memo` và kiểm tra cấu hình.
+  - **Mục tiêu**: Khắc phục lỗi hiển thị sương mù (fog) và cải thiện hiệu suất render trong môi trường 3D.
+  - **Tác động**: Đảm bảo hiệu ứng sương mù hoạt động ổn định, tránh render lại không cần thiết khi config không thay đổi.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
