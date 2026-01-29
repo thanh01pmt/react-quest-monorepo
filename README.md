@@ -2,6 +2,15 @@
 
 ## Thay Đổi Gần Đây
 
+### 29/01/2026
+
+- **Loại thay đổi: Fix**
+  - **Mô tả**: Tối ưu hóa render cho component FogZone bằng cách sử dụng `React.memo` với custom comparator và tạo seed ổn định cho hiệu ứng mây.
+  - **Mục tiêu**: Ngăn chặn việc re-render không cần thiết và đảm bảo hiệu ứng sương mù hiển thị nhất quán.
+  - **Tác động**: Cải thiện hiệu năng render 3D và trải nghiệm hình ảnh trong game Maze.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
