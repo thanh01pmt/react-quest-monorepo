@@ -2,6 +2,19 @@
 
 ## Thay Đổi Gần Đây
 
+### 30/01/2026
+
+- **Không có thay đổi đáng kể trong 24 giờ qua.**
+
+### 18/01/2026
+
+- **Loại thay đổi: Fix (Maze Game)**
+  - **Mô tả**: Sửa lỗi trong component `FogZone` liên quan đến hiệu ứng sương mù.
+  - **Mục tiêu**: Đảm bảo hiển thị đúng của sương mù trong game Maze.
+  - **Tác động**: Cải thiện trải nghiệm người dùng.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
