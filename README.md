@@ -2,6 +2,31 @@
 
 ## Thay Đổi Gần Đây
 
+### 31/01/2026
+
+- **Loại thay đổi: Feature (Quest Player)**
+  - **Mô tả**: Thêm tính năng Intro Scene với các hiệu ứng camera điện ảnh (Dronie, Rocket, Circle, Helix, Boomerang) khi bắt đầu màn chơi.
+  - **Mục tiêu**: Tạo trải nghiệm mở đầu hấp dẫn và giới thiệu tổng quan bản đồ cho người chơi.
+  - **Tác động**: Các level Maze giờ đây có thể cấu hình intro animation, tăng tính thẩm mỹ và chuyên nghiệp.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/IntroSceneController.tsx](packages/quest-player/src/games/maze/components/IntroSceneController.tsx)`
+    - `[packages/quest-player/src/games/maze/Maze3DRenderer.tsx](packages/quest-player/src/games/maze/Maze3DRenderer.tsx)`
+
+- **Loại thay đổi: Fix (Quest Player)**
+  - **Mô tả**: Tối ưu hóa render component `FogZone` (sương mù) bằng `React.memo` và seed ổn định; sửa lỗi kiểm tra `fov` trên camera.
+  - **Mục tiêu**: Cải thiện hiệu năng render 3D, tránh re-render không cần thiết và ngăn chặn crash do truy cập thuộc tính không tồn tại của camera.
+  - **Tác động**: Trò chơi hoạt động mượt mà hơn, giảm tải cho GPU và ổn định hơn khi khởi tạo scene.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+    - `[packages/quest-player/src/games/maze/Maze3DRenderer.tsx](packages/quest-player/src/games/maze/Maze3DRenderer.tsx)`
+
+- **Loại thay đổi: Refactor (Quest Player)**
+  - **Mô tả**: Tách logic quản lý camera vào component `SceneCamera` riêng biệt trong `Maze3DRenderer`.
+  - **Mục tiêu**: Cải thiện cấu trúc code, tách biệt logic render và logic điều khiển camera.
+  - **Tác động**: Dễ dàng bảo trì và mở rộng các tính năng camera trong tương lai.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/Maze3DRenderer.tsx](packages/quest-player/src/games/maze/Maze3DRenderer.tsx)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
