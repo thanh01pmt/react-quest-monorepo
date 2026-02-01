@@ -2,6 +2,15 @@
 
 ## Thay Đổi Gần Đây
 
+### 01/02/2026
+
+- **Loại thay đổi: Fix (Quest Player)**
+  - **Mô tả**: Tối ưu hóa render component `FogZone` sử dụng `React.memo` và stable seeding.
+  - **Mục tiêu**: Khắc phục lỗi re-render không cần thiết và đảm bảo hiệu ứng sương mù hiển thị ổn định.
+  - **Tác động**: Cải thiện hiệu năng render trong game Maze 3D.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
