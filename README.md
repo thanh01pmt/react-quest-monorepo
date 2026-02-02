@@ -2,6 +2,15 @@
 
 ## Thay Đổi Gần Đây
 
+### 02/02/2026
+
+- **Loại thay đổi: Fix (Rendering)**
+  - **Mô tả**: Tối ưu hóa component `FogZone` sử dụng `React.memo` và cơ chế so sánh cấu hình tùy chỉnh (custom comparison) để ngăn chặn việc render lại không cần thiết.
+  - **Mục tiêu**: Khắc phục lỗi hiển thị và cải thiện hiệu năng rendering cho hiệu ứng sương mù trong môi trường 3D.
+  - **Tác động**: Giảm tải cho GPU/CPU khi config sương mù không thay đổi, giúp game mượt mà hơn.
+  - **File liên quan**:
+    - `[packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)`
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
