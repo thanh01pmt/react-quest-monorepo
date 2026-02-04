@@ -2,6 +2,15 @@
 
 ## Thay Đổi Gần Đây
 
+### 04/02/2026
+
+- **Loại thay đổi: Fix**
+  - **Mô tả**: Sửa lỗi render và tối ưu hiệu suất cho component `FogZone` (sương mù) trong game Maze.
+  - **Mục tiêu**: Ngăn chặn re-render không cần thiết và đảm bảo tính nhất quán của hiệu ứng sương mù (stable seeding).
+  - **Tác động**: Cải thiện trải nghiệm người dùng, giảm giật lag trong các màn chơi có sương mù.
+  - **File liên quan**:
+    - [packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
