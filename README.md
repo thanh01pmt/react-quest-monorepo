@@ -2,6 +2,15 @@
 
 ## Thay Đổi Gần Đây
 
+### 06/02/2026
+
+- **Loại thay đổi: Fix (Maze Game)**
+  - **Mô tả**: Sửa lỗi rendering và tối ưu hóa component `FogZone`, sử dụng `React.memo` và stable seed để ngăn chặn re-render không cần thiết.
+  - **Mục tiêu**: Đảm bảo hiệu ứng sương mù hiển thị ổn định, không bị nhấp nháy hoặc gây ảnh hưởng hiệu năng.
+  - **Tác động**: Trải nghiệm chơi game mượt mà hơn trong các màn chơi có sương mù.
+  - **File liên quan**:
+    - [packages/quest-player/src/games/maze/components/FogZone.tsx](packages/quest-player/src/games/maze/components/FogZone.tsx)
+
 ### 13/01/2026
 
 - **Không có thay đổi đáng kể trong 24 giờ qua.**
