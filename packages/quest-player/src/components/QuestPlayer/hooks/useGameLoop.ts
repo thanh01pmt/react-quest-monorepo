@@ -1,381 +1,488 @@
 // src/components/QuestPlayer/hooks/useGameLoop.ts
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import * as Blockly from 'blockly/core';
-import type { IGameEngine, GameState, Quest, StepResult, ExecutionMode, QuestCompletionResult, EditorType, MazeConfig } from '../../../types';
-import type { TurtleEngine } from '../../../games/turtle/TurtleEngine';
-import type { TurtleRendererHandle } from '../../../games/turtle/TurtleRenderer';
-import type { IMazeEngine } from '../../../games/maze/MazeEngine';
-import { calculateLogicalLines } from '../utils';
-import type { MazeGameState } from '../../../games/maze/types';
+import { useState, useRef, useEffect, useCallback } from "react";
+import * as Blockly from "blockly/core";
+import type {
+	IGameEngine,
+	GameState,
+	Quest,
+	StepResult,
+	ExecutionMode,
+	QuestCompletionResult,
+	EditorType,
+	MazeConfig,
+} from "../../../types";
+import type { TurtleEngine } from "../../../games/turtle/TurtleEngine";
+import type { TurtleRendererHandle } from "../../../games/turtle/TurtleRenderer";
+import type { IMazeEngine } from "../../../games/maze/MazeEngine";
+import { calculateLogicalLines } from "../utils";
+import type { MazeGameState } from "../../../games/maze/types";
 
 const BATCH_FRAME_DELAY = 50;
 const STEP_FRAME_DELAY = 10;
 const DEBUG_FRAME_DELAY = 500;
 
-type PlayerStatus = 'idle' | 'running' | 'paused' | 'finished';
+type PlayerStatus = "idle" | "running" | "paused" | "finished";
 
 const checkItemGoals = (finalState: GameState, questData: Quest): boolean => {
-  const { solution, gameConfig } = questData;
-  if (!solution.itemGoals) {
-    return true; // Không có mục tiêu phụ, coi như hoàn thành
-  }
+	const { solution, gameConfig } = questData;
+	if (!solution.itemGoals) {
+		return true; // Không có mục tiêu phụ, coi như hoàn thành
+	}
 
-  if (gameConfig.type === 'maze') {
-    const mazeState = finalState as MazeGameState;
-    const mazeConfig = gameConfig as MazeConfig;
+	if (gameConfig.type === "maze") {
+		const mazeState = finalState as MazeGameState;
+		const mazeConfig = gameConfig as MazeConfig;
 
-    for (const goalType in solution.itemGoals) {
-      const requiredCount = solution.itemGoals[goalType];
-      if (goalType === 'switch') {
-        const switchesOn = Object.values(mazeState.interactiveStates).filter(state => state === 'on').length;
-        if (switchesOn < requiredCount) return false;
-      } else { // Mặc định là các vật phẩm thu thập (collectibles)
-        // [FIX] Đếm số lượng vật phẩm đã thu thập bằng cách so sánh ID đã thu thập với danh sách vật phẩm ban đầu
-        const allCollectibles = mazeConfig.collectibles || [];
-        
-        const collectedCount = mazeState.collectedIds.filter(collectedId => {
-          const item = allCollectibles.find(c => c.id === collectedId);
-          return item && item.type === goalType;
-        }).length;
-        if (collectedCount < requiredCount) return false;
-      }
-    }
-  }
-  // Có thể thêm logic cho các game khác ở đây
+		for (const goalType in solution.itemGoals) {
+			const requiredCount = solution.itemGoals[goalType];
+			if (goalType === "switch") {
+				const switchesOn = Object.values(
+					mazeState.interactiveStates,
+				).filter((state) => state === "on").length;
+				if (switchesOn < requiredCount) return false;
+			} else {
+				// Mặc định là các vật phẩm thu thập (collectibles)
+				// [FIX] Đếm số lượng vật phẩm đã thu thập bằng cách so sánh ID đã thu thập với danh sách vật phẩm ban đầu
+				const allCollectibles = mazeConfig.collectibles || [];
 
-  return true;
+				const collectedCount = mazeState.collectedIds.filter(
+					(collectedId) => {
+						const item = allCollectibles.find(
+							(c) => c.id === collectedId,
+						);
+						return item && item.type === goalType;
+					},
+				).length;
+				if (collectedCount < requiredCount) return false;
+			}
+		}
+	}
+	// Có thể thêm logic cho các game khác ở đây
+
+	return true;
 };
 
 export const useGameLoop = (
-  engineRef: React.RefObject<IGameEngine>,
-  questData: Quest | null,
-  rendererRef: React.RefObject<TurtleRendererHandle>,
-  onGameEnd: (result: QuestCompletionResult) => void,
-  playSound: (name: string, volume?: number) => void,
-  setHighlightedBlockId: (id: string | null) => void,
-  // Thêm các tham số mới để tính toán kết quả
-  currentEditor: EditorType,
-  userCode: string,
-  workspaceRef: React.RefObject<Blockly.WorkspaceSvg>,
-  blockCount: number, // New parameter
-  onConsoleLog: (message: string) => void // [NEW] Callback for console logs
+	engineRef: React.RefObject<IGameEngine>,
+	questData: Quest | null,
+	rendererRef: React.RefObject<TurtleRendererHandle>,
+	onGameEnd: (result: QuestCompletionResult) => void,
+	playSound: (name: string, volume?: number) => void,
+	setHighlightedBlockId: (id: string | null) => void,
+	// Thêm các tham số mới để tính toán kết quả
+	currentEditor: EditorType,
+	userCode: string,
+	workspaceRef: React.RefObject<Blockly.WorkspaceSvg>,
+	blockCount: number, // New parameter
+	onConsoleLog: (message: string) => void, // [NEW] Callback for console logs
 ) => {
-  const [playerStatus, setPlayerStatus] = useState<PlayerStatus>('idle');
-  const [currentGameState, setCurrentGameState] = useState<GameState | null>(null);
-  const [executionLog, setExecutionLog] = useState<GameState[] | null>(null);
-  
-  const frameIndex = useRef(0);
-  const animationFrameId = useRef<number | null>(null);
-  const lastStepTime = useRef(0);
-  const executionModeRef = useRef<ExecutionMode>('run');
-  const isWaitingForAnimation = useRef(false);
+	const [playerStatus, setPlayerStatus] = useState<PlayerStatus>("idle");
+	const [currentGameState, setCurrentGameState] = useState<GameState | null>(
+		null,
+	);
+	const [executionLog, setExecutionLog] = useState<GameState[] | null>(null);
 
-  const executeSingleStep = useCallback(() => {
-    const engine = engineRef.current;
-    if (!engine || !questData) return true;
+	const frameIndex = useRef(0);
+	const animationFrameId = useRef<number | null>(null);
+	const lastStepTime = useRef(0);
+	const executionModeRef = useRef<ExecutionMode>("run");
+	const isWaitingForAnimation = useRef(false);
 
-    const handleGameOver = (finalEngineState: GameState) => {
-      let isSuccess = false;
-      
-      if (engine.gameType === 'turtle' && rendererRef.current?.getCanvasData && questData.solution.pixelTolerance !== undefined) {
-        const { userImageData, solutionImageData } = rendererRef.current.getCanvasData();
-        if (userImageData && solutionImageData) {
-          isSuccess = (engine as TurtleEngine).verifySolution(userImageData, solutionImageData, questData.solution.pixelTolerance);
-        }
-      } else {
-        isSuccess = engine.checkWinCondition(finalEngineState, questData.solution);
-      }
+	const executeSingleStep = useCallback(async () => {
+		const engine = engineRef.current;
+		if (!engine || !questData) return true;
 
-      if (isSuccess) playSound('win'); else playSound('fail');
-      
-      const finalStateWithSolution = { ...finalEngineState, solution: questData.solution, result: isSuccess ? 'success' : 'failure' };
-      setCurrentGameState(finalStateWithSolution);
-      setPlayerStatus('finished');
-      setHighlightedBlockId(null);
-      
-      // --- [FIXED] BUILD THE COMPLETION RESULT OBJECT ---
-      // Determine unit type and count based on the current editor
-      let unitLabel: 'block' | 'line' = 'line';
-      let unitCount = 0;
+		const handleGameOver = (finalEngineState: GameState) => {
+			let isSuccess = false;
 
-      if (currentEditor === 'blockly') {
-        unitLabel = 'block';
-        // Use the blockCount passed from props, or fallback to 0
-        unitCount = blockCount || 0;
-      } else {
-        unitLabel = 'line';
-        unitCount = calculateLogicalLines(userCode);
-      }
+			if (
+				engine.gameType === "turtle" &&
+				rendererRef.current?.getCanvasData &&
+				questData.solution.pixelTolerance !== undefined
+			) {
+				const { userImageData, solutionImageData } =
+					rendererRef.current.getCanvasData();
+				if (userImageData && solutionImageData) {
+					isSuccess = (engine as TurtleEngine).verifySolution(
+						userImageData,
+						solutionImageData,
+						questData.solution.pixelTolerance,
+					);
+				}
+			} else {
+				isSuccess = engine.checkWinCondition(
+					finalEngineState,
+					questData.solution,
+				);
+			}
 
-      let stars = 0;
-      if (isSuccess) {
-        const allItemGoalsMet = checkItemGoals(finalEngineState, questData);
+			if (isSuccess) playSound("win");
+			else playSound("fail");
 
-        if (allItemGoalsMet) {
-          // Hoàn thành tất cả mục tiêu -> xét 2 hoặc 3 sao
-          if (currentEditor === 'blockly' && questData.solution.optimalBlocks !== undefined) {
-            stars = (unitCount <= questData.solution.optimalBlocks) ? 3 : 2;
-          } else if (currentEditor === 'monaco' && questData.solution.optimalLines !== undefined) {
-            stars = (unitCount <= questData.solution.optimalLines) ? 3 : 2;
-          } else {
-            // Fallback: If optimalBlocks/Lines is missing, default to 2 stars for completion
-            stars = 2; 
-          }
-        } else {
-          // Chỉ về đích -> 1 sao
-          stars = 1;
-        }
-      }
+			const finalStateWithSolution = {
+				...finalEngineState,
+				solution: questData.solution,
+				result: isSuccess ? "success" : "failure",
+			};
+			setCurrentGameState(finalStateWithSolution);
+			setPlayerStatus("finished");
+			setHighlightedBlockId(null);
 
+			// --- [FIXED] BUILD THE COMPLETION RESULT OBJECT ---
+			// Determine unit type and count based on the current editor
+			let unitLabel: "block" | "line" = "line";
+			let unitCount = 0;
 
-      onGameEnd({
-          isSuccess,
-          finalState: finalStateWithSolution,
-          userCode: userCode,
-          unitCount,
-          unitLabel,
-          stars
-      });
-    };
+			if (currentEditor === "blockly") {
+				unitLabel = "block";
+				// Use the blockCount passed from props, or fallback to 0
+				unitCount = blockCount || 0;
+			} else {
+				unitLabel = "line";
+				unitCount = calculateLogicalLines(userCode);
+			}
 
-    // Prioritize executionLog (Replay Mode) if it exists.
-    // This is used for Python/Lua playback or non-steppable engines.
-    if (executionLog) {
-      isWaitingForAnimation.current = false; 
-      const nextIndex = frameIndex.current + 1;
-      if (nextIndex >= executionLog.length) {
-        const finalState = executionLog[executionLog.length - 1];
-        handleGameOver(finalState);
-        return false;
-      } else {
-        frameIndex.current = nextIndex;
-        setCurrentGameState(executionLog[nextIndex]);
-      }
-    } else if (engine.step) {
-      const result: StepResult = engine.step();
-      if (result) {
-        const newPose = (result.state as any).players?.[(result.state as any).activePlayerId]?.pose;
+			let stars = 0;
+			if (isSuccess) {
+				const allItemGoalsMet = checkItemGoals(
+					finalEngineState,
+					questData,
+				);
 
-        const posesThatRequireWaiting = [
-            'Walking', 'Jumping', 'TurningLeft', 'TurningRight', 'Bump',
-            'TeleportOut', 'TeleportIn', 'Collecting', 'Toggling', 'Victory'
-        ];
+				if (allItemGoalsMet) {
+					// Hoàn thành tất cả mục tiêu -> xét 2 hoặc 3 sao
+					if (
+						currentEditor === "blockly" &&
+						questData.solution.optimalBlocks !== undefined
+					) {
+						stars =
+							unitCount <= questData.solution.optimalBlocks
+								? 3
+								: 2;
+					} else if (
+						currentEditor === "monaco" &&
+						questData.solution.optimalLines !== undefined
+					) {
+						stars =
+							unitCount <= questData.solution.optimalLines
+								? 3
+								: 2;
+					} else {
+						// Fallback: If optimalBlocks/Lines is missing, default to 2 stars for completion
+						stars = 2;
+					}
+				} else {
+					// Chỉ về đích -> 1 sao
+					stars = 1;
+				}
+			}
 
-        setCurrentGameState(result.state);
+			onGameEnd({
+				isSuccess,
+				finalState: finalStateWithSolution,
+				userCode: userCode,
+				unitCount,
+				unitLabel,
+				stars,
+			});
+		};
 
-        if (posesThatRequireWaiting.includes(newPose)) {
-            isWaitingForAnimation.current = true;
-        } else {
-            isWaitingForAnimation.current = false;
-        }
+		// Prioritize executionLog (Replay Mode) if it exists.
+		// This is used for Python/Lua playback or non-steppable engines.
+		if (executionLog) {
+			isWaitingForAnimation.current = false;
+			const nextIndex = frameIndex.current + 1;
+			if (nextIndex >= executionLog.length) {
+				const finalState = executionLog[executionLog.length - 1];
+				handleGameOver(finalState);
+				return false;
+			} else {
+				frameIndex.current = nextIndex;
+				setCurrentGameState(executionLog[nextIndex]);
+			}
+		} else if (engine.step) {
+			const result: StepResult = await engine.step();
+			if (result) {
+				const newPose = (result.state as any).players?.[
+					(result.state as any).activePlayerId
+				]?.pose;
 
-        if (executionModeRef.current === 'debug' && result.highlightedBlockId) {
-          setHighlightedBlockId(result.highlightedBlockId);
-        }
-        if (result.done) {
-          isWaitingForAnimation.current = true;
-          setTimeout(() => {
-            handleGameOver(result.state);
-          }, 800);
-          return false;
-        }
-      }
-    }
-    return true;
-    return true;
-    return true;
-  }, [engineRef, questData, executionLog, rendererRef, onGameEnd, playSound, setHighlightedBlockId, currentEditor, userCode, workspaceRef, blockCount]);
+				const posesThatRequireWaiting = [
+					"Walking",
+					"Jumping",
+					"TurningLeft",
+					"TurningRight",
+					"Bump",
+					"TeleportOut",
+					"TeleportIn",
+					"Collecting",
+					"Toggling",
+					"Victory",
+				];
 
-  // [NEW] Register console log callback
-  useEffect(() => {
-    const engine = engineRef.current;
-    if (engine && 'setPrintCallback' in engine) {
-      // @ts-ignore
-      engine.setPrintCallback(onConsoleLog);
-    }
-    
-    // Cleanup
-    return () => {
-      if (engine && 'setPrintCallback' in engine) {
-        // @ts-ignore
-        engine.setPrintCallback(null);
-      }
-    };
-  }, [engineRef, onConsoleLog]);
+				setCurrentGameState(result.state);
 
-  const handleActionComplete = useCallback(() => {
-    const engine = engineRef.current;
+				if (posesThatRequireWaiting.includes(newPose)) {
+					isWaitingForAnimation.current = true;
+				} else {
+					isWaitingForAnimation.current = false;
+				}
 
-    if (engine?.gameType === 'maze') {
-      const mazeEngine = engine as IMazeEngine;
-      const interactionState = mazeEngine.triggerInteraction();
+				if (
+					executionModeRef.current === "debug" &&
+					result.highlightedBlockId
+				) {
+					setHighlightedBlockId(result.highlightedBlockId);
+				}
+				if (result.done) {
+					isWaitingForAnimation.current = true;
+					setTimeout(() => {
+						handleGameOver(result.state);
+					}, 800);
+					return false;
+				}
+			}
+		}
+		return true;
+		return true;
+		return true;
+	}, [
+		engineRef,
+		questData,
+		executionLog,
+		rendererRef,
+		onGameEnd,
+		playSound,
+		setHighlightedBlockId,
+		currentEditor,
+		userCode,
+		workspaceRef,
+		blockCount,
+	]);
 
-      if (interactionState) {
-        setCurrentGameState(interactionState);
-        isWaitingForAnimation.current = true;
-        return;
-      }
-    }
-    
-    isWaitingForAnimation.current = false;
-  }, [engineRef]);
+	// [NEW] Register console log callback
+	useEffect(() => {
+		const engine = engineRef.current;
+		if (engine && "setPrintCallback" in engine) {
+			// @ts-ignore
+			engine.setPrintCallback(onConsoleLog);
+		}
 
+		// Cleanup
+		return () => {
+			if (engine && "setPrintCallback" in engine) {
+				// @ts-ignore
+				engine.setPrintCallback(null);
+			}
+		};
+	}, [engineRef, onConsoleLog]);
 
-  const handleTeleportComplete = useCallback(() => {
-    const engine = engineRef.current;
-    if (engine && 'completeTeleport' in engine) {
-      (engine as any).completeTeleport();
-      isWaitingForAnimation.current = false;
-    }
-  }, [engineRef]);
+	const handleActionComplete = useCallback(() => {
+		const engine = engineRef.current;
 
-  const runGame = useCallback((codeToRun: string, mode: ExecutionMode, precomputedLog?: GameState[]) => {
-    const engine = engineRef.current;
-    if (!engine || playerStatus === 'running' || playerStatus === 'paused') return;
+		if (engine?.gameType === "maze") {
+			const mazeEngine = engine as IMazeEngine;
+			const interactionState = mazeEngine.triggerInteraction();
 
-    isWaitingForAnimation.current = false;
-    setHighlightedBlockId(null);
-    executionModeRef.current = mode;
-    frameIndex.current = 0;
-    lastStepTime.current = 0;
-    
-    // === Random Item Mode: Randomize items before each run ===
-    if (questData?.gameConfig.type === 'maze') {
-      const mazeConfig = questData.gameConfig as MazeConfig;
-      const mazeEngine = engine as IMazeEngine;
-      
-      if (mazeConfig.mode === 'random' && mazeConfig.collectibles) {
-        const maxCrystals = mazeConfig.itemPool?.crystal ?? mazeConfig.collectibles.length;
-        const minCrystals = Math.max(1, Math.floor(maxCrystals / 2));
-        
-        // Target count: random between [min, max)
-        const targetCrystals = maxCrystals > minCrystals
-          ? Math.floor(Math.random() * (maxCrystals - minCrystals)) + minCrystals
-          : maxCrystals;
-        
-        // Set item goals so countItemsRemaining() works correctly
-        if ('setItemGoals' in mazeEngine && typeof mazeEngine.setItemGoals === 'function') {
-          mazeEngine.setItemGoals({ crystal: targetCrystals });
-        }
-        
-        console.log(`[RandomMode] Run with ${targetCrystals}/${maxCrystals} crystals target`);
-      }
-    }
-    // === End Random Item Mode ===
-    
-    if (precomputedLog) {
-      // Playback mode for Python/Lua (pre-calculated)
-      setExecutionLog(precomputedLog);
-      setCurrentGameState(precomputedLog[0]);
-    } else {
-      // Standard JS/Blockly execution
-      // Register print callback before execution
-      if ('setPrintCallback' in engine && typeof (engine as any).setPrintCallback === 'function') {
-        (engine as any).setPrintCallback(onConsoleLog);
-      }
-      engine.execute(codeToRun); 
+			if (interactionState) {
+				setCurrentGameState(interactionState);
+				isWaitingForAnimation.current = true;
+				return;
+			}
+		}
 
-      if (engine.step) {
-        setExecutionLog(null);
-        setCurrentGameState(engine.getInitialState());
-      } else {
-        // @ts-ignore
-        const log = engine.log || [];
-        setExecutionLog(log);
-        setCurrentGameState(log[0] || engine.getInitialState());
-      }
-    }
+		isWaitingForAnimation.current = false;
+	}, [engineRef]);
 
-    setPlayerStatus('running');
-  }, [engineRef, playerStatus, setHighlightedBlockId, questData]);
+	const handleTeleportComplete = useCallback(() => {
+		const engine = engineRef.current;
+		if (engine && "completeTeleport" in engine) {
+			(engine as any).completeTeleport();
+			isWaitingForAnimation.current = false;
+		}
+	}, [engineRef]);
 
-  const resetGame = useCallback(() => {
-    if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
-    const engine = engineRef.current;
-    if (!engine) return;
+	const runGame = useCallback(
+		(
+			codeToRun: string,
+			mode: ExecutionMode,
+			precomputedLog?: GameState[],
+		) => {
+			const engine = engineRef.current;
+			if (
+				!engine ||
+				playerStatus === "running" ||
+				playerStatus === "paused"
+			)
+				return;
 
-    if ('reset' in engine && typeof engine.reset === 'function') {
-      engine.reset();
-    }
+			isWaitingForAnimation.current = false;
+			setHighlightedBlockId(null);
+			executionModeRef.current = mode;
+			frameIndex.current = 0;
+			lastStepTime.current = 0;
 
-    isWaitingForAnimation.current = false;
-    frameIndex.current = 0;
-    setCurrentGameState(engine.getInitialState());
-    setExecutionLog(null);
-    setPlayerStatus('idle');
-    setHighlightedBlockId(null);
-  }, [engineRef, setHighlightedBlockId]);
+			// === Random Item Mode: Randomize items before each run ===
+			if (questData?.gameConfig.type === "maze") {
+				const mazeConfig = questData.gameConfig as MazeConfig;
+				const mazeEngine = engine as IMazeEngine;
 
-  const pauseGame = useCallback(() => {
-    if (playerStatus === 'running') {
-      setPlayerStatus('paused');
-    }
-  }, [playerStatus]);
+				if (mazeConfig.mode === "random" && mazeConfig.collectibles) {
+					const maxCrystals =
+						mazeConfig.itemPool?.crystal ??
+						mazeConfig.collectibles.length;
+					const minCrystals = Math.max(
+						1,
+						Math.floor(maxCrystals / 2),
+					);
 
-  const resumeGame = useCallback(() => {
-    if (playerStatus === 'paused') {
-      setPlayerStatus('running');
-    }
-  }, [playerStatus]);
-  
-  const stepForward = useCallback(() => {
-    if (playerStatus === 'paused') {
-      isWaitingForAnimation.current = false;
-      executeSingleStep();
-    }
-  }, [playerStatus, executeSingleStep]);
+					// Target count: random between [min, max)
+					const targetCrystals =
+						maxCrystals > minCrystals
+							? Math.floor(
+									Math.random() * (maxCrystals - minCrystals),
+								) + minCrystals
+							: maxCrystals;
 
-  useEffect(() => {
-    const animate = (timestamp: number) => {
-      if (playerStatus !== 'running') {
-        animationFrameId.current = null;
-        return;
-      }
-      
-      if (isWaitingForAnimation.current) {
-        animationFrameId.current = requestAnimationFrame(animate);
-        return;
-      }
+					// Set item goals so countItemsRemaining() works correctly
+					if (
+						"setItemGoals" in mazeEngine &&
+						typeof mazeEngine.setItemGoals === "function"
+					) {
+						mazeEngine.setItemGoals({ crystal: targetCrystals });
+					}
 
-      const delay = executionModeRef.current === 'debug' ? DEBUG_FRAME_DELAY : (engineRef.current?.step ? STEP_FRAME_DELAY : BATCH_FRAME_DELAY);
-      
-      if (timestamp - lastStepTime.current < delay) {
-        animationFrameId.current = requestAnimationFrame(animate);
-        return;
-      }
-      lastStepTime.current = timestamp;
+					console.log(
+						`[RandomMode] Run with ${targetCrystals}/${maxCrystals} crystals target`,
+					);
+				}
+			}
+			// === End Random Item Mode ===
 
-      const gameContinues = executeSingleStep();
+			if (precomputedLog) {
+				// Playback mode for Python/Lua (pre-calculated)
+				setExecutionLog(precomputedLog);
+				setCurrentGameState(precomputedLog[0]);
+			} else {
+				// Standard JS/Blockly execution
+				// Register print callback before execution
+				if (
+					"setPrintCallback" in engine &&
+					typeof (engine as any).setPrintCallback === "function"
+				) {
+					(engine as any).setPrintCallback(onConsoleLog);
+				}
+				engine.execute(codeToRun);
 
-      if (gameContinues) {
-        animationFrameId.current = requestAnimationFrame(animate);
-      } else {
-        animationFrameId.current = null;
-      }
-    };
+				if (engine.step) {
+					setExecutionLog(null);
+					setCurrentGameState(engine.getInitialState());
+				} else {
+					// @ts-ignore
+					const log = engine.log || [];
+					setExecutionLog(log);
+					setCurrentGameState(log[0] || engine.getInitialState());
+				}
+			}
 
-    if (playerStatus === 'running' && animationFrameId.current === null) {
-      animationFrameId.current = requestAnimationFrame(animate);
-    }
+			setPlayerStatus("running");
+		},
+		[engineRef, playerStatus, setHighlightedBlockId, questData],
+	);
 
-    return () => {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-        animationFrameId.current = null;
-      }
-    };
-  }, [playerStatus, executeSingleStep, engineRef]);
+	const resetGame = useCallback(() => {
+		if (animationFrameId.current)
+			cancelAnimationFrame(animationFrameId.current);
+		const engine = engineRef.current;
+		if (!engine) return;
 
-  return {
-    currentGameState,
-    playerStatus,
-    runGame,
-    resetGame,
-    pauseGame,
-    resumeGame,
-    stepForward,
-    handleActionComplete,
-    handleTeleportComplete,
-  };
+		if ("reset" in engine && typeof engine.reset === "function") {
+			engine.reset();
+		}
+
+		isWaitingForAnimation.current = false;
+		frameIndex.current = 0;
+		setCurrentGameState(engine.getInitialState());
+		setExecutionLog(null);
+		setPlayerStatus("idle");
+		setHighlightedBlockId(null);
+	}, [engineRef, setHighlightedBlockId]);
+
+	const pauseGame = useCallback(() => {
+		if (playerStatus === "running") {
+			setPlayerStatus("paused");
+		}
+	}, [playerStatus]);
+
+	const resumeGame = useCallback(() => {
+		if (playerStatus === "paused") {
+			setPlayerStatus("running");
+		}
+	}, [playerStatus]);
+
+	const stepForward = useCallback(async () => {
+		if (playerStatus === "paused") {
+			isWaitingForAnimation.current = false;
+			await executeSingleStep();
+		}
+	}, [playerStatus, executeSingleStep]);
+
+	useEffect(() => {
+		const animate = async (timestamp: number) => {
+			if (playerStatus !== "running") {
+				animationFrameId.current = null;
+				return;
+			}
+
+			if (isWaitingForAnimation.current) {
+				animationFrameId.current = requestAnimationFrame(animate);
+				return;
+			}
+
+			const delay =
+				executionModeRef.current === "debug"
+					? DEBUG_FRAME_DELAY
+					: engineRef.current?.step
+						? STEP_FRAME_DELAY
+						: BATCH_FRAME_DELAY;
+
+			if (timestamp - lastStepTime.current < delay) {
+				animationFrameId.current = requestAnimationFrame(animate);
+				return;
+			}
+			lastStepTime.current = timestamp;
+
+			const gameContinues = await executeSingleStep();
+
+			if (gameContinues) {
+				animationFrameId.current = requestAnimationFrame(animate);
+			} else {
+				animationFrameId.current = null;
+			}
+		};
+
+		if (playerStatus === "running" && animationFrameId.current === null) {
+			animationFrameId.current = requestAnimationFrame(animate);
+		}
+
+		return () => {
+			if (animationFrameId.current) {
+				cancelAnimationFrame(animationFrameId.current);
+				animationFrameId.current = null;
+			}
+		};
+	}, [playerStatus, executeSingleStep, engineRef]);
+
+	return {
+		currentGameState,
+		playerStatus,
+		runGame,
+		resetGame,
+		pauseGame,
+		resumeGame,
+		stepForward,
+		handleActionComplete,
+		handleTeleportComplete,
+	};
 };

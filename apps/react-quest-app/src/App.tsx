@@ -16,6 +16,8 @@ import {
   type QuestPlayerSettings,
   GuideRenderer,
 } from '@repo/quest-player';
+import { AuthProvider } from './contexts/AuthContext';
+import { ContestProvider } from './contexts/ContestContext';
 import { QuestSidebar } from './components/QuestSidebar/index';
 import './App.css';
 import { SyncPage } from './pages/SyncPage'; // Import SyncPage
@@ -524,6 +526,8 @@ function SyncPageWrapper() {
 
 // Import PracticeContent
 import { PracticeContent } from './pages/PracticeContent';
+import { EntrancePage } from './pages/EntrancePage';
+import { ExamRoom } from './pages/ExamRoom';
 
 // Practice mode wrapper with settings
 function PracticeContentWrapper() {
@@ -563,6 +567,13 @@ function App() {
       <Route path="/practice/session" element={<PracticeContentWrapper />} />
       {/* Route cho builder sync */}
       <Route path="/sync" element={<SyncPageWrapper />} />
+
+      {/* Routes cho cuộc thi (Contest) */}
+      <Route path="/contest/:contestId" element={<ContestProvider />}>
+        <Route index element={<EntrancePage />} />
+        <Route path="exam" element={<ExamRoom />} />
+      </Route>
+
       {/* Route cho một quest cụ thể: /quest/group1/QUEST_ID */}
       <Route path="/quest/:groupId/:questId" element={<AppContent />} />
       {/* Route cho một nhóm: /quest/group1, sẽ tự động chuyển đến quest đầu tiên */}

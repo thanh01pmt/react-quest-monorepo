@@ -1,0 +1,236 @@
+.entrance-page {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+	padding: 20px;
+	font-family:
+		"Inter",
+		system-ui,
+		-apple-system,
+		sans-serif;
+}
+
+.entrance-card {
+	width: 100%;
+	max-width: 520px;
+	background: rgba(255, 255, 255, 0.08);
+	backdrop-filter: blur(24px);
+	-webkit-backdrop-filter: blur(24px);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 24px;
+	padding: 40px;
+	box-shadow:
+		0 25px 50px -12px rgba(0, 0, 0, 0.5),
+		0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+	color: #e0e0e0;
+}
+
+/* ── Banner ────────────────────────────────────────────────────── */
+
+.entrance-banner {
+	text-align: center;
+	margin-bottom: 32px;
+}
+
+.entrance-icon {
+	font-size: 3rem;
+	margin-bottom: 16px;
+	animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-8px);
+	}
+}
+
+.entrance-title {
+	font-size: 1.75rem;
+	font-weight: 800;
+	margin: 0 0 8px;
+	background: linear-gradient(135deg, #f5af19, #f12711);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	letter-spacing: -0.02em;
+}
+
+.entrance-description {
+	font-size: 0.95rem;
+	color: rgba(255, 255, 255, 0.6);
+	margin: 0;
+	line-height: 1.5;
+}
+
+/* ── Time Info ─────────────────────────────────────────────────── */
+
+.entrance-time-info {
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 16px;
+	padding: 16px 20px;
+	margin-bottom: 24px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.time-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 0;
+}
+
+.time-row + .time-row {
+	border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.time-label {
+	font-size: 0.85rem;
+	color: rgba(255, 255, 255, 0.5);
+}
+
+.time-value {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── Status ────────────────────────────────────────────────────── */
+
+.entrance-status {
+	text-align: center;
+	padding: 16px;
+	border-radius: 12px;
+	font-size: 0.9rem;
+	font-weight: 500;
+	margin-bottom: 16px;
+}
+
+.entrance-status-waiting {
+	background: rgba(255, 193, 7, 0.15);
+	border: 1px solid rgba(255, 193, 7, 0.3);
+	color: #ffc107;
+}
+
+.entrance-status-ended {
+	background: rgba(244, 67, 54, 0.15);
+	border: 1px solid rgba(244, 67, 54, 0.3);
+	color: #f44336;
+}
+
+/* ── Form ──────────────────────────────────────────────────────── */
+
+.entrance-form h2 {
+	font-size: 1.25rem;
+	font-weight: 700;
+	margin: 0 0 8px;
+	color: #fff;
+}
+
+.form-subtitle {
+	font-size: 0.85rem;
+	color: rgba(255, 255, 255, 0.5);
+	margin: 0 0 20px;
+}
+
+.form-group {
+	margin-bottom: 16px;
+}
+
+.form-group label {
+	display: block;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.6);
+	margin-bottom: 6px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.form-group input {
+	width: 100%;
+	padding: 12px 16px;
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	border-radius: 12px;
+	color: #fff;
+	font-size: 1rem;
+	transition: all 0.2s ease;
+	outline: none;
+	box-sizing: border-box;
+}
+
+.form-group input:focus {
+	border-color: rgba(245, 175, 25, 0.6);
+	box-shadow: 0 0 0 3px rgba(245, 175, 25, 0.15);
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.form-group input::placeholder {
+	color: rgba(255, 255, 255, 0.3);
+}
+
+.form-error {
+	background: rgba(244, 67, 54, 0.15);
+	border: 1px solid rgba(244, 67, 54, 0.3);
+	color: #f44336;
+	padding: 10px 14px;
+	border-radius: 10px;
+	font-size: 0.85rem;
+	margin-bottom: 16px;
+}
+
+.entrance-submit-btn {
+	width: 100%;
+	padding: 14px;
+	background: linear-gradient(135deg, #f5af19, #f12711);
+	border: none;
+	border-radius: 14px;
+	color: #fff;
+	font-size: 1.05rem;
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	letter-spacing: 0.02em;
+}
+
+.entrance-submit-btn:hover:not(:disabled) {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 24px rgba(241, 39, 17, 0.35);
+}
+
+.entrance-submit-btn:active:not(:disabled) {
+	transform: translateY(0);
+}
+
+.entrance-submit-btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.entrance-loading {
+	text-align: center;
+	padding: 40px;
+	font-size: 1rem;
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.entrance-error {
+	text-align: center;
+	padding: 40px;
+}
+
+.entrance-error h2 {
+	margin: 0 0 8px;
+	font-size: 1.25rem;
+}
+
+.entrance-error p {
+	color: rgba(255, 255, 255, 0.5);
+	margin: 0;
+}

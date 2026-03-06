@@ -45,6 +45,7 @@ type StandaloneProps = {
 };
 
 import { ConsolePanel, ConsoleLog } from '../ConsolePanel';
+import { TestCasePanel } from '../TestCasePanel';
 
 type LibraryProps = {
   isStandalone: false;
@@ -71,7 +72,7 @@ interface DisplayStats {
   optimalLines?: number;
 }
 
-const START_BLOCK_TYPE = 'maze_start';
+const DEFAULT_START_BLOCK_TYPE = 'maze_start';
 
 const DEFAULT_SETTINGS: Required<QuestPlayerSettings> = {
   renderer: 'zelos',
@@ -139,6 +140,11 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   const [isBlocksInitialized, setIsBlocksInitialized] = useState(false);
   const [blockCount, setBlockCount] = useState(0);
   const [displayStats, setDisplayStats] = useState<DisplayStats>({});
+
+  const startBlockType = useMemo(() => {
+    if (questData?.gameType === 'algo') return 'algo_start';
+    return DEFAULT_START_BLOCK_TYPE;
+  }, [questData?.gameType]);
 
   const [executionMode, /* setExecutionMode */] = useState<ExecutionMode>('run');
 
@@ -316,6 +322,13 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
         setIsBlocksInitialized(true);
       }
 
+      if (questData?.gameType === 'algo') {
+        setIsBlocksInitialized(false);
+        const algoBlocks = await import('../../games/algo/blocks');
+        algoBlocks.init(t);
+        setIsBlocksInitialized(true);
+      }
+
       if (questData) {
         // Force re-render workspace với key mới bao gồm timestamp để đảm bảo luôn khác
         setBlocklyWorkspaceKey(`${questData.id}-${language}-${Date.now()}`);
@@ -488,7 +501,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       // Always remove start block from toolbox to prevent adding multiples
       newToolbox.contents.forEach((category: ToolboxItem) => {
         if (category.kind === 'category' && Array.isArray(category.contents)) {
-          category.contents = category.contents.filter(block => (block as any).type !== START_BLOCK_TYPE);
+          category.contents = category.contents.filter(block => (block as any).type !== startBlockType);
         }
       });
       initialToolboxConfigRef.current = newToolbox;
@@ -650,7 +663,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     }
     // For Blockly editor
     else {
-      if (workspaceRef.current && !workspaceRef.current.getTopBlocks(true).find(b => b.type === START_BLOCK_TYPE)) {
+      if (workspaceRef.current && !workspaceRef.current.getTopBlocks(true).find(b => b.type === startBlockType)) {
         if (isStandalone) setDialogState({ isOpen: true, title: 'Missing Start Block', message: t('Blockly.MissingStartBlock') });
         return;
       }
@@ -757,10 +770,10 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
     // Sử dụng `initialXml` đã được xử lý thay vì `questData.blocklyConfig.startBlocks`
     if (!initialXml) {
-      const existingStartBlock = workspace.getTopBlocks(false).find(b => b.type === START_BLOCK_TYPE);
+      const existingStartBlock = workspace.getTopBlocks(false).find(b => b.type === startBlockType);
       if (!existingStartBlock) {
         // Create a new start block if none exists
-        const startBlock = workspace.newBlock(START_BLOCK_TYPE);
+        const startBlock = workspace.newBlock(startBlockType);
         startBlock.initSvg();
         startBlock.render();
         startBlock.moveBy(50, 50); // Position it in the workspace
@@ -770,7 +783,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     }
 
     // Logic cũ để dọn dẹp nếu có nhiều start block (hữu ích cho các file JSON bị lỗi)
-    const startBlocks = workspace.getTopBlocks(false).filter(b => b.type === START_BLOCK_TYPE);
+    const startBlocks = workspace.getTopBlocks(false).filter(b => b.type === startBlockType);
     if (startBlocks.length > 1) {
       for (let i = 1; i < startBlocks.length; i++) {
         startBlocks[i].dispose();
@@ -1068,11 +1081,18 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
               </Panel>
               <PanelResizeHandle className="h-2 bg-gray-700 hover:bg-blue-500 transition-colors cursor-row-resize separator-horizontal" />
               <Panel defaultSize={25} minSize={5} collapsible={true}>
-                <ConsolePanel
-                  logs={consoleLogs}
-                  onClear={() => setConsoleLogs([])}
-                  theme={effectiveColorScheme}
-                />
+                {questData.gameType === 'algo' ? (
+                  <TestCasePanel
+                    testResults={currentGameState?.testResults || []}
+                    theme={effectiveColorScheme}
+                  />
+                ) : (
+                  <ConsolePanel
+                    logs={consoleLogs}
+                    onClear={() => setConsoleLogs([])}
+                    theme={effectiveColorScheme}
+                  />
+                )}
               </Panel>
             </PanelGroup>
           </div>
