@@ -8,7 +8,9 @@ import { ContestEditorPage } from './pages/ContestEditorPage';
 import { ChallengeBuilderPage } from './pages/ChallengeBuilderPage';
 import { LiveMonitorPage } from './pages/LiveMonitorPage';
 import { AccountsPage } from './pages/AccountsPage';
+import { PromotionPage } from './pages/PromotionPage';
 import type { Session } from '@supabase/supabase-js';
+
 
 export function App() {
     const [session, setSession] = useState<Session | null>(null);
@@ -47,7 +49,9 @@ export function App() {
                 <Route path="/contest/:id/challenges" element={<ChallengeBuilderPage />} />
                 <Route path="/contest/:id/accounts" element={<AccountsPage />} />
                 <Route path="/contest/:id/live" element={<LiveMonitorPage />} />
+                <Route path="/contest/:id/promotion" element={<PromotionPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
+
             </Route>
         </Routes>
     );

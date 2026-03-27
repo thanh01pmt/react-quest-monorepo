@@ -63,49 +63,6 @@ export interface MonacoConfig {
 	initialCode: string;
 }
 
-export interface Quest {
-	id: string;
-	gameType:
-		| "maze"
-		| "bird"
-		| "turtle"
-		| "movie"
-		| "music"
-		| "pond"
-		| "puzzle"
-		| "algo";
-	level: number;
-	titleKey: string;
-	questTitleKey: string;
-	descriptionKey: string;
-
-	supportedEditors?: ("blockly" | "monaco")[];
-
-	translations?: Record<string, Record<string, string>>;
-
-	hints?: {
-		title?: string;
-		description?: string;
-		learningGoals?: string;
-		goalDetails?: string[];
-	};
-
-	blocklyConfig?: BlocklyConfig;
-	monacoConfig?: MonacoConfig;
-
-	gameConfig: GameConfig;
-	solution: SolutionConfig;
-	sounds?: Record<string, string>;
-	backgroundMusic?: string;
-
-	// Template metadata for dynamic toolbox selection (synced from Builder)
-	templateMeta?: {
-		tags?: string[];
-		concepts?: string[];
-		category?: string;
-	};
-}
-
 // =================================================================
 // ==                 GAME-SPECIFIC CONFIGURATIONS                ==
 // =================================================================
@@ -364,6 +321,12 @@ export interface Quest {
 	monacoConfig?: MonacoConfig;
 	gameConfig: GameConfig;
 	solution: SolutionConfig;
+	hints?: {
+		title?: string;
+		description?: string;
+		learningGoals?: string;
+		goalDetails?: string[];
+	};
 	sounds?: Record<string, string>;
 	backgroundMusic?: string;
 

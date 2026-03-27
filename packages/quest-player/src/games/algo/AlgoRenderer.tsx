@@ -23,21 +23,21 @@ export const AlgoRenderer: React.FC<{
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown>
                 </section>
 
-                {inputFormat && (
+                {inputFormat && !description.toLowerCase().includes("dữ liệu vào") && !description.toLowerCase().includes("input") && (
                     <section className="algo-section">
                         <h3>Dữ liệu vào (Input)</h3>
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{inputFormat}</ReactMarkdown>
                     </section>
                 )}
 
-                {outputFormat && (
+                {outputFormat && !description.toLowerCase().includes("dữ liệu ra") && !description.toLowerCase().includes("output") && (
                     <section className="algo-section">
                         <h3>Dữ liệu ra (Output)</h3>
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{outputFormat}</ReactMarkdown>
                     </section>
                 )}
 
-                {constraints && (
+                {constraints && !description.toLowerCase().includes("ràng buộc") && !description.toLowerCase().includes("constraints") && (
                     <section className="algo-section">
                         <h3>Ràng buộc (Constraints)</h3>
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{constraints}</ReactMarkdown>

@@ -1,0 +1,10 @@
+{
+	"title": "Tin Học Trẻ 2026 — Bảng Tiểu Học",
+	"description": "Cuộc thi Tin Học Trẻ toàn quốc dành cho học sinh Tiểu học. Thi lập trình thuật toán qua 3 vòng: Quận, Tỉnh, Quốc gia. Mỗi vòng gồm 3 bài từ dễ đến khó.",
+	"settings": {
+		"scoringMode": "highest",
+		"allowLanguages": ["javascript", "python"],
+		"showHiddenTestCases": false,
+		"maxSubmissionsPerChallenge": 0
+	}
+}

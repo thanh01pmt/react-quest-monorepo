@@ -3,9 +3,9 @@
 	--bg-secondary: #161b22;
 	--bg-tertiary: #21262d;
 	--border: #30363d;
-	--text-primary: #e6edf3;
-	--text-secondary: #8b949e;
-	--text-muted: #484f58;
+	--text-primary: #f0f6fc;
+	--text-secondary: #b1bac4;
+	--text-muted: #8b949e;
 	--accent: #58a6ff;
 	--accent-hover: #79c0ff;
 	--success: #3fb950;
@@ -14,7 +14,13 @@
 	--orange: #f0883e;
 	--radius: 8px;
 	--radius-lg: 12px;
-	--font: "Inter", system-ui, -apple-system, sans-serif;
+	--font: "Montserrat", system-ui, -apple-system, sans-serif;
+	--glass: rgba(22, 27, 34, 0.7);
+	--glass-border: rgba(255, 255, 255, 0.1);
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+	--shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+	--shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.6);
+	--transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -57,12 +63,13 @@ select {
 	border-radius: var(--radius);
 	padding: 10px 14px;
 	outline: none;
-	transition: border-color 0.2s;
+	transition: var(--transition);
 }
 input:focus,
 textarea:focus,
 select:focus {
 	border-color: var(--accent);
+	box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
 }
 
 /* ── Layout ──────────────────────────────────────────── */
@@ -83,12 +90,16 @@ select:focus {
 }
 
 .app-sidebar-logo {
-	padding: 0 20px 20px;
-	font-size: 1.1rem;
+	padding: 24px 20px;
+	font-size: 1rem;
 	font-weight: 800;
 	color: var(--accent);
 	border-bottom: 1px solid var(--border);
 	margin-bottom: 12px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	letter-spacing: -0.02em;
 }
 
 .app-sidebar-nav {
@@ -107,16 +118,18 @@ select:focus {
 	border-radius: var(--radius);
 	color: var(--text-secondary);
 	font-size: 0.88rem;
-	font-weight: 500;
-	transition: all 0.15s;
+	font-weight: 600;
+	transition: var(--transition);
 }
 .nav-link:hover {
 	background: var(--bg-tertiary);
 	color: var(--text-primary);
+	transform: translateX(4px);
 }
 .nav-link.active {
 	background: rgba(88, 166, 255, 0.1);
 	color: var(--accent);
+	box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .app-main {
@@ -145,12 +158,25 @@ select:focus {
 	border: 1px solid var(--border);
 	border-radius: var(--radius-lg);
 	padding: 24px;
+	box-shadow: var(--shadow-sm);
+	transition: var(--transition);
+}
+.card:hover {
+	border-color: var(--text-muted);
+	box-shadow: var(--shadow-md);
+}
+
+.glass {
+	background: var(--glass);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid var(--glass-border);
 }
 
 .card-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-	gap: 16px;
+	gap: 20px;
 }
 
 /* ── Buttons ──────────────────────────────────────────── */
@@ -162,8 +188,11 @@ select:focus {
 	padding: 10px 18px;
 	border-radius: var(--radius);
 	font-size: 0.88rem;
-	font-weight: 600;
-	transition: all 0.15s;
+	font-weight: 700;
+	transition: var(--transition);
+}
+.btn:active {
+	transform: scale(0.96);
 }
 
 .btn-primary {
@@ -194,6 +223,23 @@ select:focus {
 .btn-sm {
 	padding: 6px 12px;
 	font-size: 0.8rem;
+}
+
+.btn-link {
+	background: none;
+	border: none;
+	padding: 4px 8px;
+	border-radius: 4px;
+	color: var(--accent);
+	font-weight: 700;
+	transition: var(--transition);
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+.btn-link:hover {
+	background: rgba(88, 166, 255, 0.1);
+	color: var(--accent-hover);
 }
 
 /* ── Tables ───────────────────────────────────────────── */
@@ -348,4 +394,53 @@ select:focus {
 	border-radius: var(--radius);
 	font-size: 0.85rem;
 	margin-bottom: 16px;
+}
+
+@keyframes pulse {
+	0% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.5;
+		transform: scale(1.2);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.pulse {
+	animation: pulse 2s infinite;
+}
+
+/* ── Scrollbars ────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+::-webkit-scrollbar-thumb {
+	background: var(--bg-tertiary);
+	border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: var(--text-muted);
+}
+
+/* ── Blockly Overrides for Modals ────────────────────── */
+.blocklyWidgetDiv {
+	z-index: 9999 !important; /* Ensure generic widgets appear above preview modal */
+}
+
+.blocklyDropDownDiv {
+	z-index: 9999 !important; /* Ensure variable/field dropdowns appear above preview modal */
+}
+
+.blocklyTooltipDiv {
+	z-index: 9999 !important;
 }

@@ -2,13 +2,28 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { Contest } from '../types';
+import { RoundManager } from '../components/ContestManagement/RoundManager';
+import { BoardManager } from '../components/ContestManagement/BoardManager';
+import {
+    ArrowLeft,
+    Save,
+    Download,
+    Info,
+    Layers,
+    Group,
+    CheckCircle,
+    FileText,
+    Settings
+} from 'lucide-react';
 
 export function ContestEditorPage() {
     const { id } = useParams<{ id: string }>();
+
     const navigate = useNavigate();
     const [contest, setContest] = useState<Contest | null>(null);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [activeTab, setActiveTab] = useState<'info' | 'rounds' | 'boards'>('info');
 
     useEffect(() => {
         if (id) loadContest(id);
@@ -31,9 +46,6 @@ export function ContestEditorPage() {
             .update({
                 title: contest.title,
                 description: contest.description,
-                start_time: contest.start_time,
-                end_time: contest.end_time,
-                duration_minutes: contest.duration_minutes,
                 status: contest.status,
                 settings: contest.settings,
             })
@@ -43,6 +55,17 @@ export function ContestEditorPage() {
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         }
+    };
+
+    const exportContest = () => {
+        if (!contest) return;
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(contest, null, 2));
+        const a = document.createElement('a');
+        a.href = dataStr;
+        a.download = `contest-${contest.short_code || contest.id}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
     };
 
     const updateField = <K extends keyof Contest>(key: K, value: Contest[K]) => {
@@ -55,116 +78,166 @@ export function ContestEditorPage() {
         );
     };
 
-    if (!contest) return <div className="empty-state">Đang tải...</div>;
+    if (!contest) return <div className="empty-state card">Đang tải cấu hình...</div>;
 
     return (
-        <div>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
             <div className="page-header">
-                <h1>Cấu hình cuộc thi</h1>
-                <div style={{ display: 'flex', gap: 8 }}>
-                    {saved && <span style={{ color: 'var(--success)', alignSelf: 'center', fontSize: '0.85rem' }}>✓ Đã lưu</span>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => navigate('/')} title="Quay lại" style={{ padding: 8 }}>
+                        <ArrowLeft size={18} />
+                    </button>
+                    <h1>{contest.title || 'Cấu hình cuộc thi'}</h1>
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    {saved && (
+                        <span style={{ color: 'var(--success)', alignSelf: 'center', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+                            <CheckCircle size={14} />
+                            Đã lưu
+                        </span>
+                    )}
+                    <button className="btn btn-secondary" onClick={exportContest}>
+                        <Download size={18} />
+                        <span>Export JSON</span>
+                    </button>
                     <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                        {saving ? 'Đang lưu...' : '💾 Lưu'}
+                        <Save size={18} />
+                        <span>{saving ? 'Đang lưu...' : 'Lưu thay đổi'}</span>
                     </button>
                 </div>
             </div>
 
-            <div className="card" style={{ marginBottom: 16 }}>
-                <div className="form-group">
-                    <label>Tên cuộc thi</label>
-                    <input
-                        value={contest.title}
-                        onChange={(e) => updateField('title', e.target.value)}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label>Mô tả</label>
-                    <textarea
-                        value={contest.description}
-                        onChange={(e) => updateField('description', e.target.value)}
-                        rows={3}
-                    />
-                </div>
-
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>Thời gian bắt đầu</label>
-                        <input
-                            type="datetime-local"
-                            value={contest.start_time?.slice(0, 16)}
-                            onChange={(e) => updateField('start_time', new Date(e.target.value).toISOString())}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Thời gian kết thúc</label>
-                        <input
-                            type="datetime-local"
-                            value={contest.end_time?.slice(0, 16)}
-                            onChange={(e) => updateField('end_time', new Date(e.target.value).toISOString())}
-                        />
-                    </div>
-                </div>
-
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>Thời lượng (phút)</label>
-                        <input
-                            type="number"
-                            value={contest.duration_minutes}
-                            onChange={(e) => updateField('duration_minutes', parseInt(e.target.value) || 120)}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Trạng thái</label>
-                        <select
-                            value={contest.status}
-                            onChange={(e) => updateField('status', e.target.value as Contest['status'])}
-                        >
-                            <option value="draft">Nháp</option>
-                            <option value="scheduled">Đã lên lịch</option>
-                            <option value="active">Đang thi</option>
-                            <option value="ended">Kết thúc</option>
-                        </select>
-                    </div>
-                </div>
+            <div className="card glass" style={{ padding: 6, display: 'inline-flex', gap: 4, marginBottom: 24, background: 'var(--bg-tertiary)', border: 'none' }}>
+                <button
+                    className={`btn btn-sm ${activeTab === 'info' ? 'btn-primary' : ''}`}
+                    onClick={() => setActiveTab('info')}
+                    style={{ background: activeTab === 'info' ? 'var(--accent)' : 'transparent', color: activeTab === 'info' ? '#fff' : 'var(--text-secondary)', border: 'none' }}
+                >
+                    <Info size={16} />
+                    <span>Thông tin chung</span>
+                </button>
+                <button
+                    className={`btn btn-sm ${activeTab === 'rounds' ? 'btn-primary' : ''}`}
+                    onClick={() => setActiveTab('rounds')}
+                    style={{ background: activeTab === 'rounds' ? 'var(--accent)' : 'transparent', color: activeTab === 'rounds' ? '#fff' : 'var(--text-secondary)', border: 'none' }}
+                >
+                    <Layers size={16} />
+                    <span>Vòng thi (Rounds)</span>
+                </button>
+                <button
+                    className={`btn btn-sm ${activeTab === 'boards' ? 'btn-primary' : ''}`}
+                    onClick={() => setActiveTab('boards')}
+                    style={{ background: activeTab === 'boards' ? 'var(--accent)' : 'transparent', color: activeTab === 'boards' ? '#fff' : 'var(--text-secondary)', border: 'none' }}
+                >
+                    <Group size={16} />
+                    <span>Cụm thi (Boards)</span>
+                </button>
             </div>
 
-            <div className="card">
-                <h3 style={{ marginBottom: 16 }}>⚙️ Cài đặt</h3>
+            {activeTab === 'info' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                    <div className="card glass-dark" style={{ padding: 32 }}>
+                        <h3 style={{ marginBottom: 24, fontSize: '1.2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <FileText size={20} className="text-secondary" />
+                            <span>Thông tin cơ bản</span>
+                        </h3>
+                        <div className="form-group">
+                            <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Tên cuộc thi</label>
+                            <input
+                                value={contest.title}
+                                onChange={(e) => updateField('title', e.target.value)}
+                                placeholder="Ví dụ: Olympic Tin học Teky 2024"
+                                style={{ fontSize: '1.1rem', fontWeight: 700, padding: 14 }}
+                            />
+                        </div>
 
-                <div className="form-group">
-                    <label>Chế độ tính điểm</label>
-                    <select
-                        value={contest.settings.scoringMode}
-                        onChange={(e) => updateSetting('scoringMode', e.target.value)}
-                    >
-                        <option value="highest">Điểm cao nhất</option>
-                        <option value="latest">Lần nộp cuối</option>
-                    </select>
-                </div>
+                        <div className="form-group">
+                            <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Mô tả chi tiết</label>
+                            <textarea
+                                value={contest.description}
+                                onChange={(e) => updateField('description', e.target.value)}
+                                rows={4}
+                                placeholder="Nhập nội dung giới thiệu cuộc thi..."
+                                style={{ padding: 14, lineHeight: 1.6 }}
+                            />
+                        </div>
 
-                <div className="form-group">
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <input
-                            type="checkbox"
-                            checked={contest.settings.showHiddenTestCases}
-                            onChange={(e) => updateSetting('showHiddenTestCases', e.target.checked)}
-                            style={{ width: 'auto' }}
-                        />
-                        <span>Cho thí sinh xem hidden test cases</span>
-                    </label>
-                </div>
+                        <div className="form-row" style={{ display: 'flex', gap: 20 }}>
+                            <div className="form-group" style={{ flex: 1 }}>
+                                <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Trạng thái vận hành</label>
+                                <select
+                                    value={contest.status}
+                                    onChange={(e) => updateField('status', e.target.value as any)}
+                                    style={{ padding: 12, fontWeight: 600 }}
+                                >
+                                    <option value="draft">Bản nháp (Draft)</option>
+                                    <option value="scheduled">Đã lên lịch</option>
+                                    <option value="lobby">Phòng chờ (Lobby)</option>
+                                    <option value="active">Đang diễn ra</option>
+                                    <option value="ended">Đã kết thúc</option>
+                                </select>
+                            </div>
+                            <div className="form-group" style={{ flex: 1 }}>
+                                <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Mã tham gia (Short Code)</label>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <input
+                                        value={contest.short_code || ''}
+                                        disabled
+                                        style={{ background: 'var(--bg-tertiary)', cursor: 'not-allowed', fontWeight: 800, fontSize: '1.2rem', letterSpacing: '0.1em', textAlign: 'center', color: 'var(--accent)', padding: 12 }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                <div style={{ marginTop: 20 }}>
-                    <button
-                        className="btn btn-secondary"
-                        onClick={() => navigate(`/contest/${id}/challenges`)}
-                    >
-                        🧩 Quản lý đề thi →
-                    </button>
+                    <div className="card glass-dark" style={{ padding: 32 }}>
+                        <h3 style={{ marginBottom: 24, fontSize: '1.2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <Settings size={20} className="text-secondary" />
+                            <span>Quy định & Tính điểm</span>
+                        </h3>
+                        <div className="form-group">
+                            <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Chế độ tính điểm</label>
+                            <select
+                                value={contest.settings.scoringMode}
+                                onChange={(e) => updateSetting('scoringMode', e.target.value)}
+                                style={{ padding: 12, fontWeight: 600 }}
+                            >
+                                <option value="highest">Lấy điểm cao nhất trong các lần nộp</option>
+                                <option value="latest">Chỉ lấy điểm của lần nộp cuối cùng</option>
+                            </select>
+                        </div>
+
+                        <div className="form-group" style={{ marginTop: 12 }}>
+                            <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', padding: '20px', background: 'var(--bg-tertiary)', borderRadius: 12, border: '1px solid var(--border)' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={contest.settings.showHiddenTestCases}
+                                    onChange={(e) => updateSetting('showHiddenTestCases', e.target.checked)}
+                                    style={{ width: 22, height: 22 }}
+                                />
+                                <div>
+                                    <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 4 }}>Hiển thị Hidden Test Cases</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Thí sinh có thể xem kết quả của các bộ test ẩn sau khi nộp bài.</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
+
+            {activeTab === 'rounds' && (
+                <div className="glass card" style={{ padding: 32 }}>
+                    <RoundManager contestId={id!} />
+                </div>
+            )}
+
+            {activeTab === 'boards' && (
+                <div className="glass card" style={{ padding: 32 }}>
+                    <BoardManager contestId={id!} />
+                </div>
+            )}
         </div>
     );
 }
+
+

@@ -4,7 +4,13 @@ import type { TFunction } from "i18next";
 
 export function init(t: TFunction) {
 	// XÓA các định nghĩa cũ trước khi tạo mới
-	const blocksToDelete = ["algo_input", "algo_print", "algo_start"];
+	const blocksToDelete = [
+		"algo_input",
+		"algo_input_number",
+		"algo_to_number",
+		"algo_print",
+		"algo_start",
+	];
 
 	blocksToDelete.forEach((blockType) => {
 		if (Blockly.Blocks[blockType]) {
@@ -27,11 +33,34 @@ export function init(t: TFunction) {
 		},
 		{
 			type: "algo_input",
-			message0: "read input",
+			message0: t("Blocks.readText", "read text"),
 			output: "String",
 			style: "text_blocks",
-			tooltip:
-				"Reads a line from the input (equivalent to input() in Python or prompt() in JS).",
+			tooltip: t(
+				"Blocks.readTextTooltip",
+				"Reads a line from the input as text.",
+			),
+		},
+		{
+			type: "algo_input_number",
+			message0: t("Blocks.readNumber", "read number"),
+			output: "Number",
+			style: "math_blocks",
+			tooltip: t(
+				"Blocks.readNumberTooltip",
+				"Reads a line from the input as a number.",
+			),
+		},
+		{
+			type: "algo_to_number",
+			message0: t("Blocks.toNumber", "to number %1"),
+			args0: [{ type: "input_value", name: "VALUE" }],
+			output: "Number",
+			style: "math_blocks",
+			tooltip: t(
+				"Blocks.toNumberTooltip",
+				"Converts a string of text to a number.",
+			),
 		},
 		{
 			type: "algo_print",
@@ -56,6 +85,18 @@ export function init(t: TFunction) {
 
 	javascriptGenerator.forBlock["algo_input"] = function () {
 		return ["prompt()", Order.FUNCTION_CALL];
+	};
+
+	javascriptGenerator.forBlock["algo_input_number"] = function () {
+		return ["Number(prompt())", Order.FUNCTION_CALL];
+	};
+
+	javascriptGenerator.forBlock["algo_to_number"] = function (
+		block: Blockly.Block,
+	) {
+		const msg =
+			javascriptGenerator.valueToCode(block, "VALUE", Order.NONE) || "''";
+		return [`Number(${msg})`, Order.FUNCTION_CALL];
 	};
 
 	javascriptGenerator.forBlock["algo_print"] = function (

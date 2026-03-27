@@ -392,5 +392,18 @@
 	"UI.searchBlocks": "Search blocks...",
 	"UI.searchSnippets": "Search snippets...",
 	"Games.catLists": "Lists",
-	"Games.catText": "Text"
+	"Games.catText": "Text",
+	"Toolbox.Logic": "Logic",
+	"Toolbox.Loops": "Loops",
+	"Toolbox.Math": "Math",
+	"Toolbox.Text": "Text",
+	"Toolbox.Lists": "Lists",
+	"Toolbox.Variables": "Variables",
+	"Toolbox.Functions": "Functions",
+	"Blocks.readText": "read text",
+	"Blocks.readTextTooltip": "Reads a line from the input as text.",
+	"Blocks.readNumber": "read number",
+	"Blocks.readNumberTooltip": "Reads a line from the input as a number.",
+	"Blocks.toNumber": "to number %1",
+	"Blocks.toNumberTooltip": "Converts a string of text to a number."
 }

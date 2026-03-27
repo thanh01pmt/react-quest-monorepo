@@ -24,7 +24,14 @@ import {
     calculateScore,
     updateParticipantStatus,
 } from '../services/ContestService';
+import {
+    getSupabaseContestSession,
+    saveSupabaseSubmission,
+    updateSupabaseParticipantStatus,
+} from '../services/SupabaseContestService';
 import { useAuth } from './AuthContext';
+
+const IS_UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // ─── Context Type ───────────────────────────────────────────────────
 
@@ -84,7 +91,11 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
 
     const lockExam = useCallback(async () => {
         if (state.participant?.id) {
-            await updateParticipantStatus(state.participant.id, 'submitted');
+            if (IS_UUID_REGEX.test(state.participant.id)) {
+                await updateSupabaseParticipantStatus(state.participant.id, 'submitted');
+            } else {
+                await updateParticipantStatus(state.participant.id, 'submitted');
+            }
         }
         setState((s) => ({ ...s, isLocked: true }));
         if (timerRef.current) clearInterval(timerRef.current);
@@ -149,6 +160,26 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
     const loadContest = useCallback(async (contestId: string) => {
         setState((s) => ({ ...s, loading: true, error: null }));
         try {
+            if (IS_UUID_REGEX.test(contestId)) {
+                const session = await getSupabaseContestSession(contestId);
+                if (session) {
+                    setState((s) => ({
+                        ...s,
+                        contest: session.contest,
+                        participant: session.participant,
+                        challenges: session.contest.questData.map(q => ({
+                            questId: q.id,
+                            title: q.titleKey || q.id,
+                            status: 'pending',
+                            bestScore: 0,
+                            attempts: 0,
+                        })),
+                        loading: false,
+                    }));
+                    return;
+                }
+            }
+
             const contest = await getContest(contestId);
             if (!contest) {
                 setState((s) => ({ ...s, loading: false, error: 'Không tìm thấy cuộc thi' }));
@@ -259,17 +290,31 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
             const attempt = challengeIndex >= 0 ? state.challenges[challengeIndex].attempts + 1 : 1;
 
             // Save to Firestore
-            await saveSubmission({
-                contestId: state.contest.id,
-                participantId: state.participant.id!,
-                questId,
-                code,
-                language,
-                testResults,
-                score,
-                submittedAt: new Date().toISOString(),
-                attempt,
-            });
+            if (IS_UUID_REGEX.test(state.participant.id!)) {
+                await saveSupabaseSubmission({
+                    contestId: state.contest.id,
+                    participantId: state.participant.id!,
+                    questId,
+                    code,
+                    language,
+                    testResults,
+                    score,
+                    submittedAt: new Date().toISOString(),
+                    attempt,
+                });
+            } else {
+                await saveSubmission({
+                    contestId: state.contest.id,
+                    participantId: state.participant.id!,
+                    questId,
+                    code,
+                    language,
+                    testResults,
+                    score,
+                    submittedAt: new Date().toISOString(),
+                    attempt,
+                });
+            }
 
             // Update local state
             setState((s) => {
