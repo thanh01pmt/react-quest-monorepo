@@ -1,4 +1,7 @@
 # netlify.toml cho react-quest-app
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
+
 # Cấu hình được set trong Netlify UI để tránh conflict:
 # - Base directory: / (hoặc để trống)
 # - Package directory: apps/react-quest-app

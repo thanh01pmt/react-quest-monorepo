@@ -1,7 +1,9 @@
 [build]
-  # Thêm các phím Supabase công khai vào danh sách bỏ qua quét bảo mật
-  # Vì đây là ứng dụng client-side, các phím này bắt buộc phải có trong bundle.
-  # Netlify Secret Scanning mặc định sẽ chặn nếu thấy các giá trị giống secret.
-  # https://docs.netlify.com/configure-builds/secrets-scanning/
-  [build.processing.secrets_scanning]
-    omit_keys = ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"]
+  command = "npx turbo run build"
+  publish = "dist"
+
+[build.environment]
+  # Bỏ qua quét bảo mật cho các biến môi trường công khai của Supabase
+  # Netlify mặc định sẽ quét và chặn nếu thấy giá trị của bất kỳ biến môi trường nào xuất hiện trong bundle.
+  # Xem thêm: https://docs.netlify.com/configure-builds/secrets-scanning/
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"

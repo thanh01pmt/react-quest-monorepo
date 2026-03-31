@@ -1,4 +1,7 @@
 # netlify.toml cho contest-dashboard
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
+
 # Cấu hình khuyến nghị trong Netlify UI:
 # - Base directory: / (root của monorepo)
 # - Build command: pnpm --filter @repo/contest-dashboard build
