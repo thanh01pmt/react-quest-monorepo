@@ -2,6 +2,7 @@ import {
 	AlgoConfig,
 	GameState,
 	IGameEngine,
+	GameConfig,
 	SolutionConfig,
 	StepResult,
 	TestCase,
@@ -17,8 +18,8 @@ export class AlgoEngine implements IGameEngine {
 	private currentTestCaseIndex: number = -1;
 	private allTestCases: TestCase[] = [];
 
-	constructor(gameConfig: AlgoConfig) {
-		this.config = gameConfig;
+	constructor(gameConfig: GameConfig) {
+		this.config = gameConfig as AlgoConfig;
 		this.allTestCases = [
 			...this.config.sampleCases,
 			...(this.config.hiddenCases || []),

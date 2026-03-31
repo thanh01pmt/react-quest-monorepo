@@ -1,13 +1,15 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { AlgoConfig, GameState } from "../../types";
+import { AlgoConfig, GameConfig, GameState } from "../../types";
 import "./AlgoRenderer.css";
 
 export const AlgoRenderer: React.FC<{
     gameState: GameState;
-    gameConfig: AlgoConfig;
-}> = ({ gameConfig }) => {
+    gameConfig: GameConfig;
+    [key: string]: any;
+}> = ({ gameConfig: anyConfig }) => {
+    const gameConfig = anyConfig as AlgoConfig;
     const {
         description,
         inputFormat,
