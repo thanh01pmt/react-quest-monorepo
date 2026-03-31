@@ -313,6 +313,7 @@ export interface Quest {
 		| "algo";
 	level: number;
 	titleKey: string;
+	questTitleKey?: string;
 	title?: string; // Trường title mới
 	descriptionKey: string;
 	supportedEditors?: ("blockly" | "monaco")[];
