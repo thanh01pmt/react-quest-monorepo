@@ -1,0 +1,10 @@
+# netlify.toml cho contest-dashboard
+# Cấu hình khuyến nghị trong Netlify UI:
+# - Base directory: / (root của monorepo)
+# - Build command: pnpm --filter @repo/contest-dashboard build
+# - Publish directory: apps/contest-dashboard/dist
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

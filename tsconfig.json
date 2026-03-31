@@ -6,7 +6,8 @@
     // --- START: THÊM CẤU HÌNH PATH ALIAS ---
     "baseUrl": ".",
     "paths": {
-      "@config/*": ["apps/map-builder-app/src/config/*"]
+      "@config/*": ["apps/map-builder-app/src/config/*"],
+      "@repo/quest-player": ["packages/quest-player/src/index.ts"]
     }
     // --- END: THÊM CẤU HÌNH PATH ALIAS ---
   }

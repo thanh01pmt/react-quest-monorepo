@@ -1,0 +1,50 @@
+{
+	"id": "algo-sum-2-numbers",
+	"title": "Sum of Two Numbers",
+	"descriptionKey": "Quest.Algo.Sum2Numbers.Desc",
+	"gameType": "algo",
+	"gameConfig": {
+		"type": "algo",
+		"problemDescription": "# Sum of Two Numbers\n\nWrite a program that reads two numbers from the input and prints their sum.\n\n### Input\nTwo integers, each on a separate line.\n\n### Output\nA single integer representing the sum.\n\n### Example\n**Input:**\n```\n5\n10\n```\n**Output:**\n```\n15\n```",
+		"testCases": [
+			{
+				"id": "tc1",
+				"input": "5\n10",
+				"expectedOutput": "15",
+				"isHidden": false
+			},
+			{
+				"id": "tc2",
+				"input": "-5\n5",
+				"expectedOutput": "0",
+				"isHidden": false
+			},
+			{
+				"id": "tc3",
+				"input": "100\n200",
+				"expectedOutput": "300",
+				"isHidden": true
+			}
+		],
+		"pythonRuntime": "skulpt"
+	},
+	"blocklyConfig": {
+		"toolbox": [
+			{
+				"kind": "category",
+				"name": "Logic",
+				"style": "logic_category",
+				"contents": [
+					{ "kind": "block", "type": "algo_start" },
+					{ "kind": "block", "type": "algo_input" },
+					{ "kind": "block", "type": "algo_print" },
+					{ "kind": "block", "type": "math_number" },
+					{ "kind": "block", "type": "math_arithmetic" },
+					{ "kind": "block", "type": "variables_get" },
+					{ "kind": "block", "type": "variables_set" }
+				]
+			}
+		],
+		"maxBlocks": 10
+	}
+}

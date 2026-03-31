@@ -392,5 +392,18 @@
 	"UI.searchBlocks": "Tìm kiếm khối...",
 	"UI.searchSnippets": "Tìm kiếm lệnh...",
 	"Games.catLists": "Danh sách",
-	"Games.catText": "Văn bản"
+	"Games.catText": "Văn bản",
+	"Toolbox.Logic": "Logic",
+	"Toolbox.Loops": "Vòng lặp",
+	"Toolbox.Math": "Toán học",
+	"Toolbox.Text": "Văn bản",
+	"Toolbox.Lists": "Danh sách",
+	"Toolbox.Variables": "Biến",
+	"Toolbox.Functions": "Hàm",
+	"Blocks.readText": "đọc chữ",
+	"Blocks.readTextTooltip": "Đọc một dòng văn bản.",
+	"Blocks.readNumber": "đọc số",
+	"Blocks.readNumberTooltip": "Đọc một số đầu vào.",
+	"Blocks.toNumber": "chuyển thành số %1",
+	"Blocks.toNumberTooltip": "Chuyển đổi văn bản thành dạng số."
 }

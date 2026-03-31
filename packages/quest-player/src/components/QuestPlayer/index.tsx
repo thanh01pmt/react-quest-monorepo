@@ -10,6 +10,7 @@ import { generateCppCode } from '../../games/maze/generators/cpp';
 import { generateSwiftCode } from '../../games/maze/generators/swift';
 import * as Blockly from 'blockly/core';
 import * as Vi from 'blockly/msg/vi';
+import * as algoBlocks from '../../games/algo/blocks';
 import { BlocklyWorkspace } from 'react-blockly';
 import { transform } from '@babel/standalone';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
@@ -45,6 +46,7 @@ type StandaloneProps = {
 };
 
 import { ConsolePanel, ConsoleLog } from '../ConsolePanel';
+import { TestCasePanel } from '../TestCasePanel';
 
 type LibraryProps = {
   isStandalone: false;
@@ -71,7 +73,7 @@ interface DisplayStats {
   optimalLines?: number;
 }
 
-const START_BLOCK_TYPE = 'maze_start';
+const DEFAULT_START_BLOCK_TYPE = 'maze_start';
 
 const DEFAULT_SETTINGS: Required<QuestPlayerSettings> = {
   renderer: 'zelos',
@@ -139,6 +141,11 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   const [isBlocksInitialized, setIsBlocksInitialized] = useState(false);
   const [blockCount, setBlockCount] = useState(0);
   const [displayStats, setDisplayStats] = useState<DisplayStats>({});
+
+  const startBlockType = useMemo(() => {
+    if (questData?.gameType === 'algo') return 'algo_start';
+    return DEFAULT_START_BLOCK_TYPE;
+  }, [questData?.gameType]);
 
   const [executionMode, /* setExecutionMode */] = useState<ExecutionMode>('run');
 
@@ -279,9 +286,12 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     }
   }, [settings, props.onSettingsChange]);
 
+  const [initStep, setInitStep] = useState<string>('not started');
+
   useEffect(() => {
     // Hàm async để khởi tạo blocks
     const initializeBlocks = async () => {
+      setInitStep('started');
       if (!blocklyDefaultEnglishMessages) {
         blocklyDefaultEnglishMessages = { ...Blockly.Msg };
       }
@@ -297,33 +307,59 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       Blockly.Msg.NEW_VARIABLE = t('Blockly.NEW_VARIABLE');
       Blockly.Msg.VARIABLES_DEFAULT_NAME = t('Blockly.VARIABLES_DEFAULT_NAME');
 
-      // QUAN TRỌNG: Khởi tạo lại blocks với ngôn ngữ mới
-      if (questData?.gameType === 'maze') {
-        setIsBlocksInitialized(false); // Reset trước
-        const mazeBlocks = await import('../../games/maze/blocks');
-        mazeBlocks.init(t);
+      try {
+        setInitStep(`checking type: ${questData?.gameType}`);
+        if (questData?.gameType === 'maze') {
+          setIsBlocksInitialized(false); // Reset trước
+          setInitStep('importing maze blocks');
+          const mazeBlocks = await import('../../games/maze/blocks');
+          mazeBlocks.init(t);
 
-        // Init generators
-        try {
-          const pythonGen = await import('../../games/maze/generators/python');
-          pythonGen.initPythonGenerator();
-          const luaGen = await import('../../games/maze/generators/lua');
-          luaGen.initLuaGenerator();
-        } catch (e) {
-          console.error("Failed to load generators", e);
+          // Init generators
+          try {
+            setInitStep('importing Python/Lua generators');
+            const pythonGen = await import('../../games/maze/generators/python');
+            pythonGen.initPythonGenerator();
+            const luaGen = await import('../../games/maze/generators/lua');
+            luaGen.initLuaGenerator();
+          } catch (e) {
+            console.error("Failed to load maze generators", e);
+          }
+
+          setIsBlocksInitialized(true);
+          setInitStep('maze done');
         }
 
-        setIsBlocksInitialized(true);
+        if (questData?.gameType === 'algo') {
+          setIsBlocksInitialized(false);
+          setInitStep('init algo blocks statically');
+          algoBlocks.init(t);
+          setIsBlocksInitialized(true);
+          setInitStep('algo done');
+        }
+      } catch (err) {
+        console.error("[DEBUG] initializeBlocks error:", err);
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        setImportError(`Blocks Init Error: ${errorMessage}`);
+        setInitStep(`error: ${errorMessage}`);
       }
 
       if (questData) {
+        setInitStep(prev => prev + ' | key updated');
         // Force re-render workspace với key mới bao gồm timestamp để đảm bảo luôn khác
         setBlocklyWorkspaceKey(`${questData.id}-${language}-${Date.now()}`);
       }
     };
 
     initializeBlocks();
-  }, [language, t, questData, settings.toolboxMode]);
+  }, [
+    isQuestReady,
+    language,
+    questData?.id,
+    questData?.gameType,
+    settings.blockMode,
+    settings.blocklyThemeName,
+  ]);
 
   const handleGameEnd = useCallback((result: QuestCompletionResult) => {
     // [METRICS] Record Star Achievements
@@ -469,7 +505,9 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   }, [currentEditor]);
 
   useEffect(() => {
-    if (questData?.blocklyConfig) {
+    if (!questData) return;
+
+    if (questData.blocklyConfig) {
       setLoadedQuestId(null);
 
       let newToolbox: ToolboxJSON;
@@ -488,7 +526,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       // Always remove start block from toolbox to prevent adding multiples
       newToolbox.contents.forEach((category: ToolboxItem) => {
         if (category.kind === 'category' && Array.isArray(category.contents)) {
-          category.contents = category.contents.filter(block => (block as any).type !== START_BLOCK_TYPE);
+          category.contents = category.contents.filter(block => (block as any).type !== startBlockType);
         }
       });
       initialToolboxConfigRef.current = newToolbox;
@@ -505,12 +543,115 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       }
 
       setLoadedQuestId(questData.id);
+    } else if (questData.gameType === 'algo') {
+      // Default toolbox for algo quests if missing
+      const defaultToolbox: ToolboxJSON = {
+        kind: 'categoryToolbox',
+        contents: [
+          {
+            kind: 'category',
+            name: t('Toolbox.Logic', 'Logic'),
+            categorystyle: 'logic_category',
+            contents: [
+              { kind: 'block', type: 'controls_if' },
+              { kind: 'block', type: 'logic_compare' },
+              { kind: 'block', type: 'logic_operation' },
+              { kind: 'block', type: 'logic_negate' },
+              { kind: 'block', type: 'logic_boolean' },
+              { kind: 'block', type: 'logic_null' },
+              { kind: 'block', type: 'logic_ternary' }
+            ]
+          },
+          {
+            kind: 'category',
+            name: t('Toolbox.Loops', 'Loops'),
+            categorystyle: 'loop_category',
+            contents: [
+              { kind: 'block', type: 'controls_repeat_ext', inputs: { TIMES: { shadow: { type: 'math_number', fields: { NUM: 10 } } } } },
+              { kind: 'block', type: 'controls_whileUntil' },
+              { kind: 'block', type: 'controls_for', inputs: { FROM: { shadow: { type: 'math_number', fields: { NUM: 1 } } }, TO: { shadow: { type: 'math_number', fields: { NUM: 10 } } }, BY: { shadow: { type: 'math_number', fields: { NUM: 1 } } } } },
+              { kind: 'block', type: 'controls_forEach' },
+              { kind: 'block', type: 'controls_flow_statements' }
+            ]
+          },
+          {
+            kind: 'category',
+            name: t('Toolbox.Math', 'Math'),
+            categorystyle: 'math_category',
+            contents: [
+              { kind: 'block', type: 'math_number' },
+              { kind: 'block', type: 'math_arithmetic', inputs: { A: { shadow: { type: 'math_number', fields: { NUM: 1 } } }, B: { shadow: { type: 'math_number', fields: { NUM: 1 } } } } },
+              { kind: 'block', type: 'math_single', inputs: { NUM: { shadow: { type: 'math_number', fields: { NUM: 9 } } } } },
+              { kind: 'block', type: 'math_trig', inputs: { NUM: { shadow: { type: 'math_number', fields: { NUM: 45 } } } } },
+              { kind: 'block', type: 'math_constant' },
+              { kind: 'block', type: 'math_number_property', inputs: { NUMBER_TO_CHECK: { shadow: { type: 'math_number', fields: { NUM: 0 } } } } },
+              { kind: 'block', type: 'math_round', inputs: { NUM: { shadow: { type: 'math_number', fields: { NUM: 3.1 } } } } },
+              { kind: 'block', type: 'math_modulo', inputs: { DIVIDEND: { shadow: { type: 'math_number', fields: { NUM: 64 } } }, DIVISOR: { shadow: { type: 'math_number', fields: { NUM: 10 } } } } },
+              { kind: 'block', type: 'math_random_int', inputs: { FROM: { shadow: { type: 'math_number', fields: { NUM: 1 } } }, TO: { shadow: { type: 'math_number', fields: { NUM: 100 } } } } },
+              { kind: 'block', type: 'math_random_float' },
+              { kind: 'block', type: 'algo_input_number' },
+              { kind: 'block', type: 'algo_to_number' }
+            ]
+          },
+          {
+            kind: 'category',
+            name: t('Toolbox.Text', 'Text'),
+            categorystyle: 'text_category',
+            contents: [
+              { kind: 'block', type: 'text' },
+              { kind: 'block', type: 'text_join' },
+              { kind: 'block', type: 'text_length', inputs: { VALUE: { shadow: { type: 'text', fields: { TEXT: 'abc' } } } } },
+              { kind: 'block', type: 'text_isEmpty', inputs: { VALUE: { shadow: { type: 'text', fields: { TEXT: '' } } } } },
+              { kind: 'block', type: 'text_indexOf', inputs: { VALUE: { block: { type: 'variables_get', fields: { VAR: 'text' } } }, FIND: { shadow: { type: 'text', fields: { TEXT: 'abc' } } } } },
+              { kind: 'block', type: 'text_charAt', inputs: { VALUE: { block: { type: 'variables_get', fields: { VAR: 'text' } } } } },
+              { kind: 'block', type: 'text_getSubstring', inputs: { STRING: { block: { type: 'variables_get', fields: { VAR: 'text' } } } } },
+              { kind: 'block', type: 'text_changeCase', inputs: { TEXT: { shadow: { type: 'text', fields: { TEXT: 'abc' } } } } },
+              { kind: 'block', type: 'text_trim', inputs: { TEXT: { shadow: { type: 'text', fields: { TEXT: 'abc' } } } } },
+              { kind: 'block', type: 'algo_print', inputs: { TEXT: { shadow: { type: 'text', fields: { TEXT: 'abc' } } } } },
+              { kind: 'block', type: 'algo_input' },
+            ]
+          },
+          {
+            kind: 'category',
+            name: t('Toolbox.Lists', 'Lists'),
+            categorystyle: 'list_category',
+            contents: [
+              { kind: 'block', type: 'lists_create_with' },
+              { kind: 'block', type: 'lists_repeat', inputs: { NUM: { shadow: { type: 'math_number', fields: { NUM: 5 } } } } },
+              { kind: 'block', type: 'lists_length' },
+              { kind: 'block', type: 'lists_isEmpty' },
+              { kind: 'block', type: 'lists_indexOf', inputs: { VALUE: { block: { type: 'variables_get', fields: { VAR: 'list' } } } } },
+              { kind: 'block', type: 'lists_getIndex', inputs: { VALUE: { block: { type: 'variables_get', fields: { VAR: 'list' } } } } },
+              { kind: 'block', type: 'lists_setIndex', inputs: { LIST: { block: { type: 'variables_get', fields: { VAR: 'list' } } } } },
+              { kind: 'block', type: 'lists_getSublist', inputs: { LIST: { block: { type: 'variables_get', fields: { VAR: 'list' } } } } },
+              { kind: 'block', type: 'lists_split', inputs: { DELIM: { shadow: { type: 'text', fields: { TEXT: ',' } } } } },
+              { kind: 'block', type: 'lists_sort' }
+            ]
+          },
+          {
+            kind: 'category',
+            name: t('Toolbox.Variables', 'Variables'),
+            custom: 'VARIABLE',
+            categorystyle: 'variable_category',
+          },
+          {
+            kind: 'category',
+            name: t('Toolbox.Functions', 'Functions'),
+            custom: 'PROCEDURE',
+            categorystyle: 'procedure_category',
+          },
+        ]
+      };
+      initialToolboxConfigRef.current = defaultToolbox;
+      setDynamicToolboxConfig(defaultToolbox);
+      setInitialXml(`<xml xmlns="https://developers.google.com/blockly/xml"><block type="algo_start" deletable="false" movable="false" x="50" y="50"></block></xml>`);
+      setLoadedQuestId(questData.id);
     } else {
       setDynamicToolboxConfig(null);
       setInitialXml(undefined);
       setLoadedQuestId(null);
     }
-  }, [questData, t, language, settings.toolboxPresetKey]); // Use toolboxPresetKey to trigger re-process
+  }, [questData?.id, questData?.gameType, language, settings.toolboxPresetKey]);
 
   // [MỚI] Hàm phân tích chuỗi shorthand thành XML
   const parseShorthandToXml = (shorthand: string): string => {
@@ -650,7 +791,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     }
     // For Blockly editor
     else {
-      if (workspaceRef.current && !workspaceRef.current.getTopBlocks(true).find(b => b.type === START_BLOCK_TYPE)) {
+      if (workspaceRef.current && !workspaceRef.current.getTopBlocks(true).find(b => b.type === startBlockType)) {
         if (isStandalone) setDialogState({ isOpen: true, title: 'Missing Start Block', message: t('Blockly.MissingStartBlock') });
         return;
       }
@@ -757,10 +898,10 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
 
     // Sử dụng `initialXml` đã được xử lý thay vì `questData.blocklyConfig.startBlocks`
     if (!initialXml) {
-      const existingStartBlock = workspace.getTopBlocks(false).find(b => b.type === START_BLOCK_TYPE);
+      const existingStartBlock = workspace.getTopBlocks(false).find(b => b.type === startBlockType);
       if (!existingStartBlock) {
         // Create a new start block if none exists
-        const startBlock = workspace.newBlock(START_BLOCK_TYPE);
+        const startBlock = workspace.newBlock(startBlockType);
         startBlock.initSvg();
         startBlock.render();
         startBlock.moveBy(50, 50); // Position it in the workspace
@@ -770,7 +911,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     }
 
     // Logic cũ để dọn dẹp nếu có nhiều start block (hữu ích cho các file JSON bị lỗi)
-    const startBlocks = workspace.getTopBlocks(false).filter(b => b.type === START_BLOCK_TYPE);
+    const startBlocks = workspace.getTopBlocks(false).filter(b => b.type === startBlockType);
     if (startBlocks.length > 1) {
       for (let i = 1; i < startBlocks.length; i++) {
         startBlocks[i].dispose();
@@ -1005,8 +1146,8 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                   </div>
                   */}
                       {/* Conditional rendering based on blockMode */}
-                      {questData.blocklyConfig && loadedQuestId === questData.id && (
-                        settings.blockMode === 'horizontal' ? (
+                      {(questData.blocklyConfig || dynamicToolboxConfig) && loadedQuestId === questData.id && (
+                        settings.blockMode === 'horizontal' && questData.blocklyConfig ? (
                           <HorizontalBlocklyRenderer
                             key={`horizontal-${blocklyWorkspaceKey}`}
                             height="100%"
@@ -1032,9 +1173,9 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                           />
                         )
                       )}
-                      {questData.blocklyConfig && loadedQuestId !== questData.id && (
+                      {(questData.blocklyConfig || dynamicToolboxConfig) && loadedQuestId !== questData.id && (
                         <div className="emptyState">
-                          <h2>{t('UI.LoadingEditor')}</h2>
+                          <h2>{t('UI.LoadingEditor')} [1 ID: {loadedQuestId === questData?.id ? 'Y' : 'N'}]</h2>
                         </div>
                       )}
                       <SettingsPanel
@@ -1061,18 +1202,30 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                   </>
                 ) : (
                   <div className="emptyState">
-                    <h2>{questLoaderError ? t('UI.Error') : t('UI.LoadingEditor')}</h2>
+                    <h2>
+                      {questLoaderError ? t('UI.Error') : t('UI.LoadingEditor')}
+                      [2 R: {isQuestReady ? 'Y' : 'N'}, T: {dynamicToolboxConfig ? 'Y' : 'N'}, B: {isBlocksInitialized ? 'Y' : 'N'}]
+                    </h2>
                     {questLoaderError && <p style={{ color: 'red' }}>{questLoaderError}</p>}
+                    <p style={{ color: 'cyan' }}>Init Step: {initStep}</p>
+                    {importError && <p style={{ color: 'orange' }}>IMPORTERR: {importError}</p>}
                   </div>
                 )}
               </Panel>
               <PanelResizeHandle className="h-2 bg-gray-700 hover:bg-blue-500 transition-colors cursor-row-resize separator-horizontal" />
               <Panel defaultSize={25} minSize={5} collapsible={true}>
-                <ConsolePanel
-                  logs={consoleLogs}
-                  onClear={() => setConsoleLogs([])}
-                  theme={effectiveColorScheme}
-                />
+                {questData.gameType === 'algo' ? (
+                  <TestCasePanel
+                    testResults={currentGameState?.testResults || []}
+                    theme={effectiveColorScheme}
+                  />
+                ) : (
+                  <ConsolePanel
+                    logs={consoleLogs}
+                    onClear={() => setConsoleLogs([])}
+                    theme={effectiveColorScheme}
+                  />
+                )}
               </Panel>
             </PanelGroup>
           </div>
