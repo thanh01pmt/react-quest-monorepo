@@ -124,8 +124,8 @@ export function EntrancePage() {
     }
 
     const timeStatus = getContestTimeStatus(state.contest);
-    const startDate = new Date(state.contest.startTime);
-    const endDate = new Date(state.contest.endTime);
+    const startDate = state.contest.startTime ? new Date(state.contest.startTime) : null;
+    const endDate = state.contest.endTime ? new Date(state.contest.endTime) : null;
 
     return (
         <div className="entrance-page">
@@ -139,22 +139,30 @@ export function EntrancePage() {
 
                 {/* Time Info */}
                 <div className="entrance-time-info">
-                    <div className="time-row">
-                        <span className="time-label">🕐 Bắt đầu</span>
-                        <span className="time-value">{startDate.toLocaleString('vi-VN')}</span>
-                    </div>
-                    <div className="time-row">
-                        <span className="time-label">🕐 Kết thúc</span>
-                        <span className="time-value">{endDate.toLocaleString('vi-VN')}</span>
-                    </div>
-                    <div className="time-row">
-                        <span className="time-label">⏱ Thời gian làm bài</span>
-                        <span className="time-value">{state.contest.durationMinutes} phút</span>
-                    </div>
-                    <div className="time-row">
-                        <span className="time-label">📝 Số bài</span>
-                        <span className="time-value">{state.contest.questData.length} thử thách</span>
-                    </div>
+                    {startDate && (
+                        <div className="time-row">
+                            <span className="time-label">🕐 Bắt đầu</span>
+                            <span className="time-value">{startDate.toLocaleString('vi-VN')}</span>
+                        </div>
+                    )}
+                    {endDate && (
+                        <div className="time-row">
+                            <span className="time-label">🕐 Kết thúc</span>
+                            <span className="time-value">{endDate.toLocaleString('vi-VN')}</span>
+                        </div>
+                    )}
+                    {state.contest.durationMinutes && (
+                        <div className="time-row">
+                            <span className="time-label">⏱ Thời gian làm bài</span>
+                            <span className="time-value">{state.contest.durationMinutes} phút</span>
+                        </div>
+                    )}
+                    {state.contest.questData && (
+                        <div className="time-row">
+                            <span className="time-label">📝 Số bài</span>
+                            <span className="time-value">{state.contest.questData.length} thử thách</span>
+                        </div>
+                    )}
                 </div>
 
                 {!state.participant ? (
@@ -273,7 +281,7 @@ export function EntrancePage() {
 
                         {timeStatus === 'not_started' && (
                             <div className="entrance-status entrance-status-waiting">
-                                ⏳ Cuộc thi chưa bắt đầu. Vui lòng chờ đến <b>{startDate.toLocaleString('vi-VN')}</b>.
+                                ⏳ Cuộc thi chưa bắt đầu. {startDate ? `Vui lòng chờ đến ` : ''}<b>{startDate?.toLocaleString('vi-VN')}</b>.
                             </div>
                         )}
 

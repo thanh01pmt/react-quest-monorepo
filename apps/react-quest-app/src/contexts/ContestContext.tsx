@@ -16,7 +16,8 @@ import type {
     ContestSubmission,
 } from '../types/contest';
 import {
-    getSupabaseContestSession,
+    getPublicContestInfo,
+    resolveSupabaseContestSession,
     saveSupabaseSubmission,
     updateSupabaseParticipantStatus,
     getSupabaseSubmissions,
@@ -147,28 +148,43 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
     const loadContest = useCallback(async (contestId: string) => {
         setState((s) => ({ ...s, loading: true, error: null }));
         try {
-            const session = await getSupabaseContestSession(contestId);
-            if (session) {
+            if (user) {
+                // Try resolving active session if user logged in
+                const session = await resolveSupabaseContestSession(contestId);
+                if (session) {
+                    setState((s) => ({
+                        ...s,
+                        contest: session.contest,
+                        participant: session.participant,
+                        challenges: session.contest.questData.map((q: any) => ({
+                            questId: q.id,
+                            title: q.titleKey || q.id,
+                            status: 'pending',
+                            bestScore: 0,
+                            attempts: 0,
+                        })),
+                        loading: false,
+                    }));
+
+                    // Restore challenge states from submissions
+                    await restoreChallengeStates(session.contest.id, session.participant.id!);
+                    return;
+                }
+            }
+
+            // Fallback to generic metadata
+            const publicInfo = await getPublicContestInfo(contestId);
+            if (publicInfo) {
                 setState((s) => ({
                     ...s,
-                    contest: session.contest,
-                    participant: session.participant,
-                    challenges: session.contest.questData.map(q => ({
-                        questId: q.id,
-                        title: q.titleKey || q.id,
-                        status: 'pending',
-                        bestScore: 0,
-                        attempts: 0,
-                    })),
+                    // Use type any here since metadata is partial Config
+                    contest: { id: publicInfo.id, title: publicInfo.title, description: publicInfo.description, status: publicInfo.status } as any,
                     loading: false,
                 }));
-
-                // Restore challenge states from submissions
-                await restoreChallengeStates(contestId, session.participant.id!);
                 return;
             }
 
-            setState((s) => ({ ...s, loading: false, error: 'Không tìm thấy cuộc thi' }));
+            setState((s) => ({ ...s, loading: false, error: 'Cuộc thi không tồn tại hoặc chưa mở.' }));
         } catch (error: any) {
             setState((s) => ({
                 ...s,
@@ -176,7 +192,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
                 error: error.message || 'Lỗi tải cuộc thi',
             }));
         }
-    }, [restoreChallengeStates]);
+    }, [restoreChallengeStates, user]);
 
     // ── Register Participant ──────────────────────────────────────────
 

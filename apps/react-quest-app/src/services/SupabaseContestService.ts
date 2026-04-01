@@ -6,21 +6,35 @@ import type {
 } from "../types/contest";
 
 /**
- * Fetch a contest (Board Participant session) from Supabase via RPC.
- * Uses SECURITY DEFINER RPC function so anon role can access
- * without direct table permissions (safe against RLS blocking).
+ * Fetch generic contest metadata (before login)
  */
-export async function getSupabaseContestSession(
-	boardParticipantId: string,
+export async function getPublicContestInfo(
+	contestId: string,
+): Promise<{ id: string; title: string; description: string; status: string } | null> {
+	try {
+		const { data, error } = await supabase.rpc("get_public_contest_info", { p_contest_id: contestId });
+		if (error || !data) return null;
+		return data as { id: string; title: string; description: string; status: string };
+	} catch (error) {
+		return null;
+	}
+}
+
+/**
+ * Resolve a contest session from Supabase via RPC using auth.uid().
+ * Uses SECURITY DEFINER RPC function so anon role can access conditionally.
+ */
+export async function resolveSupabaseContestSession(
+	contestId: string,
 ): Promise<{ contest: ContestConfig; participant: ContestParticipant } | null> {
 	try {
-		const { data: bp, error } = await supabase.rpc("get_contest_session", {
-			p_bp_id: boardParticipantId,
+		const { data: bp, error } = await supabase.rpc("resolve_participant_session", {
+			p_contest_id: contestId,
 		});
 
 		if (error || !bp) {
 			console.error(
-				"[SupabaseService] getSupabaseContestSession error:",
+				"[SupabaseService] resolveSupabaseContestSession error:",
 				error,
 			);
 			return null;
@@ -28,6 +42,7 @@ export async function getSupabaseContestSession(
 
 		const board = bp.exam_boards;
 		const exam = board?.exams;
+		const participantData = bp.participant;
 
 		if (!exam) return null;
 
@@ -36,8 +51,8 @@ export async function getSupabaseContestSession(
 			id: exam.id,
 			title: exam.title || "Kỳ thi",
 			description: "",
-			startTime: bp.started_at || new Date().toISOString(),
-			endTime: bp.deadline || new Date().toISOString(),
+			startTime: bp.board_start_time || bp.started_at || new Date().toISOString(),
+			endTime: bp.board_end_time || bp.deadline || new Date().toISOString(),
 			durationMinutes: bp.duration_minutes || 120,
 			status: "active",
 			questData: exam.quest_data || [],
@@ -55,8 +70,8 @@ export async function getSupabaseContestSession(
 			id: bp.id,
 			contestId: exam.id,
 			uid: bp.participant_id,
-			username: "admin_preview",
-			displayName: "Admin Preview",
+			username: participantData?.username || "student",
+			displayName: participantData?.display_name || "Student",
 			email: "",
 			phone: "",
 			joinedAt: bp.started_at || new Date().toISOString(),
