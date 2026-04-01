@@ -96,7 +96,7 @@ export function AccountsPage() {
         if (accounts.length === 0) return;
         const headers = 'Username,Email,Password\n';
         const rows = accounts.map(acc => `${acc.username},${acc.email},${acc.password}`).join('\n');
-        const blob = new Blob([headers + rows], { type: 'text/csv' });
+        const blob = new Blob(['\uFEFF' + headers + rows], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -137,22 +137,43 @@ export function AccountsPage() {
     };
 
     const assignToBoard = async () => {
-        if (!selectedBoardId || participants.length === 0) return;
+        if (!selectedBoardId || !selectedRoundId || participants.length === 0) return;
         setAssigning(true);
 
-        const links = participants.map(p => ({
-            board_id: selectedBoardId,
-            participant_id: p.id
-        }));
+        try {
+            const participantIds = participants.map(p => p.id);
 
-        const { error } = await supabase.from('board_participants').insert(links);
-        if (error) {
-            if (error.code === '23505') alert('Một số thí sinh đã có trong cụm này rồi.');
-            else alert('Lỗi assignment: ' + error.message);
-        } else {
-            alert('Đã gán thành công!');
+            // 1. Get all board IDs in the selected round to clear existing assignments
+            const { data: boardsInRound } = await supabase
+                .from('exam_boards')
+                .select('id')
+                .eq('round_id', selectedRoundId);
+
+            if (boardsInRound && boardsInRound.length > 0) {
+                const boardIdsInRound = boardsInRound.map(b => b.id);
+                // 2. Clear existing assignments for these participants in this round
+                await supabase
+                    .from('board_participants')
+                    .delete()
+                    .in('participant_id', participantIds)
+                    .in('board_id', boardIdsInRound);
+            }
+
+            // 3. Assign all to the selected board
+            const links = participantIds.map(pid => ({
+                board_id: selectedBoardId,
+                participant_id: pid
+            }));
+
+            const { error } = await supabase.from('board_participants').insert(links);
+            if (error) throw error;
+
+            alert('Đã gán thành công TẤT CẢ thí sinh vào cụm thi!');
+        } catch (error: any) {
+            alert('Lỗi assignment: ' + error.message);
+        } finally {
+            setAssigning(false);
         }
-        setAssigning(false);
     };
 
     return (
@@ -189,6 +210,10 @@ export function AccountsPage() {
                         <div className="form-group">
                             <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-muted)', marginBottom: 6, display: 'block' }}>Số lượng</label>
                             <input type="number" value={count} onChange={e => setCount(parseInt(e.target.value) || 1)} style={{ padding: 12, fontWeight: 700 }} />
+                        </div>
+                        <div className="form-group" style={{ flex: 0.6 }}>
+                            <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-muted)', marginBottom: 6, display: 'block' }}>Độ dài Pass</label>
+                            <input type="number" value={passwordLength} onChange={e => setPasswordLength(parseInt(e.target.value) || 8)} style={{ padding: 12, fontWeight: 700 }} />
                         </div>
                     </div>
 

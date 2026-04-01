@@ -8,7 +8,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useContest } from '../../contexts/ContestContext';
-import { getContestTimeStatus } from '../../services/SupabaseContestService';
+import { getContestTimeStatus, getSupabaseSubmissions, type ContestSubmission } from '../../services/SupabaseContestService';
+import { LeaderboardModal } from '../../components/LeaderboardModal';
 import './EntrancePage.css';
 
 export function EntrancePage() {
@@ -32,6 +33,31 @@ export function EntrancePage() {
         const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
         return () => clearInterval(timer);
     }, []);
+
+    const [submissions, setSubmissions] = useState<ContestSubmission[]>([]);
+    const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+    const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+
+    // Fetch submissions
+    useEffect(() => {
+        const fetchSubmissions = async () => {
+            if (state.participant?.id && contestId) {
+                setLoadingSubmissions(true);
+                try {
+                    const subs = await getSupabaseSubmissions(contestId, state.participant.id);
+                    setSubmissions(subs);
+                } catch (err) {
+                    console.error('Failed to fetch submissions:', err);
+                } finally {
+                    setLoadingSubmissions(false);
+                }
+            }
+        };
+
+        if (state.participant) {
+            fetchSubmissions();
+        }
+    }, [state.participant, contestId]);
 
     // Load contest on mount
     useEffect(() => {
@@ -135,6 +161,12 @@ export function EntrancePage() {
                     <div className="entrance-icon">🏆</div>
                     <h1 className="entrance-title">{state.contest.title}</h1>
                     <p className="entrance-description">{state.contest.description}</p>
+                    <button 
+                        className="lobby-leaderboard-btn"
+                        onClick={() => setIsLeaderboardOpen(true)}
+                    >
+                        🏆 Xem bảng xếp hạng
+                    </button>
                 </div>
 
                 {/* Time Info */}
@@ -327,9 +359,68 @@ export function EntrancePage() {
                                 )}
                             </>
                         )}
+
+                        {/* Submissions History */}
+                        <div className="lobby-history">
+                            <h3>Lịch sử nộp bài</h3>
+                            {loadingSubmissions ? (
+                                <p className="loading-small">Đang tải lịch sử...</p>
+                            ) : submissions.length === 0 ? (
+                                <p className="history-empty">Bạn chưa có bài nộp nào cho cuộc thi này.</p>
+                            ) : (
+                                <div className="history-table-wrapper">
+                                    <table className="history-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Thử thách</th>
+                                                <th>Điểm</th>
+                                                <th>Lần nộp</th>
+                                                <th>Thời gian</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {submissions.map((sub) => {
+                                                const questTitle = state.contest?.questData?.find(q => q.id === sub.questId)?.title || sub.questId;
+                                                return (
+                                                    <tr key={sub.id}>
+                                                        <td>{questTitle}</td>
+                                                        <td><span className="score-badge">{sub.score}</span></td>
+                                                        <td style={{ textAlign: 'center' }}>{sub.attempt}</td>
+                                                        <td>{new Date(sub.submittedAt).toLocaleString('vi-VN', { 
+                                                            hour: '2-digit', 
+                                                            minute: '2-digit',
+                                                            day: '2-digit',
+                                                            month: '2-digit'
+                                                        })}</td>
+                                                        <td>
+                                                            <button 
+                                                                className="review-link"
+                                                                onClick={() => navigate(`/contest/${contestId}/review/${sub.id}`)}
+                                                            >
+                                                                Xem lại
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
+
+            {contestId && (
+                <LeaderboardModal 
+                    isOpen={isLeaderboardOpen}
+                    onClose={() => setIsLeaderboardOpen(false)}
+                    contestId={contestId}
+                    currentUserParticipantId={state.participant?.id}
+                />
+            )}
         </div>
     );
 }

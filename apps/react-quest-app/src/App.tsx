@@ -528,6 +528,7 @@ function SyncPageWrapper() {
 import { PracticeContent } from './pages/PracticeContent';
 import { EntrancePage } from './pages/EntrancePage';
 import { ExamRoom } from './pages/ExamRoom';
+import { ReviewPage } from './pages/ReviewPage';
 
 // Practice mode wrapper with settings
 function PracticeContentWrapper() {
@@ -572,6 +573,7 @@ function App() {
       <Route path="/contest/:contestId" element={<ContestProvider />}>
         <Route index element={<EntrancePage />} />
         <Route path="exam" element={<ExamRoom />} />
+        <Route path="review/:submissionId" element={<ReviewPage />} />
       </Route>
 
       {/* Route cho một quest cụ thể: /quest/group1/QUEST_ID */}

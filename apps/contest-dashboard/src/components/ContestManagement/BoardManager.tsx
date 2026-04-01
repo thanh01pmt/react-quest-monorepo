@@ -347,8 +347,8 @@ export function BoardManager({ contestId }: BoardManagerProps) {
                         </div>
 
                         {editingBoard.timing_override && (
-                            <div className="form-row" style={{ marginTop: 16 }}>
-                                <div className="form-group">
+                            <div style={{ marginTop: 24, padding: 20, background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid var(--border)' }}>
+                                <div className="form-group" style={{ marginBottom: 20 }}>
                                     <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, display: 'block' }}>Thời lượng thi (phút)</label>
                                     <input
                                         type="number"
@@ -357,8 +357,44 @@ export function BoardManager({ contestId }: BoardManagerProps) {
                                             ...editingBoard,
                                             timing_override: { ...editingBoard.timing_override!, duration_minutes: parseInt(e.target.value) || 0 }
                                         })}
-                                        style={{ padding: '12px', fontWeight: 800, fontSize: '1.2rem', textAlign: 'center' }}
+                                        style={{ padding: '12px', fontWeight: 800, fontSize: '1.2rem' }}
                                     />
+                                </div>
+
+                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                    <div className="form-group">
+                                        <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, display: 'block' }}>Bắt đầu (Local)</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={editingBoard.timing_override.start_time ? new Date(new Date(editingBoard.timing_override.start_time).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
+                                            onChange={e => {
+                                                const date = e.target.value ? new Date(e.target.value).toISOString() : null;
+                                                setEditingBoard({
+                                                    ...editingBoard,
+                                                    timing_override: { ...editingBoard.timing_override!, start_time: date }
+                                                });
+                                            }}
+                                            style={{ padding: '8px', fontSize: '0.9rem' }}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, display: 'block' }}>Kết thúc (Local)</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={editingBoard.timing_override.end_time ? new Date(new Date(editingBoard.timing_override.end_time).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
+                                            onChange={e => {
+                                                const date = e.target.value ? new Date(e.target.value).toISOString() : null;
+                                                setEditingBoard({
+                                                    ...editingBoard,
+                                                    timing_override: { ...editingBoard.timing_override!, end_time: date }
+                                                });
+                                            }}
+                                            style={{ padding: '8px', fontSize: '0.9rem' }}
+                                        />
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: 12, fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                                    * Để trống nếu muốn thí sinh có thể bắt đầu bất cứ lúc nào trong thời gian diễn ra vòng thi.
                                 </div>
                             </div>
                         )}

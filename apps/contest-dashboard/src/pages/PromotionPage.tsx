@@ -10,7 +10,8 @@ import {
     Zap,
     CheckCircle,
     ArrowRight,
-    Filter
+    Filter,
+    Download
 } from 'lucide-react';
 
 export function PromotionPage() {
@@ -25,6 +26,8 @@ export function PromotionPage() {
     const [targetBoards, setTargetBoards] = useState<ExamBoard[]>([]);
     const [selectedBoardId, setSelectedBoardId] = useState('');
     const [promoting, setPromoting] = useState(false);
+    const [minScore, setMinScore] = useState<number>(0);
+    const [topN, setTopN] = useState<number | ''>('');
 
     useEffect(() => {
         if (contestId) loadRounds();
@@ -57,23 +60,67 @@ export function PromotionPage() {
         if (data && data.length > 0) {
             setTargetBoards(data as ExamBoard[]);
             setSelectedBoardId(data[0].id);
+        } else {
+            setTargetBoards([]);
+            setSelectedBoardId('');
         }
     };
 
+    const filteredCandidates = candidates
+        .filter(c => c.total_score >= minScore)
+        .slice(0, typeof topN === 'number' ? topN : undefined);
+
     const executePromotion = async () => {
-        if (!selectedBoardId || candidates.length === 0) return;
-        if (!confirm(`Xác nhận chuyển ${candidates.length} thí sinh vào vòng tiếp theo?`)) return;
+        if (!selectedBoardId || filteredCandidates.length === 0) return;
+        if (!confirm(`Xác nhận chuyển ${filteredCandidates.length} thí sinh vào vòng tiếp theo?`)) return;
 
         setPromoting(true);
-        const links = candidates.map(c => ({
-            board_id: selectedBoardId,
-            participant_id: (c as any).participant_id || c.board_participant_id
-        }));
+        try {
+            const participantIds = filteredCandidates.map(c => (c as any).participant_id || c.board_participant_id);
 
-        const { error } = await supabase.from('board_participants').insert(links);
-        if (error) alert('Lỗi promotion: ' + error.message);
-        else alert('Promotion thành công!');
-        setPromoting(false);
+            // 1. Get all board IDs in the target round to clear existing assignments
+            const { data: boardsInTarget } = await supabase
+                .from('exam_boards')
+                .select('id')
+                .eq('round_id', targetRoundId);
+
+            if (boardsInTarget && boardsInTarget.length > 0) {
+                const boardIdsInTarget = boardsInTarget.map(b => b.id);
+                // 2. Delete existing assignments in target round boards for these participants
+                await supabase
+                    .from('board_participants')
+                    .delete()
+                    .in('participant_id', participantIds)
+                    .in('board_id', boardIdsInTarget);
+            }
+
+            // 3. Insert new assignments
+            const links = participantIds.map(pid => ({
+                board_id: selectedBoardId,
+                participant_id: pid
+            }));
+
+            const { error } = await supabase.from('board_participants').insert(links);
+            if (error) throw error;
+
+            alert('Promotion thành công!');
+        } catch (error: any) {
+            alert('Lỗi promotion: ' + error.message);
+        } finally {
+            setPromoting(false);
+        }
+    };
+
+    const exportCSV = () => {
+        if (filteredCandidates.length === 0) return;
+        const headers = ['Rank', 'Name', 'Username', 'Score', 'Status'];
+        const rows = filteredCandidates.map((c, i) => [i + 1, c.display_name, c.username, c.total_score, c.status || 'Qualified']);
+        const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `promotion-results-${sourceRoundId}.csv`;
+        a.click();
     };
 
     return (
@@ -92,24 +139,49 @@ export function PromotionPage() {
                 </div>
             </div>
 
-            <div className="card glass-dark" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24, alignItems: 'end', marginBottom: 32, padding: 32, border: '1px solid var(--border)' }}>
-                <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)', marginBottom: 8, display: 'block' }}>Vòng xuất phát (Source)</label>
-                    <select value={sourceRoundId} onChange={e => setSourceRoundId(e.target.value)} style={{ padding: 12, fontWeight: 600 }}>
-                        {rounds.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
-                    </select>
+            <div className="card glass-dark" style={{ marginBottom: 32, padding: 32, border: '1px solid var(--border)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24, alignItems: 'end', marginBottom: 24 }}>
+                    <div className="form-group" style={{ margin: 0 }}>
+                        <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)', marginBottom: 8, display: 'block' }}>Vòng xuất phát (Source)</label>
+                        <select value={sourceRoundId} onChange={e => setSourceRoundId(e.target.value)} style={{ padding: 12, fontWeight: 600 }}>
+                            {rounds.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
+                        </select>
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                        <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)', marginBottom: 8, display: 'block' }}>Vòng mục tiêu (Target)</label>
+                        <select value={targetRoundId} onChange={e => setTargetRoundId(e.target.value)} style={{ padding: 12, fontWeight: 600 }}>
+                            {rounds.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
+                        </select>
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                        <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)', marginBottom: 8, display: 'block' }}>Đích đến (Board)</label>
+                        <select value={selectedBoardId} onChange={e => setSelectedBoardId(e.target.value)} style={{ padding: 12, fontWeight: 600 }}>
+                            {targetBoards.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                        </select>
+                    </div>
                 </div>
-                <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)', marginBottom: 8, display: 'block' }}>Vòng mục tiêu (Target)</label>
-                    <select value={targetRoundId} onChange={e => setTargetRoundId(e.target.value)} style={{ padding: 12, fontWeight: 600 }}>
-                        {rounds.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
-                    </select>
-                </div>
-                <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)', marginBottom: 8, display: 'block' }}>Đích đến (Board)</label>
-                    <select value={selectedBoardId} onChange={e => setSelectedBoardId(e.target.value)} style={{ padding: 12, fontWeight: 600 }}>
-                        {targetBoards.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                    </select>
+
+                <div style={{ display: 'flex', gap: 24, padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div className="form-group" style={{ margin: 0, flex: 1 }}>
+                        <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Điểm tối thiểu (minScore)</label>
+                        <input
+                            type="number"
+                            value={minScore}
+                            onChange={e => setMinScore(parseInt(e.target.value) || 0)}
+                            placeholder="vd: 100"
+                            style={{ padding: '10px 16px', background: 'var(--bg-tertiary)' }}
+                        />
+                    </div>
+                    <div className="form-group" style={{ margin: 0, flex: 1 }}>
+                        <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Lấy Top N (Bỏ trống = tất cả)</label>
+                        <input
+                            type="number"
+                            value={topN}
+                            onChange={e => setTopN(e.target.value === '' ? '' : parseInt(e.target.value))}
+                            placeholder="vd: 50"
+                            style={{ padding: '10px 16px', background: 'var(--bg-tertiary)' }}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -121,22 +193,33 @@ export function PromotionPage() {
                         </div>
                         <div>
                             <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Đề xuất Thăng hạng</h3>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{candidates.length} thí sinh đủ tiêu chuẩn</div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{filteredCandidates.length} thí sinh đủ tiêu chuẩn</div>
                         </div>
                     </div>
-                    <button
-                        className="btn btn-primary"
-                        onClick={executePromotion}
-                        disabled={promoting || !selectedBoardId || candidates.length === 0}
-                        style={{ padding: '12px 24px' }}
-                    >
-                        {promoting ? 'Đang xử lý...' : (
-                            <>
-                                <Zap size={18} />
-                                <span>Thực hiện Thăng hạng</span>
-                            </>
-                        )}
-                    </button>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                        <button
+                            className="btn btn-secondary"
+                            onClick={exportCSV}
+                            disabled={filteredCandidates.length === 0}
+                            style={{ padding: '12px 24px' }}
+                        >
+                            <Download size={18} />
+                            <span>Xuất CSV</span>
+                        </button>
+                        <button
+                            className="btn btn-primary"
+                            onClick={executePromotion}
+                            disabled={promoting || !selectedBoardId || filteredCandidates.length === 0}
+                            style={{ padding: '12px 24px' }}
+                        >
+                            {promoting ? 'Đang xử lý...' : (
+                                <>
+                                    <Zap size={18} />
+                                    <span>Thực hiện Thăng hạng</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
 
                 <div style={{ overflowX: 'auto' }}>
@@ -150,13 +233,13 @@ export function PromotionPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {candidates.length === 0 ? (
+                            {filteredCandidates.length === 0 ? (
                                 <tr>
                                     <td colSpan={4} style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
-                                        Chưa có bảng điểm cho vòng thi này để đề xuất thăng hạng.
+                                        Chưa có thí sinh phù hợp tiêu chí lọc thăng hạng.
                                     </td>
                                 </tr>
-                            ) : candidates.map((c, i) => (
+                            ) : filteredCandidates.map((c, i) => (
                                 <tr key={c.board_participant_id}>
                                     <td style={{ padding: '18px 32px' }}>
                                         <div style={{ width: 32, height: 32, borderRadius: '50%', background: i < 3 ? 'var(--accent)' : 'var(--bg-tertiary)', color: i < 3 ? '#fff' : 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>

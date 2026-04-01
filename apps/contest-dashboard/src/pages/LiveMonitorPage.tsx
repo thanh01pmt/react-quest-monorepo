@@ -119,7 +119,7 @@ export function LiveMonitorPage() {
         const headers = ['Rank', 'Name', 'Username', 'Score', 'Solved', 'Status'];
         const rows = leaderboard.map((e, i) => [i + 1, e.display_name, e.username, e.total_score, e.challenges_solved, e.status]);
         const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = `leaderboard-${viewLevel}-${contestId}.csv`;

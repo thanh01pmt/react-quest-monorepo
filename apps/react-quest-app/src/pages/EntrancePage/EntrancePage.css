@@ -64,8 +64,30 @@
 .entrance-description {
 	font-size: 0.95rem;
 	color: rgba(255, 255, 255, 0.6);
-	margin: 0;
+	margin: 0 0 16px;
 	line-height: 1.5;
+}
+
+.lobby-leaderboard-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 16px;
+	background: rgba(245, 175, 25, 0.1);
+	border: 1px solid rgba(245, 175, 25, 0.3);
+	border-radius: 99px;
+	color: #f5af19;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	margin-top: 8px;
+}
+
+.lobby-leaderboard-btn:hover {
+	background: rgba(245, 175, 25, 0.2);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(245, 175, 25, 0.1);
 }
 
 /* ── Time Info ─────────────────────────────────────────────────── */
@@ -284,4 +306,106 @@
 
 .exam-start-btn:hover:not(:disabled) {
 	box-shadow: 0 8px 24px rgba(0, 176, 155, 0.45);
+}
+
+/* Lobby History Section */
+.lobby-history {
+	margin-top: 2.5rem;
+	padding-top: 2rem;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lobby-history h3 {
+	font-size: 1.25rem;
+	color: #fff;
+	margin-bottom: 1.25rem;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.lobby-history h3::before {
+	content: "📜";
+	font-size: 1.1rem;
+}
+
+.loading-small,
+.history-empty {
+	text-align: center;
+	color: rgba(255, 255, 255, 0.5);
+	padding: 1.5rem;
+	font-style: italic;
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 12px;
+	border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.history-table-wrapper {
+	overflow-x: auto;
+	background: rgba(15, 23, 42, 0.3);
+	border-radius: 12px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(10px);
+}
+
+.history-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.95rem;
+	min-width: 500px;
+}
+
+.history-table th {
+	background: rgba(255, 255, 255, 0.05);
+	color: rgba(255, 255, 255, 0.7);
+	font-weight: 600;
+	text-align: left;
+	padding: 1rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-table td {
+	padding: 1rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+	color: rgba(255, 255, 255, 0.85);
+	vertical-align: middle;
+}
+
+.history-table tr:hover td {
+	background: rgba(255, 255, 255, 0.02);
+}
+
+.history-table tr:last-child td {
+	border-bottom: none;
+}
+
+.score-badge {
+	background: rgba(16, 185, 129, 0.15);
+	color: #10b981;
+	padding: 0.25rem 0.6rem;
+	border-radius: 6px;
+	font-weight: 700;
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 0.9rem;
+	border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.review-link {
+	background: rgba(59, 130, 246, 0.1);
+	border: 1px solid rgba(59, 130, 246, 0.2);
+	color: #60a5fa;
+	font-weight: 600;
+	cursor: pointer;
+	padding: 0.4rem 0.8rem;
+	border-radius: 8px;
+	transition: all 0.2s;
+	font-size: 0.85rem;
+}
+
+.review-link:hover {
+	background: rgba(59, 130, 246, 0.25);
+	color: #fff;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }

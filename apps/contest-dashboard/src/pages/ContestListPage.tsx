@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { Contest } from '../types';
-import { Activity, Trash2, Plus, Download, Layout } from 'lucide-react';
+import { Activity, Trash2, Plus, Download, Layout, Settings, Layers, Users, Award } from 'lucide-react';
 import { JsonImportModal } from '../components/ContestManagement/JsonImportModal';
 
 export function ContestListPage() {
@@ -160,11 +160,45 @@ export function ContestListPage() {
                                         {new Date(c.created_at).toLocaleDateString('vi-VN')}
                                     </td>
                                     <td style={{ textAlign: 'right', paddingRight: 24 }}>
-                                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                                             <button
                                                 className="btn btn-secondary btn-sm"
+                                                onClick={() => navigate(`/contest/${c.id}/edit`)}
+                                                title="Thiết lập"
+                                                style={{ padding: '6px' }}
+                                            >
+                                                <Settings size={14} />
+                                            </button>
+                                            <button
+                                                className="btn btn-secondary btn-sm"
+                                                onClick={() => navigate(`/contest/${c.id}/challenges`)}
+                                                title="Đề thi"
+                                                style={{ padding: '6px' }}
+                                            >
+                                                <Layers size={14} />
+                                            </button>
+                                            <button
+                                                className="btn btn-secondary btn-sm"
+                                                onClick={() => navigate(`/contest/${c.id}/accounts`)}
+                                                title="Tài khoản"
+                                                style={{ padding: '6px' }}
+                                            >
+                                                <Users size={14} />
+                                            </button>
+                                            <button
+                                                className="btn btn-secondary btn-sm"
+                                                onClick={() => navigate(`/contest/${c.id}/promotion`)}
+                                                title="Tiến cấp"
+                                                style={{ padding: '6px' }}
+                                            >
+                                                <Award size={14} />
+                                            </button>
+                                            <div style={{ width: 1, height: 20, background: 'var(--border-color)', margin: '0 4px' }} />
+                                            <button
+                                                className="btn btn-primary btn-sm"
                                                 onClick={() => navigate(`/contest/${c.id}/live`)}
-                                                style={{ padding: '6px 12px' }}
+                                                title="Monitor"
+                                                style={{ padding: '6px 10px' }}
                                             >
                                                 <Activity size={14} />
                                                 <span>Live</span>
@@ -172,6 +206,7 @@ export function ContestListPage() {
                                             <button
                                                 className="btn btn-danger btn-sm"
                                                 onClick={() => deleteContest(c.id)}
+                                                title="Xóa"
                                                 style={{ padding: '6px' }}
                                             >
                                                 <Trash2 size={14} />

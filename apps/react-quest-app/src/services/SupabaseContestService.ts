@@ -5,6 +5,12 @@ import type {
 	ContestSubmission,
 } from "../types/contest";
 
+export type {
+	ContestConfig,
+	ContestParticipant,
+	ContestSubmission,
+};
+
 /**
  * Fetch generic contest metadata (before login)
  */
@@ -166,6 +172,38 @@ export async function getSupabaseSubmissions(
 		submittedAt: row.submitted_at,
 	})) as ContestSubmission[];
 }
+
+/**
+ * Get a single submission by its ID.
+ */
+export async function getSubmissionById(
+	submissionId: string,
+): Promise<ContestSubmission | null> {
+	const { data, error } = await supabase
+		.from("submissions")
+		.select("*")
+		.eq("id", submissionId)
+		.single();
+
+	if (error || !data) {
+		console.error("[SupabaseService] getSubmissionById error:", error);
+		return null;
+	}
+
+	return {
+		id: data.id,
+		contestId: data.exam_id,
+		participantId: data.board_participant_id,
+		questId: data.quest_id,
+		code: data.code,
+		language: data.language,
+		testResults: data.test_results,
+		score: data.score,
+		attempt: data.attempt,
+		submittedAt: data.submitted_at,
+	} as ContestSubmission;
+}
+
 
 /**
  * Calculate score from test results

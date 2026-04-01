@@ -13,7 +13,12 @@ import {
     Group,
     CheckCircle,
     FileText,
-    Settings
+    Settings,
+    Users,
+    Zap,
+    Activity,
+    TrendingUp,
+    ExternalLink
 } from 'lucide-react';
 
 export function ContestEditorPage() {
@@ -57,15 +62,52 @@ export function ContestEditorPage() {
         }
     };
 
-    const exportContest = () => {
+    const exportContest = async () => {
         if (!contest) return;
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(contest, null, 2));
-        const a = document.createElement('a');
-        a.href = dataStr;
-        a.download = `contest-${contest.short_code || contest.id}.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        setSaving(true); // Reuse saving state for export loading
+
+        try {
+            // 1. Fetch Rounds
+            const { data: rounds } = await supabase
+                .from('rounds')
+                .select('*')
+                .eq('contest_id', contest.id)
+                .order('order_index');
+
+            // 2. Fetch Boards for all rounds
+            const roundIds = (rounds || []).map(r => r.id);
+            const { data: boards } = await supabase
+                .from('exam_boards')
+                .select('*')
+                .in('round_id', roundIds);
+
+            // 3. Fetch Problems for those boards
+            const boardIds = (boards || []).map(b => b.id);
+            const { data: problems } = await supabase
+                .from('problems')
+                .select('*')
+                .in('board_id', boardIds);
+
+            const fullData = {
+                ...contest,
+                rounds: rounds || [],
+                boards: boards || [],
+                problems: problems || []
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullData, null, 2));
+            const a = document.createElement('a');
+            a.href = dataStr;
+            a.download = `full-contest-${contest.short_code || contest.id}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (err) {
+            console.error('Export failed', err);
+            alert('Lỗi khi xuất dữ liệu: ' + (err as any).message);
+        } finally {
+            setSaving(false);
+        }
     };
 
     const updateField = <K extends keyof Contest>(key: K, value: Contest[K]) => {
@@ -137,10 +179,30 @@ export function ContestEditorPage() {
             {activeTab === 'info' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                     <div className="card glass-dark" style={{ padding: 32 }}>
-                        <h3 style={{ marginBottom: 24, fontSize: '1.2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <FileText size={20} className="text-secondary" />
-                            <span>Thông tin cơ bản</span>
-                        </h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <FileText size={20} className="text-secondary" />
+                                <span>Thông tin cơ bản</span>
+                            </h3>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/contest/${id}/accounts`)} title="Tài khoản">
+                                    <Users size={16} />
+                                    <span>Tài khoản</span>
+                                </button>
+                                <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/contest/${id}/challenges`)} title="Bài tập">
+                                    <Zap size={16} />
+                                    <span>Bài tập</span>
+                                </button>
+                                <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/contest/${id}/live`)} title="Giám sát">
+                                    <Activity size={16} />
+                                    <span>Giám sát</span>
+                                </button>
+                                <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/contest/${id}/promotion`)} title="Chuyển vòng">
+                                    <TrendingUp size={16} />
+                                    <span>Chuyển vòng</span>
+                                </button>
+                            </div>
+                        </div>
                         <div className="form-group">
                             <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Tên cuộc thi</label>
                             <input

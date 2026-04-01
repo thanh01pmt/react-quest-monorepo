@@ -41,9 +41,9 @@ export function App() {
         return <LoginPage />;
     }
 
-    const isParticipant = !!session.user?.user_metadata?.username;
+    const isAdmin = session.user.app_metadata.role === 'admin';
     
-    if (isParticipant) {
+    if (!isAdmin) {
         const match = window.location.pathname.match(/\/contest\/([^\/]+)/);
         const contestId = match ? match[1] : null;
 

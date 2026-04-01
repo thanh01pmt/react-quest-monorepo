@@ -38,15 +38,14 @@ import './QuestPlayer.css';
 
 type StandaloneProps = {
   isStandalone?: true;
+  readOnly?: boolean;
+  initialCode?: string;
   language?: string;
   initialSettings?: QuestPlayerSettings;
   onQuestLoad?: (quest: Quest) => void;
   onQuestComplete?: (result: QuestCompletionResult) => void;
   onSettingsChange?: (newSettings: QuestPlayerSettings) => void;
 };
-
-import { ConsolePanel, ConsoleLog } from '../ConsolePanel';
-import { TestCasePanel } from '../TestCasePanel';
 
 type LibraryProps = {
   isStandalone: false;
@@ -56,7 +55,12 @@ type LibraryProps = {
   onQuestComplete: (result: QuestCompletionResult) => void;
   onSettingsChange: (newSettings: QuestPlayerSettings) => void;
   onQuestLoad?: (quest: Quest) => void;
+  readOnly?: boolean;
+  initialCode?: string;
 };
+
+import { ConsolePanel, ConsoleLog } from '../ConsolePanel';
+import { TestCasePanel } from '../TestCasePanel';
 
 export type QuestPlayerProps = (StandaloneProps | LibraryProps);
 
@@ -97,6 +101,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   const language = props.language || i18n.language;
 
   const isStandalone = props.isStandalone !== false;
+  const isReadOnly = props.readOnly || false;
 
   const [loadedQuestId, setLoadedQuestId] = useState<string | null>(null);
 
@@ -135,7 +140,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
     return getToolboxCategoryNames(dynamicToolboxConfig);
   }, [dynamicToolboxConfig]);
 
-  const [initialXml, setInitialXml] = useState<string | undefined>(undefined);
+  const [initialXml, setInitialXml] = useState<string | undefined>(props.initialCode?.startsWith('<xml') ? props.initialCode : undefined);
 
   const [blocklyWorkspaceKey, setBlocklyWorkspaceKey] = useState<string>('initial-key');
   const [isBlocksInitialized, setIsBlocksInitialized] = useState(false);
@@ -248,6 +253,13 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
   }, []);
 
   const { currentEditor, aceCode, setAceCode, handleEditorChange } = useEditorManager(questData, workspaceRef, generateSafeCodeFromWorkspace);
+
+  // Initialize aceCode if provided and not XML
+  useEffect(() => {
+    if (props.initialCode && !props.initialCode.startsWith('<xml')) {
+      setAceCode(props.initialCode);
+    }
+  }, [props.initialCode, setAceCode]);
 
   // Tách riêng code cho blockly và monaco để quản lý tốt hơn
   const [blocklyGeneratedCode, setBlocklyGeneratedCode] = useState('');
@@ -537,6 +549,9 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
       if (typeof startBlocksValue === 'string' && !startBlocksValue.trim().startsWith('<')) {
         // Đây là chuỗi shorthand, cần phân tích
         setInitialXml(parseShorthandToXml(startBlocksValue));
+      } else if (props.initialCode && props.initialCode.trim().startsWith('<xml')) {
+        // Xử lý khởi tạo XML từ props nếu có, không thì lấy từ questData
+        setInitialXml(props.initialCode);
       } else {
         // Đây là XML thông thường hoặc không có
         setInitialXml(startBlocksValue);
@@ -1118,7 +1133,7 @@ export const QuestPlayer: React.FC<QuestPlayerProps> = (props) => {
                             setAceCode(code);
                           }}
                           language={currentEditor === 'monaco' ? 'javascript' : currentEditor}
-                          readOnly={false} // Phase 2: Open editing for all languages
+                          readOnly={isReadOnly}
                           theme={effectiveColorScheme}
                         />
                       </div>
