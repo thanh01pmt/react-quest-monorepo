@@ -110,15 +110,15 @@ export function BoardManager({ contestId }: BoardManagerProps) {
                 .from('participants')
                 .select('id')
                 .eq('contest_id', contestId)
-                .eq('user_id', user.id)
-                .single();
+                .eq('external_uid', user.id)
+                .maybeSingle();
 
             if (!participant) {
                 const { data: newPart, error: partErr } = await supabase
                     .from('participants')
                     .insert({
                         contest_id: contestId,
-                        user_id: user.id,
+                        external_uid: user.id,
                         username: `admin-${user.email?.split('@')[0] || 'user'}`,
                         display_name: `Admin Preview (${user.email})`,
                     })
@@ -135,8 +135,7 @@ export function BoardManager({ contestId }: BoardManagerProps) {
                 .select('id')
                 .eq('board_id', board.id)
                 .eq('participant_id', participant!.id)
-                .eq('is_test', true)
-                .single();
+                .maybeSingle();
 
             if (!bp) {
                 const now = new Date();
@@ -147,7 +146,6 @@ export function BoardManager({ contestId }: BoardManagerProps) {
                     .insert({
                         board_id: board.id,
                         participant_id: participant!.id,
-                        is_test: true,
                         status: 'active',
                         started_at: now.toISOString(),
                         deadline: deadline.toISOString()
