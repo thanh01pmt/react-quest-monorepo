@@ -13,9 +13,14 @@ export async function getPublicContestInfo(
 ): Promise<{ id: string; title: string; description: string; status: string } | null> {
 	try {
 		const { data, error } = await supabase.rpc("get_public_contest_info", { p_contest_id: contestId });
-		if (error || !data) return null;
+		if (error) {
+			console.error("[SupabaseService] getPublicContestInfo error:", error);
+			return null;
+		}
+		if (!data) return null;
 		return data as { id: string; title: string; description: string; status: string };
-	} catch (error) {
+	} catch (err) {
+		console.error("[SupabaseService] getPublicContestInfo catch:", err);
 		return null;
 	}
 }
