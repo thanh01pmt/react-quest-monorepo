@@ -1,21 +1,13 @@
 /**
  * AuthContext
  * 
- * React context for Firebase authentication.
+ * React context for Supabase authentication.
  * Provides user state and auth methods to the entire app.
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import {
-    User,
-    signInWithPopup,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    signOut as firebaseSignOut,
-    onAuthStateChanged,
-    updateProfile,
-} from 'firebase/auth';
-import { auth, googleProvider } from '../config/firebase';
+import { User } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 
 // Auth context type
 interface AuthContextType {
@@ -46,14 +38,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Listen to auth state changes
+    // Initial session check and listen to auth state changes
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setUser(user);
+        // Check current session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setUser(session?.user ?? null);
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        // Listen for changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+            setLoading(false);
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     // Sign in with Google
@@ -61,7 +60,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setError(null);
         setLoading(true);
         try {
-            await signInWithPopup(auth, googleProvider);
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin,
+                },
+            });
+            if (error) throw error;
         } catch (err: any) {
             setError(err.message || 'Failed to sign in with Google');
             throw err;
@@ -75,9 +80,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setError(null);
         setLoading(true);
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+            if (error) throw error;
         } catch (err: any) {
-            const errorMessage = getAuthErrorMessage(err.code);
+            const errorMessage = getAuthErrorMessage(err.status, err.message);
             setError(errorMessage);
             throw err;
         } finally {
@@ -90,13 +99,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setError(null);
         setLoading(true);
         try {
-            const result = await createUserWithEmailAndPassword(auth, email, password);
-            // Update display name
-            if (result.user) {
-                await updateProfile(result.user, { displayName });
-            }
+            const { error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: displayName,
+                        display_name: displayName,
+                    },
+                },
+            });
+            if (error) throw error;
         } catch (err: any) {
-            const errorMessage = getAuthErrorMessage(err.code);
+            const errorMessage = getAuthErrorMessage(err.status, err.message);
             setError(errorMessage);
             throw err;
         } finally {
@@ -108,7 +123,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const signOut = useCallback(async () => {
         setError(null);
         try {
-            await firebaseSignOut(auth);
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
         } catch (err: any) {
             setError(err.message || 'Failed to sign out');
             throw err;
@@ -138,25 +154,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 }
 
-// Helper to get user-friendly error messages
-function getAuthErrorMessage(code: string): string {
-    switch (code) {
-        case 'auth/email-already-in-use':
-            return 'Email này đã được sử dụng';
-        case 'auth/invalid-email':
-            return 'Email không hợp lệ';
-        case 'auth/weak-password':
-            return 'Mật khẩu quá yếu (cần ít nhất 6 ký tự)';
-        case 'auth/user-not-found':
-            return 'Không tìm thấy tài khoản với email này';
-        case 'auth/wrong-password':
-            return 'Mật khẩu không đúng';
-        case 'auth/too-many-requests':
-            return 'Quá nhiều lần thử. Vui lòng thử lại sau';
-        case 'auth/popup-closed-by-user':
-            return 'Cửa sổ đăng nhập đã bị đóng';
+// Helper to get user-friendly error messages from Supabase
+function getAuthErrorMessage(status?: number, message?: string): string {
+    if (!message) return 'Đã xảy ra lỗi. Vui lòng thử lại';
+
+    // Supabase errors are often descriptive in message
+    if (message.includes('Invalid login credentials')) {
+        return 'Email hoặc mật khẩu không đúng';
+    }
+    if (message.includes('User already registered')) {
+        return 'Email này đã được sử dụng';
+    }
+    if (message.includes('Signup disabled')) {
+        return 'Tính năng đăng ký hiện đang bị khóa';
+    }
+    if (message.includes('Email not confirmed')) {
+        return 'Vui lòng xác nhận email trước khi đăng nhập';
+    }
+
+    // Fallback to status codes if needed
+    switch (status) {
+        case 400:
+            return 'Yêu cầu không hợp lệ. Vui lòng kiểm tra lại thông tin';
+        case 422:
+            return 'Dữ liệu không hợp lệ (mật khẩu quá yếu hoặc email sai định dạng)';
+        case 429:
+            return 'Quá nhiều yêu cầu. Vui lòng thử lại sau';
         default:
-            return 'Đã xảy ra lỗi. Vui lòng thử lại';
+            return message || 'Đã xảy ra lỗi. Vui lòng thử lại';
     }
 }
 

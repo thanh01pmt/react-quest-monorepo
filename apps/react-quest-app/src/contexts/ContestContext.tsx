@@ -204,7 +204,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
 
             // If user is already logged in, try to find existing participant
             if (user) {
-                const existing = await findParticipant(contestId, user.uid);
+                const existing = await findParticipant(contestId, user.id);
                 if (existing) {
                     setState((s) => ({ ...s, participant: existing }));
                     // Restore challenge states from submissions
@@ -231,6 +231,21 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
         }) => {
             if (!state.contest || !user) return;
 
+            // If we already have a participant (from Supabase session), just update local metadata if needed
+            // otherwise fallback to legacy Firebase creation for backward compatibility
+            if (state.participant && IS_UUID_REGEX.test(state.participant.id!)) {
+                // In pre-created flow, the participant record already exists. 
+                // We just mark it as 'active' and potentially update display info via a future RPC if needed.
+                // For now, we just update local state to allow entry.
+                const updated = {
+                    ...state.participant,
+                    displayName: data.displayName || state.participant.displayName,
+                    email: data.email || state.participant.email,
+                };
+                setState(s => ({ ...s, participant: updated }));
+                return;
+            }
+
             const now = new Date();
             const deadline = new Date(now.getTime() + state.contest.durationMinutes * 60 * 1000);
 
@@ -240,7 +255,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
 
             const participant = await createParticipant({
                 contestId: state.contest.id,
-                uid: user.uid,
+                uid: user.id,
                 username: data.username,
                 displayName: data.displayName,
                 email: data.email,

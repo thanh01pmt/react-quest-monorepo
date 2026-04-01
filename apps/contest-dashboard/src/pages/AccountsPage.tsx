@@ -87,29 +87,53 @@ export function AccountsPage() {
         for (let i = 1; i <= count; i++) {
             const num = String(participants.length + i).padStart(3, '0');
             const username = `${prefix}${num}`;
-            generated.push({ username, email: `${username}@contest.local`, password: generatePassword(passwordLength) });
+            generated.push({ username, email: `${username}@contest.io`, password: generatePassword(passwordLength) });
         }
         setAccounts(generated);
+    };
+
+    const exportToCSV = () => {
+        if (accounts.length === 0) return;
+        const headers = 'Username,Email,Password\n';
+        const rows = accounts.map(acc => `${acc.username},${acc.email},${acc.password}`).join('\n');
+        const blob = new Blob([headers + rows], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `contest_accounts_${contestId}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
     };
 
     const createSupabaseAccounts = async () => {
         if (accounts.length === 0) return;
         setGenerating(true);
-        const newParticipants = accounts.map(acc => ({
-            contest_id: contestId,
-            user_id: '00000000-0000-0000-0000-000000000000',
-            username: acc.username,
-            display_name: acc.username.toUpperCase(),
-            email: acc.email
-        }));
 
-        const { error } = await supabase.from('participants').insert(newParticipants);
-        if (!error) {
+        try {
+            for (const acc of accounts) {
+                const { error } = await supabase.rpc('admin_create_participant_auth', {
+                    p_username: acc.username,
+                    p_email: acc.email,
+                    p_password: acc.password,
+                    p_contest_id: contestId,
+                    p_display_name: `Thí sinh ${acc.username.toUpperCase()}`
+                });
+
+                if (error) {
+                    console.error(`Error creating ${acc.username}:`, error);
+                    alert(`Lỗi khi tạo ${acc.username}: ${error.message}`);
+                    throw error;
+                }
+            }
+
+            alert('Tất cả tài khoản đã được khởi tạo thành công trên hệ thống Auth!');
             loadParticipants();
-            setAccounts([]);
-            alert('Tài khoản đã được đăng ký thành công!');
+            // Don't clear accounts immediately so they can download the CSV
+        } catch (err) {
+            console.error('Batch creation failed', err);
+        } finally {
+            setGenerating(false);
         }
-        setGenerating(false);
     };
 
     const assignToBoard = async () => {
@@ -174,16 +198,25 @@ export function AccountsPage() {
                     </button>
 
                     {accounts.length > 0 && (
-                        <div style={{ display: 'flex', gap: 12 }}>
-                            <button className="btn btn-secondary" onClick={createSupabaseAccounts} disabled={generating} style={{ flex: 2, padding: 14 }}>
-                                {generating ? 'Đang khởi tạo...' : (
-                                    <>
-                                        <Database size={18} />
-                                        <span>Xác nhận & Lưu Database</span>
-                                    </>
-                                )}
-                            </button>
-                            <button className="btn btn-link" onClick={() => setAccounts([])} style={{ flex: 1, color: 'var(--text-muted)' }}>Hủy bỏ</button>
+                        <div style={{ marginTop: 24 }}>
+                            <div style={{ background: 'rgba(255,100,100,0.1)', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: '0.85rem', color: '#ff8888', border: '1px solid rgba(255,100,100,0.2)' }}>
+                                <strong>Lưu ý:</strong> Hãy tải file CSV trước khi bấm "Lưu Database" hoặc tải lại trang để không mất mật khẩu của thí sinh.
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                                <button className="btn btn-secondary" onClick={exportToCSV} style={{ padding: 12, background: 'rgba(255,255,255,0.05)', color: 'var(--text)' }}>
+                                    <List size={18} />
+                                    <span>Tải CSV</span>
+                                </button>
+                                <button className="btn btn-primary" onClick={createSupabaseAccounts} disabled={generating} style={{ padding: 12 }}>
+                                    {generating ? 'Đang tạo...' : (
+                                        <>
+                                            <Database size={18} />
+                                            <span>Lưu DB</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                            <button className="btn btn-link" onClick={() => setAccounts([])} style={{ width: '100%', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Hủy danh sách hiện tại</button>
                         </div>
                     )}
                 </div>
@@ -232,7 +265,38 @@ export function AccountsPage() {
                 </div>
             </div>
 
-            {/* List Preview */}
+            {/* Preview of Generated Accounts */}
+            {accounts.length > 0 && (
+                <div className="card glass-dark" style={{ marginTop: 32, padding: 0, border: '1px solid var(--accent)', boxShadow: '0 0 20px rgba(0, 243, 255, 0.1)' }}>
+                    <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0, 243, 255, 0.05)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <Zap size={18} className="text-accent" />
+                            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800 }}>Xem trước danh sách vừa sinh (Preview)</h3>
+                        </div>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Chưa lưu vào Database</span>
+                    </div>
+                    <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                        <table className="data-table" style={{ fontSize: '0.9rem' }}>
+                            <thead>
+                                <tr style={{ background: 'rgba(0,0,0,0.2)' }}>
+                                    <th style={{ padding: '12px 24px' }}>Username</th>
+                                    <th>Password (Mật khẩu)</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {accounts.map((acc, idx) => (
+                                    <tr key={idx}>
+                                        <td style={{ padding: '10px 24px' }}><code>{acc.username}</code></td>
+                                        <td><code style={{ color: 'var(--accent)', fontWeight: 700 }}>{acc.password}</code></td>
+                                        <td style={{ color: 'var(--text-muted)' }}>{acc.email}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
             <div className="card glass" style={{ marginTop: 32, padding: 0, overflow: 'hidden', border: '1px solid var(--border)' }}>
                 <div style={{ padding: '20px 32px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', gap: 12 }}>
                     <List size={20} className="text-secondary" />

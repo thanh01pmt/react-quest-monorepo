@@ -23,7 +23,8 @@ import { createPracticeGenerator } from '../services/PracticeGenerator';
 import { saveSession, getIncompleteSessions } from '../services/SessionStorage';
 import { updateProgress } from '../services/ProgressService';
 import { exerciseToQuest, generateExerciseMapData } from '../services/ExerciseToQuestMapper';
-import { saveSharedSession, getSharedSession } from '../services/SharedSessionService';
+import { shareSession, getSharedSession } from '../services/SupabaseSharedSessionService';
+import { useAuth } from '../contexts/AuthContext';
 import { convertSolutionToXml } from '@repo/academic-map-generator';
 import { BlocklyWorkspace } from '@repo/quest-player';
 import '../App.css';
@@ -48,6 +49,8 @@ export function PracticeContent({
 }: PracticeContentProps) {
     const { t, i18n } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
+    const { user } = useAuth();
+    const userId = user?.id || null;
 
     // Session state
     const [session, setSession] = useState<PracticeSession | null>(null);
@@ -121,15 +124,6 @@ export function PracticeContent({
 
         setIsSharing(true);
         try {
-            // New Advanced Share Service
-            // Use anonymous ID if not logged in (TODO: integrate real Auth context if available)
-            const userId = 'anonymous';
-            const shareId = await saveSharedSession(session, userId); // Fallback to full for now or use new API
-
-            // We need to import shareSession from service to use modes properly
-            // But for now let's update the import in the file header first or cast
-            const { shareSession } = await import('../services/SharedSessionService');
-
             const finalShareId = await shareSession(session, mode, userId);
 
             // Generate URL
@@ -331,7 +325,7 @@ export function PracticeContent({
             completedAt: new Date(),
         };
 
-        updateProgress(currentExercise.concept as ConceptCategory, exerciseResult);
+        updateProgress(currentExercise.concept as ConceptCategory, exerciseResult, userId);
 
         const updatedSession = {
             ...session,

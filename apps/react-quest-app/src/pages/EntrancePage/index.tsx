@@ -59,7 +59,11 @@ export function EntrancePage() {
         setSubmitting(true);
 
         try {
-            const contestEmail = `${username.trim()}@contest.local`;
+            const trimmedUsername = username.trim().toLowerCase();
+            const contestEmail = trimmedUsername.includes('@') 
+                ? trimmedUsername 
+                : `${trimmedUsername}@contest.io`;
+            
             await signInWithEmail(contestEmail, password);
             setStep('contact');
         } catch {

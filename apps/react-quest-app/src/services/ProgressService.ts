@@ -16,6 +16,7 @@ import {
   createUserProgress, 
   updateCategoryProgress 
 } from '@repo/shared-templates';
+import { syncProgress } from './SupabaseProgressService';
 
 const PROGRESS_KEY = 'quest_practice_progress';
 
@@ -27,7 +28,7 @@ export function loadProgress(userId?: string): UserProgress {
     const stored = localStorage.getItem(PROGRESS_KEY);
     if (stored) {
       const progress = JSON.parse(stored) as UserProgress;
-      // Restore date
+      // Restore dates from JSON strings
       progress.lastUpdated = new Date(progress.lastUpdated);
       for (const cat of Object.values(progress.categories)) {
         if (cat.lastActivity) {
@@ -61,9 +62,10 @@ export function saveProgress(progress: UserProgress): void {
  */
 export function updateProgress(
   category: ConceptCategory,
-  result: ExerciseResult
+  result: ExerciseResult,
+  userId?: string | null
 ): UserProgress {
-  const progress = loadProgress();
+  const progress = loadProgress(userId || undefined);
   
   // Update category progress
   const catProgress = progress.categories[category];
@@ -76,6 +78,14 @@ export function updateProgress(
     .reduce((sum, cat) => sum + cat.xp, 0);
   
   saveProgress(progress);
+
+  // Sync to cloud in background if user is logged in
+  if (userId) {
+    syncProgress(progress, userId).catch(err => {
+        console.error('[ProgressService] Background sync failed:', err);
+    });
+  }
+
   return progress;
 }
 
