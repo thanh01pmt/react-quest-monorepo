@@ -16,22 +16,13 @@ import type {
     ContestSubmission,
 } from '../types/contest';
 import {
-    getContest,
-    findParticipant,
-    createParticipant,
-    saveSubmission,
-    getParticipantSubmissions,
-    calculateScore,
-    updateParticipantStatus,
-} from '../services/ContestService';
-import {
     getSupabaseContestSession,
     saveSupabaseSubmission,
     updateSupabaseParticipantStatus,
+    getSupabaseSubmissions,
+    calculateScore,
 } from '../services/SupabaseContestService';
 import { useAuth } from './AuthContext';
-
-const IS_UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // ─── Context Type ───────────────────────────────────────────────────
 
@@ -91,11 +82,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
 
     const lockExam = useCallback(async () => {
         if (state.participant?.id) {
-            if (IS_UUID_REGEX.test(state.participant.id)) {
-                await updateSupabaseParticipantStatus(state.participant.id, 'submitted');
-            } else {
-                await updateParticipantStatus(state.participant.id, 'submitted');
-            }
+            await updateSupabaseParticipantStatus(state.participant.id, 'submitted');
         }
         setState((s) => ({ ...s, isLocked: true }));
         if (timerRef.current) clearInterval(timerRef.current);
@@ -133,7 +120,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
     // ── Restore States ────────────────────────────────────────────────
 
     const restoreChallengeStates = useCallback(async (contestId: string, participantId: string) => {
-        const submissions = await getParticipantSubmissions(contestId, participantId);
+        const submissions = await getSupabaseSubmissions(contestId, participantId);
         if (submissions.length === 0) return;
 
         setState((s) => {
@@ -160,57 +147,28 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
     const loadContest = useCallback(async (contestId: string) => {
         setState((s) => ({ ...s, loading: true, error: null }));
         try {
-            if (IS_UUID_REGEX.test(contestId)) {
-                const session = await getSupabaseContestSession(contestId);
-                if (session) {
-                    setState((s) => ({
-                        ...s,
-                        contest: session.contest,
-                        participant: session.participant,
-                        challenges: session.contest.questData.map(q => ({
-                            questId: q.id,
-                            title: q.titleKey || q.id,
-                            status: 'pending',
-                            bestScore: 0,
-                            attempts: 0,
-                        })),
-                        loading: false,
-                    }));
-                    return;
-                }
-            }
+            const session = await getSupabaseContestSession(contestId);
+            if (session) {
+                setState((s) => ({
+                    ...s,
+                    contest: session.contest,
+                    participant: session.participant,
+                    challenges: session.contest.questData.map(q => ({
+                        questId: q.id,
+                        title: q.titleKey || q.id,
+                        status: 'pending',
+                        bestScore: 0,
+                        attempts: 0,
+                    })),
+                    loading: false,
+                }));
 
-            const contest = await getContest(contestId);
-            if (!contest) {
-                setState((s) => ({ ...s, loading: false, error: 'Không tìm thấy cuộc thi' }));
+                // Restore challenge states from submissions
+                await restoreChallengeStates(contestId, session.participant.id!);
                 return;
             }
 
-            // Build challenge states from quest data
-            const challenges: ChallengeState[] = contest.questData.map((quest) => ({
-                questId: quest.id,
-                title: quest.titleKey || quest.id,
-                status: 'pending',
-                bestScore: 0,
-                attempts: 0,
-            }));
-
-            setState((s) => ({
-                ...s,
-                contest,
-                challenges,
-                loading: false,
-            }));
-
-            // If user is already logged in, try to find existing participant
-            if (user) {
-                const existing = await findParticipant(contestId, user.id);
-                if (existing) {
-                    setState((s) => ({ ...s, participant: existing }));
-                    // Restore challenge states from submissions
-                    await restoreChallengeStates(contestId, existing.id!);
-                }
-            }
+            setState((s) => ({ ...s, loading: false, error: 'Không tìm thấy cuộc thi' }));
         } catch (error: any) {
             setState((s) => ({
                 ...s,
@@ -218,7 +176,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
                 error: error.message || 'Lỗi tải cuộc thi',
             }));
         }
-    }, [user, restoreChallengeStates]);
+    }, [restoreChallengeStates]);
 
     // ── Register Participant ──────────────────────────────────────────
 
@@ -231,12 +189,9 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
         }) => {
             if (!state.contest || !user) return;
 
-            // If we already have a participant (from Supabase session), just update local metadata if needed
-            // otherwise fallback to legacy Firebase creation for backward compatibility
-            if (state.participant && IS_UUID_REGEX.test(state.participant.id!)) {
+            if (state.participant) {
                 // In pre-created flow, the participant record already exists. 
-                // We just mark it as 'active' and potentially update display info via a future RPC if needed.
-                // For now, we just update local state to allow entry.
+                // We just mark it as 'active' locally.
                 const updated = {
                     ...state.participant,
                     displayName: data.displayName || state.participant.displayName,
@@ -245,29 +200,10 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
                 setState(s => ({ ...s, participant: updated }));
                 return;
             }
-
-            const now = new Date();
-            const deadline = new Date(now.getTime() + state.contest.durationMinutes * 60 * 1000);
-
-            // Also cap deadline at contest endTime
-            const contestEnd = new Date(state.contest.endTime);
-            const effectiveDeadline = deadline < contestEnd ? deadline : contestEnd;
-
-            const participant = await createParticipant({
-                contestId: state.contest.id,
-                uid: user.id,
-                username: data.username,
-                displayName: data.displayName,
-                email: data.email,
-                phone: data.phone,
-                joinedAt: now.toISOString(),
-                deadline: effectiveDeadline.toISOString(),
-                status: 'active',
-            });
-
-            setState((s) => ({ ...s, participant }));
+            
+            console.warn("[ContestContext] registerParticipant called but no pre-existing participant found.");
         },
-        [state.contest, user]
+        [state.contest, user, state.participant]
     );
 
     // ── Select Challenge ──────────────────────────────────────────────
@@ -304,32 +240,18 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
             const challengeIndex = state.challenges.findIndex((ch) => ch.questId === questId);
             const attempt = challengeIndex >= 0 ? state.challenges[challengeIndex].attempts + 1 : 1;
 
-            // Save to Firestore
-            if (IS_UUID_REGEX.test(state.participant.id!)) {
-                await saveSupabaseSubmission({
-                    contestId: state.contest.id,
-                    participantId: state.participant.id!,
-                    questId,
-                    code,
-                    language,
-                    testResults,
-                    score,
-                    submittedAt: new Date().toISOString(),
-                    attempt,
-                });
-            } else {
-                await saveSubmission({
-                    contestId: state.contest.id,
-                    participantId: state.participant.id!,
-                    questId,
-                    code,
-                    language,
-                    testResults,
-                    score,
-                    submittedAt: new Date().toISOString(),
-                    attempt,
-                });
-            }
+            // Save to Supabase
+            await saveSupabaseSubmission({
+                contestId: state.contest.id,
+                participantId: state.participant.id!,
+                questId,
+                code,
+                language,
+                testResults,
+                score,
+                submittedAt: new Date().toISOString(),
+                attempt,
+            });
 
             // Update local state
             setState((s) => {

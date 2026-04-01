@@ -112,3 +112,62 @@ export async function updateSupabaseParticipantStatus(
 		console.error("[SupabaseService] updateParticipantStatus error:", error);
 	}
 }
+
+/**
+ * Get all submissions for a participant (board_participant) in a contest.
+ */
+export async function getSupabaseSubmissions(
+	contestId: string,
+	participantId: string,
+): Promise<ContestSubmission[]> {
+	const { data, error } = await supabase
+		.from("submissions")
+		.select("*")
+		.eq("board_participant_id", participantId)
+		.eq("exam_id", contestId)
+		.order("submitted_at", { ascending: false });
+
+	if (error) {
+		console.error("[SupabaseService] getSubmissions error:", error);
+		return [];
+	}
+
+	return (data || []).map((row) => ({
+		id: row.id,
+		contestId: row.exam_id,
+		participantId: row.board_participant_id,
+		questId: row.quest_id,
+		code: row.code,
+		language: row.language,
+		testResults: row.test_results,
+		score: row.score,
+		attempt: row.attempt,
+		submittedAt: row.submitted_at,
+	})) as ContestSubmission[];
+}
+
+/**
+ * Calculate score from test results
+ * score = (passed / total) * 100
+ */
+export function calculateScore(
+	testResults: ContestSubmission["testResults"],
+): number {
+	if (testResults.length === 0) return 0;
+	const passed = testResults.filter((r) => r.status === "pass").length;
+	return Math.round((passed / testResults.length) * 100);
+}
+
+/**
+ * Get the contest time status
+ */
+export function getContestTimeStatus(
+	contest: ContestConfig,
+): "not_started" | "active" | "ended" {
+	const now = new Date();
+	const start = new Date(contest.startTime);
+	const end = new Date(contest.endTime);
+	if (now < start) return "not_started";
+	if (now > end) return "ended";
+	return "active";
+}

@@ -16,7 +16,7 @@ import {
   createUserProgress, 
   updateCategoryProgress 
 } from '@repo/shared-templates';
-import { syncProgress } from './SupabaseProgressService';
+import { saveCloudProgress } from './SupabaseProgressService';
 
 const PROGRESS_KEY = 'quest_practice_progress';
 
@@ -81,7 +81,7 @@ export function updateProgress(
 
   // Sync to cloud in background if user is logged in
   if (userId) {
-    syncProgress(progress, userId).catch(err => {
+    saveCloudProgress(userId, progress).catch((err: any) => {
         console.error('[ProgressService] Background sync failed:', err);
     });
   }

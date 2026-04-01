@@ -6,7 +6,7 @@
 
 import type { Quest } from "@repo/quest-player";
 
-// ─── Firestore: contests/{contestId} ────────────────────────────────
+// ─── Supabase: exam_boards ────────────────────────────────
 
 export interface ContestConfig {
 	id: string;
@@ -41,12 +41,12 @@ export interface ContestSettings {
 	scoringMode: "highest" | "latest";
 }
 
-// ─── Firestore: contest_participants/{participantId} ────────────────
+// ─── Supabase: board_participants ────────────────
 
 export interface ContestParticipant {
 	id?: string;
 	contestId: string;
-	/** Firebase Auth UID */
+	/** Supabase Auth UID */
 	uid: string;
 	/** Login username (e.g. "ts001") */
 	username: string;
@@ -64,7 +64,7 @@ export interface ContestParticipant {
 	status: "active" | "submitted" | "timed_out" | "disqualified";
 }
 
-// ─── Firestore: contest_submissions/{submissionId} ──────────────────
+// ─── Supabase: board_submissions ──────────────────
 
 export interface ContestSubmission {
 	id?: string;

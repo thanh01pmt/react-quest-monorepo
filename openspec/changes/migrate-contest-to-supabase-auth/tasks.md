@@ -19,14 +19,14 @@
   - Change `user` type from `firebase/auth.User` to `@supabase/supabase-js.User`
 - [ ] 2.2 Update `EntrancePage/index.tsx` to use the new `signInWithEmail` / `signUpWithEmail` from refactored context.
 - [ ] 2.3 Update `App.tsx` routes — verify auth guard still works with Supabase session.
-- [ ] 2.4 Find and fix all `user.uid` references → `user.id` across the codebase:
+- [x] 2.4 Find and fix all `user.uid` references → `user.id` across the codebase:
   - `ContestContext.tsx` lines: `user.uid` in `findParticipant()` and `createParticipant()` calls
   - Any other component consuming `useAuth().user.uid`
 
 ## 3. Data Service Unification
 
 - [ ] 3.1 Add `getSupabaseSubmissions(boardParticipantId)` to `SupabaseContestService.ts` — needed by `restoreChallengeStates` in `ContestContext`.
-- [ ] 3.2 Rewrite `ContestContext.tsx` to remove all Firebase fallback paths:
+- [x] 3.2 Rewrite `ContestContext.tsx` to remove all Firebase fallback paths:
   - Remove `IS_UUID_REGEX` branching — all contests are now UUID-based
   - Replace `findParticipant` / `createParticipant` (Firestore) → no-op for pre-created participant model (Supabase uses `get_contest_session` RPC which already returns participant)
   - Replace `restoreChallengeStates` to call `getSupabaseSubmissions` from Task 3.1

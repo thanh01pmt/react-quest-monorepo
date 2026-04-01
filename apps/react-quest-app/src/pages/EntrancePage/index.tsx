@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useContest } from '../../contexts/ContestContext';
-import { getContestTimeStatus } from '../../services/ContestService';
+import { getContestTimeStatus } from '../../services/SupabaseContestService';
 import './EntrancePage.css';
 
 export function EntrancePage() {

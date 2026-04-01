@@ -31,18 +31,18 @@ export function AuthButton({ compact = false }: AuthButtonProps) {
                 <button
                     className="auth-user-button"
                     onClick={() => setShowMenu(!showMenu)}
-                    title={user.displayName || user.email || 'User'}
+                    title={user.user_metadata?.full_name || user.email || 'User'}
                 >
-                    {user.photoURL ? (
-                        <img src={user.photoURL} alt="" className="auth-avatar" />
+                    {user.user_metadata?.avatar_url ? (
+                        <img src={user.user_metadata.avatar_url} alt="" className="auth-avatar" />
                     ) : (
                         <span className="auth-avatar-placeholder">
-                            {(user.displayName || user.email || 'U')[0].toUpperCase()}
+                            {(user.user_metadata?.full_name || user.email || 'U')[0].toUpperCase()}
                         </span>
                     )}
                     {!compact && (
                         <span className="auth-display-name">
-                            {user.displayName || user.email?.split('@')[0]}
+                            {user.user_metadata?.full_name || user.email?.split('@')[0]}
                         </span>
                     )}
                 </button>
@@ -50,7 +50,7 @@ export function AuthButton({ compact = false }: AuthButtonProps) {
                 {showMenu && (
                     <div className="auth-dropdown">
                         <div className="auth-dropdown-header">
-                            <strong>{user.displayName || 'User'}</strong>
+                            <strong>{user.user_metadata?.full_name || 'User'}</strong>
                             <span>{user.email}</span>
                         </div>
                         <button
