@@ -135,6 +135,7 @@ export function BoardManager({ contestId }: BoardManagerProps) {
                 .select('id')
                 .eq('board_id', board.id)
                 .eq('participant_id', participant!.id)
+                .eq('is_test', true)
                 .maybeSingle();
 
             if (!bp) {
@@ -148,7 +149,8 @@ export function BoardManager({ contestId }: BoardManagerProps) {
                         participant_id: participant!.id,
                         status: 'active',
                         started_at: now.toISOString(),
-                        deadline: deadline.toISOString()
+                        deadline: deadline.toISOString(),
+                        is_test: true
                     })
                     .select()
                     .single();

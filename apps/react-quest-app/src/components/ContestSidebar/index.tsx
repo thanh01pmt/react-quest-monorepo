@@ -38,6 +38,13 @@ export function ContestSidebar() {
 
     return (
         <aside className="contest-sidebar">
+            {/* Test Mode Indicator */}
+            {state.participant?.isTest && (
+                <div className="test-mode-badge" title="Bài thi này sẽ không được tính vào bảng xếp hạng">
+                    🧪 Chế độ thi thử
+                </div>
+            )}
+
             {/* Timer */}
             <div className={`contest-timer ${isTimeCritical ? 'timer-critical' : ''}`}>
                 <div className="timer-label">⏱ Thời gian còn lại</div>

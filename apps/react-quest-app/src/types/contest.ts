@@ -62,6 +62,8 @@ export interface ContestParticipant {
 	deadline: string;
 	/** Status */
 	status: "active" | "submitted" | "timed_out" | "disqualified";
+	/** Is this a test session? */
+	isTest?: boolean;
 }
 
 // ─── Supabase: board_submissions ──────────────────

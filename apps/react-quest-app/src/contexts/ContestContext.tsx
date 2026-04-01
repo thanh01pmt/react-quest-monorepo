@@ -92,7 +92,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
     // ── Timer ─────────────────────────────────────────────────────────
 
     useEffect(() => {
-        if (!state.participant?.deadline || state.isLocked) {
+        if (!state.participant?.deadline || state.isLocked || state.participant?.isTest) {
             setRemainingSeconds(null);
             return;
         }

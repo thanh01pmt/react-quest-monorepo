@@ -77,6 +77,7 @@ export async function resolveSupabaseContestSession(
 			joinedAt: bp.started_at || new Date().toISOString(),
 			deadline: bp.deadline || new Date().toISOString(),
 			status: bp.status,
+			isTest: bp.is_test || false,
 		};
 
 		return { contest: contestConfig, participant };

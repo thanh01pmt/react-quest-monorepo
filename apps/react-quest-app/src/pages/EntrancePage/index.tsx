@@ -279,22 +279,24 @@ export function EntrancePage() {
                             <p>Bạn đã có mặt tại phòng chờ.</p>
                         </div>
 
-                        {timeStatus === 'not_started' && (
+                        {timeStatus === 'not_started' && !state.participant.isTest && (
                             <div className="entrance-status entrance-status-waiting">
                                 ⏳ Cuộc thi chưa bắt đầu. {startDate ? `Vui lòng chờ đến ` : ''}<b>{startDate?.toLocaleString('vi-VN')}</b>.
                             </div>
                         )}
 
-                        {timeStatus === 'ended' && (
+                        {timeStatus === 'ended' && !state.participant.isTest && (
                             <div className="entrance-status entrance-status-ended">
                                 🔴 Cuộc thi đã kết thúc. Cảm ơn bạn đã tham gia.
                             </div>
                         )}
 
-                        {timeStatus === 'active' && (
+                        {(timeStatus === 'active' || state.participant.isTest) && (
                             <div className="lobby-action">
                                 <div className="entrance-status entrance-status-active">
-                                    🟢 Cuộc thi đang diễn ra! Hãy nhấn nút bên dưới để bắt đầu làm bài.
+                                    {state.participant.isTest 
+                                        ? "🔧 Chế độ thi thử! Bạn có thể bắt đầu làm bài ngay."
+                                        : "🟢 Cuộc thi đang diễn ra! Hãy nhấn nút bên dưới để bắt đầu làm bài."}
                                 </div>
                                 <button 
                                     className="entrance-submit-btn exam-start-btn" 
