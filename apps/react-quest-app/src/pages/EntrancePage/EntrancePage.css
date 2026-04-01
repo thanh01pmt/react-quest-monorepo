@@ -234,3 +234,54 @@
 	color: rgba(255, 255, 255, 0.5);
 	margin: 0;
 }
+
+/* ── Lobby ─────────────────────────────────────────────────────── */
+
+.entrance-lobby {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	text-align: center;
+	padding: 12px 0;
+}
+
+.lobby-greeting {
+	margin-bottom: 8px;
+}
+
+.lobby-greeting h3 {
+	font-size: 1.35rem;
+	margin: 0 0 6px;
+	font-weight: 600;
+}
+
+.lobby-greeting h3 span {
+	color: #f5af19;
+}
+
+.lobby-greeting p {
+	font-size: 0.95rem;
+	color: rgba(255, 255, 255, 0.6);
+	margin: 0;
+}
+
+.entrance-status-active {
+	background: rgba(76, 175, 80, 0.15);
+	border: 1px solid rgba(76, 175, 80, 0.3);
+	color: #4CAF50;
+}
+
+.lobby-action {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.exam-start-btn {
+	background: linear-gradient(135deg, #00b09b, #96c93d);
+	box-shadow: 0 4px 15px rgba(0, 176, 155, 0.3);
+}
+
+.exam-start-btn:hover:not(:disabled) {
+	box-shadow: 0 8px 24px rgba(0, 176, 155, 0.45);
+}

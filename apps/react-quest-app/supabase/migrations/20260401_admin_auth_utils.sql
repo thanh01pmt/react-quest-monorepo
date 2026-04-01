@@ -62,6 +62,7 @@ BEGIN
     INSERT INTO auth.identities (
         id,
         user_id,
+        provider_id,
         identity_data,
         provider,
         last_sign_in_at,
@@ -71,6 +72,7 @@ BEGIN
     VALUES (
         v_user_id,
         v_user_id,
+        p_email,
         jsonb_build_object('sub', v_user_id, 'email', p_email),
         'email',
         now(),

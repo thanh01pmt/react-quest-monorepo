@@ -1,7 +1,7 @@
 /**
  * EntrancePage
  *
- * Contest entrance: login with credentials, provide contact info, enter exam room.
+ * Contest entrance: login with credentials, provide contact info, wait in lobby, and enter exam room.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -25,6 +25,13 @@ export function EntrancePage() {
     const [phone, setPhone] = useState('');
     const [localError, setLocalError] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    
+    // Force re-render to update time status seamlessly
+    const [, setCurrentTime] = useState(Date.now());
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     // Load contest on mount
     useEffect(() => {
@@ -32,13 +39,6 @@ export function EntrancePage() {
             loadContest(contestId);
         }
     }, [contestId, loadContest]);
-
-    // If already registered, go straight to exam
-    useEffect(() => {
-        if (state.participant && contestId) {
-            navigate(`/contest/${contestId}/exam`, { replace: true });
-        }
-    }, [state.participant, contestId, navigate]);
 
     // If user is logged in but no participant, show contact step
     useEffect(() => {
@@ -90,7 +90,7 @@ export function EntrancePage() {
                 email: email.trim(),
                 phone: phone.trim(),
             });
-            // Registration triggers participant state update → useEffect navigates to exam
+            // Registration triggers participant state update → Lobby UI will show
         } catch (err: any) {
             setLocalError(err.message || 'Lỗi đăng ký');
         } finally {
@@ -157,118 +157,146 @@ export function EntrancePage() {
                     </div>
                 </div>
 
-                {/* Status Banner */}
-                {timeStatus === 'not_started' && (
-                    <div className="entrance-status entrance-status-waiting">
-                        ⏳ Cuộc thi chưa bắt đầu. Vui lòng quay lại lúc {startDate.toLocaleString('vi-VN')}.
-                    </div>
-                )}
+                {!state.participant ? (
+                    /* ----- LOGIN / REGISTER FLOW ----- */
+                    timeStatus === 'ended' ? (
+                        <div className="entrance-status entrance-status-ended">
+                            🔴 Cuộc thi đã kết thúc.
+                        </div>
+                    ) : (
+                        <>
+                            {step === 'login' && (
+                                <form className="entrance-form" onSubmit={handleLogin}>
+                                    <h2>Đăng nhập Hệ thống</h2>
+                                    <p className="form-subtitle">Đăng nhập tài khoản để vào phòng chờ cuộc thi.</p>
+                                    <div className="form-group">
+                                        <label htmlFor="username">Tên đăng nhập</label>
+                                        <input
+                                            id="username"
+                                            type="text"
+                                            value={username}
+                                            onChange={(e) => setUsername(e.target.value)}
+                                            placeholder="VD: ts001"
+                                            autoFocus
+                                            disabled={submitting}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="password">Mật khẩu</label>
+                                        <input
+                                            id="password"
+                                            type="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            placeholder="Nhập mật khẩu"
+                                            disabled={submitting}
+                                        />
+                                    </div>
 
-                {timeStatus === 'ended' && (
-                    <div className="entrance-status entrance-status-ended">
-                        🔴 Cuộc thi đã kết thúc.
-                    </div>
-                )}
+                                    {(localError || authError) && (
+                                        <div className="form-error">{localError || authError}</div>
+                                    )}
 
-                {/* Login/Contact Form */}
-                {timeStatus === 'active' && (
-                    <>
-                        {step === 'login' && (
-                            <form className="entrance-form" onSubmit={handleLogin}>
-                                <h2>Đăng nhập</h2>
-                                <div className="form-group">
-                                    <label htmlFor="username">Tên đăng nhập</label>
-                                    <input
-                                        id="username"
-                                        type="text"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        placeholder="VD: ts001"
-                                        autoFocus
+                                    <button
+                                        type="submit"
+                                        className="entrance-submit-btn"
+                                        disabled={submitting || authLoading}
+                                    >
+                                        {submitting ? 'Đang xử lý...' : 'Tiếp tục →'}
+                                    </button>
+                                </form>
+                            )}
+
+                            {step === 'contact' && (
+                                <form className="entrance-form" onSubmit={handleRegister}>
+                                    <h2>Thông tin liên hệ</h2>
+                                    <p className="form-subtitle">
+                                        Để nhận kết quả thi, vui lòng cung cấp thông tin liên hệ.
+                                    </p>
+                                    <div className="form-group">
+                                        <label htmlFor="displayName">Họ và tên *</label>
+                                        <input
+                                            id="displayName"
+                                            type="text"
+                                            value={displayName}
+                                            onChange={(e) => setDisplayName(e.target.value)}
+                                            placeholder="Nguyễn Văn A"
+                                            autoFocus
+                                            required
+                                            disabled={submitting}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="email">Email *</label>
+                                        <input
+                                            id="email"
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="email@example.com"
+                                            required
+                                            disabled={submitting}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="phone">Số điện thoại</label>
+                                        <input
+                                            id="phone"
+                                            type="tel"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            placeholder="0901234567"
+                                            disabled={submitting}
+                                        />
+                                    </div>
+
+                                    {localError && <div className="form-error">{localError}</div>}
+
+                                    <button
+                                        type="submit"
+                                        className="entrance-submit-btn"
                                         disabled={submitting}
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="password">Mật khẩu</label>
-                                    <input
-                                        id="password"
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="Nhập mật khẩu"
-                                        disabled={submitting}
-                                    />
-                                </div>
+                                    >
+                                        {submitting ? 'Đang xác nhận...' : 'Hoàn tất đăng ký'}
+                                    </button>
+                                </form>
+                            )}
+                        </>
+                    )
+                ) : (
+                    /* ----- LOBBY FLOW ----- */
+                    <div className="entrance-lobby">
+                        <div className="lobby-greeting">
+                            <h3>Xin chào, <span>{state.participant.displayName}</span>!</h3>
+                            <p>Bạn đã có mặt tại phòng chờ.</p>
+                        </div>
 
-                                {(localError || authError) && (
-                                    <div className="form-error">{localError || authError}</div>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    className="entrance-submit-btn"
-                                    disabled={submitting || authLoading}
-                                >
-                                    {submitting ? 'Đang xử lý...' : 'Tiếp tục →'}
-                                </button>
-                            </form>
+                        {timeStatus === 'not_started' && (
+                            <div className="entrance-status entrance-status-waiting">
+                                ⏳ Cuộc thi chưa bắt đầu. Vui lòng chờ đến <b>{startDate.toLocaleString('vi-VN')}</b>.
+                            </div>
                         )}
 
-                        {step === 'contact' && (
-                            <form className="entrance-form" onSubmit={handleRegister}>
-                                <h2>Thông tin liên hệ</h2>
-                                <p className="form-subtitle">
-                                    Để nhận kết quả thi, vui lòng cung cấp thông tin liên hệ.
-                                </p>
-                                <div className="form-group">
-                                    <label htmlFor="displayName">Họ và tên *</label>
-                                    <input
-                                        id="displayName"
-                                        type="text"
-                                        value={displayName}
-                                        onChange={(e) => setDisplayName(e.target.value)}
-                                        placeholder="Nguyễn Văn A"
-                                        autoFocus
-                                        required
-                                        disabled={submitting}
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="email">Email *</label>
-                                    <input
-                                        id="email"
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="email@example.com"
-                                        required
-                                        disabled={submitting}
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="phone">Số điện thoại</label>
-                                    <input
-                                        id="phone"
-                                        type="tel"
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        placeholder="0901234567"
-                                        disabled={submitting}
-                                    />
-                                </div>
-
-                                {localError && <div className="form-error">{localError}</div>}
-
-                                <button
-                                    type="submit"
-                                    className="entrance-submit-btn"
-                                    disabled={submitting}
-                                >
-                                    {submitting ? 'Đang xử lý...' : '🚀 Vào phòng thi'}
-                                </button>
-                            </form>
+                        {timeStatus === 'ended' && (
+                            <div className="entrance-status entrance-status-ended">
+                                🔴 Cuộc thi đã kết thúc. Cảm ơn bạn đã tham gia.
+                            </div>
                         )}
-                    </>
+
+                        {timeStatus === 'active' && (
+                            <div className="lobby-action">
+                                <div className="entrance-status entrance-status-active">
+                                    🟢 Cuộc thi đang diễn ra! Hãy nhấn nút bên dưới để bắt đầu làm bài.
+                                </div>
+                                <button 
+                                    className="entrance-submit-btn exam-start-btn" 
+                                    onClick={() => navigate(`/contest/${contestId}/exam`)}
+                                >
+                                    🚀 Bắt đầu làm bài
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
         </div>

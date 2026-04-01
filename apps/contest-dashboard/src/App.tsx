@@ -41,6 +41,40 @@ export function App() {
         return <LoginPage />;
     }
 
+    const isParticipant = !!session.user?.user_metadata?.username;
+    
+    if (isParticipant) {
+        const match = window.location.pathname.match(/\/contest\/([^\/]+)/);
+        const contestId = match ? match[1] : null;
+
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+                <h2 style={{ color: 'var(--text-primary)', marginBottom: 16 }}>Truy cập bị từ chối</h2>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>Tài khoản thí sinh không được phép truy cập Contest Dashboard (Hệ thống quản trị).</p>
+                
+                {contestId && (
+                    <div style={{ marginBottom: 24, textAlign: 'center' }}>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Đang chuyển hướng bạn đến sảnh chờ (Lobby) của cuộc thi...</p>
+                        <a 
+                            href={`${import.meta.env.VITE_LEARNER_APP_URL || 'https://quest-player.netlify.app'}/contest/${contestId}`}
+                            className="btn btn-primary"
+                            style={{ display: 'inline-flex', padding: '12px 24px', textDecoration: 'none', fontWeight: 'bold' }}
+                        >
+                            🚀 Đi tới trang làm bài (Lobby)
+                        </a>
+                    </div>
+                )}
+                
+                <button 
+                    onClick={() => supabase.auth.signOut()}
+                    className="btn btn-secondary"
+                >
+                    Đăng xuất khỏi hệ thống
+                </button>
+            </div>
+        );
+    }
+
     return (
         <Routes>
             <Route element={<DashboardLayout />}>
