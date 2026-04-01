@@ -279,32 +279,53 @@ export function EntrancePage() {
                             <p>Bạn đã có mặt tại phòng chờ.</p>
                         </div>
 
-                        {timeStatus === 'not_started' && !state.participant.isTest && (
-                            <div className="entrance-status entrance-status-waiting">
-                                ⏳ Cuộc thi chưa bắt đầu. {startDate ? `Vui lòng chờ đến ` : ''}<b>{startDate?.toLocaleString('vi-VN')}</b>.
-                            </div>
-                        )}
-
-                        {timeStatus === 'ended' && !state.participant.isTest && (
-                            <div className="entrance-status entrance-status-ended">
-                                🔴 Cuộc thi đã kết thúc. Cảm ơn bạn đã tham gia.
-                            </div>
-                        )}
-
-                        {(timeStatus === 'active' || state.participant.isTest) && (
+                        {/* Test Mode / Admin Bypass */}
+                        {state.participant.isTest && (
                             <div className="lobby-action">
-                                <div className="entrance-status entrance-status-active">
-                                    {state.participant.isTest 
-                                        ? "🔧 Chế độ thi thử! Bạn có thể bắt đầu làm bài ngay."
-                                        : "🟢 Cuộc thi đang diễn ra! Hãy nhấn nút bên dưới để bắt đầu làm bài."}
+                                <div className="entrance-status entrance-status-active" style={{ backgroundColor: '#f59e0b', color: 'white' }}>
+                                    🔧 Chế độ thi thử! Bài thi đã sẵn sàng cho bạn.
                                 </div>
                                 <button 
-                                    className="entrance-submit-btn exam-start-btn" 
+                                    className="entrance-submit-btn exam-start-btn pulse" 
                                     onClick={() => navigate(`/contest/${contestId}/exam`)}
                                 >
-                                    🚀 Bắt đầu làm bài
+                                    🚀 Bắt đầu làm bài ngay
                                 </button>
+                                <p className="status-note" style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                                    (Lưu ý: Kết quả thi thử này sẽ không được tính vào bảng xếp hạng chung)
+                                </p>
                             </div>
+                        )}
+
+                        {/* Standard Participant Flow */}
+                        {!state.participant.isTest && (
+                            <>
+                                {timeStatus === 'not_started' && (
+                                    <div className="entrance-status entrance-status-waiting">
+                                        ⏳ Cuộc thi chưa bắt đầu. {startDate ? `Vui lòng chờ đến ` : ''}<b>{startDate?.toLocaleString('vi-VN')}</b>.
+                                    </div>
+                                )}
+
+                                {timeStatus === 'ended' && (
+                                    <div className="entrance-status entrance-status-ended">
+                                        🔴 Cuộc thi đã kết thúc. Cảm ơn bạn đã tham gia.
+                                    </div>
+                                )}
+
+                                {timeStatus === 'active' && (
+                                    <div className="lobby-action">
+                                        <div className="entrance-status entrance-status-active">
+                                            🟢 Cuộc thi đang diễn ra! Hãy nhấn nút bên dưới để bắt đầu làm bài.
+                                        </div>
+                                        <button 
+                                            className="entrance-submit-btn exam-start-btn" 
+                                            onClick={() => navigate(`/contest/${contestId}/exam`)}
+                                        >
+                                            🚀 Bắt đầu làm bài
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 )}

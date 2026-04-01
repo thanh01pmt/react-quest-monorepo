@@ -178,13 +178,18 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
                 setState((s) => ({
                     ...s,
                     // Use type any here since metadata is partial Config
-                    contest: { id: publicInfo.id, title: publicInfo.title, description: publicInfo.description, status: publicInfo.status } as any,
+                    contest: { 
+                        id: publicInfo.id, 
+                        title: publicInfo.title, 
+                        description: publicInfo.description, 
+                        status: publicInfo.status 
+                    } as any,
                     loading: false,
                 }));
                 return;
             }
 
-            setState((s) => ({ ...s, loading: false, error: 'Cuộc thi không tồn tại hoặc chưa mở.' }));
+            setState((s) => ({ ...s, loading: false, error: 'Cuộc thi không tồn tại.' }));
         } catch (error: any) {
             setState((s) => ({
                 ...s,
