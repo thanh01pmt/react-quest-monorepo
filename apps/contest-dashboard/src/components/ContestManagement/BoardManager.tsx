@@ -159,9 +159,11 @@ export function BoardManager({ contestId }: BoardManagerProps) {
                 bp = newBP;
             }
 
-            // 3. Chuyển hướng sang Learner App (mặc định localhost:5173 hoặc cấu hình)
+            // 3. Chuyển hướng sang Learner App với contest ID (KHÔNG phải bp.id)
+            // Bảo mật: auth.uid() được kiểm tra server-side trong resolve_participant_session
+            // → Người lạ có link cũng không vào được vì không có is_test session
             const learnerUrl = import.meta.env.VITE_LEARNER_APP_URL || 'http://localhost:5173';
-            window.open(`${learnerUrl}/contest/${bp!.id}`, '_blank');
+            window.open(`${learnerUrl}/contest/${contestId}`, '_blank');
 
         } catch (error: any) {
             console.error('Lỗi thi thử:', error);
