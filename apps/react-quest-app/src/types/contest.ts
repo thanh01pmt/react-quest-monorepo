@@ -90,8 +90,12 @@ export interface ContestSubmission {
 
 export interface SubmissionTestResult {
 	id: string;
+	/** New: Name of the test case */
+	testName: string;
 	status: "pass" | "fail" | "error" | "pending";
 	actualOutput: string;
+	/** New: Optional error message or feedback */
+	message?: string;
 	error?: string;
 }
 

@@ -71,7 +71,7 @@ export function ReviewPage() {
                     </div>
                     <div className="header-meta">
                         <span className="meta-item">
-                            ID: <code>{submission.id.substring(0, 8)}</code>
+                            ID: <code>{submission.id?.substring(0, 8) || 'N/A'}</code>
                         </span>
                         <span className="meta-item">
                             Ngày nộp: {new Date(submission.submittedAt).toLocaleString('vi-VN')}
