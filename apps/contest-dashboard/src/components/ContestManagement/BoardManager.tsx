@@ -135,7 +135,6 @@ export function BoardManager({ contestId }: BoardManagerProps) {
                 .select('id')
                 .eq('board_id', board.id)
                 .eq('participant_id', participant!.id)
-                .eq('is_test', true)
                 .maybeSingle();
 
             if (!bp) {
