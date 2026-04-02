@@ -1,4 +1,7 @@
 # netlify.toml cho map-builder-app
+[build]
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../../packages/quest-player ../../packages/academic-map-generator ../../packages/shared-templates ../../package.json ../../pnpm-workspace.yaml ../../pnpm-lock.yaml ../../turbo.json ../../scripts/"
+
 # Cấu hình được set trong Netlify UI để tránh conflict:
 # - Base directory: / (hoặc để trống)
 # - Package directory: apps/map-builder-app
