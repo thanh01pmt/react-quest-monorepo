@@ -15,7 +15,75 @@ const DEFAULT_TIMEOUT_MS = 2000;
 
 class ExecutionService {
   /**
-   * Execute JavaScript code using Worker Threads
+   * Execute code using Piston API (Python, C, C++, etc.)
+   */
+  static async executeWithPiston(language, code, stdin = '', timeoutMs = DEFAULT_TIMEOUT_MS) {
+    const PISTON_URL = process.env.PISTON_URL || 'https://piston.orchable.xyz/api/v2';
+    const start = Date.now();
+    
+    // Map languages to Piston identifiers and versions
+    const languageMap = {
+      'python': { language: 'python', version: '3.12.0' },
+      'py':     { language: 'python', version: '3.12.0' },
+      'c':      { language: 'c',      version: '10.2.0' },
+      'cpp':    { language: 'c++',    version: '10.2.0' },
+      'c++':    { language: 'c++',    version: '10.2.0' }
+    };
+
+    const config = languageMap[language.toLowerCase()] || { language, version: '*' };
+
+    try {
+      const response = await fetch(`${PISTON_URL}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          language: config.language,
+          version: config.version,
+          files: [{ content: code }],
+          stdin: stdin,
+          run_timeout: timeoutMs,
+          compile_timeout: 10000
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Piston API Error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const run = data.run;
+      const compile = data.compile;
+
+      // Handle Compilation Error
+      if (compile && compile.stderr) {
+        return {
+          success: false,
+          error: compile.stderr,
+          logs: [compile.stdout].filter(Boolean),
+          timeMs: Date.now() - start
+        };
+      }
+
+      // Handle Runtime Result
+      return {
+        success: run.code === 0 && !run.signal,
+        result: run.stdout.trim(),
+        logs: [run.stdout, run.stderr].filter(Boolean),
+        timeMs: Date.now() - start
+      };
+
+    } catch (err) {
+      return {
+        success: false,
+        error: err.message,
+        logs: [],
+        timeMs: Date.now() - start
+      };
+    }
+  }
+
+  /**
+   * Execute JavaScript code using Worker Threads (Local)
    */
   static async executeJS(code, input = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
     const start = Date.now();
@@ -95,72 +163,10 @@ class ExecutionService {
   }
 
   /**
-   * Execute Python code using child_process
+   * Execute Python code (DEPRECATED - moved to executeWithPiston)
    */
   static async executePython(code, input = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
-    const start = Date.now();
-    let logs = [];
-    let errorOutput = '';
-
-    // Wrap the code to handle input/output as JSON
-    const wrappedCode = `
-import json
-import sys
-
-def run_user_code(input_data):
-    # User code starts here
-${code.split('\n').map(line => '    ' + line).join('\n')}
-    # User code ends here (assuming user returns result)
-
-if __name__ == "__main__":
-    try:
-        data = json.loads(sys.argv[1]) if len(sys.argv) > 1 else {}
-        # result = run_user_code(data) # Not feasible for general code without a function wrapper
-        # For competitive programming style:
-        exec("""${code.replace(/"""/g, '\\"\\"\\"') }""", globals())
-    except Exception as e:
-        print(f"ERROR: {str(e)}", file=sys.stderr)
-`;
-
-    return new Promise((resolve) => {
-      const process = spawn('python3', ['-c', wrappedCode, JSON.stringify(input)]);
-      
-      const timer = setTimeout(() => {
-        process.kill();
-        resolve({
-          success: false,
-          error: 'Execution Timeout',
-          logs,
-          timeMs: Date.now() - start,
-        });
-      }, timeoutMs);
-
-      process.stdout.on('data', (data) => {
-        logs.push(data.toString().trim());
-      });
-
-      process.stderr.on('data', (data) => {
-        errorOutput += data.toString();
-      });
-
-      process.on('close', (code) => {
-        clearTimeout(timer);
-        if (code === 0) {
-          resolve({
-            success: true,
-            logs,
-            timeMs: Date.now() - start,
-          });
-        } else {
-          resolve({
-            success: false,
-            error: errorOutput || 'Unknown execution error',
-            logs,
-            timeMs: Date.now() - start,
-          });
-        }
-      });
-    });
+    return this.executeWithPiston('python', code, JSON.stringify(input), timeoutMs);
   }
 }
 

@@ -48,10 +48,14 @@ router.post('/', requireAuth, async (req, res, next) => {
     for (const [index, tc] of testCases.entries()) {
       let judgeResult;
       
-      if (language === 'python' || (questData.language === 'python')) {
-        judgeResult = await ExecutionService.executePython(code, tc.input, timeLimit);
-      } else {
+      const lang = (language || questData.language || 'javascript').toLowerCase();
+
+      if (lang === 'javascript' || lang === 'js') {
+        // Keep JS execution local via worker_threads for performance
         judgeResult = await ExecutionService.executeJS(code, tc.input, timeLimit);
+      } else {
+        // Use Piston for Python, C, C++, etc.
+        judgeResult = await ExecutionService.executeWithPiston(lang, code, tc.input, timeLimit);
       }
 
       const isCorrect = judgeResult.success && 
@@ -67,10 +71,10 @@ router.post('/', requireAuth, async (req, res, next) => {
         actual: judgeResult.result || judgeResult.error,
         status: isCorrect ? 'passed' : 'failed',
         timeMs: judgeResult.timeMs,
-        workerLog: judgeResult.logs.join('\n')
+        workerLog: (judgeResult.logs || []).join('\n')
       });
 
-      if (judgeResult.logs.length > 0) {
+      if (judgeResult.logs && judgeResult.logs.length > 0) {
         combinedLogs.push(`Test ${index + 1}:\n${judgeResult.logs.join('\n')}`);
       }
     }
