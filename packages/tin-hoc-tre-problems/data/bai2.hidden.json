@@ -1,0 +1,43 @@
+{
+  "problem_id": "bai2",
+  "time_limit_ms": 5000,
+  "test_cases": [
+    {
+      "weight": 15,
+      "input": ["4", "R", "R", "U", "U"],
+      "expected": ["40", "40"]
+    },
+    {
+      "weight": 15,
+      "input": ["6", "R", "U", "U", "L", "L", "D"],
+      "expected": ["-20", "20"]
+    },
+    {
+      "weight": 15,
+      "input": ["4", "L", "L", "D", "D"],
+      "expected": ["-40", "-40"]
+    },
+    {
+      "weight": 15,
+      "input": ["8", "R", "R", "R", "R", "R", "R", "R", "R"],
+      "expected": ["160", "0"]
+    },
+    {
+      "weight": 20,
+      "input": ["12", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R"],
+      "expected": ["240", "0"],
+      "note": "Chạm biên phải (X = 240 max)"
+    },
+    {
+      "weight": 10,
+      "input": ["4", "U", "U", "U", "U"],
+      "expected": ["0", "80"]
+    },
+    {
+      "weight": 10,
+      "input": ["20", "R", "U", "R", "U", "R", "U", "R", "U", "R", "U", "L", "D", "L", "D", "L", "D", "L", "D", "L", "D"],
+      "expected": ["0", "0"],
+      "note": "Đường đi khép kín"
+    }
+  ]
+}

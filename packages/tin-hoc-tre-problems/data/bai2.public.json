@@ -1,0 +1,34 @@
+{
+  "problem_id": "bai2",
+  "title": "Robot đi theo lệnh",
+  "description": "Robot bắt đầu ở ô (0,0) trên lưới 24×18. inputData chứa chuỗi lệnh điều hướng: U (lên), D (xuống), L (trái), R (phải). Mỗi bước di chuyển 1 ô (tương đương 20 pixel trong Scratch). Ghi tọa độ cuối cùng (x,y) vào output (2 phần tử).\n\nLưu ý: Trục Y của Scratch ngược với ma trận thông thường:\n  - Lên (U) → Y tăng 20\n  - Xuống (D) → Y giảm 20\n  - Trái (L) → X giảm 20\n  - Phải (R) → X tăng 20\n\nRobot không thể đi ra ngoài biên (-240 ≤ X ≤ 240, -180 ≤ Y ≤ 180).",
+  "example_input": ["5", "R", "R", "U", "L", "D"],
+  "example_output": ["20", "0"],
+  "time_limit": 15,
+  "test_cases": [
+    {
+      "weight": 25,
+      "input": ["4", "R", "R", "U", "U"],
+      "expected": ["40", "40"],
+      "note": "Đi đơn giản"
+    },
+    {
+      "weight": 25,
+      "input": ["6", "R", "U", "U", "L", "L", "D"],
+      "expected": ["-20", "20"],
+      "note": "Hỗn hợp hướng"
+    },
+    {
+      "weight": 25,
+      "input": ["4", "L", "L", "D", "D"],
+      "expected": ["-40", "-40"],
+      "note": "Hướng âm"
+    },
+    {
+      "weight": 25,
+      "input": ["8", "R", "R", "R", "R", "R", "R", "R", "R"],
+      "expected": ["160", "0"],
+      "note": "Đi thẳng ngang"
+    }
+  ]
+}

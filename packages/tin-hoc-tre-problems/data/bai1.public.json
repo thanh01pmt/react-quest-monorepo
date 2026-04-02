@@ -1,0 +1,34 @@
+{
+  "problem_id": "bai1",
+  "title": "Tìm phần tử lớn nhất",
+  "description": "Cho dãy N số nguyên trong danh sách inputData (phần tử đầu tiên là N). Tìm số lớn nhất trong dãy và ghi vào output.",
+  "example_input": ["5", "3", "9", "1", "7", "2"],
+  "example_output": ["9"],
+  "time_limit": 10,
+  "test_cases": [
+    {
+      "weight": 20,
+      "input": ["5", "3", "9", "1", "7", "2"],
+      "expected": ["9"],
+      "note": "Dữ liệu nhỏ"
+    },
+    {
+      "weight": 20,
+      "input": ["4", "100", "200", "150", "175"],
+      "expected": ["200"],
+      "note": "Số 3 chữ số"
+    },
+    {
+      "weight": 30,
+      "input": ["6", "-5", "-1", "-99", "-3", "-7", "-2"],
+      "expected": ["-1"],
+      "note": "Toàn số âm"
+    },
+    {
+      "weight": 30,
+      "input": ["1", "42"],
+      "expected": ["42"],
+      "note": "Chỉ 1 phần tử"
+    }
+  ]
+}

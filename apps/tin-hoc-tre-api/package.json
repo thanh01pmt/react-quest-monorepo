@@ -1,0 +1,30 @@
+{
+  "name": "tin-hoc-tre-contest-platform",
+  "version": "1.0.0",
+  "description": "Hệ thống thi lập trình Scratch nội bộ đồng dạng Tin học trẻ",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "dev":            "node src/server.js",
+    "db:init":        "node -e \"const db = require('@tin-hoc-tre/shared'); db.initDB().then(()=>process.exit(0))\""
+  },
+  "dependencies": {
+    "adm-zip":      "^0.5.10",
+    "bcrypt":       "^5.1.1",
+    "bull":         "^4.12.2",
+    "cors":         "^2.8.5",
+    "express":      "^4.18.3",
+    "helmet":       "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan":       "^1.10.0",
+    "multer":       "^1.4.5-lts.1",
+    "pg":           "^8.11.3",
+    "uuid":         "^9.0.1",
+    "@tin-hoc-tre/shared": "workspace:*",
+    "@tin-hoc-tre/problems": "workspace:*"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "serve":        "^14.2.1"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "tin-hoc-tre-extension",
+  "version": "1.0.0",
+  "scripts": {
+    "serve": "serve -p 8000 ."
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "pg": "^8.11.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

@@ -1,5 +1,18 @@
 # AI Startup Project
 
+## 🏆 Hệ sinh thái Tin Học Trẻ (Scratch Competition)
+
+Dự án này bao gồm một bộ công cụ hoàn chỉnh để tổ chức các cuộc thi lập trình Scratch:
+
+- **Backend API**: Quản lý thí sinh và đề thi.
+- **Headless Judge**: Chấm điểm tự động bài làm `.sb3`.
+- **TurboWarp Extension**: Giao diện thi đấu tùy chỉnh.
+- **Problem Bank**: Kho đề thi và testcase.
+
+👉 **[Xem hướng dẫn kỹ thuật chi tiết tại đây](apps/tin-hoc-tre-api/README.md)**
+
+---
+
 ## Thay Đổi Gần Đây
 
 ### 13/01/2026

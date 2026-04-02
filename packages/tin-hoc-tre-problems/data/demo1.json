@@ -1,0 +1,23 @@
+{
+  "problem_id": "dem1",
+  "title": "Tìm số lớn nhất",
+  "description": "Đọc danh sách số từ inputData, tìm số lớn nhất, ghi vào output.",
+  "time_limit": 30,
+  "test_cases": [
+    {
+      "weight": 30,
+      "input": ["5", "3", "9", "1", "7"],
+      "expected": ["9"]
+    },
+    {
+      "weight": 30,
+      "input": ["100", "200", "150"],
+      "expected": ["200"]
+    },
+    {
+      "weight": 40,
+      "input": ["-5", "-1", "-99", "-3"],
+      "expected": ["-1"]
+    }
+  ]
+}

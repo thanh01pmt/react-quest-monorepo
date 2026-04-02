@@ -1,0 +1,6 @@
+{
+  "name": "@tin-hoc-tre/problems",
+  "version": "1.0.0",
+  "description": "Shared problem data",
+  "files": ["data"]
+}
