@@ -32,6 +32,33 @@ export async function getPublicContestInfo(
 }
 
 /**
+ * Join a contest as a participant (for both registered and test users)
+ */
+export async function joinContest(
+	contestId: string,
+	displayName: string,
+	isTest = true,
+): Promise<{ participantId: string } | null> {
+	try {
+		const { data, error } = await supabase.rpc("join_contest_rpc", {
+			p_contest_id: contestId,
+			p_display_name: displayName,
+			p_is_test: isTest,
+		});
+
+		if (error) {
+			console.error("[SupabaseService] joinContest error:", error);
+			throw error;
+		}
+
+		return { participantId: data as string };
+	} catch (err) {
+		console.error("[SupabaseService] joinContest catch:", err);
+		return null;
+	}
+}
+
+/**
  * Resolve a contest session from Supabase via RPC using auth.uid().
  * Uses SECURITY DEFINER RPC function so anon role can access conditionally.
  */

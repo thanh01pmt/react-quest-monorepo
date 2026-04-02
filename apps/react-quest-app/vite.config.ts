@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [
-    tsconfigPaths(),
+    tsconfigPaths() as any,
     viteStaticCopy({
       targets: [
         {
@@ -18,8 +18,8 @@ export default defineConfig({
           dest: '.'
         }
       ]
-    }),
-    react(),
+    }) as any,
+    react() as any,
   ],
   
   publicDir: './public',

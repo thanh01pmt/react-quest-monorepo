@@ -17,6 +17,7 @@ interface AuthContextType {
     signInWithGoogle: () => Promise<void>;
     signInWithEmail: (email: string, password: string) => Promise<void>;
     signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
+    signInAnonymously: () => Promise<void>;  // Added
     signOut: () => Promise<void>;
     clearError: () => void;
 }
@@ -119,6 +120,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
+    // Sign anonymously (Guest mode)
+    const signInAnonymously = useCallback(async () => {
+        setError(null);
+        setLoading(true);
+        try {
+            const { error } = await supabase.auth.signInAnonymously();
+            if (error) throw error;
+        } catch (err: any) {
+            setError(err.message || 'Failed to sign in as guest');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     // Sign out
     const signOut = useCallback(async () => {
         setError(null);
@@ -143,6 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,
+        signInAnonymously,
         signOut,
         clearError,
     };

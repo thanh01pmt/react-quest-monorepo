@@ -12,7 +12,12 @@
 ALTER TABLE participants ADD COLUMN IF NOT EXISTS external_uid TEXT;
 
 -- Step 1b: Copy existing user_id values into external_uid
-UPDATE participants SET external_uid = user_id::TEXT WHERE external_uid IS NULL;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'participants' AND column_name = 'user_id') THEN
+        EXECUTE 'UPDATE participants SET external_uid = user_id::TEXT WHERE external_uid IS NULL';
+    END IF;
+END $$;
 
 -- Step 1c: Drop ALL policies that depend on user_id column
 --          (must happen before dropping the column)
@@ -62,6 +67,13 @@ END $$;
 
 -- Step 1g: Recreate all policies using external_uid instead of user_id.
 -- NOTE: all dependent policies were already dropped in Step 1c above.
+
+-- Admin: Manage all participants
+DROP POLICY IF EXISTS "Admin Manage All Participants" ON participants;
+CREATE POLICY "Admin Manage All Participants" ON participants FOR ALL USING (
+    (auth.role() = 'authenticated'::text) AND 
+    (((auth.jwt() -> 'user_metadata'::text) ->> 'username'::text) IS NULL)
+);
 
 -- Participants: owner read
 CREATE POLICY "User Own Participant" ON participants
@@ -120,6 +132,7 @@ CREATE POLICY "User Own Drafts" ON drafts
 -- Returns full session data for a board_participant ID.
 -- Callable by anon role without direct table access.
 
+DROP FUNCTION IF EXISTS get_contest_session(UUID);
 CREATE OR REPLACE FUNCTION get_contest_session(p_bp_id UUID)
 RETURNS JSON
 LANGUAGE plpgsql
@@ -169,6 +182,7 @@ GRANT EXECUTE ON FUNCTION get_contest_session(UUID) TO anon;
 -- Inserts a submission row. Validates that the board_participant
 -- exists before inserting (prevents orphaned inserts).
 
+DROP FUNCTION IF EXISTS submit_contest_solution(UUID, UUID, TEXT, TEXT, TEXT, JSONB, INT, INT);
 CREATE OR REPLACE FUNCTION submit_contest_solution(
     p_board_participant_id UUID,
     p_exam_id              UUID,
@@ -226,6 +240,7 @@ GRANT EXECUTE ON FUNCTION submit_contest_solution(UUID, UUID, TEXT, TEXT, TEXT, 
 -- Updates the status of a specific board_participant.
 -- Scoped strictly to the provided UUID.
 
+DROP FUNCTION IF EXISTS update_participant_status_rpc(UUID, TEXT);
 CREATE OR REPLACE FUNCTION update_participant_status_rpc(
     p_bp_id   UUID,
     p_status  TEXT

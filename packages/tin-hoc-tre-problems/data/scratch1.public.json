@@ -1,0 +1,12 @@
+{
+  "problem_id": "scratch-1",
+  "title": "Mèo bắt chuột (Scratch)",
+  "gameType": "scratch",
+  "level": 1,
+  "description": "## Bài 1: Mèo bắt chuột (Scratch)\n\nHãy lập trình Scratch với một trò chơi Mèo bắt chuột đơn giản:\n\n- **Nhân vật Mèo:** Luôn đi theo con trỏ chuột trên màn hình.\n- **Nhân vật Chuột:** Xuất hiện ngẫu nhiên trên màn hình, mỗi 2 giây đổi vị trí 1 lần.\n- Khi Mèo chạm Chuột, tăng biến **Score** lên 1 và phát ra âm thanh.\n\nSau khi hoàn thành tạo file trên ứng dụng Scratch, chọn **File -> Save to your computer** để lấy file `.sb3` và nộp lên hệ thống nhé!",
+  "hints": {
+    "description": "Để tải phần mềm Scratch (nếu bạn dùng Offline), truy cập scratch.mit.edu/download"
+  },
+  "time_limit": 0,
+  "test_cases": []
+}

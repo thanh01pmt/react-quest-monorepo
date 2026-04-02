@@ -25,6 +25,7 @@ import {
     updateSupabaseParticipantStatus,
     getSupabaseSubmissions,
     calculateScore,
+    joinContest, // Added
 } from '../services/SupabaseContestService';
 import { useAuth } from './AuthContext';
 
@@ -41,6 +42,8 @@ interface ContestContextType {
         email: string;
         phone: string;
     }) => Promise<void>;
+    /** Join as guest for test mode */
+    joinAsGuest: (displayName: string) => Promise<void>; // Added
     /** Switch to a different challenge */
     selectChallenge: (index: number) => void;
     /** Save code for the current challenge (when switching) */
@@ -80,7 +83,7 @@ const INITIAL_STATE: ContestState = {
 
 export function ContestProvider({ children }: { children?: React.ReactNode }) {
     const [state, setState] = useState<ContestState>(INITIAL_STATE);
-    const { user } = useAuth();
+    const { user, signInAnonymously } = useAuth(); // Added signInAnonymously
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
@@ -247,6 +250,37 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
         [state.contest, user, state.participant]
     );
 
+    // ── Join As Guest ──────────────────────────────────────────────────
+
+    const joinAsGuest = useCallback(
+        async (displayName: string) => {
+            if (!state.contest) return;
+
+            setState((s) => ({ ...s, loading: true, error: null }));
+            try {
+                // 1. Sign in anonymously if not already
+                if (!user) {
+                    await signInAnonymously();
+                }
+
+                // 2. Participate in contest via RPC
+                const res = await joinContest(state.contest.id, displayName, true);
+                if (!res) throw new Error('Không thể tham gia cuộc thi thử');
+
+                // 3. Reload everything to populate participant session
+                await loadContest(state.contest.id);
+            } catch (error: any) {
+                setState((s) => ({
+                    ...s,
+                    loading: false,
+                    error: error.message || 'Lỗi tham gia thi thử',
+                }));
+                throw error;
+            }
+        },
+        [state.contest, user, signInAnonymously, loadContest]
+    );
+
     // ── Select Challenge ──────────────────────────────────────────────
 
     const selectChallenge = useCallback((index: number) => {
@@ -390,6 +424,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
         state,
         loadContest,
         registerParticipant,
+        joinAsGuest,
         selectChallenge,
         saveCurrentCode,
         submitChallenge,

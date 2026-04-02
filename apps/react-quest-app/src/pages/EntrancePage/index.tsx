@@ -16,7 +16,7 @@ export function EntrancePage() {
     const { contestId } = useParams<{ contestId: string }>();
     const navigate = useNavigate();
     const { user, signInWithEmail, loading: authLoading, error: authError, clearError } = useAuth();
-    const { state, loadContest, registerParticipant } = useContest();
+    const { state, loadContest, registerParticipant, joinAsGuest } = useContest();
 
     const [step, setStep] = useState<'login' | 'contact'>('login');
     const [username, setUsername] = useState('');
@@ -26,6 +26,10 @@ export function EntrancePage() {
     const [phone, setPhone] = useState('');
     const [localError, setLocalError] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    
+    // Guest states
+    const [isGuestJoining, setIsGuestJoining] = useState(false);
+    const [guestDisplayName, setGuestDisplayName] = useState('');
     
     // Force re-render to update time status seamlessly
     const [, setCurrentTime] = useState(Date.now());
@@ -41,10 +45,12 @@ export function EntrancePage() {
     // Fetch submissions
     useEffect(() => {
         const fetchSubmissions = async () => {
-            if (state.participant?.id && contestId) {
+            // Use state.contest?.id (the exam UUID) not the URL slug (contestId)
+            const examId = state.contest?.id;
+            if (state.participant?.id && examId) {
                 setLoadingSubmissions(true);
                 try {
-                    const subs = await getSupabaseSubmissions(contestId, state.participant.id);
+                    const subs = await getSupabaseSubmissions(examId, state.participant.id);
                     setSubmissions(subs);
                 } catch (err) {
                     console.error('Failed to fetch submissions:', err);
@@ -57,7 +63,7 @@ export function EntrancePage() {
         if (state.participant) {
             fetchSubmissions();
         }
-    }, [state.participant, contestId]);
+    }, [state.participant, state.contest, contestId]);
 
     // Load contest on mount
     useEffect(() => {
@@ -119,6 +125,31 @@ export function EntrancePage() {
             // Registration triggers participant state update → Lobby UI will show
         } catch (err: any) {
             setLocalError(err.message || 'Lỗi đăng ký');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleGuestJoin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!isGuestJoining) {
+            setIsGuestJoining(true);
+            return;
+        }
+
+        if (!guestDisplayName.trim()) {
+            setLocalError('Vui lòng nhập tên của bạn để bắt đầu');
+            return;
+        }
+
+        setLocalError('');
+        setSubmitting(true);
+
+        try {
+            await joinAsGuest(guestDisplayName.trim());
+        } catch (err: any) {
+            setLocalError(err.message || 'Lỗi tham gia thi thử');
         } finally {
             setSubmitting(false);
         }
@@ -244,6 +275,59 @@ export function EntrancePage() {
                                     >
                                         {submitting ? 'Đang xử lý...' : 'Tiếp tục →'}
                                     </button>
+
+                                    <div className="form-divider">
+                                        <span>HOẶC</span>
+                                    </div>
+
+                                    <div className="guest-section">
+                                        {isGuestJoining ? (
+                                            <div className="guest-form-content">
+                                                <div className="form-group">
+                                                    <label htmlFor="guestName">Tên của bạn *</label>
+                                                    <input
+                                                        id="guestName"
+                                                        type="text"
+                                                        value={guestDisplayName}
+                                                        onChange={(e) => setGuestDisplayName(e.target.value)}
+                                                        placeholder="Nguyễn Văn A"
+                                                        autoFocus
+                                                        required
+                                                        disabled={submitting}
+                                                        onKeyDown={(e) => e.key === 'Enter' && handleGuestJoin(e)}
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className="entrance-submit-btn guest-btn pulse"
+                                                    onClick={handleGuestJoin}
+                                                    disabled={submitting}
+                                                >
+                                                    {submitting ? 'Đang vào phòng...' : 'Bắt đầu Thi Thử 🚀'}
+                                                </button>
+                                                <button 
+                                                    type="button"
+                                                    className="guest-cancel-btn"
+                                                    onClick={() => {
+                                                        setIsGuestJoining(false);
+                                                        setLocalError('');
+                                                    }}
+                                                    disabled={submitting}
+                                                >
+                                                    Hủy
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                className="guest-trigger-btn"
+                                                onClick={() => setIsGuestJoining(true)}
+                                                disabled={submitting}
+                                            >
+                                                ✨ Không có tài khoản? Thi thử ngay!
+                                            </button>
+                                        )}
+                                    </div>
                                 </form>
                             )}
 
