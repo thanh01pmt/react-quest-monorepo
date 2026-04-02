@@ -19,6 +19,7 @@ import {
     getPublicContestInfo,
     resolveSupabaseContestSession,
     saveSupabaseSubmission,
+    submitToJudgeApi,
     updateSupabaseParticipantStatus,
     getSupabaseSubmissions,
     calculateScore,
@@ -43,7 +44,7 @@ interface ContestContextType {
     /** Save code for the current challenge (when switching) */
     saveCurrentCode: (code: string) => void;
     /** Submit a challenge result */
-    submitChallenge: (questId: string, code: string, language: string, testResults: ContestSubmission['testResults']) => Promise<void>;
+    submitChallenge: (questId: string, code: string, language: string) => Promise<void>;
     /** Lock the exam (final submission or timeout) */
     lockExam: () => Promise<void>;
     /** Remaining time in seconds (null if not started) */
@@ -253,26 +254,27 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
             questId: string,
             code: string,
             language: string,
-            testResults: ContestSubmission['testResults']
         ) => {
             if (!state.contest || !state.participant || state.isLocked) return;
 
-            const score = calculateScore(testResults);
-            const challengeIndex = state.challenges.findIndex((ch) => ch.questId === questId);
-            const attempt = challengeIndex >= 0 ? state.challenges[challengeIndex].attempts + 1 : 1;
-
-            // Save to Supabase
-            await saveSupabaseSubmission({
+            // Submit to headless judge API (Express)
+            const result = await submitToJudgeApi({
                 contestId: state.contest.id,
                 participantId: state.participant.id!,
                 questId,
                 code,
                 language,
-                testResults,
-                score,
+                testResults: [], // Managed by backend
+                score: 0,        // Managed by backend
                 submittedAt: new Date().toISOString(),
-                attempt,
+                attempt: 0,      // Managed by backend
             });
+
+            if (!result) return;
+
+            const { score } = result;
+            const challengeIndex = state.challenges.findIndex((ch) => ch.questId === questId);
+            const attemptCount = challengeIndex >= 0 ? (state.challenges[challengeIndex].attempts || 0) + 1 : 1;
 
             // Update local state
             setState((s) => {
@@ -286,7 +288,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
                     challenges[challengeIndex] = {
                         ...current,
                         bestScore: newBestScore,
-                        attempts: attempt,
+                        attempts: attemptCount,
                         status: newBestScore >= 100 ? 'passed' : newBestScore > 0 ? 'attempted' : 'failed',
                     };
                 }

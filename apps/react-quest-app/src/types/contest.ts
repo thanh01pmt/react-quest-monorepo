@@ -86,6 +86,10 @@ export interface ContestSubmission {
 	submittedAt: string;
 	/** Attempt number (1-based) */
 	attempt: number;
+	/** New: Judge worker console logs */
+	workerLog?: string;
+	/** New: Total execution time (ms) */
+	timeMs?: number;
 }
 
 export interface SubmissionTestResult {
@@ -97,6 +101,8 @@ export interface SubmissionTestResult {
 	/** New: Optional error message or feedback */
 	message?: string;
 	error?: string;
+	/** New: Individual test execution time (ms) */
+	timeMs?: number;
 }
 
 // ─── UI State Types ─────────────────────────────────────────────────

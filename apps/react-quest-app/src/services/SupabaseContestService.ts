@@ -99,27 +99,55 @@ export async function resolveSupabaseContestSession(
 }
 
 /**
- * Save a submission to Supabase via RPC.
- * Uses SECURITY DEFINER RPC so anon role can insert
- * without direct INSERT permission on submissions table.
+ * Submit a solution to the Judge API (Express).
+ * This replaces direct Supabase RPC calls for logic/algo challenges.
+ */
+export async function submitToJudgeApi(
+	data: Omit<ContestSubmission, "id">,
+): Promise<{ submissionId: string; score: number } | null> {
+	try {
+		const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+		const { data: sessionData } = await supabase.auth.getSession();
+		const accessToken = sessionData?.session?.access_token;
+
+		const response = await fetch(`${apiUrl}/submissions-code`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${accessToken}`,
+			},
+			body: JSON.stringify({
+				board_participant_id: data.participantId,
+				exam_id: data.contestId,
+				quest_id: data.questId,
+				code: data.code,
+				language: data.language,
+			}),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || "Submission failed");
+		}
+
+		const result = await response.json();
+		return {
+			submissionId: result.submission_id,
+			score: result.score,
+		};
+	} catch (error) {
+		console.error("[SupabaseService] submitToJudgeApi error:", error);
+		return null;
+	}
+}
+
+/**
+ * @deprecated Use submitToJudgeApi
  */
 export async function saveSupabaseSubmission(
 	data: Omit<ContestSubmission, "id">,
 ): Promise<void> {
-	const { error } = await supabase.rpc("submit_contest_solution", {
-		p_board_participant_id: data.participantId,
-		p_exam_id: data.contestId,
-		p_quest_id: data.questId,
-		p_code: data.code,
-		p_language: data.language,
-		p_test_results: data.testResults,
-		p_score: data.score,
-		p_attempt: data.attempt,
-	});
-
-	if (error) {
-		console.error("[SupabaseService] saveSubmission error:", error);
-	}
+	await submitToJudgeApi(data);
 }
 
 /**
@@ -170,6 +198,8 @@ export async function getSupabaseSubmissions(
 		score: row.score,
 		attempt: row.attempt,
 		submittedAt: row.submitted_at,
+		workerLog: row.worker_log,
+		timeMs: row.time_ms,
 	})) as ContestSubmission[];
 }
 
@@ -201,6 +231,8 @@ export async function getSubmissionById(
 		score: data.score,
 		attempt: data.attempt,
 		submittedAt: data.submitted_at,
+		workerLog: data.worker_log,
+		timeMs: data.time_ms,
 	} as ContestSubmission;
 }
 

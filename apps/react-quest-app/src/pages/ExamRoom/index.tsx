@@ -52,14 +52,12 @@ export function ExamRoom() {
 
         // The QuestPlayer returns QuestCompletionResult
         // which contains isSuccess, finalState.testResults, userCode, etc.
-        const { userCode, finalState } = result;
-        const testResults = finalState.testResults || [];
+        const { userCode } = result;
 
         await submitChallenge(
             currentQuest.id,
             userCode,
-            'javascript', // Default to JS for now, can be extended
-            testResults
+            'javascript' // Default to JS for now, can be extended
         );
     };
 

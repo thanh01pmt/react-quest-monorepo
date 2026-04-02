@@ -16,6 +16,7 @@ const path       = require('path');
 const authRoutes    = require('./routes/auth-routes');
 const problemRoutes = require('./routes/problems');
 const submitRoutes  = require('./routes/submit');
+const submissionCodeRoutes = require('./routes/submission-code'); // ADDED
 const boardRoutes   = require('./routes/leaderboard');
 const violationRoutes = require('./routes/violations');
 const db            = require('@tin-hoc-tre/shared');
@@ -36,6 +37,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use('/api/auth',        authRoutes);
 app.use('/api/problems',    problemRoutes);
 app.use('/api/submit',      submitRoutes);
+app.use('/api/submissions-code', submissionCodeRoutes); // ADDED
 app.use('/api/leaderboard', boardRoutes);
 app.use('/api/violations',  violationRoutes);
 
