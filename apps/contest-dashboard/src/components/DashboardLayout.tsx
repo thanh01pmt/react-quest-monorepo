@@ -7,7 +7,8 @@ import {
     Users,
     Activity,
     LogOut,
-    Trophy
+    Trophy,
+    BarChart3
 } from 'lucide-react';
 
 export function DashboardLayout() {
@@ -50,6 +51,10 @@ export function DashboardLayout() {
                             <NavLink to={`/contest/${contestId}/live`} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
                                 <Activity size={18} />
                                 <span>Giám sát</span>
+                            </NavLink>
+                            <NavLink to={`/contest/${contestId}/analytics`} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                                <BarChart3 size={18} />
+                                <span>Thống kê & AI</span>
                             </NavLink>
                         </>
                     )}

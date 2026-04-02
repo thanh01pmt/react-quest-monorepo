@@ -13,7 +13,13 @@ import {
     Clock,
     Lock,
     Search,
-    Filter
+    Filter,
+    CheckSquare,
+    Square,
+    UserMinus,
+    Trash2,
+    Skull,
+    History
 } from 'lucide-react';
 
 export function LiveMonitorPage() {
@@ -31,10 +37,13 @@ export function LiveMonitorPage() {
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
     const [loading, setLoading] = useState(true);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [bulkLoading, setBulkLoading] = useState(false);
 
     useEffect(() => {
         if (contestId) loadHierarchy(contestId);
-    }, [contestId]);
+        setSelectedIds(new Set()); // Clear selection on scope change
+    }, [contestId, viewLevel, selectedRoundId, selectedBoardId]);
 
     useEffect(() => {
         if (selectedRoundId) loadBoards(selectedRoundId);
@@ -124,6 +133,76 @@ export function LiveMonitorPage() {
         a.href = URL.createObjectURL(blob);
         a.download = `leaderboard-${viewLevel}-${contestId}.csv`;
         a.click();
+    };
+
+    // Bulk Handlers
+    const toggleSelectAll = () => {
+        if (selectedIds.size === leaderboard.length && leaderboard.length > 0) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(leaderboard.map(e => e.board_participant_id)));
+        }
+    };
+
+    const toggleSelectRow = (id: string) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(id)) newSelected.delete(id);
+        else newSelected.add(id);
+        setSelectedIds(newSelected);
+    };
+
+    const handleBulkOperation = async (action: 'extend' | 'submit' | 'reset' | 'disqualify') => {
+        if (selectedIds.size === 0) return;
+        setBulkLoading(true);
+
+        try {
+            const ids = Array.from(selectedIds);
+            let updateData: any = {};
+
+            switch (action) {
+                case 'extend':
+                    const mins = prompt(`Thêm bao nhiêu phút cho ${selectedIds.size} thí sinh?`, '15');
+                    if (!mins) { setBulkLoading(false); return; }
+                    
+                    // Supabase doesn't easily support "new_val = old_val + interval" in batch update via client
+                    // We need to fetch and then loop or use a function.
+                    // For simplicity and speed for the user, we'll use a loop of updates or a smart approach.
+                    // Actually, let's just use a loop for individual deadlines to be precise.
+                    const { data: bps } = await supabase.from('board_participants').select('id, deadline').in('id', ids);
+                    if (bps) {
+                        for (const bp of bps) {
+                            if (!bp.deadline) continue;
+                            const newDeadline = new Date(new Date(bp.deadline).getTime() + parseInt(mins) * 60 * 1000);
+                            await supabase.from('board_participants').update({ deadline: newDeadline.toISOString() }).eq('id', bp.id);
+                        }
+                    }
+                    break;
+                case 'submit':
+                    if (!confirm(`Buộc nộp bài cho ${selectedIds.size} thí sinh?`)) { setBulkLoading(false); return; }
+                    await supabase.from('board_participants').update({ status: 'submitted' }).in('id', ids);
+                    break;
+                case 'reset':
+                    if (!confirm(`ĐẶT LẠI trạng thái cho ${selectedIds.size} thí sinh? Dữ liệu Score sẽ được giữ lại nhưng thí sinh có thể làm lại bài.`)) { setBulkLoading(false); return; }
+                    await supabase.from('board_participants').update({ 
+                        status: 'active', 
+                        started_at: null, 
+                        submitted_at: null 
+                    }).in('id', ids);
+                    break;
+                case 'disqualify':
+                    if (!confirm(`Hủy tư cách thi (Disqualify) ${selectedIds.size} thí sinh?`)) { setBulkLoading(false); return; }
+                    await supabase.from('board_participants').update({ status: 'disqualified' }).in('id', ids);
+                    break;
+            }
+
+            alert('Thao tác hàng loạt hoàn tất!');
+            loadLeaderboard();
+            setSelectedIds(new Set());
+        } catch (error: any) {
+            alert('Lỗi thao tác hàng loạt: ' + error.message);
+        } finally {
+            setBulkLoading(false);
+        }
     };
 
     if (loading) return <div className="empty-state">Đang tải...</div>;
@@ -281,11 +360,22 @@ export function LiveMonitorPage() {
             </div>
 
             {/* Leaderboard Table */}
-            <div className="card glass-dark" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)' }}>
+            <div className="card glass-dark" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)', position: 'relative' }}>
                 <table className="data-table">
                     <thead style={{ background: 'rgba(255,255,255,0.03)' }}>
                         <tr>
-                            <th style={{ padding: '16px 24px' }}># Rank</th>
+                            <th style={{ width: 50, padding: '16px 24px' }}>
+                                <input
+                                    type="checkbox"
+                                    className="checkbox-custom"
+                                    checked={selectedIds.size === leaderboard.length && leaderboard.length > 0}
+                                    ref={el => {
+                                        if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < leaderboard.length;
+                                    }}
+                                    onChange={toggleSelectAll}
+                                />
+                            </th>
+                            <th style={{ width: 80 }}># Rank</th>
                             <th>Thí sinh</th>
                             <th>Username</th>
                             {viewLevel === 'round' && <th>Cụm thi</th>}
@@ -297,8 +387,16 @@ export function LiveMonitorPage() {
                     </thead>
                     <tbody>
                         {leaderboard.map((entry, i) => (
-                            <tr key={entry.board_participant_id}>
+                            <tr key={entry.board_participant_id} className={selectedIds.has(entry.board_participant_id) ? 'selected' : ''}>
                                 <td style={{ padding: '18px 24px' }}>
+                                    <input
+                                        type="checkbox"
+                                        className="checkbox-custom"
+                                        checked={selectedIds.has(entry.board_participant_id)}
+                                        onChange={() => toggleSelectRow(entry.board_participant_id)}
+                                    />
+                                </td>
+                                <td>
                                     <div style={{ width: 32, height: 32, borderRadius: '50%', background: i < 3 ? 'var(--warning)' : 'var(--bg-tertiary)', color: i < 3 ? '#000' : 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
                                         {i + 1}
                                     </div>
@@ -334,6 +432,36 @@ export function LiveMonitorPage() {
                         <p style={{ color: 'var(--text-muted)', marginTop: 8 }}>Thí sinh có thể chưa bắt đầu làm bài hoặc không có thí sinh nào trong cụm/vòng này.</p>
                     </div>
                 )}
+            </div>
+
+            {/* Bulk Action Toolbar */}
+            <div className={`bulk-action-toolbar ${selectedIds.size > 0 ? 'visible' : ''}`}>
+                <div className="selection-info">
+                    <span className="selection-badge">{selectedIds.size}</span>
+                    <span>Thí sinh đã chọn</span>
+                </div>
+                <div className="bulk-actions">
+                    <button className="btn btn-secondary btn-sm" onClick={() => handleBulkOperation('extend')} disabled={bulkLoading}>
+                        <Clock size={16} />
+                        <span>Gia hạn</span>
+                    </button>
+                    <button className="btn btn-primary btn-sm" onClick={() => handleBulkOperation('submit')} disabled={bulkLoading}>
+                        <Lock size={16} />
+                        <span>Nộp bài</span>
+                    </button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => handleBulkOperation('reset')} disabled={bulkLoading}>
+                        <History size={16} />
+                        <span>Reset</span>
+                    </button>
+                    <button className="btn btn-danger btn-sm" onClick={() => handleBulkOperation('disqualify')} disabled={bulkLoading} style={{ background: 'rgba(248, 81, 73, 0.2)', border: '1px solid var(--danger)' }}>
+                        <Skull size={16} />
+                        <span>Hủy tư cách</span>
+                    </button>
+                    {bulkLoading && <RefreshCw size={16} className="pulse" />}
+                </div>
+                <button className="btn btn-link btn-sm" onClick={() => setSelectedIds(new Set())} style={{ marginLeft: 12, color: 'var(--text-secondary)' }}>
+                    Hủy
+                </button>
             </div>
         </div>
     );
