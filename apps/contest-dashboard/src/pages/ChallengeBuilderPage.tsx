@@ -7,6 +7,7 @@ import {
     FileText,
     Brain,
     Download,
+    Upload,
     Save,
     ArrowLeft,
     X,
@@ -14,8 +15,10 @@ import {
     Plus,
     Trash2,
     CheckCircle,
-    PlayCircle
+    PlayCircle,
+    Copy
 } from 'lucide-react';
+import { z } from 'zod';
 import { QuestPlayer } from '@repo/quest-player';
 import type { QuestPlayerSettings } from '@repo/quest-player';
 import React from 'react'; // Added React import for React.memo
@@ -48,6 +51,41 @@ const emptyQuest = (): AlgoQuest => ({
         supportedLanguages: ['javascript', 'python'],
     },
     solution: { type: 'match_output' },
+});
+
+// Zod schemas for validation
+const TestCaseSchema = z.object({
+    input: z.string(),
+    expectedOutput: z.string(),
+    label: z.string().optional(),
+});
+
+const AlgoQuestSchema = z.object({
+    id: z.string(),
+    gameType: z.literal('algo'),
+    level: z.number(),
+    titleKey: z.string(),
+    questTitleKey: z.string(),
+    descriptionKey: z.string(),
+    gameConfig: z.object({
+        type: z.literal('algo'),
+        description: z.string(),
+        inputFormat: z.string().optional(),
+        outputFormat: z.string().optional(),
+        constraints: z.string().optional(),
+        sampleCases: z.array(TestCaseSchema),
+        hiddenCases: z.array(TestCaseSchema),
+        supportedLanguages: z.array(z.string()),
+        pythonRuntime: z.string().optional(),
+    }),
+    solution: z.object({
+        type: z.literal('match_output'),
+    }),
+});
+
+const ExamImportSchema = z.object({
+    title: z.string(),
+    quest_data: z.array(AlgoQuestSchema),
 });
 
 export function ChallengeBuilderPage() {
@@ -135,6 +173,84 @@ export function ChallengeBuilderPage() {
             setExams([...exams, data as Exam]);
             setSelectedExamId(data.id);
         }
+    };
+
+    const deleteExam = async () => {
+        if (!selectedExamId) return;
+        const exam = exams.find(e => e.id === selectedExamId);
+        if (!confirm(`Bạn có chắc chắn muốn xóa bộ đề "${exam?.title}"? Hành động này không thể hoàn tác.`)) return;
+
+        setSaving(true);
+        const { error } = await supabase.from('exams').delete().eq('id', selectedExamId);
+        setSaving(false);
+
+        if (!error) {
+            const updated = exams.filter(e => e.id !== selectedExamId);
+            setExams(updated);
+            setSelectedExamId(updated.length > 0 ? updated[0].id : '');
+            alert('Đã xóa bộ đề thi.');
+        } else {
+            alert('Lỗi khi xóa bộ đề: ' + error.message);
+        }
+    };
+
+    const handleImportJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const json = JSON.parse(event.target?.result as string);
+                
+                // 1. Try to parse as a full exam
+                const examResult = ExamImportSchema.safeParse(json);
+                if (examResult.success) {
+                    if (confirm(`Import bộ đề "${examResult.data.title}" với ${examResult.data.quest_data.length} câu hỏi?`)) {
+                        const { data, error } = await supabase
+                            .from('exams')
+                            .insert({ 
+                                round_id: selectedRoundId, 
+                                title: examResult.data.title,
+                                quest_data: examResult.data.quest_data 
+                            })
+                            .select()
+                            .single();
+                        
+                        if (!error && data) {
+                            setExams([...exams, data as Exam]);
+                            setSelectedExamId(data.id);
+                            alert('Đã import bộ đề thi mới.');
+                        } else {
+                            throw new Error(error?.message || 'Lỗi khi lưu vào Database');
+                        }
+                    }
+                    return;
+                }
+
+                // 2. Try to parse as a single challenge
+                const questResult = AlgoQuestSchema.safeParse(json);
+                if (questResult.success) {
+                    if (!selectedExamId) {
+                        alert('Vui lòng chọn bộ đề trước khi import câu hỏi lẻ.');
+                        return;
+                    }
+                    if (confirm(`Import câu hỏi "${questResult.data.titleKey}" vào bộ đề hiện tại?`)) {
+                        const newQuest = { ...questResult.data, id: `algo-${Date.now()}` };
+                        setQuests([...quests, newQuest]);
+                        alert('Đã thêm câu hỏi vào danh sách (Nhớ nhấn Lưu để hoàn tất).');
+                    }
+                    return;
+                }
+
+                alert('Định dạng JSON không hợp lệ hoặc không đúng cấu trúc yêu cầu.');
+            } catch (err: any) {
+                alert('Lỗi khi xử lý file: ' + err.message);
+            } finally {
+                e.target.value = ''; // Reset input
+            }
+        };
+        reader.readAsText(file);
     };
 
     const addQuest = () => {
@@ -234,6 +350,11 @@ export function ChallengeBuilderPage() {
                             Đã lưu
                         </span>
                     )}
+                    <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+                        <Upload size={18} />
+                        <span>Import JSON</span>
+                        <input type="file" accept=".json" onChange={handleImportJSON} style={{ display: 'none' }} />
+                    </label>
                     <button className="btn btn-secondary" onClick={addQuest} disabled={!selectedExamId}>
                         <Plus size={18} />
                         <span>Thêm câu</span>
@@ -251,7 +372,7 @@ export function ChallengeBuilderPage() {
                 </div>
             </div>
 
-            <div className="card glass-dark" style={{ marginBottom: 24, display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) minmax(200px, 1fr) auto', gap: 20, alignItems: 'end', padding: 24 }}>
+            <div className="card glass-dark" style={{ marginBottom: 24, display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) minmax(200px, 1fr) auto auto', gap: 20, alignItems: 'end', padding: 24 }}>
                 <div className="form-group" style={{ margin: 0 }}>
                     <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Vòng thi</label>
                     <select value={selectedRoundId} onChange={e => setSelectedRoundId(e.target.value)} style={{ padding: 12, fontWeight: 600 }}>
@@ -268,6 +389,10 @@ export function ChallengeBuilderPage() {
                 <button className="btn btn-secondary" onClick={addExam} style={{ padding: '12px 20px' }}>
                     <Plus size={16} />
                     <span>Bộ đề mới</span>
+                </button>
+                <button className="btn btn-danger" onClick={deleteExam} disabled={!selectedExamId} style={{ padding: '12px 20px' }}>
+                    <Trash2 size={16} />
+                    <span>Xóa bộ đề</span>
                 </button>
             </div>
 
