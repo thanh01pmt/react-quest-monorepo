@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Cài đặt pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@9.12.3
 
 # Copy các file cấu hình workspace
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
@@ -27,7 +27,7 @@ COPY packages ./packages
 COPY apps/tin-hoc-tre-judge ./apps/tin-hoc-tre-judge
 
 # Cài đặt dependencies đặc thù và build (kể cả native modules của canvas, jsdom nếu có)
-RUN pnpm install --filter tin-hoc-tre-judge...
+RUN pnpm install --network-concurrency 1 --filter tin-hoc-tre-judge...
 
 # Chuyển context sang thư mục judge để khởi chạy
 WORKDIR /app/apps/tin-hoc-tre-judge

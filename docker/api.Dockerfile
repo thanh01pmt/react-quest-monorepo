@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Cài đặt pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@9.12.3
 
 # 3. Copy các file cấu hình workspace
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
@@ -29,7 +29,7 @@ COPY packages ./packages
 COPY apps/tin-hoc-tre-api ./apps/tin-hoc-tre-api
 
 # 6. Cài đặt dependencies chỉ cho API và các dependencies liên quan của nó
-RUN pnpm install --filter ./apps/tin-hoc-tre-api...
+RUN pnpm install --network-concurrency 1 --filter ./apps/tin-hoc-tre-api...
 
 # 7. Phơi xuất cổng port mặc định của API
 EXPOSE 3000
