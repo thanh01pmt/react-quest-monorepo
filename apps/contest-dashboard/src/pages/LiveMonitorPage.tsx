@@ -401,7 +401,14 @@ export function LiveMonitorPage() {
                                         {i + 1}
                                     </div>
                                 </td>
-                                <td><strong>{entry.display_name}</strong></td>
+                                <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                        <strong>{entry.display_name}</strong>
+                                        {entry.status === 'active' && (
+                                            <div className="pulse" style={{ width: 10, height: 10, background: '#3fb950', borderRadius: '50%', boxShadow: '0 0 10px #3fb950' }} title="Đang trực tuyến" />
+                                        )}
+                                    </div>
+                                </td>
                                 <td style={{ color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{entry.username}</td>
                                 {viewLevel === 'round' && <td>{entry.board_name}</td>}
                                 <td style={{ textAlign: 'center', fontWeight: 800, color: 'var(--accent)', fontSize: '1.1rem' }}>{entry.total_score}</td>

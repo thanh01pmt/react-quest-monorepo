@@ -48,17 +48,27 @@ export function AnalyticsPage() {
     const loadAnalyticsData = async (cid: string) => {
         setLoading(true);
         try {
-            // 1. Fetch Participants
+            // 1. Fetch Rounds
+            const { data: roundsRes } = await supabase.from('rounds').select('id').eq('contest_id', cid);
+            const roundIds = roundsRes?.map(r => r.id) || [];
+            if (roundIds.length === 0) { setStats(null); setLoading(false); return; }
+
+            // 2. Fetch Boards
+            const { data: boardsRes } = await supabase.from('exam_boards').select('id').in('round_id', roundIds);
+            const boardIds = boardsRes?.map(b => b.id) || [];
+            if (boardIds.length === 0) { setStats(null); setLoading(false); return; }
+
+            // 3. Fetch Participants
             const { data: participants } = await supabase
                 .from('board_participants')
                 .select('id, status, score')
-                .in('board_id', (
-                    await supabase.from('exam_boards').select('id').in('round_id', (
-                        await supabase.from('rounds').select('id').eq('contest_id', cid)
-                    ).data?.map(r => r.id) || [])
-                ).data?.map(b => b.id) || []);
+                .in('board_id', boardIds);
 
-            if (!participants) return;
+            if (!participants || participants.length === 0) { 
+                setStats(null); 
+                setLoading(false); 
+                return; 
+            }
 
             // 2. Fetch Exams & Quests to build the map
             const { data: exams } = await supabase.from('exams').select('*');
@@ -105,14 +115,15 @@ export function AnalyticsPage() {
 
             const processedQuestStats: QuestStats[] = Object.keys(qStats).map(qid => {
                 const s = qStats[qid];
+                const attempts = s.attempts || 0;
                 return {
                     id: qid,
                     title: questMap[qid] || `Quest ${qid.slice(0,4)}`,
-                    totalAttempts: s.attempts,
-                    passCount: s.passes,
-                    failCount: s.attempts - s.passes,
-                    avgScore: s.scores.reduce((a:number,b:number)=>a+b,0) / s.attempts,
-                    successRate: (s.passes / s.attempts) * 100
+                    totalAttempts: attempts,
+                    passCount: s.passes || 0,
+                    failCount: attempts - (s.passes || 0),
+                    avgScore: attempts > 0 ? (s.scores.reduce((a:number,b:number)=>a+b,0) / attempts) : 0,
+                    successRate: attempts > 0 ? ((s.passes / attempts) * 100) : 0
                 };
             }).sort((a,b) => a.successRate - b.successRate); // Hardest first
 
