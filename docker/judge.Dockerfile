@@ -2,6 +2,7 @@ FROM node:18-bullseye-slim
 
 # Cài đặt các thư viện cần thiết cho môi trường Canvas/JSDOM và build tools
 RUN apt-get update && apt-get install -y \
+    git \
     python3 \
     build-essential \
     libcairo2-dev \

@@ -4,6 +4,7 @@ WORKDIR /app
 
 # 1. Cài đặt các công cụ build cần thiết cho native modules (bcrypt, canvas, v.v.)
 RUN apt-get update && apt-get install -y \
+    git \
     python3 \
     make \
     g++ \
