@@ -10,6 +10,7 @@
 
 'use strict';
 
+const express = require('express');
 const db = require('@tin-hoc-tre/shared');
 const { requireAuth } = require('../middleware/auth-middleware');
 

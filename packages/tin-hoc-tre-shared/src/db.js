@@ -62,6 +62,8 @@ async function initDB() {
   }
 }
 
+const supabase = require('./supabase');
+
 /**
  * Tiện ích truy vấn
  */
@@ -69,6 +71,7 @@ const db = {
   query:   (sql, params) => pool.query(sql, params),
   connect: ()            => pool.connect(),
   initDB,
+  supabase,
 };
 
 module.exports = db;

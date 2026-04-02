@@ -22,9 +22,11 @@ services:
     environment:
       - NODE_ENV=production
       - REDIS_HOST=redis
-      # Cấu hình Supabase (Bắt buộc)
+      - DATABASE_URL=${DATABASE_URL}
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
     depends_on:
       - redis
 
@@ -40,8 +42,12 @@ services:
     environment:
       - NODE_ENV=production
       - REDIS_HOST=redis
+      - DATABASE_URL=${DATABASE_URL}
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - PISTON_URL=${PISTON_URL}
+      - JUDGE_TIME_LIMIT_MS=${JUDGE_TIME_LIMIT_MS}
+      - JUDGE_MEMORY_MB=${JUDGE_MEMORY_MB}
     depends_on:
       - redis
 
