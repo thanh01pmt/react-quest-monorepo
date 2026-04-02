@@ -1,4 +1,5 @@
-FROM node:18-bullseye-slim AS builder
+# syntax=docker/dockerfile:1
+FROM node:20-bullseye-slim AS builder
 
 WORKDIR /app
 
@@ -19,8 +20,13 @@ RUN apt-get update && apt-get install -y \
 # 2. Cài đặt pnpm
 RUN npm install -g pnpm@9.12.3
 
-# 3. Copy các file cấu hình workspace
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
+# Cấu hình pnpm store nằm trong Docker cache mount (không bị xóa giữa các lần build)
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+
+# 3. Copy các file cấu hình workspace (lock file riêng để tối ưu cache layer)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY turbo.json ./
 
 # 4. Copy thư mục packages dùng chung
 COPY packages ./packages
@@ -28,19 +34,20 @@ COPY packages ./packages
 # 5. Copy thư mục tin-hoc-tre-api
 COPY apps/tin-hoc-tre-api ./apps/tin-hoc-tre-api
 
-# 6. Cài đặt dependencies cho API và toàn bộ workspace packages liên quan
-#    pnpm deploy ở bước sau sẽ bundle đúng deps của packages/* vào image
-RUN pnpm install --filter ./apps/tin-hoc-tre-api...
+# 6. Cài đặt dependencies — cache pnpm store vào BuildKit cache
+#    Lần 2+: reuse cache → không download lại → nhanh hơn nhiều
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --filter ./apps/tin-hoc-tre-api...
 
-# 8. Extract App thành một thư mục cô lập độc lập (bao gồm toàn bộ thư viện liên kết)
+# 7. Extract App thành thư mục cô lập (gom đủ deps của workspace packages)
 RUN pnpm --filter tin-hoc-tre-contest-platform deploy --prod /prod/api
 
 # --- RUNNER STAGE ---
-FROM node:18-bullseye-slim AS runner
+FROM node:20-bullseye-slim AS runner
 
 WORKDIR /app
 
-# Cài đặt thư viện môi trường cần dùng ở runtime (nếu có canvas/xử lý ảnh)
+# Cài đặt thư viện runtime cần thiết cho native modules
 RUN apt-get update && apt-get install -y \
     libcairo2 \
     libpango-1.0-0 \
@@ -49,11 +56,8 @@ RUN apt-get update && apt-get install -y \
     librsvg2-2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy mã nguồn sau khi deploy isolate (đủ module độc lập hoàn toàn)
+# Copy app đã được isolate hoàn toàn (node_modules đầy đủ, không cần monorepo)
 COPY --from=builder /prod/api .
 
-# Phơi xuất cổng port mặc định của API
 EXPOSE 3000
-
-# Lệnh khởi chạy server API
 CMD ["node", "src/server.js"]
