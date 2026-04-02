@@ -20,6 +20,8 @@ import {
     resolveSupabaseContestSession,
     saveSupabaseSubmission,
     submitToJudgeApi,
+    submitSb3File,
+    getSubmissionById,
     updateSupabaseParticipantStatus,
     getSupabaseSubmissions,
     calculateScore,
@@ -45,6 +47,8 @@ interface ContestContextType {
     saveCurrentCode: (code: string) => void;
     /** Submit a challenge result */
     submitChallenge: (questId: string, code: string, language: string) => Promise<void>;
+    /** Submit a Scratch (.sb3) file */
+    submitSb3: (questId: string, file: File) => Promise<void>;
     /** Lock the exam (final submission or timeout) */
     lockExam: () => Promise<void>;
     /** Remaining time in seconds (null if not started) */
@@ -79,6 +83,21 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
     const { user } = useAuth();
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+
+    const stateRef = useRef(state);
+    const pollingRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+    useEffect(() => {
+        stateRef.current = state;
+    }, [state]);
+
+    // Use effect to cleanup on unmount
+    useEffect(() => {
+        return () => {
+            pollingRefs.current.forEach(interval => clearInterval(interval));
+            pollingRefs.current.clear();
+        };
+    }, []);
 
     // ── Lock Exam ─────────────────────────────────────────────────────
 
@@ -300,6 +319,71 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
         [state.contest, state.participant, state.isLocked, state.challenges]
     );
 
+    // ── Submit Scratch (.sb3) ────────────────────────────────────────
+
+    const submitSb3 = useCallback(
+        async (questId: string, file: File) => {
+            if (!state.contest || !state.participant || state.isLocked) return;
+
+            const res = await submitSb3File(
+                state.participant.id!,
+                state.contest.id,
+                questId,
+                file
+            );
+
+            if (!res) return;
+
+            const { submissionId } = res;
+
+            // Clear existing polling for this quest if any
+            if (pollingRefs.current.has(questId)) {
+                clearInterval(pollingRefs.current.get(questId)!);
+            }
+
+            // Start polling for result
+            const pollInterval = setInterval(async () => {
+                const sub = await getSubmissionById(submissionId);
+                if (sub && sub.score !== null && sub.score !== undefined && sub.testResults && sub.testResults.length > 0) {
+                    clearInterval(pollInterval);
+                    pollingRefs.current.delete(questId);
+                    
+                    // Update locally
+                    const challengeIndex = stateRef.current.challenges.findIndex((ch) => ch.questId === questId);
+                    setState((s) => {
+                        const challenges = [...s.challenges];
+                        if (challengeIndex >= 0) {
+                            const current = challenges[challengeIndex];
+                            const newBestScore = s.contest?.settings.scoringMode === 'highest'
+                                ? Math.max(current.bestScore, sub.score)
+                                : sub.score;
+                            
+                            challenges[challengeIndex] = {
+                                ...current,
+                                bestScore: newBestScore,
+                                attempts: (current.attempts || 0) + 1,
+                                status: newBestScore >= 100 ? 'passed' : newBestScore > 0 ? 'attempted' : 'failed',
+                            };
+                        }
+                        const totalScore = challenges.reduce((sum, ch) => sum + ch.bestScore, 0);
+                        return { ...s, challenges, totalScore };
+                    });
+                }
+            }, 3000); // Poll every 3s
+
+            pollingRefs.current.set(questId, pollInterval);
+
+            // Auto-clear after 2 minutes to avoid infinite loops if judge fails
+            setTimeout(() => {
+                if (pollingRefs.current.get(questId) === pollInterval) {
+                    clearInterval(pollInterval);
+                    pollingRefs.current.delete(questId);
+                }
+            }, 120000);
+        },
+        [state.contest, state.participant, state.isLocked, state.challenges]
+    );
+
     // ── Value ─────────────────────────────────────────────────────────
 
     const value: ContestContextType = {
@@ -309,6 +393,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
         selectChallenge,
         saveCurrentCode,
         submitChallenge,
+        submitSb3,
         lockExam,
         remainingSeconds,
     };

@@ -26,7 +26,7 @@ const judgeQueue = new Queue('judge', {
 });
 
 const PROBLEMS_DIR     = path.join(__dirname, '../../../packages/tin-hoc-tre-problems/data');
-const TIME_LIMIT_MS    = parseInt(process.env.JUDGE_TIME_LIMIT_MS || '5000');
+const TIME_LIMIT_MS    = parseInt(process.env.JUDGE_TIME_LIMIT_MS || '2000');
 const MEMORY_LIMIT_MB  = parseInt(process.env.JUDGE_MEMORY_MB     || '256');
 
 console.log('[Judge Worker] Đang chờ bài nộp...');

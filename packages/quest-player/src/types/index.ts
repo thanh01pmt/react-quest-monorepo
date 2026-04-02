@@ -310,7 +310,8 @@ export interface Quest {
 		| "music"
 		| "pond"
 		| "puzzle"
-		| "algo";
+		| "algo"
+		| "scratch";
 	level: number;
 	titleKey: string;
 	questTitleKey?: string;

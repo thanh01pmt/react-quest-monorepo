@@ -142,6 +142,50 @@ export async function submitToJudgeApi(
 }
 
 /**
+ * Submit a Scratch .sb3 file to the Judge API.
+ */
+export async function submitSb3File(
+	participantId: string,
+	contestId: string,
+	questId: string,
+	file: File,
+): Promise<{ submissionId: string; status: string } | null> {
+	try {
+		const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+		const { data: sessionData } = await supabase.auth.getSession();
+		const accessToken = sessionData?.session?.access_token;
+
+		const formData = new FormData();
+		formData.append("sb3file", file);
+		formData.append("board_participant_id", participantId);
+		formData.append("exam_id", contestId);
+		formData.append("quest_id", questId);
+
+		const response = await fetch(`${apiUrl}/submit`, {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+			body: formData,
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || "Upload failed");
+		}
+
+		const result = await response.json();
+		return {
+			submissionId: result.submission_id,
+			status: result.status,
+		};
+	} catch (error) {
+		console.error("[SupabaseService] submitSb3File error:", error);
+		return null;
+	}
+}
+
+/**
  * @deprecated Use submitToJudgeApi
  */
 export async function saveSupabaseSubmission(

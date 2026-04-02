@@ -93,6 +93,11 @@ Tại đây bạn có thể:
 4. Nhấn **"Xem trước"** để kiểm tra giao diện thí sinh
 5. Nhấn **"Lưu đề này"** để lưu
 
+> 💡 **Lưu ý cho bài Scratch (.sb3):**
+> - Chọn loại thử thách (Challenge Type) là **"Scratch"**.
+> - Upload file `.sb3` mẫu nếu cần hoặc cấu trúc testcases theo định dạng mà `scratch-run` hỗ trợ (Yêu cầu sự hiện diện của Blocks, Variables hoặc Sprite cụ thể).
+> - Đảm bảo rằng bài thi được cấu hình đúng thời gian thực thi (Time-step).
+
 > 💡 Dùng **"Export JSON"** để sao lưu bộ đề ra file.
 
 ---
@@ -165,6 +170,26 @@ Dùng khi cuộc thi có **nhiều vòng** và cần chuyển thí sinh đủ đ
 3. Chọn **Cụm thi đích** trong vòng mục tiêu
 4. Xem danh sách thí sinh đề xuất (theo thứ tự điểm)
 5. Nhấn **"Thực hiện Thăng hạng"** để gán vào vòng mới
+
+---
+
+## 🟢 Giám sát & Chấm bài (Admin)
+
+Hệ thống sử dụng cơ chế **Chấm bài Bất đồng bộ (Asynchronous Judging)** qua Express API và Redis Queue để xử lý các bài thi nặng (như Scratch).
+
+### 1. Theo dõi trạng thái
+Tại trang **"Submissions"** hoặc chi tiết của một Thí sinh, Admin có thể theo dõi trạng thái chấm bài:
+- `pending`: Đang chờ đưa vào Queue.
+- `judging`: Đang được xử lý bởi Judge Worker.
+- `completed`: Đã có điểm cuối cùng.
+- `failed`: Lỗi trong quá trình chấm (ví dụ: file hỏng, timeout).
+
+### 2. Xem Logs & Thời gian thực thi
+Khi nhấn vào một submission cụ thể, cửa sổ chi tiết sẽ hiển thị:
+- **Worker Log**: Toàn bộ nhật ký của Judge (ví dụ: kết quả từng testcase, lỗi runtime).
+- **Execution Time**: Tổng thời gian xử lý (đơn vị: ms).
+
+> 🛡️ **Độ tin cậy**: Điểm số được hệ thống Express Judge ký và cập nhật trực tiếp vào database, không thông qua Client để đảm bảo tính minh bạch.
 
 ---
 
@@ -284,12 +309,12 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJI...
 
 ## 🛠️ Xử lý Sự cố
 
-| Vấn đề | Nguyên nhân | Cách xử lý |
-|---|---|---|
-| Thí sinh không đăng nhập được | Tài khoản chưa được tạo hoặc mật khẩu sai | Kiểm tra lại trên trang Accounts |
-| Nút "Bắt đầu làm bài" không hiện | Chưa đến `startTime` hoặc `contest.status` chưa đúng | Kiểm tra thời gian hệ thống và trường `start_time` trong DB |
-| Thí sinh vào Dashboard thay vì Lobby | Đăng nhập sai ứng dụng | Gửi đúng link Lobby cho thí sinh |
-| Bảng Live Monitor không cập nhật | Supabase Realtime chưa bật cho bảng `submissions` | Bật Realtime trên Supabase dashboard |
+| Lỗi | Nguyên nhân | Cách khắc phục |
+|-----|-------------|----------------|
+| Không thể Login | Sai username/pass hoặc thí sinh chưa được gán vào Cụm thi | Kiểm tra `board_participants` |
+| Bài Scratch kẹt ở `judging` | Worker bị treo hoặc Redis bị mất kết nối | Khởi động lại `tin-hoc-tre-judge` |
+| Lỗi "Invalid .sb3 format" | Thí sinh nộp file không đúng định dạng Zip/Scratch | Yêu cầu xem lại file nộp |
+| Điểm không hiện trên Leaderboard | DB View chưa refresh (do cache hoặc trigger lỗi) | Kiểm tra schema `20260402150000_refactor_judge_schema.sql` |
 | Tạo tài khoản thất bại | RPC `admin_create_participant_auth` chưa được tạo hoặc thiếu quyền | Kiểm tra Supabase → Database → Functions |
 
 ---

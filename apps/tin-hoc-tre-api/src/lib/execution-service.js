@@ -11,13 +11,14 @@ const { Worker } = require('worker_threads');
 const { spawn } = require('child_process');
 const path = require('path');
 
-const DEFAULT_TIMEOUT_MS = 2000;
+const DEFAULT_TIME_LIMIT   = parseInt(process.env.JUDGE_TIME_LIMIT_MS || '2000');
+const DEFAULT_MEMORY_LIMIT = parseInt(process.env.JUDGE_MEMORY_MB     || '256');
 
 class ExecutionService {
   /**
    * Execute code using Piston API (Python, C, C++, etc.)
    */
-  static async executeWithPiston(language, code, stdin = '', timeoutMs = DEFAULT_TIMEOUT_MS) {
+  static async executeWithPiston(language, code, stdin = '', timeoutMs = DEFAULT_TIME_LIMIT) {
     const PISTON_URL = process.env.PISTON_URL || 'https://piston.orchable.xyz/api/v2';
     const start = Date.now();
     
@@ -55,12 +56,13 @@ class ExecutionService {
       const compile = data.compile;
 
       // Handle Compilation Error
-      if (compile && compile.stderr) {
+      if (compile && (compile.stderr || (compile.code !== 0 && compile.code !== null))) {
         return {
           success: false,
-          error: compile.stderr,
+          error: compile.stderr || 'Compilation Error',
           logs: [compile.stdout].filter(Boolean),
-          timeMs: Date.now() - start
+          timeMs: Date.now() - start,
+          type: 'compile_error'
         };
       }
 
@@ -77,7 +79,8 @@ class ExecutionService {
         success: false,
         error: err.message,
         logs: [],
-        timeMs: Date.now() - start
+        timeMs: Date.now() - start,
+        type: 'system_error'
       };
     }
   }
@@ -114,6 +117,11 @@ class ExecutionService {
       const worker = new Worker(script, {
         eval: true,
         workerData: input,
+        // Safety: Add resource limits to prevent server crash
+        resourceLimits: {
+          maxOldGenerationSizeMb: 512,
+          maxYoungGenerationSizeMb: 128,
+        }
       });
 
       const timer = setTimeout(() => {

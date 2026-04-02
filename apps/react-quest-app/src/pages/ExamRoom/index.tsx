@@ -10,12 +10,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { QuestPlayer } from '@repo/quest-player';
 import { useContest } from '../../contexts/ContestContext';
 import { ContestSidebar } from '../../components/ContestSidebar';
+import { ScratchUploader } from '../../components/ScratchUploader/ScratchUploader';
 import './ExamRoom.css';
 
 export function ExamRoom() {
     const { contestId } = useParams<{ contestId: string }>();
     const navigate = useNavigate();
-    const { state, loadContest, selectChallenge, submitChallenge, saveCurrentCode } = useContest();
+    const { state, loadContest, selectChallenge, submitChallenge, submitSb3, saveCurrentCode } = useContest();
 
     const {
         contest,
@@ -78,19 +79,35 @@ export function ExamRoom() {
 
             <main className="exam-main-content">
                 {currentQuest ? (
-                    <QuestPlayer
-                        key={`${currentQuest.id}-${currentChallengeIndex}`} // Force remount on switch
-                        isStandalone={false}
-                        language="vi"
-                        questData={currentQuest}
-                        initialSettings={{
-                            displayLanguage: 'javascript',
-                            colorSchemeMode: 'dark',
-                            toolboxMode: 'default'
-                        }}
-                        onQuestComplete={handleQuestComplete}
-                        onSettingsChange={() => { }}
-                    />
+                    (currentQuest as any).gameType === 'scratch' ? (
+                        <div className="scratch-room">
+                            <div className="scratch-instructions">
+                                <h1>{currentQuest.title || currentQuest.titleKey}</h1>
+                                <div className="quest-description">
+                                    {currentQuest.hints?.description || currentQuest.descriptionKey}
+                                </div>
+                            </div>
+                            <ScratchUploader 
+                                questId={currentQuest.id}
+                                onUpload={(file) => submitSb3(currentQuest.id, file)}
+                                disabled={isLocked}
+                            />
+                        </div>
+                    ) : (
+                        <QuestPlayer
+                            key={`${currentQuest.id}-${currentChallengeIndex}`} // Force remount on switch
+                            isStandalone={false}
+                            language="vi"
+                            questData={currentQuest}
+                            initialSettings={{
+                                displayLanguage: 'javascript',
+                                colorSchemeMode: 'dark',
+                                toolboxMode: 'default'
+                            }}
+                            onQuestComplete={handleQuestComplete}
+                            onSettingsChange={() => { }}
+                        />
+                    )
                 ) : (
                     <div className="no-quest-selected">
                         <p>Vui lòng chọn một thử thách từ danh sách bên trái.</p>

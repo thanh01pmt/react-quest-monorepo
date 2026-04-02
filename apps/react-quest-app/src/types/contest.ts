@@ -32,7 +32,7 @@ export interface ContestConfig {
 
 export interface ContestSettings {
 	/** Allowed coding languages */
-	allowLanguages: ("blockly" | "javascript" | "python")[];
+	allowLanguages: ("blockly" | "javascript" | "python" | "scratch")[];
 	/** Whether to show hidden test cases to contestants */
 	showHiddenTestCases: boolean;
 	/** Max submissions per challenge (0 = unlimited) */

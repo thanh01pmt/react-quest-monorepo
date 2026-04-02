@@ -41,43 +41,53 @@ router.post('/', requireAuth, async (req, res, next) => {
     const testCases = questData.test_cases || [];
     const timeLimit = questData.time_limit || 2000; // default 2s
     let totalScore = 0;
-    let testResults = [];
     let combinedLogs = [];
 
-    // 2. Execute Tests
-    for (const [index, tc] of testCases.entries()) {
-      let judgeResult;
-      
-      const lang = (language || questData.language || 'javascript').toLowerCase();
+    // 2. Parallel Judging
+    if (testCases.length === 0) {
+      return res.status(400).json({ error: 'Bài tập không có bộ test cases nào.' });
+    }
 
-      if (lang === 'javascript' || lang === 'js') {
-        // Keep JS execution local via worker_threads for performance
-        judgeResult = await ExecutionService.executeJS(code, tc.input, timeLimit);
-      } else {
-        // Use Piston for Python, C, C++, etc.
-        judgeResult = await ExecutionService.executeWithPiston(lang, code, tc.input, timeLimit);
+    const lang = (language || questData.language || 'javascript').toLowerCase();
+    
+    const judgingPromises = testCases.map(async (tc, index) => {
+      let judgeResult;
+      try {
+        if (lang === 'javascript' || lang === 'js') {
+          judgeResult = await ExecutionService.executeJS(code, tc.input, timeLimit);
+        } else {
+          judgeResult = await ExecutionService.executeWithPiston(lang, code, tc.input, timeLimit);
+        }
+      } catch (err) {
+        judgeResult = { success: false, error: 'Internal Judge Error', logs: [err.message], timeMs: 0 };
       }
 
       const isCorrect = judgeResult.success && 
                         (String(judgeResult.result).trim() === String(tc.output).trim());
       
       const score = isCorrect ? (100 / testCases.length) : 0;
-      totalScore += score;
-
-      testResults.push({
+      
+      return {
         id: index + 1,
         input: tc.input,
         expected: tc.output,
         actual: judgeResult.result || judgeResult.error,
         status: isCorrect ? 'passed' : 'failed',
         timeMs: judgeResult.timeMs,
-        workerLog: (judgeResult.logs || []).join('\n')
-      });
+        workerLog: (judgeResult.logs || []).join('\n'),
+        score,
+        logs: judgeResult.logs
+      };
+    });
 
-      if (judgeResult.logs && judgeResult.logs.length > 0) {
-        combinedLogs.push(`Test ${index + 1}:\n${judgeResult.logs.join('\n')}`);
+    const testResults = await Promise.all(judgingPromises);
+    totalScore = testResults.reduce((sum, r) => sum + r.score, 0);
+    
+    testResults.forEach((r, index) => {
+      if (r.logs && r.logs.length > 0) {
+        combinedLogs.push(`Test ${index + 1}:\n${r.logs.join('\n')}`);
       }
-    }
+    });
 
     const submissionId = uuidv4();
     const finalScore = Math.round(totalScore);
