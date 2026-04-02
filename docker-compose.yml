@@ -1,0 +1,49 @@
+
+services:
+  # 1. Trạm dịch vụ Hàng đợi tin nhắn
+  redis:
+    image: redis:7-alpine
+    container_name: react-quest-redis
+    restart: always
+    ports:
+      - "63799:6379"
+    volumes:
+      - redis_data:/data # Tính năng giữ lại data hàng đợi nếu container sập
+
+  # 2. Máy chủ trung tâm (Giao tiếp Web, xử lý Auth / API)
+  api:
+    build: 
+      context: .
+      dockerfile: docker/api.Dockerfile
+    container_name: react-quest-api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      # Cấu hình Supabase (Bắt buộc)
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    depends_on:
+      - redis
+
+  # 3. Trạm máy chấm tự động. 
+  # LƯU Ý: Không mở port do Worker không giao tiếp trực tiếp trên mạng, nó chỉ lắng nghe redis.
+  # Lệnh Scale lên thành 3 worker: docker-compose up --scale judge=3 -d
+  judge:
+    build:
+      context: .
+      dockerfile: docker/judge.Dockerfile
+    # Không để cứng container_name để có thể scale linh hoạt nhiều judges
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:
