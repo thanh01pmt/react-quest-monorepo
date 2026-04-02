@@ -33,10 +33,10 @@ console.log('[Judge Worker] Đang chờ bài nộp...');
 
 // ── Xử lý từng job ──────────────────────────────────────────────────────
 judgeQueue.process(
-  2, // Xử lý tối đa 2 job đồng thời (1 worker = 2 luồng)
+  2, // Xử lý tối đa 2 job đồng thời
   async (job) => {
-    const { submissionId, problemId } = job.data;
-    console.log(`[Judge] Bắt đầu: ${submissionId} | bài: ${problemId}`);
+    const { submissionId, boardParticipantId, examId, questId } = job.data;
+    console.log(`[Judge] Bắt đầu: ${submissionId} | Participant: ${boardParticipantId}`);
 
     // ── 1. Đánh dấu đang chấm ────────────────────────────────────────
     await db.query(
@@ -44,24 +44,40 @@ judgeQueue.process(
       [submissionId]
     );
 
-    // ── 2. Tải file .sb3 từ DB ───────────────────────────────────────
-    const { rows } = await db.query(
-      'SELECT sb3_data FROM submissions WHERE id = $1',
+    // ── 2. Tải file .sb3 từ Supabase Storage ──────────────────────────
+    const { rows: subRows } = await db.query(
+      'SELECT storage_path FROM submissions WHERE id = $1',
       [submissionId]
     );
-    if (!rows.length) throw new Error(`Không tìm thấy submission: ${submissionId}`);
-    const sb3Buffer = rows[0].sb3_data;
+    if (!subRows.length) throw new Error(`Không tìm thấy submission: ${submissionId}`);
+    
+    const storagePath = subRows[0].storage_path;
+    const { data: sb3Data, error: downloadError } = await db.supabase.storage
+      .from('submissions')
+      .download(storagePath);
 
-    // ── 3. Tải testcase ẨN ───────────────────────────────────────────
-    const hiddenPath = path.join(PROBLEMS_DIR, `${problemId}.hidden.json`);
-    let hiddenProblem;
-    try {
-      hiddenProblem = JSON.parse(await fs.readFile(hiddenPath, 'utf8'));
-    } catch {
-      throw new Error(`Không tìm thấy testcase ẩn: ${problemId}.hidden.json`);
+    if (downloadError) {
+      throw new Error(`Lỗi tải bài nộp từ Storage: ${downloadError.message}`);
     }
 
-    const testCases  = hiddenProblem.test_cases;
+    const sb3Buffer = Buffer.from(await sb3Data.arrayBuffer());
+
+    // ── 3. Tải testcase từ bảng EXAMS ──────────────────────────────────
+    // Lưu ý: questId trong submissions match với id trong quest_data của exam
+    const { rows: examRows } = await db.query(
+      'SELECT quest_data FROM exams WHERE id = $1',
+      [examId]
+    );
+    if (!examRows.length) throw new Error(`Không tìm thấy đề thi: ${examId}`);
+    
+    const quests = examRows[0].quest_data;
+    const currentQuest = quests.find(q => q.id === questId || q.problem_id === questId);
+    
+    if (!currentQuest) {
+      throw new Error(`Không tìm thấy câu hỏi ${questId} trong đề thi ${examId}`);
+    }
+
+    const testCases  = currentQuest.test_cases || [];
     const totalScore = testCases.reduce((s, t) => s + (t.weight || 10), 0);
     const log        = [];
     let   score      = 0;
@@ -78,7 +94,7 @@ judgeQueue.process(
           sb3Buffer,
           input:       tc.input,
           expected:    tc.expected,
-          timeLimitMs: hiddenProblem.time_limit_ms || TIME_LIMIT_MS,
+          timeLimitMs: currentQuest.time_limit_ms || TIME_LIMIT_MS,
           memLimitMB:  MEMORY_LIMIT_MB,
         });
       } catch (err) {
@@ -93,7 +109,7 @@ judgeQueue.process(
         weight:   tc.weight || 10,
         passed,
         status:   result.status,
-        output:   result.output?.slice(0, 20), // Giới hạn log gửi về
+        output:   result.output?.slice(0, 20),
         expected: tc.expected?.slice(0, 20),
         ms:       result.ms,
       });
@@ -106,22 +122,21 @@ judgeQueue.process(
     const hasAnyTLE   = log.some(l => l.status === 'tle');
     const hasAnyError = log.some(l => l.status === 'error');
 
-    if (score === totalScore)     finalStatus = 'accepted';
-    else if (score > 0)          finalStatus = 'partial';
-    else if (hasAnyTLE)          finalStatus = 'tle';
-    else if (hasAnyError)        finalStatus = 'error';
-    else                         finalStatus = 'wrong';
+    if (score === totalScore && totalScore > 0) finalStatus = 'accepted';
+    else if (score > 0)                         finalStatus = 'partial';
+    else if (hasAnyTLE)                         finalStatus = 'tle';
+    else if (hasAnyError)                       finalStatus = 'error';
+    else                                        finalStatus = 'wrong';
 
-    // Cập nhật DB (job 'completed' event trong server.js cũng làm điều này,
-    // nhưng ghi thẳng tại đây để chắc chắn)
+    // Cập nhật kết quả cuối cùng
     await db.query(
       `UPDATE submissions
-       SET score = $1, total_score = $2, status = $3, judge_log = $4, judged_at = NOW()
-       WHERE id = $5`,
-      [score, totalScore, finalStatus, JSON.stringify(log), submissionId]
+       SET score = $1, status = $2, judge_log = $3, judged_at = NOW()
+       WHERE id = $4`,
+      [score, finalStatus, JSON.stringify(log), submissionId]
     );
 
-    console.log(`[Judge] Hoàn thành: ${submissionId} → ${score}/${totalScore} (${finalStatus})`);
+    console.log(`[Judge] Hoàn thành: ${submissionId} → ${score}đ (${finalStatus})`);
     return { score, totalScore, status: finalStatus, log };
   }
 );

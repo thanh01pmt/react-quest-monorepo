@@ -70,43 +70,54 @@ router.post('/', requireAuth, upload.single('sb3file'), async (req, res, next) =
       return res.status(400).json({ error: 'Chưa đính kèm file .sb3.' });
     }
 
-    const { problem_id } = req.body;
-    if (!problem_id || !/^[\w-]+$/.test(problem_id)) {
-      return res.status(400).json({ error: 'Thiếu hoặc sai problem_id.' });
-    }
-
-    // ── Xác minh file .sb3 là ZIP hợp lệ (magic bytes: PK\x03\x04) ──────
-    const magic = req.file.buffer.slice(0, 4);
-    if (magic[0] !== 0x50 || magic[1] !== 0x4B) {
-      return res.status(400).json({ error: 'File .sb3 bị hỏng (không đúng định dạng ZIP).' });
+    const { board_participant_id, exam_id, quest_id } = req.body;
+    if (!board_participant_id || !exam_id || !quest_id) {
+      return res.status(400).json({ error: 'Thiếu thông tin board_participant_id, exam_id hoặc quest_id.' });
     }
 
     const submissionId = uuidv4();
     const sb3Buffer    = req.file.buffer;
+    const fileName     = `${board_participant_id}/${submissionId}.sb3`;
 
-    // ── Lưu vào DB với status = 'pending' ────────────────────────────────
+    // ── 1. Tải lên Supabase Storage ──────────────────────────────────────
+    const { data: uploadData, error: uploadError } = await db.supabase.storage
+      .from('submissions')
+      .upload(fileName, sb3Buffer, {
+        contentType: 'application/octet-stream',
+        upsert: true
+      });
+
+    if (uploadError) {
+      console.error('[Storage] Lỗi tải file:', uploadError);
+      return res.status(500).json({ error: 'Lỗi khi lưu trữ file bài nộp.' });
+    }
+
+    const storagePath = uploadData.path;
+
+    // ── 2. Lưu vào DB với status = 'pending' ────────────────────────────────
     await db.query(
-      `INSERT INTO submissions (id, user_id, problem_id, sb3_data, status)
-       VALUES ($1, $2, $3, $4, 'pending')`,
-      [submissionId, req.user.id, problem_id, sb3Buffer]
+      `INSERT INTO submissions (id, board_participant_id, exam_id, quest_id, storage_path, status, submitted_at)
+       VALUES ($1, $2, $3, $4, $5, 'pending', NOW())`,
+      [submissionId, board_participant_id, exam_id, quest_id, storagePath]
     );
 
-    // ── Đẩy vào hàng đợi Judge (KHÔNG truyền sb3 qua queue, chỉ ID) ─────
+    // ── 3. Đẩy vào hàng đợi Judge ────────────────────────────────────────
     await judgeQueue.add(
-      { submissionId, problemId: problem_id, userId: req.user.id },
+      { submissionId, boardParticipantId: board_participant_id, examId: exam_id, questId: quest_id },
       {
-        attempts:    3,                   // Thử lại tối đa 3 lần nếu worker crash
+        attempts:    3,
         backoff:     { type: 'fixed', delay: 2000 },
-        timeout:     120000,              // Job timeout 2 phút
+        timeout:     120000,
         removeOnComplete: true,
-        removeOnFail:     false,          // Giữ lại failed jobs để debug
+        removeOnFail:     false,
       }
     );
 
     res.status(202).json({
       submission_id: submissionId,
       status:        'pending',
-      message:       'Bài nộp đang trong hàng đợi chấm. Vui lòng đợi kết quả.',
+      message:       'Bài nộp đã được tải lên và đang trong hàng đợi chấm.',
+      storage_path:  storagePath
     });
   } catch (err) {
     next(err);

@@ -10,79 +10,53 @@
 
 const { Pool } = require('pg');
 
-const pool = new Pool({
-  host:     process.env.DB_HOST     || 'localhost',
-  port:     process.env.DB_PORT     || 5432,
-  database: process.env.DB_NAME     || 'tinhoctre',
-  user:     process.env.DB_USER     || 'postgres',
-  password: process.env.DB_PASS     || '',
-  max:      10,   // connection pool
-});
+// Kết nối thông qua Connection String (Ưu tiên) hoặc các biến môi trường rời rạc
+const connectionString = process.env.DATABASE_URL;
 
-// ── Schema SQL ───────────────────────────────────────────────────────────
+const pool = connectionString 
+  ? new Pool({ connectionString, ssl: { rejectUnauthorized: false } })
+  : new Pool({
+      host:     process.env.DB_HOST     || 'localhost',
+      port:     process.env.DB_PORT     || 5432,
+      database: process.env.DB_NAME     || 'tinhoctre',
+      user:     process.env.DB_USER     || 'postgres',
+      password: process.env.DB_PASS     || '',
+      max:      10,
+    });
+
+// ── Schema SQL (Supabase Sync) ───────────────────────────────────────────
 const SCHEMA = `
--- Thí sinh
-CREATE TABLE IF NOT EXISTS users (
-  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  username   VARCHAR(50)  UNIQUE NOT NULL,
-  password   VARCHAR(255) NOT NULL,
-  full_name  VARCHAR(100),
-  school     VARCHAR(200),
-  grade      SMALLINT,
-  created_at TIMESTAMPTZ  DEFAULT NOW()
-);
+-- Lưu ý: Schema chính được quản lý bởi migration.sql trong contest-dashboard.
+-- Ở đây chúng ta chỉ đảm bảo các bảng cần thiết tồn tại hoặc được cập nhật.
 
--- Phiên thi
-CREATE TABLE IF NOT EXISTS contest_sessions (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id      UUID REFERENCES users(id) ON DELETE CASCADE,
-  problem_id   VARCHAR(50) NOT NULL,
-  started_at   TIMESTAMPTZ DEFAULT NOW(),
-  ended_at     TIMESTAMPTZ,
-  is_active    BOOLEAN DEFAULT TRUE
-);
+-- Bổ sung cột storage_path nếu chưa có trong submissions (để lưu file Scratch)
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='submissions' AND column_name='storage_path') THEN
+    ALTER TABLE submissions ADD COLUMN storage_path TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='submissions' AND column_name='judge_log') THEN
+    ALTER TABLE submissions ADD COLUMN judge_log JSONB;
+  END IF;
 
--- Bài nộp
-CREATE TABLE IF NOT EXISTS submissions (
-  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id        UUID REFERENCES users(id) ON DELETE CASCADE,
-  problem_id     VARCHAR(50) NOT NULL,
-  session_id     UUID REFERENCES contest_sessions(id),
-  sb3_data       BYTEA NOT NULL,              -- File .sb3 nhị phân
-  score          SMALLINT DEFAULT 0,
-  total_score    SMALLINT DEFAULT 0,
-  status         VARCHAR(20) DEFAULT 'pending',  -- pending|judging|accepted|wrong|tle|error
-  judge_log      JSONB,                       -- Chi tiết từng testcase
-  submitted_at   TIMESTAMPTZ DEFAULT NOW(),
-  judged_at      TIMESTAMPTZ,
-  -- Thời gian tính cho xếp hạng (phút kể từ đầu thi)
-  penalty_minutes INTEGER DEFAULT 0
-);
-
-CREATE INDEX IF NOT EXISTS idx_submissions_user    ON submissions(user_id);
-CREATE INDEX IF NOT EXISTS idx_submissions_problem ON submissions(problem_id);
-CREATE INDEX IF NOT EXISTS idx_submissions_status  ON submissions(status);
-
--- Ghi nhận vi phạm
-CREATE TABLE IF NOT EXISTS violations (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id      UUID REFERENCES users(id) ON DELETE CASCADE,
-  type         VARCHAR(50) NOT NULL, -- devtools_open|debugger_detected|external_paste
-  data         JSONB,                -- Chi tiết (count, target, timestamp)
-  created_at   TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_violations_user ON violations(user_id);
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='submissions' AND column_name='status') THEN
+    ALTER TABLE submissions ADD COLUMN status VARCHAR(20) DEFAULT 'pending';
+  END IF;
+END $$;
 `;
 
 /**
- * Khởi tạo schema (chạy 1 lần khi server start)
+ * Khởi tạo schema mở rộng
  */
 async function initDB() {
   const client = await pool.connect();
   try {
+    // Đảm bảo schema cơ bản đã có (thường do Supabase migration chạy trước)
     await client.query(SCHEMA);
-    console.log('[DB] Schema sẵn sàng.');
+    console.log('[DB] Supabase Schema extensions sẵn sàng.');
+  } catch (err) {
+    console.error('[DB] Lỗi khởi tạo schema:', err);
   } finally {
     client.release();
   }

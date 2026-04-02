@@ -10,69 +10,62 @@
 
 'use strict';
 
-const express = require('express');
-const path    = require('path');
-const fs      = require('fs').promises;
+const db = require('@tin-hoc-tre/shared');
 const { requireAuth } = require('../middleware/auth-middleware');
 
 const router = express.Router();
-const PROBLEMS_DIR = path.join(__dirname, '../../../../packages/tin-hoc-tre-problems/data');
 
-// ── GET /api/problems ────────────────────────────────────────────────────
-// Danh sách đề có thể thi
-router.get('/', requireAuth, async (req, res, next) => {
+// ── GET /api/problems/current ─────────────────────────────────────────────
+// Lấy danh sách câu hỏi của đề thi hiện tại mà thí sinh đang tham gia
+router.get('/current', requireAuth, async (req, res, next) => {
   try {
-    const files = await fs.readdir(PROBLEMS_DIR);
-    const publicFiles = files.filter(f => f.endsWith('.public.json'));
+    // 1. Tìm board_participant của user này trong round đang ACTIVE
+    const { rows: bpRows } = await db.query(
+      `SELECT bp.id as board_participant_id, e.id as exam_id, e.title, e.quest_data, r.end_time, r.status as round_status
+       FROM board_participants bp
+       JOIN exam_boards eb ON bp.board_id = eb.id
+       JOIN rounds r ON eb.round_id = r.id
+       JOIN exams e ON r.id = e.round_id
+       WHERE bp.participant_id = $1 AND r.status = 'active'
+       LIMIT 1`,
+      [req.user.id]
+    );
 
-    const list = await Promise.all(publicFiles.map(async (f) => {
-      const raw  = await fs.readFile(path.join(PROBLEMS_DIR, f), 'utf8');
-      const data = JSON.parse(raw);
-      return {
-        problem_id:  data.problem_id,
-        title:       data.title,
-        description: data.description,
-        time_limit:  data.time_limit,
-        total_score: data.test_cases.reduce((s, t) => s + (t.weight || 10), 0),
-      };
+    if (!bpRows.length) {
+      return res.status(404).json({ error: 'Bạn không có đề thi nào đang diễn ra.' });
+    }
+
+    const exam = bpRows[0];
+    
+    // 2. Trả về thông tin đề thi và danh sách câu hỏi (không kèm testcase ẩn/expected)
+    const safeQuests = exam.quest_data.map(q => ({
+      id:          q.id,
+      title:       q.title,
+      description: q.description,
+      time_limit:  q.time_limit,
+      // Chỉ gửi test_cases mẫu nếu có
+      test_cases:  (q.test_cases || []).filter(tc => tc.is_sample).map(tc => ({
+        input: tc.input,
+        output: tc.output
+      }))
     }));
 
-    res.json(list);
+    res.json({
+      board_participant_id: exam.board_participant_id,
+      exam_id:              exam.exam_id,
+      title:                exam.title,
+      end_time:             exam.end_time,
+      questions:            safeQuests
+    });
   } catch (err) {
     next(err);
   }
 });
 
-// ── GET /api/problems/:id ────────────────────────────────────────────────
-// Tải chi tiết đề (bao gồm testcase mẫu — KHÔNG có testcase ẩn)
+// ── GET /api/problems/:id (Legacy support hoặc lấy chi tiết q) ──────────────
 router.get('/:id', requireAuth, async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    // Validate: chỉ cho phép ký tự an toàn để tránh path traversal
-    if (!/^[\w-]+$/.test(id)) {
-      return res.status(400).json({ error: 'ID đề không hợp lệ.' });
-    }
-
-    const filePath = path.join(PROBLEMS_DIR, `${id}.public.json`);
-    const raw = await fs.readFile(filePath, 'utf8');
-    const problem = JSON.parse(raw);
-
-    // KHÔNG trả về expected trong testcase mẫu (thí sinh có thể thấy)
-    // Chỉ giữ input mẫu để thí sinh debug
-    const safeTestCases = problem.test_cases.map((tc, i) => ({
-      index:  i + 1,
-      weight: tc.weight,
-      input:  tc.input,
-      // expected bị giấu — frontend chỉ thấy khi kết quả trả về
-    }));
-
-    res.json({ ...problem, test_cases: safeTestCases });
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      return res.status(404).json({ error: `Không tìm thấy đề: ${req.params.id}` });
-    }
-    next(err);
-  }
+  // Logic tương tự current nhưng filter theo ID cụ thể nếu cần
+  res.status(501).json({ error: 'Tính năng này đang được chuyển đổi sang schema mới.' });
 });
 
 module.exports = router;
