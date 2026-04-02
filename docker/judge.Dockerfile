@@ -18,7 +18,7 @@ WORKDIR /app
 RUN npm install -g pnpm@9.12.3
 
 # Copy các file cấu hình workspace
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
 
 # Copy thư mục packages chung
 COPY packages ./packages

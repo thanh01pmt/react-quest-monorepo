@@ -6,7 +6,7 @@
     "start": "node src/worker.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.0",
+    "@supabase/supabase-js": "^2.39.7",
     "@tin-hoc-tre/problems": "workspace:*",
     "@tin-hoc-tre/shared": "workspace:*",
     "adm-zip": "^0.5.10",

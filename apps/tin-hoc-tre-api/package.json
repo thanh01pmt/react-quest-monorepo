@@ -6,6 +6,7 @@
   "engines": { "node": ">=18" },
   "scripts": {
     "dev":            "node src/server.js",
+    "start":          "node src/server.js",
     "db:init":        "node -e \"const db = require('@tin-hoc-tre/shared'); db.initDB().then(()=>process.exit(0))\""
   },
   "dependencies": {
@@ -21,7 +22,8 @@
     "pg":           "^8.11.3",
     "uuid":         "^9.0.1",
     "@tin-hoc-tre/shared": "workspace:*",
-    "@tin-hoc-tre/problems": "workspace:*"
+    "@tin-hoc-tre/problems": "workspace:*",
+    "@supabase/supabase-js": "^2.39.7"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
