@@ -1,8 +1,9 @@
 [build]
-  command = "pnpm install --shamefully-hoist && pnpm turbo run build --filter=@repo/contest-dashboard"
+  command = "pnpm install && pnpm turbo run build --filter=@repo/contest-dashboard"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../../packages/quest-player ../../package.json ../../pnpm-workspace.yaml ../../pnpm-lock.yaml ../../turbo.json ../../scripts/"
 
 [build.environment]
+  NODE_ENV = "development"
   SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
 
 # Cấu hình khuyến nghị trong Netlify UI:
