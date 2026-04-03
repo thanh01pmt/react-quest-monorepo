@@ -16,7 +16,20 @@ function requireAuth(req, res, next) {
 
   const token = authHeader.slice(7);
   try {
-    const payload = jwt.verify(token, SUPABASE_JWT_SECRET);
+    let payload;
+    try {
+      // Thử verify với secret thô (Kết quả test cho thấy đây là cách đúng cho key của bạn)
+      payload = jwt.verify(token, SUPABASE_JWT_SECRET);
+    } catch (err) {
+      // Nếu thất bại và secret có đuôi == (dấu hiệu base64), thử decode rồi verify lại làm fallback
+      if (SUPABASE_JWT_SECRET.endsWith('==')) {
+        const decodedSecret = Buffer.from(SUPABASE_JWT_SECRET, 'base64');
+        payload = jwt.verify(token, decodedSecret);
+      } else {
+        throw err;
+      }
+    }
+
     // Supabase payload thường có: sub (user_id), email, role, ...
     req.user = {
       id: payload.sub,
@@ -26,6 +39,8 @@ function requireAuth(req, res, next) {
     next();
   } catch (err) {
     console.error('[Auth] Token invalid:', err.message);
+    // Log mask secret để kiểm tra xem server đã nhận key mới chưa
+    console.error('[Auth] Current Secret hint (first 5):', (SUPABASE_JWT_SECRET || '').substring(0, 5) + '...');
     return res.status(403).json({ error: 'Token không hợp lệ hoặc không có quyền truy cập.' });
   }
 }
