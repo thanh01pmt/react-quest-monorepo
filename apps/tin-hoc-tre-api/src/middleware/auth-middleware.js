@@ -1,53 +1,49 @@
 'use strict';
 
-const jwt = require('jsonwebtoken');
+const { createClient } = require('@supabase/supabase-js');
 
-// Supabase JWT Secret từ dashboard Setting > API
-const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET || 'your-supabase-jwt-secret';
+// Khởi tạo Supabase Admin Client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY
+);
 
 /**
  * Middleware: kiểm tra JWT Bearer token phát hành bởi Supabase
+ * Sử dụng supabase.auth.getUser(token) để hỗ trợ cả thuật toán ES256 và HS256
  */
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Chưa đăng nhập. Vui lòng cung cấp token từ Supabase.' });
   }
 
   const token = authHeader.slice(7);
+
   try {
-    let payload;
-    try {
-      // Thử verify với secret thô (Kết quả test cho thấy đây là cách đúng cho key của bạn)
-      payload = jwt.verify(token, SUPABASE_JWT_SECRET);
-    } catch (err) {
-      // Nếu thất bại và secret có đuôi == (dấu hiệu base64), thử decode rồi verify lại làm fallback
-      if (SUPABASE_JWT_SECRET.endsWith('==')) {
-        const decodedSecret = Buffer.from(SUPABASE_JWT_SECRET, 'base64');
-        payload = jwt.verify(token, decodedSecret);
-      } else {
-        throw err;
-      }
+    // Sử dụng SDK chính thức để xác thực token. 
+    // Phương pháp này tự động xử lý Key Rotation và Thuật toán (ES256/HS256)
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      if (error) console.error('[Auth Error]', error.message);
+      return res.status(403).json({ error: 'Token không hợp lệ hoặc không có quyền truy cập.' });
     }
 
-    // Supabase payload thường có: sub (user_id), email, role, ...
-    req.user = {
-      id: payload.sub,
-      email: payload.email,
-      ...payload
-    };
+    // Gán thông tin user vào request
+    req.user = user;
     next();
   } catch (err) {
-    console.error('[Auth] Token invalid:', err.message);
-    // Log mask secret để kiểm tra xem server đã nhận key mới chưa
-    console.error('[Auth] Current Secret hint (first 5):', (SUPABASE_JWT_SECRET || '').substring(0, 5) + '...');
-    return res.status(403).json({ error: 'Token không hợp lệ hoặc không có quyền truy cập.' });
+    console.error('[Auth System Error]', err.message);
+    return res.status(500).json({ error: 'Lỗi hệ thống xác thực.' });
   }
 }
 
 /**
- * Tạo JWT token (Dùng cho test nội bộ, production nên dùng Supabase auth)
+ * Hàm dummy cho tương thích ngược (nếu cần dùng jsonwebtoken thủ công)
  */
+const jwt = require('jsonwebtoken');
+const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET || 'secret';
 function signToken(payload) {
   return jwt.sign(payload, SUPABASE_JWT_SECRET, { expiresIn: '8h' });
 }
