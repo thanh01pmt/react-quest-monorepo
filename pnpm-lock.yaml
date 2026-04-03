@@ -343,7 +343,7 @@ importers:
         version: 0.5.17
       bcrypt:
         specifier: ^5.1.1
-        version: 5.1.1
+        version: 5.1.1(encoding@0.1.13)
       bull:
         specifier: ^4.12.2
         version: 4.16.5
@@ -414,16 +414,22 @@ importers:
         version: 4.16.5
       canvas:
         specifier: ^2.11.2
-        version: 2.11.2
+        version: 2.11.2(encoding@0.1.13)
       jsdom:
         specifier: ^22.1.0
-        version: 22.1.0(canvas@2.11.2)
+        version: 22.1.0(canvas@2.11.2(encoding@0.1.13))
       pg:
         specifier: ^8.11.0
         version: 8.20.0
+      sb-util:
+        specifier: 0.0.1-prealpha.4
+        version: 0.0.1-prealpha.4
+      scratch-analysis:
+        specifier: ^2.4.1
+        version: 2.4.1
       scratch-vm:
         specifier: latest
-        version: 5.0.300(canvas@2.11.2)(scratch-render-fonts@1.0.252)
+        version: 5.0.300(canvas@2.11.2(encoding@0.1.13))(encoding@0.1.13)(scratch-render-fonts@1.0.252)
 
   packages/academic-map-generator:
     dependencies:
@@ -640,7 +646,7 @@ importers:
         version: 8.0.1
       pkg:
         specifier: ^5.8.1
-        version: 5.8.1
+        version: 5.8.1(encoding@0.1.13)
       scratch-sb1-converter:
         specifier: ^2.0.279
         version: 2.0.279
@@ -3971,6 +3977,10 @@ packages:
     resolution: {integrity: sha512-XgZ0pFcakEUlbwQEVNg3+QAis1FyTL3Qel9FYy8pSkQqoG3PNoT0bOCQtOXcOkur21r2Eq2kI+IE+gsmAEVlYw==}
     engines: {node: '>=0.10.0'}
 
+  core-js@2.3.0:
+    resolution: {integrity: sha512-N41UFUZNqoTSGUSyL7kiStAkH31Hxq197A4Gp9MxTZfAd52pXod7VM7kWiRP0J0YpQDeaE4SLsb+2OGgtgvUEw==}
+    deprecated: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
+
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
 
@@ -4404,6 +4414,9 @@ packages:
     resolution: {integrity: sha512-Q0n9HRi4m6JuGIV1eFlmvJB7ZEVxu93IrMyiMsGC0lrMJMWzRgx6WGquyfQgZVb31vhGgXnfmPNNXmxnOkRBrg==}
     engines: {node: '>= 0.8'}
 
+  encoding@0.1.13:
+    resolution: {integrity: sha512-ETBauow1T35Y/WZMkio9jiM0Z5xjHHmJ4XmjZOq1l/dXz3lr2sRn87nJy20RupqSh1F2m3HHPSp8ShIPQJrJ3A==}
+
   end-of-stream@1.4.5:
     resolution: {integrity: sha512-ooEGc6HP26xXq/N+GCGOT0JKCLDGrq2bQUZrQ7gyrJiZANJ/8YDTxTpQBXGMn+WbIQXNVpyWymm7KYVICQnyOg==}
 
@@ -4491,6 +4504,9 @@ packages:
   es-to-primitive@1.3.0:
     resolution: {integrity: sha512-w+5mJ3GuFL+NjVtJlvydShqE1eN3h3PbI7/5LAsYJP/2qtuMXjfL2LpHSRqo4b4eSF5K/DH1JXKUAHSB2UW50g==}
     engines: {node: '>= 0.4'}
+
+  es6-promise@3.0.2:
+    resolution: {integrity: sha512-CUD62/uqeE0L+EJeypOKuFfM56CFaH4vo+++J76bff0NkeQ2bBmWVCTNxL2hj9HeCYPkof6Gqea0BSeK17gBzA==}
 
   esbuild-loader@4.4.3:
     resolution: {integrity: sha512-Wpui03EzqC151xFteKlgJQhbyZl5CgnBpUHXVuao02nItULlkaTeiLdEMPTmR2zdwpEBWkXVNoT5dDOYJluUzg==}
@@ -5797,6 +5813,10 @@ packages:
     resolution: {integrity: sha512-ISWac8drv4ZGfwKl5slpHG9OwPNty4jOWPRIhBpxOoD+hqITiwuipOQ2bNthAzwA3B4fIjO4Nln74N0S9byq8A==}
     engines: {node: '>= 0.4'}
 
+  is-stream@1.1.0:
+    resolution: {integrity: sha512-uQPm8kcs47jx38atAcWTVxyltQYoPT68y9aWYdV6yWXSyW8mzSat0TL6CiWdZeCdF3KrAvpVtnHbTv4RN+rqdQ==}
+    engines: {node: '>=0.10.0'}
+
   is-stream@2.0.1:
     resolution: {integrity: sha512-hFoiJiTl63nn+kstHGBtewWSKnQLpyb155KHheA1l39uvtO9nWIop1p3udqPcUd/xbF1VLMO4n7OI6p7RbngDg==}
     engines: {node: '>=8'}
@@ -5873,6 +5893,9 @@ packages:
   isomorphic-dompurify@2.36.0:
     resolution: {integrity: sha512-E8YkGyPY3a/U5s0WOoc8Ok+3SWL/33yn2IHCoxCFLBUUPVy9WGa++akJZFxQCcJIhI+UvYhbrbnTIFQkHKZbgA==}
     engines: {node: '>=20.19.5'}
+
+  isomorphic-fetch@2.2.1:
+    resolution: {integrity: sha512-9c4TNAKYXM5PRyVcwUZrF3W09nQ+sO7+jydgs4ZGW9dhsLG2VOlISJABombdQqQRXCwuYG3sYV/puGf5rp0qmA==}
 
   issue-parser@7.0.1:
     resolution: {integrity: sha512-3YZcUUR2Wt1WsapF+S/WiA2WmlW0cWAoPccMqne7AxEBhCdFeTPjfv/Axb8V2gyCgY3nRw+ksZ3xSUX+R47iAg==}
@@ -6020,6 +6043,9 @@ packages:
   jsx-ast-utils@3.3.5:
     resolution: {integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==}
     engines: {node: '>=4.0'}
+
+  jszip@3.1.5:
+    resolution: {integrity: sha512-5W8NUaFRFRqTOL7ZDDrx5qWHJyBXy6velVudIzQUSoqAAYqzSh2Z7/m0Rf1QbmQJccegD0r+YZxBjzqoBiEeJQ==}
 
   jszip@3.10.1:
     resolution: {integrity: sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==}
@@ -6752,6 +6778,9 @@ packages:
     resolution: {integrity: sha512-pyFS63ptit/P5WqUkt+UUfe+4oevH+bFeIiPPdfb0pFeYEu/1ELnJu5l+5EcTKYL5M7zaAa7S8ddywgXypqKCw==}
     engines: {node: '>= 0.4'}
 
+  node-fetch@1.7.3:
+    resolution: {integrity: sha512-NhZ4CsKx7cYm2vSrBAr2PvFOe6sWDf0UYLRqA6svUYg7+/TSfVAu49jYC4BvQ4Sms9SZgdqGBgroqfDhJdTyKQ==}
+
   node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
     engines: {node: 4.x || >=6.0.0}
@@ -7378,6 +7407,9 @@ packages:
     resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
     engines: {node: '>=6'}
 
+  process-nextick-args@1.0.7:
+    resolution: {integrity: sha512-yN0WQmuCX63LP/TMvAg31nvT6m4vDqJEiiv2CAZqWOGNWutc9DfDk1NPYYmKUFmaVM2UwDowH4u5AHWYP/jxKw==}
+
   process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
 
@@ -7640,6 +7672,9 @@ packages:
     resolution: {integrity: sha512-9viLL4/n1BJUCT1NXVTdS1jtm80yDEgR5T4yCelII49Mbj0v1rZdKqj7zCiYdbB0CuCgdrvHcNogAKTFPBocFA==}
     engines: {node: '>=18'}
 
+  readable-stream@2.0.6:
+    resolution: {integrity: sha512-TXcFfb63BQe1+ySzsHZI/5v1aJPCShfqvWJ64ayNImXMsN1Cd0YGk/wm8KB7/OeessgPc9QvS9Zou8QTkFzsLw==}
+
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
 
@@ -7868,6 +7903,9 @@ packages:
     resolution: {integrity: sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA==}
     engines: {node: '>=v12.22.7'}
 
+  sb-util@0.0.1-prealpha.4:
+    resolution: {integrity: sha512-tdwsrHZ1FUAKaXFDc8GbkR063kLfNSqAeKRDyGwvVbCy4KsM+k9Jqr1SUJfQZ14PTEjJAO+Fa15W9fthTI1nNA==}
+
   scheduler@0.21.0:
     resolution: {integrity: sha512-1r87x5fz9MXqswA2ERLo0EbOAU74DpIUO090gIasYTqlVoJeMcl+Z1Rg7WHz+qtPujhS/hGIt9kxZOYBV3faRQ==}
 
@@ -7886,8 +7924,15 @@ packages:
     resolution: {integrity: sha512-eflK8wEtyOE6+hsaRVPxvUKYCpRgzLqDTb8krvAsRIwOGlHoSgYLgBXoubGgLd2fT41/OUYdb48v4k4WWHQurA==}
     engines: {node: '>= 10.13.0'}
 
+  scratch-analysis@2.4.1:
+    resolution: {integrity: sha512-eXWVlpROuzZC73+IwHvgEha4feWqP4spSdOaC0zzFtzqVvF3RhKCpFFA/RbsxLjuYhYqtddskHKXIvPtqJ62jQ==}
+
   scratch-audio@2.0.268:
     resolution: {integrity: sha512-arkmLfsA7IxSniSWfTQWImYE0yTZQIGUg4i+phFb5mk3D95XXHSd/9nVzIzD9lzfQntnm4Gd9VY7S8qYuGINxQ==}
+
+  scratch-parser@5.0.0:
+    resolution: {integrity: sha512-7kjxoxivLgYYvmAJVLOOWnca4CigwuCpgjy9+6UuxOMgSZKO1xqIjxIADupabmh1ZLZZDVe45DBM/CQTdtVDkw==}
+    engines: {node: '>=8.0'}
 
   scratch-parser@6.0.0:
     resolution: {integrity: sha512-LXcKxJIupqBtXSe2+SXkQxwdMWg4JCdZfoSdPYj1ZtV/UhejyUYju6ptYUrr98RsLFT5UyCmmUaev8gA1SNvhQ==}
@@ -7911,6 +7956,9 @@ packages:
 
   scratch-sb1-converter@2.0.279:
     resolution: {integrity: sha512-C0yN1Ete4GukNBVvnRkJNW2fjV0l+N2qaTDM6Xmoo5nCvtw0GoWdKs7AB7OtKSVA1a7GDSvssArwqoP/Lp8Bww==}
+
+  scratch-sb1-converter@2.0.50:
+    resolution: {integrity: sha512-Yy6I8bwVqYvpSv/0SePJBkKsWZTLIGxi/zu3DFLS28cu01PqbwDfG5lu2CnJxQao8p3+ebySneIRQbb8s1Cs2A==}
 
   scratch-semantic-release-config@4.0.1:
     resolution: {integrity: sha512-GnYr/0ThoFdE4w4vYV2J9NQlAXqC7kxfQUqzmtoeJeAP6H1wTDFZ6cB318Xzbkprl+efUMyFM/mMb8NoDvR6PQ==}
@@ -8338,6 +8386,9 @@ packages:
   string.prototype.trimstart@1.0.8:
     resolution: {integrity: sha512-UXSH262CSZY1tfu3G3Secr6uGLCFVPMhIqHjlgCUtCCcgihYc/xKs9djMTMUOb2j1mVSeU8EU6NWc/iQKU6Gfg==}
     engines: {node: '>= 0.4'}
+
+  string_decoder@0.10.31:
+    resolution: {integrity: sha512-ev2QzSzWPYmy9GuqfIVildA4OdcGLeFZQrq5ys6RtiuF+RQQiZWr8TZNyAcuVXyQRYfEO+MsoB/1BuQVhOJuoQ==}
 
   string_decoder@1.1.1:
     resolution: {integrity: sha512-n/ShnvDi6FHbbVfviro+WojiFzv+s8MPMHBczVePfUpDJLwoLT0ht1l4YwBCbi8pJAveEEdnkHyPyTP/mzRfwg==}
@@ -9398,6 +9449,9 @@ packages:
     engines: {node: '>=18'}
     deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
+  whatwg-fetch@3.6.20:
+    resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
+
   whatwg-mimetype@3.0.0:
     resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
     engines: {node: '>=12'}
@@ -9897,7 +9951,7 @@ snapshots:
   '@commitlint/config-validator@20.5.0':
     dependencies:
       '@commitlint/types': 20.5.0
-      ajv: 8.17.1
+      ajv: 8.18.0
 
   '@commitlint/ensure@20.5.0':
     dependencies:
@@ -10593,12 +10647,12 @@ snapshots:
 
   '@leichtgewicht/ip-codec@2.0.5': {}
 
-  '@mapbox/node-pre-gyp@1.0.11':
+  '@mapbox/node-pre-gyp@1.0.11(encoding@0.1.13)':
     dependencies:
       detect-libc: 2.1.2
       https-proxy-agent: 5.0.1
       make-dir: 3.1.0
-      node-fetch: 2.7.0
+      node-fetch: 2.7.0(encoding@0.1.13)
       nopt: 5.0.0
       npmlog: 5.0.1
       rimraf: 3.0.2
@@ -12614,9 +12668,9 @@ snapshots:
       is-alphanumerical: 2.0.1
       is-decimal: 2.0.1
 
-  bcrypt@5.1.1:
+  bcrypt@5.1.1(encoding@0.1.13):
     dependencies:
-      '@mapbox/node-pre-gyp': 1.0.11
+      '@mapbox/node-pre-gyp': 1.0.11(encoding@0.1.13)
       node-addon-api: 5.1.0
     transitivePeerDependencies:
       - encoding
@@ -12919,9 +12973,9 @@ snapshots:
 
   canvas-toBlob@1.0.0: {}
 
-  canvas@2.11.2:
+  canvas@2.11.2(encoding@0.1.13):
     dependencies:
-      '@mapbox/node-pre-gyp': 1.0.11
+      '@mapbox/node-pre-gyp': 1.0.11(encoding@0.1.13)
       nan: 2.26.2
       simple-get: 3.1.1
     transitivePeerDependencies:
@@ -13255,6 +13309,8 @@ snapshots:
 
   copy-descriptor@0.1.1: {}
 
+  core-js@2.3.0: {}
+
   core-util-is@1.0.3: {}
 
   cors@2.8.6:
@@ -13308,9 +13364,9 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
 
-  cross-fetch@4.1.0:
+  cross-fetch@4.1.0(encoding@0.1.13):
     dependencies:
-      node-fetch: 2.7.0
+      node-fetch: 2.7.0(encoding@0.1.13)
     transitivePeerDependencies:
       - encoding
 
@@ -13727,6 +13783,10 @@ snapshots:
 
   encodeurl@2.0.0: {}
 
+  encoding@0.1.13:
+    dependencies:
+      iconv-lite: 0.6.3
+
   end-of-stream@1.4.5:
     dependencies:
       once: 1.4.0
@@ -13873,6 +13933,8 @@ snapshots:
       is-callable: 1.2.7
       is-date-object: 1.1.0
       is-symbol: 1.1.1
+
+  es6-promise@3.0.2: {}
 
   esbuild-loader@4.4.3(webpack@4.47.0(webpack-cli@4.10.0)):
     dependencies:
@@ -15546,6 +15608,8 @@ snapshots:
     dependencies:
       call-bound: 1.0.4
 
+  is-stream@1.1.0: {}
+
   is-stream@2.0.1: {}
 
   is-stream@3.0.0: {}
@@ -15604,14 +15668,19 @@ snapshots:
 
   isobject@3.0.1: {}
 
-  isomorphic-dompurify@2.36.0(canvas@2.11.2):
+  isomorphic-dompurify@2.36.0(canvas@2.11.2(encoding@0.1.13)):
     dependencies:
       dompurify: 3.3.3
-      jsdom: 28.1.0(canvas@2.11.2)
+      jsdom: 28.1.0(canvas@2.11.2(encoding@0.1.13))
     transitivePeerDependencies:
       - '@noble/hashes'
       - canvas
       - supports-color
+
+  isomorphic-fetch@2.2.1:
+    dependencies:
+      node-fetch: 1.7.3
+      whatwg-fetch: 3.6.20
 
   issue-parser@7.0.1:
     dependencies:
@@ -15672,7 +15741,7 @@ snapshots:
 
   jsdoc-type-pratt-parser@7.1.1: {}
 
-  jsdom@22.1.0(canvas@2.11.2):
+  jsdom@22.1.0(canvas@2.11.2(encoding@0.1.13)):
     dependencies:
       abab: 2.0.6
       cssstyle: 3.0.0
@@ -15698,7 +15767,7 @@ snapshots:
       ws: 8.20.0
       xml-name-validator: 4.0.0
     optionalDependencies:
-      canvas: 2.11.2
+      canvas: 2.11.2(encoding@0.1.13)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -15731,7 +15800,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  jsdom@28.1.0(canvas@2.11.2):
+  jsdom@28.1.0(canvas@2.11.2(encoding@0.1.13)):
     dependencies:
       '@acemir/cssom': 0.9.31
       '@asamuzakjp/dom-selector': 6.8.1
@@ -15755,7 +15824,7 @@ snapshots:
       whatwg-url: 16.0.1
       xml-name-validator: 5.0.0
     optionalDependencies:
-      canvas: 2.11.2
+      canvas: 2.11.2(encoding@0.1.13)
     transitivePeerDependencies:
       - '@noble/hashes'
       - supports-color
@@ -15825,6 +15894,14 @@ snapshots:
       array.prototype.flat: 1.3.3
       object.assign: 4.1.7
       object.values: 1.2.1
+
+  jszip@3.1.5:
+    dependencies:
+      core-js: 2.3.0
+      es6-promise: 3.0.2
+      lie: 3.1.1
+      pako: 1.0.11
+      readable-stream: 2.0.6
 
   jszip@3.10.1:
     dependencies:
@@ -16814,9 +16891,16 @@ snapshots:
       object.entries: 1.1.9
       semver: 6.3.1
 
-  node-fetch@2.7.0:
+  node-fetch@1.7.3:
+    dependencies:
+      encoding: 0.1.13
+      is-stream: 1.1.0
+
+  node-fetch@2.7.0(encoding@0.1.13):
     dependencies:
       whatwg-url: 5.0.0
+    optionalDependencies:
+      encoding: 0.1.13
 
   node-gyp-build-optional-packages@5.2.2:
     dependencies:
@@ -17292,12 +17376,12 @@ snapshots:
     dependencies:
       find-up: 4.1.0
 
-  pkg-fetch@3.4.2:
+  pkg-fetch@3.4.2(encoding@0.1.13):
     dependencies:
       chalk: 4.1.2
       fs-extra: 9.1.0
       https-proxy-agent: 5.0.1
-      node-fetch: 2.7.0
+      node-fetch: 2.7.0(encoding@0.1.13)
       progress: 2.0.3
       semver: 7.7.4
       tar-fs: 2.1.4
@@ -17312,7 +17396,7 @@ snapshots:
       mlly: 1.8.0
       pathe: 2.0.3
 
-  pkg@5.8.1:
+  pkg@5.8.1(encoding@0.1.13):
     dependencies:
       '@babel/generator': 7.18.2
       '@babel/parser': 7.18.4
@@ -17324,7 +17408,7 @@ snapshots:
       is-core-module: 2.9.0
       minimist: 1.2.8
       multistream: 4.1.0
-      pkg-fetch: 3.4.2
+      pkg-fetch: 3.4.2(encoding@0.1.13)
       prebuild-install: 7.1.1
       resolve: 1.22.10
       stream-meter: 1.0.4
@@ -17417,6 +17501,8 @@ snapshots:
       parse-ms: 4.0.0
 
   prismjs@1.30.0: {}
+
+  process-nextick-args@1.0.7: {}
 
   process-nextick-args@2.0.1: {}
 
@@ -17746,6 +17832,15 @@ snapshots:
       type-fest: 4.41.0
       unicorn-magic: 0.1.0
 
+  readable-stream@2.0.6:
+    dependencies:
+      core-util-is: 1.0.3
+      inherits: 2.0.4
+      isarray: 1.0.0
+      process-nextick-args: 1.0.7
+      string_decoder: 0.10.31
+      util-deprecate: 1.0.2
+
   readable-stream@2.3.8:
     dependencies:
       core-util-is: 1.0.3
@@ -18042,6 +18137,11 @@ snapshots:
     dependencies:
       xmlchars: 2.2.0
 
+  sb-util@0.0.1-prealpha.4:
+    dependencies:
+      isomorphic-fetch: 2.2.1
+      jszip: 3.10.1
+
   scheduler@0.21.0:
     dependencies:
       loose-envify: 1.4.0
@@ -18068,11 +18168,22 @@ snapshots:
       ajv-formats: 2.1.1(ajv@8.17.1)
       ajv-keywords: 5.1.0(ajv@8.17.1)
 
+  scratch-analysis@2.4.1:
+    dependencies:
+      scratch-parser: 5.0.0
+      scratch-sb1-converter: 2.0.50
+
   scratch-audio@2.0.268:
     dependencies:
       audio-context: 1.0.3
       minilog: 3.1.0
       startaudiocontext: 1.2.1
+
+  scratch-parser@5.0.0:
+    dependencies:
+      ajv: 6.3.0
+      jszip: 3.1.5
+      pify: 4.0.1
 
   scratch-parser@6.0.0:
     dependencies:
@@ -18092,7 +18203,7 @@ snapshots:
     dependencies:
       base64-loader: 1.0.0
 
-  scratch-render@2.2.82(canvas@2.11.2)(scratch-render-fonts@1.0.252):
+  scratch-render@2.2.82(canvas@2.11.2(encoding@0.1.13))(scratch-render-fonts@1.0.252):
     dependencies:
       grapheme-breaker: 0.3.2
       hull.js: 0.2.10
@@ -18101,7 +18212,7 @@ snapshots:
       minilog: 3.1.0
       raw-loader: 0.5.1
       scratch-render-fonts: 1.0.252
-      scratch-svg-renderer: 3.0.114(canvas@2.11.2)(scratch-render-fonts@1.0.252)
+      scratch-svg-renderer: 3.0.114(canvas@2.11.2(encoding@0.1.13))(scratch-render-fonts@1.0.252)
       twgl.js: 4.24.0
     transitivePeerDependencies:
       - '@noble/hashes'
@@ -18120,6 +18231,12 @@ snapshots:
       minilog: 3.1.0
       text-encoding: 0.7.0
 
+  scratch-sb1-converter@2.0.50:
+    dependencies:
+      js-md5: 0.7.3
+      minilog: 3.1.0
+      text-encoding: 0.7.0
+
   scratch-semantic-release-config@4.0.1(semantic-release@25.0.3(typescript@5.9.3)):
     dependencies:
       '@semantic-release/commit-analyzer': 13.0.1(semantic-release@25.0.3(typescript@5.9.3))
@@ -18131,26 +18248,26 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  scratch-storage@4.1.27:
+  scratch-storage@4.1.27(encoding@0.1.13):
     dependencies:
       '@babel/runtime': 7.28.4
       arraybuffer-loader: 1.0.8
       base64-js: 1.5.1
       buffer: 6.0.3
-      cross-fetch: 4.1.0
+      cross-fetch: 4.1.0(encoding@0.1.13)
       fastestsmallesttextencoderdecoder: 1.0.22
       js-md5: 0.7.3
       minilog: 3.1.0
     transitivePeerDependencies:
       - encoding
 
-  scratch-svg-renderer@3.0.114(canvas@2.11.2)(scratch-render-fonts@1.0.252):
+  scratch-svg-renderer@3.0.114(canvas@2.11.2(encoding@0.1.13))(scratch-render-fonts@1.0.252):
     dependencies:
       base64-js: 1.5.1
       base64-loader: 1.0.0
       css-tree: 1.1.3
       fastestsmallesttextencoderdecoder: 1.0.22
-      isomorphic-dompurify: 2.36.0(canvas@2.11.2)
+      isomorphic-dompurify: 2.36.0(canvas@2.11.2(encoding@0.1.13))
       minilog: 3.1.0
       scratch-render-fonts: 1.0.252
       transformation-matrix: 1.15.3
@@ -18163,7 +18280,7 @@ snapshots:
 
   scratch-translate-extension-languages@1.0.7: {}
 
-  scratch-vm@5.0.300(canvas@2.11.2)(scratch-render-fonts@1.0.252):
+  scratch-vm@5.0.300(canvas@2.11.2(encoding@0.1.13))(encoding@0.1.13)(scratch-render-fonts@1.0.252):
     dependencies:
       '@vernier/godirect': 1.8.3
       arraybuffer-loader: 1.0.8
@@ -18180,10 +18297,10 @@ snapshots:
       minilog: 3.1.0
       scratch-audio: 2.0.268
       scratch-parser: 6.0.0
-      scratch-render: 2.2.82(canvas@2.11.2)(scratch-render-fonts@1.0.252)
+      scratch-render: 2.2.82(canvas@2.11.2(encoding@0.1.13))(scratch-render-fonts@1.0.252)
       scratch-sb1-converter: 2.0.279
-      scratch-storage: 4.1.27
-      scratch-svg-renderer: 3.0.114(canvas@2.11.2)(scratch-render-fonts@1.0.252)
+      scratch-storage: 4.1.27(encoding@0.1.13)
+      scratch-svg-renderer: 3.0.114(canvas@2.11.2(encoding@0.1.13))(scratch-render-fonts@1.0.252)
       scratch-translate-extension-languages: 1.0.7
       text-encoding: 0.7.0
       uuid: 8.3.2
@@ -18764,6 +18881,8 @@ snapshots:
       call-bind: 1.0.8
       define-properties: 1.2.1
       es-object-atoms: 1.1.1
+
+  string_decoder@0.10.31: {}
 
   string_decoder@1.1.1:
     dependencies:
@@ -19655,7 +19774,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.10.4
-      jsdom: 28.1.0(canvas@2.11.2)
+      jsdom: 28.1.0(canvas@2.11.2(encoding@0.1.13))
     transitivePeerDependencies:
       - less
       - lightningcss
@@ -19691,7 +19810,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 24.10.4
       '@vitest/browser-playwright': 4.1.1(playwright@1.58.2)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3))(vitest@4.1.1)
-      jsdom: 28.1.0(canvas@2.11.2)
+      jsdom: 28.1.0(canvas@2.11.2(encoding@0.1.13))
     transitivePeerDependencies:
       - msw
 
@@ -19969,6 +20088,8 @@ snapshots:
   whatwg-encoding@3.1.1:
     dependencies:
       iconv-lite: 0.6.3
+
+  whatwg-fetch@3.6.20: {}
 
   whatwg-mimetype@3.0.0: {}
 

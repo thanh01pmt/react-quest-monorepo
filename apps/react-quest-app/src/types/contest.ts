@@ -90,6 +90,8 @@ export interface ContestSubmission {
 	workerLog?: string;
 	/** New: Total execution time (ms) */
 	timeMs?: number;
+	/** New: High level judge status */
+	status: "judging" | "accepted" | "wrong" | "error" | "partial" | "tle" | "pending";
 }
 
 export interface SubmissionTestResult {

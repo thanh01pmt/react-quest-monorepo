@@ -19,6 +19,7 @@ const path    = require('path');
 const fs      = require('fs').promises;
 const db      = require('@tin-hoc-tre/shared');
 const { ScratchRunner } = require('./scratch-runner');
+const { ScratchAnalyzer } = require('./scratch-analyzer');
 
 // ── Kết nối cùng queue với server.js ────────────────────────────────────
 const judgeQueue = new Queue('judge', {
@@ -78,12 +79,32 @@ judgeQueue.process(
     }
 
     const testCases  = currentQuest.test_cases || [];
-    const totalScore = testCases.reduce((s, t) => s + (t.weight || 10), 0);
+    const structuralChecks = currentQuest.structural_checks || [];
+    const totalScore = (testCases.reduce((s, t) => s + (t.weight || 10), 0)) + 
+                       (structuralChecks.reduce((s, r) => s + (r.weight || 10), 0));
+    
     const log        = [];
     let   score      = 0;
     let   finalStatus = 'wrong';
 
-    // ── 4. Chạy từng testcase ────────────────────────────────────────
+    // ── 4. Phân tích cấu trúc (Structural Analysis - STATIC) ──────────
+    if (structuralChecks.length > 0) {
+      console.log(`[Judge] Chạy ${structuralChecks.length} kiểm tra cấu trúc...`);
+      const structResult = await ScratchAnalyzer.analyze(sb3Buffer, structuralChecks);
+      score += structResult.score;
+      
+      structResult.results.forEach(r => {
+        log.push({
+          type: 'structural',
+          description: r.description,
+          passed: r.passed,
+          weight: r.weight,
+          score: r.score
+        });
+      });
+    }
+
+    // ── 5. Chạy từng testcase (Execution - DYNAMIC) ──────────────────
     for (let i = 0; i < testCases.length; i++) {
       const tc     = testCases[i];
       const tcName = `Testcase ${i + 1}`;
@@ -105,6 +126,7 @@ judgeQueue.process(
       if (passed) score += (tc.weight || 10);
 
       log.push({
+        type:     'algorithmic',
         index:    i + 1,
         weight:   tc.weight || 10,
         passed,
@@ -115,7 +137,7 @@ judgeQueue.process(
       });
 
       console.log(`[Judge]   ${tcName}: ${passed ? '✅' : '❌'} (${result.ms}ms, ${result.status})`);
-      await job.progress(Math.round(((i + 1) / testCases.length) * 100));
+      await job.progress(Math.round(((i + 1) / (testCases.length + (structuralChecks.length ? 1 : 0))) * 100));
     }
 
     // ── 5. Tổng hợp kết quả ──────────────────────────────────────────
@@ -131,7 +153,7 @@ judgeQueue.process(
     // Cập nhật kết quả cuối cùng
     await db.query(
       `UPDATE submissions
-       SET score = $1, status = $2, judge_log = $3, judged_at = NOW()
+       SET score = $1, status = $2, judge_log = $3, test_results = $3, judged_at = NOW()
        WHERE id = $4`,
       [score, finalStatus, JSON.stringify(log), submissionId]
     );

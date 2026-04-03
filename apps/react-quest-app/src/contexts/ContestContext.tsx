@@ -321,6 +321,7 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
                 score: 0,        // Managed by backend
                 submittedAt: new Date().toISOString(),
                 attempt: 0,      // Managed by backend
+                status: 'pending',
             });
 
             if (!result) return;
@@ -383,30 +384,37 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
             // Start polling for result
             const pollInterval = setInterval(async () => {
                 const sub = await getSubmissionById(submissionId);
-                if (sub && sub.score !== null && sub.score !== undefined && sub.testResults && sub.testResults.length > 0) {
+                
+                // Stop polling if we have a final status
+                const isFinalStatus = sub && ['accepted', 'wrong', 'error', 'partial', 'tle'].includes(sub.status);
+                
+                if (isFinalStatus) {
+                    console.log(`[Polling] Submission ${submissionId} finished with status: ${sub.status}`);
                     clearInterval(pollInterval);
                     pollingRefs.current.delete(questId);
                     
-                    // Update locally
-                    const challengeIndex = stateRef.current.challenges.findIndex((ch) => ch.questId === questId);
-                    setState((s) => {
-                        const challenges = [...s.challenges];
-                        if (challengeIndex >= 0) {
-                            const current = challenges[challengeIndex];
-                            const newBestScore = s.contest?.settings.scoringMode === 'highest'
-                                ? Math.max(current.bestScore, sub.score)
-                                : sub.score;
-                            
-                            challenges[challengeIndex] = {
-                                ...current,
-                                bestScore: newBestScore,
-                                attempts: (current.attempts || 0) + 1,
-                                status: newBestScore >= 100 ? 'passed' : newBestScore > 0 ? 'attempted' : 'failed',
-                            };
-                        }
-                        const totalScore = challenges.reduce((sum, ch) => sum + ch.bestScore, 0);
-                        return { ...s, challenges, totalScore };
-                    });
+                    if (sub.score !== null && sub.score !== undefined) {
+                        // Update locally
+                        const challengeIndex = stateRef.current.challenges.findIndex((ch) => ch.questId === questId);
+                        setState((s) => {
+                            const challenges = [...s.challenges];
+                            if (challengeIndex >= 0) {
+                                const current = challenges[challengeIndex];
+                                const newBestScore = s.contest?.settings.scoringMode === 'highest'
+                                    ? Math.max(current.bestScore, sub.score)
+                                    : sub.score;
+                                
+                                challenges[challengeIndex] = {
+                                    ...current,
+                                    bestScore: newBestScore,
+                                    attempts: (current.attempts || 0) + 1,
+                                    status: newBestScore >= 100 ? 'passed' : newBestScore > 0 ? 'attempted' : 'failed',
+                                };
+                            }
+                            const totalScore = challenges.reduce((sum, ch) => sum + ch.bestScore, 0);
+                            return { ...s, challenges, totalScore };
+                        });
+                    }
                 }
             }, 3000); // Poll every 3s
 
