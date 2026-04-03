@@ -13,6 +13,7 @@ export function ScratchUploader({ questId, onUpload, disabled }: ScratchUploader
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,27 +96,41 @@ export function ScratchUploader({ questId, onUpload, disabled }: ScratchUploader
 
     return (
         <div className={`scratch-uploader-container ${disabled ? 'uploader-disabled' : ''}`}>
-            <div className="uploader-tabs">
-                <div className="uploader-section file-upload-section">
-                    <h3 className="section-title">Cách 1: Tải file .sb3</h3>
+            <div className="method-switcher">
+                <button 
+                    className={`method-btn ${uploadMethod === 'file' ? 'active' : ''}`}
+                    onClick={() => setUploadMethod('file')}
+                >
+                    Tải File
+                </button>
+                <button 
+                    className={`method-btn ${uploadMethod === 'url' ? 'active' : ''}`}
+                    onClick={() => setUploadMethod('url')}
+                >
+                    Link Scratch
+                </button>
+            </div>
+
+            <div className="uploader-body">
+                {uploadMethod === 'file' ? (
                     <div 
-                        className={`upload-zone ${file && !inputUrl ? 'file-selected' : ''}`}
+                        className={`upload-zone ${file ? 'file-selected' : ''}`}
                         onClick={triggerFileInput}
                     >
                         <div className="upload-icon">
-                            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
                             </svg>
                         </div>
                         
-                        {file && !inputUrl ? (
+                        {file ? (
                             <div className="selected-file-info">
                                 <span className="file-name">{file.name}</span>
                                 <span className="file-size">({(file.size / 1024).toFixed(1)} KB)</span>
                             </div>
                         ) : (
                             <div className="upload-prompt">
-                                <p className="primary-text">Chọn file .sb3 từ máy tính</p>
+                                <p>Nhấp để chọn file .sb3</p>
                             </div>
                         )}
 
@@ -127,67 +142,53 @@ export function ScratchUploader({ questId, onUpload, disabled }: ScratchUploader
                             style={{ display: 'none' }}
                         />
                     </div>
-                </div>
-
-                <div className="divider-vertical"><span>HOẶC</span></div>
-
-                <div className="uploader-section url-fetch-section">
-                    <h3 className="section-title">Cách 2: Nhập link Scratch</h3>
-                    <div className="url-input-group">
-                        <input 
-                            type="text" 
-                            placeholder="Link dự án (ví dụ: scratch.mit.edu/projects/123...)"
-                            value={inputUrl}
-                            onChange={(e) => setInputUrl(e.target.value)}
-                            disabled={isFetching || isUploading || disabled}
-                            className="url-input"
-                        />
-                        <button 
-                            onClick={handleFetchUrl}
-                            disabled={!inputUrl || isFetching || isUploading || disabled}
-                            className="fetch-btn"
-                        >
-                            {isFetching ? 'Đang tải...' : 'Lấy bài'}
-                        </button>
-                    </div>
-                    {file && inputUrl && (
-                        <div className="fetched-file-info">
-                            <span className="file-label">Đã tải:</span>
-                            <span className="file-name">{file.name}</span>
+                ) : (
+                    <div className="url-fetch-area">
+                        <div className="url-input-group">
+                            <input 
+                                type="text" 
+                                placeholder="scratch.mit.edu/projects/..."
+                                value={inputUrl}
+                                onChange={(e) => setInputUrl(e.target.value)}
+                                disabled={isFetching || isUploading || disabled}
+                                className="url-input"
+                            />
+                            <button 
+                                onClick={handleFetchUrl}
+                                disabled={!inputUrl || isFetching || isUploading || disabled}
+                                className="fetch-btn"
+                            >
+                                {isFetching ? <div className="dot-pulse" /> : 'Lấy bài'}
+                            </button>
                         </div>
-                    )}
-                </div>
+                        {file && (
+                            <div className="fetched-preview">
+                                <span className="check-icon">✓</span>
+                                <span className="file-name">{file.name}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {error && <div className="uploader-error-msg">{error}</div>}
 
             <div className="uploader-actions">
                 <button 
-                    className={`check-sb3-btn ${!file || isUploading || isFetching ? 'btn-disabled' : ''}`}
+                    className="check-btn"
                     onClick={handleCheckClick}
                     disabled={!file || isUploading || isFetching || disabled}
                 >
-                    {isUploading ? 'Đang chạy...' : 'Kiểm tra (Chạy thử)'}
+                    {isUploading ? 'Đang chạy...' : 'Kiểm tra'}
                 </button>
 
                 <button 
-                    className={`submit-sb3-btn ${!file || isUploading || isFetching ? 'btn-disabled' : ''}`}
+                    className="submit-btn"
                     onClick={handleUploadClick}
                     disabled={!file || isUploading || isFetching || disabled}
                 >
-                    {isUploading ? (
-                        <>
-                            <span className="spinner-border"></span>
-                            Đang nộp bài...
-                        </>
-                    ) : (
-                        'Nộp chính thức'
-                    )}
+                    {isUploading ? 'Đang nộp...' : 'Nộp bài'}
                 </button>
-            </div>
-
-            <div className="uploader-note">
-                <p>* Bạn nên bấm "Kiểm tra" để xem trước kết quả với các test case công khai trước khi nộp chính thức.</p>
             </div>
         </div>
     );

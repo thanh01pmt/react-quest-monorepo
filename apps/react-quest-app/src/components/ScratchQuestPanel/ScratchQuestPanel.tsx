@@ -24,7 +24,6 @@ export function ScratchQuestPanel({
 	onUpload,
 	disabled,
 }: ScratchQuestPanelProps) {
-	const [activeTab, setActiveTab] = useState<TabType>('problem');
 	const [history, setHistory] = useState<any[]>([]);
 	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 	const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
@@ -35,8 +34,8 @@ export function ScratchQuestPanel({
 		try {
 			const data = await getSubmissionHistory(questId, contestId);
 			setHistory(data);
-			// Auto select the latest submission if none selected
-			if (data.length > 0 && !selectedSubmission) {
+			// Auto select the latest submission if none selected or if new submission added
+			if (data.length > 0) {
 				fetchDetail(data[0].id);
 			}
 		} catch (err) {
@@ -44,7 +43,7 @@ export function ScratchQuestPanel({
 		} finally {
 			setIsLoadingHistory(false);
 		}
-	}, [questId, contestId, selectedSubmission]);
+	}, [questId, contestId]);
 
 	const fetchDetail = async (submissionId: string) => {
 		setIsLoadingDetail(true);
@@ -60,7 +59,7 @@ export function ScratchQuestPanel({
 
 	useEffect(() => {
 		fetchHistory();
-	}, [questId, contestId]); // Only fetch on mount or if IDs change
+	}, [questId, contestId]);
 
 	// Polling for pending status
 	useEffect(() => {
@@ -72,159 +71,101 @@ export function ScratchQuestPanel({
 					const detail = await getSubmissionDetail(selectedSubmission.id);
 					if (detail.status !== 'pending') {
 						setSelectedSubmission(detail);
-						// Also refresh history to update statuses there
-						const data = await getSubmissionHistory(questId, contestId);
-						setHistory(data);
+						fetchHistory(); // Refresh to get updated score
 						if (pollInterval) clearInterval(pollInterval);
 					}
 				} catch (err) {
 					console.error('Polling error:', err);
 				}
-			}, 3000); // Poll every 3 seconds
+			}, 3000);
 		}
 
 		return () => {
 			if (pollInterval) clearInterval(pollInterval);
 		};
-	}, [selectedSubmission, questId, contestId]);
+	}, [selectedSubmission?.id, selectedSubmission?.status, questId, contestId, fetchHistory]);
 
 	const handleUploadComplete = async (file: File, isDryRun?: boolean) => {
 		const result = await onUpload(file, isDryRun);
-		// Refresh history and switch to results tab
-		await fetchHistory();
 		if (result && result.submissionId) {
 			await fetchDetail(result.submissionId);
+			fetchHistory();
 		}
-		setActiveTab('results');
 		return result;
-	};
-
-	const handleSelectSubmission = async (submission: any) => {
-		await fetchDetail(submission.id);
-		setActiveTab('results');
 	};
 
 	return (
 		<div className="scratch-quest-panel">
-			<div className="panel-tabs-header">
-				<button
-					className={`tab-button ${activeTab === 'problem' ? 'active' : ''}`}
-					onClick={() => setActiveTab('problem')}
-				>
-					Đề bài
-				</button>
-				<button
-					className={`tab-button ${activeTab === 'submit' ? 'active' : ''}`}
-					onClick={() => setActiveTab('submit')}
-				>
-					Nộp bài
-				</button>
-				<button
-					className={`tab-button ${activeTab === 'results' ? 'active' : ''}`}
-					onClick={() => setActiveTab('results')}
-				>
-					Kết quả
-				</button>
-				<button
-					className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
-					onClick={() => setActiveTab('history')}
-				>
-					Lần nộp {history.length > 0 && `(${history.length})`}
-				</button>
-			</div>
-
-			<div className="panel-content">
-				{activeTab === 'problem' && (
-					<div className="tab-pane-problem">
-						<div className="problem-title-with-score">
-							<h2>{title}</h2>
-							{history.length > 0 && (
-								<div className="best-score-badge">
-									Điểm cao nhất: {Math.max(...history.map(s => s.score || 0))}
-								</div>
-							)}
-						</div>
-						<div className="problem-description-content">
-							{description ? (
-								<div dangerouslySetInnerHTML={{ __html: description.replace(/\n/g, '<br/>') }} />
-							) : (
-								<p>Không có mô tả cho đề bài này.</p>
-							)}
-						</div>
-						<div className="problem-actions">
-							<button className="primary-btn" onClick={() => setActiveTab('submit')}>
-								Bắt đầu làm bài
-							</button>
-						</div>
-					</div>
-				)}
-
-				{activeTab === 'submit' && (
-					<div className="tab-pane-submit">
-						<ScratchUploader
-							questId={questId}
-							onUpload={handleUploadComplete}
-							disabled={disabled}
-						/>
-						<div className="quick-guide">
-							<p>* Bạn nên bấm <strong>"Kiểm tra"</strong> để xem trước kết quả trước khi nộp chính thức.</p>
-						</div>
-					</div>
-				)}
-
-				{activeTab === 'results' && (
-					<div className="tab-pane-results">
-						{isLoadingDetail ? (
-							<div className="loading-container">Đang tải kết quả...</div>
-						) : selectedSubmission ? (
-							<div className="result-detail-view">
-								<div className="submission-meta">
-									<div className="meta-left">
-										<span className="meta-label">Bài nộp lúc:</span>
-										<span className="meta-value">
-											{new Date(selectedSubmission.submitted_at).toLocaleString('vi-VN')}
-										</span>
-									</div>
-									<div className="meta-right">
-										{selectedSubmission.is_dry_run && <span className="dry-run-badge">Bản chạy thử</span>}
-									</div>
-								</div>
-								
-								<TestcaseGrid 
-									judgeLog={selectedSubmission.judge_log} 
-									score={selectedSubmission.score} 
-								/>
-								
-								<div className="result-actions">
-									<button className="re-submit-btn" onClick={() => setActiveTab('submit')}>
-										Nộp bài khác
-									</button>
-								</div>
-							</div>
-						) : (
-							<div className="no-result-placeholder">
-								<p>Chọn một bài nộp từ tab "Lần nộp" hoặc nộp bài mới để xem kết quả.</p>
-								<button className="primary-btn" onClick={() => setActiveTab('submit')}>Nộp ngay</button>
+			<div className="panel-layout">
+				{/* Left Column: Problem Statement */}
+				<div className="column-problem">
+					<div className="problem-header">
+						<h1 className="problem-title">{title}</h1>
+						{history.length > 0 && (
+							<div className="best-score-container">
+								<span className="label">Điểm cao nhất</span>
+								<span className="value">{Math.max(...history.map(s => s.score || 0))} / 100</span>
 							</div>
 						)}
 					</div>
-				)}
-
-				{activeTab === 'history' && (
-					<div className="tab-pane-history">
-						<SubmissionHistory 
-							history={history} 
-							onSelect={handleSelectSubmission}
-							selectedId={selectedSubmission?.id}
-							isLoading={isLoadingHistory}
-						/>
-						<div className="history-footer">
-							<button className="refresh-btn" onClick={fetchHistory}>
-								Làm mới danh sách
-							</button>
+					
+					<div className="problem-body">
+						<div className="section-title">Nội dung đề bài</div>
+						<div className="problem-description-box">
+							{description ? (
+								<div dangerouslySetInnerHTML={{ __html: description.replace(/\n/g, '<br/>') }} />
+							) : (
+								<p className="no-desc">Không có mô tả cho đề bài này.</p>
+							)}
 						</div>
 					</div>
-				)}
+				</div>
+
+				{/* Right Column: Submission & Results */}
+				<div className="column-submission">
+					<div className="submission-stack">
+						<div className="glass-card upload-section">
+							<div className="card-header">
+								<span className="icon">📤</span>
+								<h3>Nộp bài làm</h3>
+							</div>
+							<ScratchUploader
+								questId={questId}
+								onUpload={handleUploadComplete}
+								disabled={disabled}
+							/>
+						</div>
+
+						<div className="glass-card result-section">
+							<div className="card-header">
+								<span className="icon">📊</span>
+								<h3>Kết quả chấm bài</h3>
+								{selectedSubmission?.is_dry_run && <span className="dry-badge">CHẠY THỬ</span>}
+							</div>
+							
+							{isLoadingDetail ? (
+								<div className="loading-state">
+									<div className="spinner"></div>
+									<p>Đang chấm bài...</p>
+								</div>
+							) : selectedSubmission ? (
+								<div className="result-container">
+									<div className="submission-ts">
+										Đã nộp: {new Date(selectedSubmission.submitted_at).toLocaleTimeString('vi-VN')}
+									</div>
+									<TestcaseGrid 
+										judgeLog={selectedSubmission.judge_log} 
+										score={selectedSubmission.score} 
+									/>
+								</div>
+							) : (
+								<div className="empty-state">
+									<p>Hãy nộp file .sb3 để xem kết quả chi tiết tại đây.</p>
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

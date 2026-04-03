@@ -49,35 +49,50 @@ export function TestcaseGrid({ judgeLog, score }: TestcaseGridProps) {
   return (
     <div className="testcase-grid-container">
       <div className="testcase-grid-header">
-        <div className="overall-score">
-          <span className="score-label">Tổng điểm:</span>
-          <span className="score-value">{totalScore}/{maxScore}</span>
-          <span className="score-percentage">({percentage}%)</span>
+        <div className="score-viz">
+          <div className="score-circle">
+            <svg viewBox="0 0 36 36" className="circular-chart">
+              <path className="circle-bg"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+              <path className="circle"
+                strokeDasharray={`${percentage}, 100`}
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+              <text x="18" y="20.35" className="percentage">{percentage}%</text>
+            </svg>
+          </div>
+          <div className="score-text">
+            <div className="main-score">{totalScore} <span className="max-score">/ {maxScore}</span></div>
+            <div className="score-subtext">Điểm số bài nộp</div>
+          </div>
         </div>
       </div>
 
       <div className="testcase-grid-layout">
         {testCases.map((tc, index) => (
-          <div key={tc.id || index} className={`testcase-card status-${tc.status}`}>
-            <div className="testcase-number">#{index + 1}</div>
-            <div className="testcase-status">
+          <div key={tc.id || index} className={`testcase-card status-${tc.status}`} title={tc.status}>
+            <div className="tc-header">
+              <span className="tc-num">#{index + 1}</span>
+              {tc.is_sample && <span className="tc-sample">Sample</span>}
+            </div>
+            <div className="tc-status-icon">
               {tc.status === 'pass' && '✓'}
               {tc.status === 'fail' && '✗'}
               {tc.status === 'tle' && '⏰'}
               {tc.status === 'error' && '⚠'}
-              {tc.status === 'pending' && '...'}
+              {tc.status === 'pending' && <div className="tc-spinner" />}
             </div>
-            <div className="testcase-score">{tc.score}/{tc.max_score}</div>
-            {tc.is_sample && <div className="sample-tag">Mẫu</div>}
+            <div className="tc-score">{tc.score}/{tc.max_score}</div>
           </div>
         ))}
       </div>
 
       <div className="testcase-legend">
-        <div className="legend-item"><span className="dot pass"></span> Chấp nhận</div>
-        <div className="legend-item"><span className="dot fail"></span> Sai kết quả</div>
-        <div className="legend-item"><span className="dot tle"></span> Quá thời gian</div>
-        <div className="legend-item"><span className="dot error"></span> Lỗi chạy</div>
+        <div className="legend-item"><span className="dot pass"></span> Pass</div>
+        <div className="legend-item"><span className="dot fail"></span> Fail</div>
+        <div className="legend-item"><span className="dot tle"></span> TLE</div>
+        <div className="legend-item"><span className="dot error"></span> Error</div>
       </div>
     </div>
   );

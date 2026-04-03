@@ -4,8 +4,9 @@
  * Left sidebar for the exam room: countdown timer, challenge list with status, submit button.
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useContest } from '../../contexts/ContestContext';
+import { getSubmissionHistory } from '../../services/SupabaseContestService';
 import type { ChallengeStatus } from '../../types/contest';
 import './ContestSidebar.css';
 
@@ -26,7 +27,21 @@ function formatTime(seconds: number): string {
 
 export function ContestSidebar() {
     const { state, selectChallenge, lockExam, remainingSeconds } = useContest();
-    const { challenges, currentChallengeIndex, totalScore, isLocked } = state;
+    const { challenges, currentChallengeIndex, totalScore, isLocked, contest } = state;
+    const [history, setHistory] = useState<any[]>([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+    const activeChallenge = challenges[currentChallengeIndex];
+
+    useEffect(() => {
+        if (activeChallenge && contest) {
+            setIsLoadingHistory(true);
+            getSubmissionHistory(activeChallenge.questId, contest.id)
+                .then(setHistory)
+                .catch(console.error)
+                .finally(() => setIsLoadingHistory(false));
+        }
+    }, [activeChallenge?.questId, contest?.id]);
 
     const isTimeCritical = remainingSeconds !== null && remainingSeconds <= 300; // 5 minutes
 
@@ -79,6 +94,26 @@ export function ContestSidebar() {
                 ))}
             </div>
 
+            {/* Active Challenge History */}
+            {activeChallenge && history.length > 0 && (
+                <div className="sidebar-history-section">
+                    <div className="sidebar-history-header">
+                        Lần nộp ({history.length})
+                    </div>
+                    <div className="sidebar-history-list">
+                        {history.slice(0, 5).map((sub) => (
+                            <div key={sub.id} className="sidebar-history-item">
+                                <span className={`history-status-dot ${sub.score >= 100 ? 'passed' : 'attempted'}`} />
+                                <span className="history-time">
+                                    {new Date(sub.submitted_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                <span className="history-score">{sub.score}đ</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Submit Button */}
             <div className="contest-sidebar-footer">
                 <button
@@ -86,7 +121,7 @@ export function ContestSidebar() {
                     onClick={handleSubmitAll}
                     disabled={isLocked}
                 >
-                    {isLocked ? '🔒 Đã nộp bài' : '📤 Nộp bài'}
+                    {isLocked ? '🔒 Đã kết thúc' : '📤 Nộp & Kết thúc'}
                 </button>
             </div>
         </aside>

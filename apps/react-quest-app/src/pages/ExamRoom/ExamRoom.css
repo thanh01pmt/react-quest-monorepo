@@ -1,4 +1,10 @@
 .exam-room-container {
+	--glass-bg: rgba(255, 255, 255, 0.03);
+	--glass-border: rgba(255, 255, 255, 0.08);
+	--glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+	--accent-color: #f5af19;
+	--success-color: #4caf50;
+	--error-color: #f44336;
 	display: flex;
 	width: 100vw;
 	height: 100vh;
