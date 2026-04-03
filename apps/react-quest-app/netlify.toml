@@ -1,5 +1,5 @@
-# netlify.toml cho react-quest-app
 [build]
+  command = "pnpm install --shamefully-hoist && pnpm turbo run build --filter=@repo/react-quest-app"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../../packages/quest-player ../../packages/academic-map-generator ../../packages/shared-templates ../../package.json ../../pnpm-workspace.yaml ../../pnpm-lock.yaml ../../turbo.json ../../scripts/"
 
 [build.environment]

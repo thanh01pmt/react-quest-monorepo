@@ -1,5 +1,5 @@
-# netlify.toml cho contest-dashboard
 [build]
+  command = "pnpm install --shamefully-hoist && pnpm turbo run build --filter=@repo/contest-dashboard"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../../packages/quest-player ../../package.json ../../pnpm-workspace.yaml ../../pnpm-lock.yaml ../../turbo.json ../../scripts/"
 
 [build.environment]
@@ -7,7 +7,6 @@
 
 # Cấu hình khuyến nghị trong Netlify UI:
 # - Base directory: / (root của monorepo)
-# - Build command: pnpm --filter @repo/contest-dashboard build
 # - Publish directory: apps/contest-dashboard/dist
 
 [[redirects]]
