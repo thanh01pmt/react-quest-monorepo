@@ -1,0 +1,71 @@
+{
+  "problem_id": "scratch-3",
+  "title": "Robot đi theo lệnh (Scratch + I/O)",
+  "gameType": "scratch",
+  "scratch_ui_mode": "turbowarp",
+  "level": 2,
+  "description": "## Bài 3: Robot đi theo lệnh\n\nRobot xuất phát tại vị trí `(0, 0)` trên lưới 2D. Đọc danh sách lệnh từ **inputData** và tính vị trí cuối của robot.\n\n### Quy ước lệnh\n- `U n` — đi lên n bước\n- `D n` — đi xuống n bước  \n- `L n` — đi sang trái n bước\n- `R n` — đi sang phải n bước\n\n### I/O\n- **inputData[1]**: Số lệnh K\n- **inputData[2..2K+1]**: Các cặp `{hướng} {số bước}` xen kẽ nhau\n- **output[1]**: Tọa độ X cuối\n- **output[2]**: Tọa độ Y cuối\n\n### Ví dụ\n```\ninputData: 3  R  5  U  3  L  2\noutput:    3  3\n```\nGiải thích: (0,0) →R5→ (5,0) →U3→ (5,3) →L2→ (3,3)\n\n> 💡 Đây là bài sử dụng **chế độ TurboWarp** — bạn code trực tiếp trong trình soạn thảo bên trái!",
+  "hints": {
+    "description": "Dùng 2 biến x_pos và y_pos để theo dõi tọa độ. Đọc lệnh theo từng cặp bằng vòng lặp, dùng khối 'if' để rẽ nhánh theo hướng."
+  },
+  "time_limit": 15,
+  "grading_mode": "io",
+  "test_cases": [
+    {
+      "id": "tc1",
+      "is_sample": true,
+      "weight": 10,
+      "input": ["3", "R", "5", "U", "3", "L", "2"],
+      "expected": ["3", "3"],
+      "note": "Ví dụ trong đề bài"
+    },
+    {
+      "id": "tc2",
+      "is_sample": true,
+      "weight": 10,
+      "input": ["1", "R", "10"],
+      "expected": ["10", "0"],
+      "note": "Chỉ đi phải"
+    },
+    {
+      "id": "tc3",
+      "is_sample": true,
+      "weight": 10,
+      "input": ["4", "U", "5", "R", "5", "D", "5", "L", "5"],
+      "expected": ["0", "0"],
+      "note": "Về điểm xuất phát (hình vuông)"
+    },
+    {
+      "id": "tc4",
+      "is_sample": false,
+      "weight": 20,
+      "input": ["2", "D", "7", "L", "3"],
+      "expected": ["-3", "-7"],
+      "note": "Tọa độ âm"
+    },
+    {
+      "id": "tc5",
+      "is_sample": false,
+      "weight": 20,
+      "input": ["5", "R", "100", "U", "50", "L", "30", "D", "20", "R", "10"],
+      "expected": ["80", "30"],
+      "note": "Số bước lớn"
+    },
+    {
+      "id": "tc6",
+      "is_sample": false,
+      "weight": 15,
+      "input": ["1", "U", "0"],
+      "expected": ["0", "0"],
+      "note": "Bước = 0, giữ nguyên vị trí"
+    },
+    {
+      "id": "tc7",
+      "is_sample": false,
+      "weight": 15,
+      "input": ["6", "R", "3", "R", "3", "U", "4", "U", "4", "L", "2", "D", "1"],
+      "expected": ["4", "7"],
+      "note": "Nhiều lệnh cùng hướng"
+    }
+  ]
+}

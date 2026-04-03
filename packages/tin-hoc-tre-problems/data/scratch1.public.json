@@ -2,11 +2,55 @@
   "problem_id": "scratch-1",
   "title": "Mèo bắt chuột (Scratch)",
   "gameType": "scratch",
+  "scratch_ui_mode": "upload",
   "level": 1,
-  "description": "## Bài 1: Mèo bắt chuột (Scratch)\n\nHãy lập trình Scratch với một trò chơi Mèo bắt chuột đơn giản:\n\n- **Nhân vật Mèo:** Luôn đi theo con trỏ chuột trên màn hình.\n- **Nhân vật Chuột:** Xuất hiện ngẫu nhiên trên màn hình, mỗi 2 giây đổi vị trí 1 lần.\n- Khi Mèo chạm Chuột, tăng biến **Score** lên 1 và phát ra âm thanh.\n\nSau khi hoàn thành tạo file trên ứng dụng Scratch, chọn **File -> Save to your computer** để lấy file `.sb3` và nộp lên hệ thống nhé!",
+  "description": "## Bài 1: Mèo bắt chuột (Scratch)\n\nHãy lập trình Scratch với một trò chơi Mèo bắt chuột đơn giản:\n\n- **Nhân vật Mèo:** Luôn đi theo con trỏ chuột trên màn hình.\n- **Nhân vật Chuột:** Xuất hiện ngẫu nhiên trên màn hình, mỗi 2 giây đổi vị trí 1 lần.\n- Khi Mèo chạm Chuột, tăng biến **Score** lên 1 và phát ra âm thanh.\n\nSau khi hoàn thành tạo file trên ứng dụng Scratch, chọn **File → Save to your computer** để lấy file `.sb3` và nộp lên hệ thống nhé!",
   "hints": {
     "description": "Để tải phần mềm Scratch (nếu bạn dùng Offline), truy cập scratch.mit.edu/download"
   },
   "time_limit": 0,
+  "grading_mode": "structural",
+  "structural_checks": [
+    {
+      "id": "sc1",
+      "weight": 20,
+      "is_sample": true,
+      "description": "Có ít nhất 2 nhân vật (sprites) trong dự án",
+      "check": "sprites.count >= 2",
+      "note": "Dự án cần có nhân vật Mèo và Chuột"
+    },
+    {
+      "id": "sc2",
+      "weight": 20,
+      "is_sample": true,
+      "description": "Mèo có khối lệnh di chuyển theo chuột máy tính",
+      "check": "sprite.any.blocks.contains('motion_gotoxy') OR sprite.any.blocks.contains('motion_goto') AND sprite.any.blocks.contains('_mouse_')",
+      "note": "Dùng khối 'trỏ đến vị trí con trỏ chuột' hoặc 'di chuyển đến x y của chuột'"
+    },
+    {
+      "id": "sc3",
+      "weight": 20,
+      "is_sample": true,
+      "description": "Có biến tên 'Score' trong dự án",
+      "check": "variables.any.name == 'Score'",
+      "note": "Đặt tên biến đúng chính tả: Score (viết hoa chữ S)"
+    },
+    {
+      "id": "sc4",
+      "weight": 20,
+      "is_sample": false,
+      "description": "Khi chạm nhân vật khác, biến Score tăng lên 1",
+      "check": "blocks.contains('sensing_touchingobject') AND blocks.contains('data_changevariableby') AND args.value == 1",
+      "note": "Bài kiểm tra riêng của ban chấm"
+    },
+    {
+      "id": "sc5",
+      "weight": 20,
+      "is_sample": false,
+      "description": "Chuột đổi vị trí ngẫu nhiên",
+      "check": "sprite.any.blocks.contains('motion_gotorandom') OR (blocks.contains('motion_gotoxy') AND blocks.contains('operator_random'))",
+      "note": "Bài kiểm tra riêng của ban chấm"
+    }
+  ],
   "test_cases": []
 }

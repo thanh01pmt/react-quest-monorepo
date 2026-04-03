@@ -1,0 +1,71 @@
+{
+  "problem_id": "scratch-2",
+  "title": "Tính tổng dãy số (Scratch + I/O)",
+  "gameType": "scratch",
+  "scratch_ui_mode": "upload",
+  "level": 1,
+  "description": "## Bài 2: Tính tổng dãy số\n\nViết chương trình Scratch đọc danh sách số từ list **inputData** và ghi tổng của chúng vào list **output**.\n\n### Quy ước I/O\n- **inputData[1]**: N — số lượng phần tử\n- **inputData[2..N+1]**: N số nguyên cần tính tổng\n- **output[1]**: Tổng của N số\n\n### Ví dụ\n| inputData | output |\n|-----------|--------|\n| `3` `1` `2` `3` | `6` |\n| `5` `10` `20` `30` `40` `50` | `150` |\n\n### Gợi ý\nDùng vòng lặp **lặp [N] lần** và khối **cộng thêm item i của inputData vào tổng**.\n\n> 💡 Hệ thống sẽ tự động khởi tạo list **inputData** trước khi chạy.\n> Bạn chỉ cần đọc từ inputData và ghi kết quả vào output.",
+  "hints": {
+    "description": "Dùng khối 'thêm [giá trị] vào [output]' để ghi kết quả. Truy cập phần tử thứ i của inputData bằng 'item [i] of [inputData]'."
+  },
+  "time_limit": 10,
+  "grading_mode": "io",
+  "test_cases": [
+    {
+      "id": "tc1",
+      "is_sample": true,
+      "weight": 10,
+      "input": ["3", "1", "2", "3"],
+      "expected": ["6"],
+      "note": "Ví dụ cơ bản 3 số"
+    },
+    {
+      "id": "tc2",
+      "is_sample": true,
+      "weight": 10,
+      "input": ["5", "10", "20", "30", "40", "50"],
+      "expected": ["150"],
+      "note": "5 bội của 10"
+    },
+    {
+      "id": "tc3",
+      "is_sample": true,
+      "weight": 10,
+      "input": ["1", "42"],
+      "expected": ["42"],
+      "note": "Chỉ 1 phần tử"
+    },
+    {
+      "id": "tc4",
+      "is_sample": false,
+      "weight": 20,
+      "input": ["4", "100", "200", "300", "400"],
+      "expected": ["1000"],
+      "note": "Số 3-4 chữ số"
+    },
+    {
+      "id": "tc5",
+      "is_sample": false,
+      "weight": 20,
+      "input": ["6", "-5", "-1", "-99", "-3", "-7", "-2"],
+      "expected": ["-117"],
+      "note": "Toàn số âm"
+    },
+    {
+      "id": "tc6",
+      "is_sample": false,
+      "weight": 15,
+      "input": ["2", "999", "1"],
+      "expected": ["1000"],
+      "note": "Tổng = 1000"
+    },
+    {
+      "id": "tc7",
+      "is_sample": false,
+      "weight": 15,
+      "input": ["10", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1"],
+      "expected": ["10"],
+      "note": "10 số 1"
+    }
+  ]
+}
