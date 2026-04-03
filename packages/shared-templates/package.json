@@ -19,10 +19,10 @@
     "generate-templates": "node scripts/generate-templates.js"
   },
   "dependencies": {
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "typescript": "^5.2.2"
   },
   "devDependencies": {
-    "@types/node": "^24.7.1",
-    "typescript": "^5.2.2"
+    "@types/node": "^24.7.1"
   }
 }
