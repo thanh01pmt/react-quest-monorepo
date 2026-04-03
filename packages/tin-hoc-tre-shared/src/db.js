@@ -47,6 +47,10 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='submissions' AND column_name='is_dry_run') THEN
     ALTER TABLE submissions ADD COLUMN is_dry_run BOOLEAN DEFAULT FALSE;
   END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='submissions' AND column_name='judged_at') THEN
+    ALTER TABLE submissions ADD COLUMN judged_at TIMESTAMP WITH TIME ZONE;
+  END IF;
 END $$;
 `;
 

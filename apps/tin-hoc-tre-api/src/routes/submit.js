@@ -90,8 +90,13 @@ router.post('/', requireAuth, upload.single('sb3file'), async (req, res, next) =
       });
 
     if (uploadError) {
-      console.error('[Storage] Lỗi tải file:', uploadError);
-      return res.status(500).json({ error: 'Lỗi khi lưu trữ file bài nộp.' });
+      console.error('[Storage Error] Lỗi tải file:', uploadError);
+      console.error('[Storage Error Details] Bucket: submissions, Path:', fileName);
+      return res.status(500).json({ 
+        error: 'Lỗi khi lưu trữ file bài nộp.',
+        details: uploadError.message,
+        hint: 'Kiểm tra RLS Policy hoặc Bucket tồn tại.'
+      });
     }
 
     const storagePath = uploadData.path;
