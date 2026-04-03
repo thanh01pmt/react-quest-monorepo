@@ -79,7 +79,7 @@ export function ExamRoom() {
 
             <main className="exam-main-content">
                 {currentQuest ? (
-                    (currentQuest as any).gameType === 'scratch' ? (
+                    ((currentQuest as any).gameType === 'scratch' || (currentQuest as any).gameConfig?.type === 'scratch') ? (
                         <div className="scratch-room">
                             <div className="scratch-instructions">
                                 <h1>{currentQuest.title || currentQuest.titleKey}</h1>

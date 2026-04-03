@@ -70,10 +70,12 @@ router.post('/', requireAuth, upload.single('sb3file'), async (req, res, next) =
       return res.status(400).json({ error: 'Chưa đính kèm file .sb3.' });
     }
 
-    const { board_participant_id, exam_id, quest_id } = req.body;
+    const { board_participant_id, exam_id, quest_id, is_dry_run } = req.body;
     if (!board_participant_id || !exam_id || !quest_id) {
       return res.status(400).json({ error: 'Thiếu thông tin board_participant_id, exam_id hoặc quest_id.' });
     }
+
+    const isDryRun = is_dry_run === 'true' || is_dry_run === true;
 
     const submissionId = uuidv4();
     const sb3Buffer    = req.file.buffer;
@@ -96,14 +98,14 @@ router.post('/', requireAuth, upload.single('sb3file'), async (req, res, next) =
 
     // ── 2. Lưu vào DB với status = 'pending' ────────────────────────────────
     await db.query(
-      `INSERT INTO submissions (id, board_participant_id, exam_id, quest_id, storage_path, status, submitted_at)
-       VALUES ($1, $2, $3, $4, $5, 'pending', NOW())`,
-      [submissionId, board_participant_id, exam_id, quest_id, storagePath]
+      `INSERT INTO submissions (id, board_participant_id, exam_id, quest_id, storage_path, status, submitted_at, is_dry_run)
+       VALUES ($1, $2, $3, $4, $5, 'pending', NOW(), $6)`,
+      [submissionId, board_participant_id, exam_id, quest_id, storagePath, isDryRun]
     );
 
     // ── 3. Đẩy vào hàng đợi Judge ────────────────────────────────────────
     await judgeQueue.add(
-      { submissionId, boardParticipantId: board_participant_id, examId: exam_id, questId: quest_id },
+      { submissionId, boardParticipantId: board_participant_id, examId: exam_id, questId: quest_id, isDryRun },
       {
         attempts:    3,
         backoff:     { type: 'fixed', delay: 2000 },
@@ -129,9 +131,10 @@ router.post('/', requireAuth, upload.single('sb3file'), async (req, res, next) =
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const { rows } = await db.query(
-      `SELECT id, problem_id, score, total_score, status, judge_log, submitted_at, judged_at
-       FROM submissions
-       WHERE id = $1 AND user_id = $2`,
+      `SELECT s.id, s.quest_id, s.score, s.status, s.judge_log, s.submitted_at, s.judged_at, s.is_dry_run
+       FROM submissions s
+       JOIN board_participants bp ON s.board_participant_id = bp.id
+       WHERE s.id = $1 AND bp.user_id = $2`,
       [req.params.id, req.user.id]
     );
 

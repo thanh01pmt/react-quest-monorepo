@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Bảng xếp hạng — Tin học trẻ</title>
+  <style>
+    :root { --accent:#7C3AED; --bg:#0f0f13; --surface:#1a1a24; --border:rgba(255,255,255,.08); --text:#e2e0f0; --muted:#8884a0; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh}
+    .header{padding:20px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .header h1{font-size:20px;font-weight:500}
+    .header .sub{font-size:13px;color:var(--muted);margin-top:2px}
+    .updated{font-size:12px;color:var(--muted)}
+    .container{max-width:900px;margin:32px auto;padding:0 24px}
+    .problem-select{margin-bottom:20px;display:flex;gap:10px;align-items:center}
+    select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:14px}
+    table{width:100%;border-collapse:collapse}
+    th{text-align:left;padding:10px 14px;font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+    td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:14px}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .rank-1{color:#fbbf24;font-weight:500}
+    .rank-2{color:#9ca3af}
+    .rank-3{color:#b45309}
+    .score-col{font-weight:500}
+    .accepted{color:#4ade80}
+    .partial{color:#fbbf24}
+    .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+    .badge.accepted{background:rgba(22,163,74,.2);color:#4ade80}
+    .badge.partial{background:rgba(217,119,6,.2);color:#fbbf24}
+    .badge.wrong{background:rgba(220,38,38,.2);color:#f87171}
+    .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty{text-align:center;padding:40px;color:var(--muted)}
+    .refresh-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px}
+    .refresh-btn:hover{border-color:var(--accent)}
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>🏆 Bảng xếp hạng</h1>
+      <div class="sub">Tin học trẻ — Kết quả chấm bởi máy chấm độc lập</div>
+    </div>
+    <div class="updated">Cập nhật: <span id="updated-time">—</span> <span id="live-spinner" class="spinner"></span></div>
+  </div>
+
+  <div class="container">
+    <div class="problem-select">
+      <label style="color:var(--muted);font-size:13px">Đề bài:</label>
+      <select id="problem-sel">
+        <option value="bai1">Bài 1 – Tìm lớn nhất</option>
+        <option value="bai2">Bài 2 – Robot đi theo lệnh</option>
+        <option value="bai3">Bài 3 – Sắp xếp nổi bọt</option>
+        <option value="bai4">Bài 4 – Robot mê cung</option>
+        <option value="bai5">Bài 5 – Đếm tần suất</option>
+      </select>
+      <button class="refresh-btn" onclick="loadBoard()">↻ Làm mới</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:48px">#</th>
+          <th>Họ tên</th>
+          <th>Trường</th>
+          <th>Khối</th>
+          <th>Điểm</th>
+          <th>Trạng thái</th>
+          <th>Thời gian nộp</th>
+          <th>Phạt (phút)</th>
+        </tr>
+      </thead>
+      <tbody id="board-body">
+        <tr><td colspan="8" class="empty">Đang tải...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const API   = '/api';
+    const TOKEN = localStorage.getItem('contest_token') || '';
+    let   auto  = null;
+
+    const sel  = document.getElementById('problem-sel');
+    const body = document.getElementById('board-body');
+
+    const params = new URLSearchParams(location.search);
+    if (params.get('problem')) sel.value = params.get('problem');
+
+    sel.addEventListener('change', loadBoard);
+
+    async function loadBoard() {
+      const pid = sel.value;
+      try {
+        const res = await fetch(`${API}/leaderboard/${pid}`, {
+          headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const { leaderboard, updated_at } = await res.json();
+        renderBoard(leaderboard);
+        document.getElementById('updated-time').textContent = new Date(updated_at).toLocaleTimeString('vi-VN');
+      } catch (e) {
+        body.innerHTML = `<tr><td colspan="8" class="empty">Lỗi tải bảng xếp hạng: ${e.message}</td></tr>`;
+      }
+    }
+
+    function renderBoard(rows) {
+      if (!rows.length) {
+        body.innerHTML = '<tr><td colspan="8" class="empty">Chưa có kết quả nào.</td></tr>';
+        return;
+      }
+      body.innerHTML = rows.map(r => {
+        const rankClass = r.rank === 1 ? 'rank-1' : r.rank === 2 ? 'rank-2' : r.rank === 3 ? 'rank-3' : '';
+        const pct = r.total_score ? Math.round(r.score / r.total_score * 100) : 0;
+        const statusBadge = pct === 100 ? 'accepted' : pct > 0 ? 'partial' : 'wrong';
+        const statusText  = pct === 100 ? 'Đạt' : pct > 0 ? 'Một phần' : 'Sai';
+        return `<tr>
+          <td class="${rankClass}" style="font-weight:500">${r.rank}</td>
+          <td>${r.full_name || '—'}</td>
+          <td style="color:var(--muted);font-size:13px">${r.school || '—'}</td>
+          <td style="color:var(--muted);text-align:center">${r.grade || '—'}</td>
+          <td class="score-col">${r.score}/${r.total_score}</td>
+          <td><span class="badge ${statusBadge}">${statusText}</span></td>
+          <td style="color:var(--muted);font-size:12px">${new Date(r.submitted_at).toLocaleTimeString('vi-VN')}</td>
+          <td style="color:var(--muted);text-align:center">${r.penalty_minutes}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Auto-refresh mỗi 15 giây
+    loadBoard();
+    auto = setInterval(loadBoard, 15000);
+  </script>
+</body>
+</html>

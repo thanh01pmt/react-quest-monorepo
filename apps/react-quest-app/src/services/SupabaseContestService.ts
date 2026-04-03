@@ -176,6 +176,7 @@ export async function submitSb3File(
 	contestId: string,
 	questId: string,
 	file: File,
+	isDryRun: boolean = false
 ): Promise<{ submissionId: string; status: string } | null> {
 	try {
 		const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
@@ -187,6 +188,7 @@ export async function submitSb3File(
 		formData.append("board_participant_id", participantId);
 		formData.append("exam_id", contestId);
 		formData.append("quest_id", questId);
+		formData.append("is_dry_run", isDryRun.toString());
 
 		const response = await fetch(`${apiUrl}/submit`, {
 			method: "POST",

@@ -271,6 +271,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.45.0
         version: 2.98.0
+      '@turbowarp/sbdl':
+        specifier: ^7.0.0
+        version: 7.0.0
       blockly:
         specifier: 12.3.1
         version: 12.3.1
@@ -2379,6 +2382,10 @@ packages:
 
   '@turbowarp/sb3fix@0.4.0':
     resolution: {integrity: sha512-DC1u1B2nugkANEzQyioPFEYPYtZvr8NFvZkpYlxkoBOsn+LPJP1F486vNzvkGu2MAGTfWR0QmsBTRdanrppCrg==}
+
+  '@turbowarp/sbdl@7.0.0':
+    resolution: {integrity: sha512-NBIiKHHxgBYkgm1npUBFcgzoUw/hMcoFHhFhcM2+C20jqnbRvZTPx3p63COuKPZnW48IZmpUe+hY8ZoBLXh6ZA==}
+    hasBin: true
 
   '@turbowarp/scratch-svg-renderer@1.0.202505311824':
     resolution: {integrity: sha512-EaKVqIuEwrr4SzQGOVyr8GBE+DGzUbbn38qiV6DMWFzb++/HgWl1qdlKA/j+mOK+GDwYydMFP0FuWYvWBkt6sA==}
@@ -11343,6 +11350,11 @@ snapshots:
 
   '@turbowarp/sb3fix@0.4.0':
     dependencies:
+      '@turbowarp/jszip': 3.12.0
+
+  '@turbowarp/sbdl@7.0.0':
+    dependencies:
+      '@turbowarp/json': 0.1.2
       '@turbowarp/jszip': 3.12.0
 
   '@turbowarp/scratch-svg-renderer@1.0.202505311824':

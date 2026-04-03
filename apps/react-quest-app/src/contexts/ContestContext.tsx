@@ -50,8 +50,8 @@ interface ContestContextType {
     saveCurrentCode: (code: string) => void;
     /** Submit a challenge result */
     submitChallenge: (questId: string, code: string, language: string) => Promise<void>;
-    /** Submit a Scratch (.sb3) file */
-    submitSb3: (questId: string, file: File) => Promise<void>;
+    /** Submit a Scratch (.sb3) file. isDryRun=true will not save as official submission. */
+    submitSb3: (questId: string, file: File, isDryRun?: boolean) => Promise<any>;
     /** Lock the exam (final submission or timeout) */
     lockExam: () => Promise<void>;
     /** Remaining time in seconds (null if not started) */
@@ -356,19 +356,24 @@ export function ContestProvider({ children }: { children?: React.ReactNode }) {
     // ── Submit Scratch (.sb3) ────────────────────────────────────────
 
     const submitSb3 = useCallback(
-        async (questId: string, file: File) => {
+        async (questId: string, file: File, isDryRun: boolean = false) => {
             if (!state.contest || !state.participant || state.isLocked) return;
 
             const res = await submitSb3File(
                 state.participant.id!,
                 state.contest.id,
                 questId,
-                file
+                file,
+                isDryRun
             );
 
             if (!res) return;
 
             const { submissionId } = res;
+            
+            // If it's a dry run, we don't necessarily update the global score,
+            // but we might want to return the result to the caller (ScratchUploader)
+            // for immediate feedback.
 
             // Clear existing polling for this quest if any
             if (pollingRefs.current.has(questId)) {

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tin học trẻ — Phòng thi</title>
+  <link rel="stylesheet" href="contest-portal.css">
+</head>
+<body>
+
+  <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+  <header class="portal-header">
+    <div class="header-left">
+      <span class="logo">🏆</span>
+      <div class="problem-info">
+        <span class="problem-title" id="hdr-title">Đang tải đề...</span>
+        <span class="student-name" id="hdr-student">—</span>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="timer-box" id="timer-box">
+        <span class="timer-label">Còn lại</span>
+        <span class="timer-value" id="timer-value">--:--</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="score-box">
+        <span class="score-label">Điểm tốt nhất</span>
+        <span class="score-value" id="hdr-best-score">—</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN LAYOUT ────────────────────────────────────────────────────── -->
+  <main class="portal-main">
+
+    <!-- TurboWarp Editor iframe -->
+    <section class="editor-panel">
+      <iframe
+        id="tw-iframe"
+        src="/editor"
+        title="TurboWarp Editor"
+        allow="autoplay; microphone"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+      ></iframe>
+      <!-- Overlay khi đang chạy test để ngăn thao tác -->
+      <div class="editor-overlay" id="editor-overlay" hidden>
+        <div class="overlay-spinner"></div>
+        <p id="overlay-msg">Đang chạy testcase...</p>
+      </div>
+    </section>
+
+    <!-- Sidebar: Đề bài + Kết quả + Nút -->
+    <aside class="sidebar">
+
+      <!-- Tab selector -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="problem">Đề bài</button>
+        <button class="tab-btn"       data-tab="results">Kết quả</button>
+        <button class="tab-btn"       data-tab="submissions">Lần nộp</button>
+      </div>
+
+      <!-- Tab: Đề bài -->
+      <div class="tab-panel active" id="tab-problem">
+        <div class="problem-desc" id="problem-desc">
+          <div class="skeleton-block"></div>
+          <div class="skeleton-block short"></div>
+          <div class="skeleton-block"></div>
+        </div>
+        <div class="example-io" id="example-io" hidden>
+          <div class="io-block">
+            <span class="io-label">Ví dụ input</span>
+            <pre id="example-input" class="io-code"></pre>
+          </div>
+          <div class="io-block">
+            <span class="io-label">Ví dụ output</span>
+            <pre id="example-output" class="io-code"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Kết quả test -->
+      <div class="tab-panel" id="tab-results">
+        <div class="tc-summary" id="tc-summary" hidden>
+          <span id="tc-summary-text">—</span>
+        </div>
+        <div class="tc-list" id="tc-list">
+          <!-- Được render bởi JS -->
+          <p class="tc-empty">Nhấn <strong>Test</strong> để chạy testcase.</p>
+        </div>
+      </div>
+
+      <!-- Tab: Lần nộp trước -->
+      <div class="tab-panel" id="tab-submissions">
+        <div class="sub-list" id="sub-list">
+          <p class="tc-empty">Chưa có lần nộp nào.</p>
+        </div>
+      </div>
+
+      <!-- Action buttons — luôn hiển thị dưới sidebar -->
+      <div class="action-bar">
+        <button class="btn btn-test" id="btn-test" disabled>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <polygon points="3,2 13,8 3,14" fill="currentColor"/>
+          </svg>
+          Test
+        </button>
+        <button class="btn btn-submit" id="btn-submit" disabled>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2v9M4 7l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="2" y="12" width="12" height="2" rx="1" fill="currentColor"/>
+          </svg>
+          Submit
+        </button>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- ── SUBMIT RESULT MODAL ─────────────────────────────────────────────── -->
+  <div class="modal-backdrop" id="modal-backdrop" hidden>
+    <div class="modal" id="submit-modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <span class="modal-icon" id="modal-icon">⏳</span>
+        <h2 class="modal-title" id="modal-title">Đang nộp bài...</h2>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <div class="judge-progress">
+          <div class="spinner"></div>
+          <p>Máy chấm đang xử lý...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="modal-close" hidden>Đóng</button>
+        <button class="btn btn-primary"   id="modal-view-board" hidden>Xem bảng xếp hạng</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="contest-portal.js"></script>
+</body>
+</html>

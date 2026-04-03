@@ -43,6 +43,10 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='submissions' AND column_name='status') THEN
     ALTER TABLE submissions ADD COLUMN status VARCHAR(20) DEFAULT 'pending';
   END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='submissions' AND column_name='is_dry_run') THEN
+    ALTER TABLE submissions ADD COLUMN is_dry_run BOOLEAN DEFAULT FALSE;
+  END IF;
 END $$;
 `;
 
