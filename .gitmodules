@@ -1,3 +1,7 @@
 [submodule "packages/scratch-blocks"]
 	path = packages/scratch-blocks
 	url = https://github.com/scratchfoundation/scratch-blocks.git
+
+[submodule "packages/scratch-run"]
+	path = packages/scratch-run
+	url = https://github.com/VNOI-Admin/scratch-run.git
