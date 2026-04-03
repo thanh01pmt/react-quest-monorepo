@@ -1,5 +1,5 @@
 [build]
-  command = "pnpm install && pnpm turbo run build --filter=@repo/contest-dashboard"
+  command = "pnpm turbo run build --filter=@repo/contest-dashboard"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../../packages/quest-player ../../package.json ../../pnpm-workspace.yaml ../../pnpm-lock.yaml ../../turbo.json ../../scripts/"
 
 [build.environment]
