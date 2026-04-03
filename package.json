@@ -6,9 +6,12 @@
     "build:templates": "turbo build --filter=@repo/shared-templates",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "sync-problems": "pnpm tsx scripts/sync-problems.ts"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "^2.101.1",
+    "dotenv": "^17.4.0",
     "prettier": "^3.2.5",
     "tsx": "^4.7.0",
     "turbo": "latest"
