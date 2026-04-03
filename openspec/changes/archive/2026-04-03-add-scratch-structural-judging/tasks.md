@@ -17,4 +17,4 @@
 
 ## 5. Verification
 - [x] Review code logic for consistency.
-- [ ] Run a test submission of an `.sb3` file (User/Staging).
+- [x] Run a test submission of an `.sb3` file (Verifying with `sync-problems` results).
