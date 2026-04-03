@@ -1,7 +1,7 @@
 // src/components/MonacoEditor/index.tsx
 
 import React, { useRef } from 'react';
-import Editor, { OnMount } from '@monaco-editor/react';
+import Editor, { type OnMount } from '@monaco-editor/react';
 import { usePrefersColorScheme } from '../../hooks/usePrefersColorScheme';
 
 interface MonacoEditorProps {

@@ -59,7 +59,7 @@ type LibraryProps = {
   initialCode?: string;
 };
 
-import { ConsolePanel, ConsoleLog } from '../ConsolePanel';
+import { ConsolePanel, type ConsoleLog } from '../ConsolePanel';
 import { TestCasePanel } from '../TestCasePanel';
 
 export type QuestPlayerProps = (StandaloneProps | LibraryProps);

@@ -10,7 +10,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { QuestPlayer } from '@repo/quest-player';
 import { useContest } from '../../contexts/ContestContext';
 import { ContestSidebar } from '../../components/ContestSidebar';
-import { ScratchUploader } from '../../components/ScratchUploader/ScratchUploader';
+import { ScratchQuestPanel } from '../../components/ScratchQuestPanel/ScratchQuestPanel';
 import './ExamRoom.css';
 
 export function ExamRoom() {
@@ -87,9 +87,10 @@ export function ExamRoom() {
                                     {currentQuest.hints?.description || currentQuest.descriptionKey}
                                 </div>
                             </div>
-                            <ScratchUploader 
+                            <ScratchQuestPanel 
                                 questId={currentQuest.id}
-                                onUpload={(file) => submitSb3(currentQuest.id, file)}
+                                contestId={contestId}
+                                onUpload={(file, isDryRun) => submitSb3(currentQuest.id, file, isDryRun)}
                                 disabled={isLocked}
                             />
                         </div>

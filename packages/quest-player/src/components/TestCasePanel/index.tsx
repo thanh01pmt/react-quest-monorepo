@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TestCaseResult } from '../../types';
+import type { TestCaseResult } from '../../types';
 import './TestCasePanel.css';
 
 interface TestCasePanelProps {

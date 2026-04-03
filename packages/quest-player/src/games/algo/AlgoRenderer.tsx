@@ -1,7 +1,7 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { AlgoConfig, GameConfig, GameState } from "../../types";
+import type { AlgoConfig, GameConfig, GameState } from "../../types";
 import "./AlgoRenderer.css";
 
 export const AlgoRenderer: React.FC<{

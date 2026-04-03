@@ -97,11 +97,17 @@ router.post('/', requireAuth, upload.single('sb3file'), async (req, res, next) =
     const storagePath = uploadData.path;
 
     // ── 2. Lưu vào DB với status = 'pending' ────────────────────────────────
-    await db.query(
-      `INSERT INTO submissions (id, board_participant_id, exam_id, quest_id, storage_path, status, submitted_at, is_dry_run)
-       VALUES ($1, $2, $3, $4, $5, 'pending', NOW(), $6)`,
-      [submissionId, board_participant_id, exam_id, quest_id, storagePath, isDryRun]
-    );
+    try {
+      await db.query(
+        `INSERT INTO submissions (id, board_participant_id, exam_id, quest_id, storage_path, status, submitted_at, is_dry_run)
+         VALUES ($1, $2, $3, $4, $5, 'pending', NOW(), $6)`,
+        [submissionId, board_participant_id, exam_id, quest_id, storagePath, isDryRun]
+      );
+    } catch (dbErr) {
+      console.error('[DB Error] Lỗi khi tạo bản ghi submission:', dbErr.message);
+      console.error('Values:', { submissionId, board_participant_id, exam_id, quest_id });
+      throw dbErr;
+    }
 
     // ── 3. Đẩy vào hàng đợi Judge ────────────────────────────────────────
     await judgeQueue.add(
@@ -121,6 +127,31 @@ router.post('/', requireAuth, upload.single('sb3file'), async (req, res, next) =
       message:       'Bài nộp đã được tải lên và đang trong hàng đợi chấm.',
       storage_path:  storagePath
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/submit/history/:quest_id ────────────────────────────────────
+// Lấy lịch sử nộp bài của thí sinh cho một câu hỏi cụ thể
+router.get('/history/:quest_id', requireAuth, async (req, res, next) => {
+  try {
+    const { quest_id } = req.params;
+    const { exam_id } = req.query; // Tùy chọn để lọc chính xác theo kỳ thi
+
+    // Lấy link tới board_participant của user hiện tại
+    // Giả sử req.user.id là Supabase UID
+    const { rows } = await db.query(
+      `SELECT s.id, s.quest_id, s.score, s.status, s.judge_log, s.submitted_at, s.judged_at, s.is_dry_run, s.storage_path
+       FROM submissions s
+       JOIN board_participants bp ON s.board_participant_id = bp.id
+       WHERE bp.user_id = $1 AND s.quest_id = $2
+       ${exam_id ? 'AND s.exam_id = $3' : ''}
+       ORDER BY s.submitted_at DESC`,
+      exam_id ? [req.user.id, quest_id, exam_id] : [req.user.id, quest_id]
+    );
+
+    res.json(rows);
   } catch (err) {
     next(err);
   }

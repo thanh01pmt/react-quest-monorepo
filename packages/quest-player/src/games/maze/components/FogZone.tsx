@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Cloud, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
-import { FogZone as FogZoneType } from '../../../types';
+import type { FogZone as FogZoneType } from '../../../types';
 
 interface FogZoneProps {
     config: FogZoneType;

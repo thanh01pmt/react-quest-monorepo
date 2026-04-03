@@ -309,6 +309,39 @@ export async function getSubmissionById(
 	} as ContestSubmission;
 }
 
+/**
+ * Lấy lịch sử nộp bài của participant cho một câu hỏi
+ */
+export async function getSubmissionHistory(
+	questId: string,
+	examId?: string,
+): Promise<any[]> {
+	try {
+		const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+		const { data: sessionData } = await supabase.auth.getSession();
+		const accessToken = sessionData?.session?.access_token;
+
+		const url = new URL(`${apiUrl}/submit/history/${questId}`);
+		if (examId) url.searchParams.append("exam_id", examId);
+
+		const response = await fetch(url.toString(), {
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error("Failed to fetch history");
+		}
+
+		return await response.json();
+	} catch (error) {
+		console.error("[SupabaseService] getSubmissionHistory error:", error);
+		return [];
+	}
+}
+
 
 /**
  * Calculate score from test results
