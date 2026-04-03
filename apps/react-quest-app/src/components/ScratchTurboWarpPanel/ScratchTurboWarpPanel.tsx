@@ -7,22 +7,22 @@ import { TestcaseGrid } from '../ScratchQuestPanel/TestcaseGrid';
 import './ScratchTurboWarpPanel.css';
 
 interface ScratchTurboWarpPanelProps {
-	questId: string;
-	title?: string;
-	description?: string;
+	quest: any;
 	contestId?: string;
 	onUpload: (file: File, isDryRun?: boolean) => Promise<any>;
 	disabled?: boolean;
 }
 
 export function ScratchTurboWarpPanel({
-	questId,
-	title,
-	description,
+	quest,
 	contestId,
 	onUpload,
 	disabled,
 }: ScratchTurboWarpPanelProps) {
+	const questId = quest.id;
+	const title = quest.title || quest.titleKey;
+	const description = quest.description || quest.hints?.description || quest.descriptionKey;
+	const gameConfig = quest.gameConfig || {};
 	const [history, setHistory] = useState<any[]>([]);
 	const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
 	const [isLoadingDetail, setIsLoadingDetail] = useState(false);
@@ -103,18 +103,52 @@ export function ScratchTurboWarpPanel({
 				{!isSidebarCollapsed && (
 					<div className="sidebar-content">
 						<div className="sidebar-section problem-info">
-							<h2 className="problem-title">{title}</h2>
+							<div className="section-header">
+								<span className="icon">📝</span>
+								<h2 className="problem-title">{title}</h2>
+							</div>
 							<div className="problem-description scrollable">
 								<MarkdownRenderer content={description || 'Không có mô tả cho đề bài này.'} />
 							</div>
 						</div>
+
+						{/* Starter Project Section */}
+						{(gameConfig.starterSb3Url || gameConfig.scratchProjectId) && (
+							<div className="sidebar-section starter-project">
+								<div className="section-header">
+									<span className="icon">🚀</span>
+									<h3>Dự án mẫu</h3>
+								</div>
+								<div className="starter-actions">
+									{gameConfig.starterSb3Url && (
+										<a 
+											href={gameConfig.starterSb3Url} 
+											className="action-btn download-btn"
+											target="_blank" 
+											rel="noopener noreferrer"
+										>
+											📥 Tải file mẫu (.sb3)
+										</a>
+									)}
+									{gameConfig.scratchProjectId && (
+										<button 
+											className="action-btn open-btn"
+											onClick={() => window.open(`https://turbowarp.org/${gameConfig.scratchProjectId}/editor`, '_blank')}
+										>
+											🎨 Mở trong TurboWarp
+										</button>
+									)}
+								</div>
+								<p className="hint-text small">Tải file mẫu về máy, sau đó mở bằng trình chỉnh sửa để bắt đầu làm bài.</p>
+							</div>
+						)}
 
 						<div className="sidebar-divider" />
 
 						<div className="sidebar-section submission-area">
 							<div className="section-header">
 								<span className="icon">📤</span>
-								<h3>Nộp bài (.sb3)</h3>
+								<h3>Nộp bài làm</h3>
 							</div>
 							<ScratchUploader
 								questId={questId}
@@ -129,19 +163,32 @@ export function ScratchTurboWarpPanel({
 							<div className="section-header">
 								<span className="icon">📊</span>
 								<h3>Kết quả chấm bài</h3>
+								<button className="refresh-btn" onClick={fetchHistory} title="Cập nhật kết quả">🔄</button>
 							</div>
+							
 							{isLoadingDetail ? (
 								<div className="loading-mini">
 									<div className="spinner-mini"></div>
 									<span>Đang chấm...</span>
 								</div>
 							) : selectedSubmission ? (
-								<TestcaseGrid 
-									judgeLog={selectedSubmission.judge_log} 
-									score={selectedSubmission.score} 
-								/>
+								<div className="result-container">
+									<div className="submission-meta">
+										<span className="status-badge" data-status={selectedSubmission.status}>
+											{selectedSubmission.status === 'accepted' ? '✅ Hoàn thành' : 
+											 selectedSubmission.status === 'pending' ? '⏳ Đang chờ' : '❌ Chưa đạt'}
+										</span>
+										<span className="score-badge">{selectedSubmission.score || 0}/100</span>
+									</div>
+									<TestcaseGrid 
+										judgeLog={selectedSubmission.judge_log} 
+										score={selectedSubmission.score} 
+									/>
+								</div>
 							) : (
-								<p className="hint-text">Nộp file để xem kết quả.</p>
+								<div className="empty-results">
+									<p>Chưa có kết quả. Hãy nộp bài để xem chi tiết.</p>
+								</div>
 							)}
 						</div>
 					</div>

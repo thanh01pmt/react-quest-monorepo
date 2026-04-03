@@ -7,9 +7,7 @@ import { SubmissionHistory } from './SubmissionHistory';
 import './ScratchQuestPanel.css';
 
 interface ScratchQuestPanelProps {
-	questId: string;
-	title?: string;
-	description?: string;
+	quest: any;
 	contestId?: string;
 	onUpload: (file: File, isDryRun?: boolean) => Promise<any>;
 	disabled?: boolean;
@@ -18,13 +16,15 @@ interface ScratchQuestPanelProps {
 type TabType = 'problem' | 'submit' | 'results' | 'history';
 
 export function ScratchQuestPanel({
-	questId,
-	title,
-	description,
+	quest,
 	contestId,
 	onUpload,
 	disabled,
 }: ScratchQuestPanelProps) {
+	const questId = quest.id;
+	const title = quest.title || quest.titleKey;
+	const description = quest.description || quest.hints?.description || quest.descriptionKey;
+	const gameConfig = quest.gameConfig || {};
 	const [history, setHistory] = useState<any[]>([]);
 	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 	const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
@@ -102,23 +102,58 @@ export function ScratchQuestPanel({
 				<div className="column-problem">
 					<div className="problem-header">
 						<h1 className="problem-title">{title}</h1>
-						{history.length > 0 && (
-							<div className="best-score-container">
-								<span className="label">Điểm cao nhất</span>
-								<span className="value">{Math.max(...history.map(s => s.score || 0))} / 100</span>
-							</div>
-						)}
+						<div className="problem-meta-info">
+							{history.length > 0 && (
+								<div className="best-score-container">
+									<span className="label">Điểm cao nhất</span>
+									<span className="value">{Math.max(...history.map(s => s.score || 0))} / 100</span>
+								</div>
+							)}
+						</div>
 					</div>
 					
 					<div className="problem-body">
 						<div className="section-title">Nội dung đề bài</div>
-						<div className="problem-description-box">
+						<div className="problem-description-box scrollable">
 							{description ? (
 								<MarkdownRenderer content={description} />
 							) : (
 								<p className="no-desc">Không có mô tả cho đề bài này.</p>
 							)}
 						</div>
+
+						{/* Starter Project Section */}
+						{(gameConfig.starterSb3Url || gameConfig.scratchProjectId) && (
+							<div className="starter-project-box glass-card">
+								<div className="card-header">
+									<span className="icon">🚀</span>
+									<h3>Tài liệu & Dự án mẫu</h3>
+								</div>
+								<div className="starter-content">
+									<p>Bạn nên bắt đầu từ dự án mẫu để đảm bảo đúng yêu cầu kỹ thuật.</p>
+									<div className="starter-actions">
+										{gameConfig.starterSb3Url && (
+											<a 
+												href={gameConfig.starterSb3Url} 
+												className="action-btn download-btn"
+												target="_blank" 
+												rel="noopener noreferrer"
+											>
+												📥 Tải file mẫu (.sb3)
+											</a>
+										)}
+										{gameConfig.scratchProjectId && (
+											<button 
+												className="action-btn open-btn"
+												onClick={() => window.open(`https://turbowarp.org/${gameConfig.scratchProjectId}/editor`, '_blank')}
+											>
+												🎨 Mở trong TurboWarp
+											</button>
+										)}
+									</div>
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 

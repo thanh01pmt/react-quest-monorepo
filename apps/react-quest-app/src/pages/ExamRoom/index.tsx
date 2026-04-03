@@ -84,18 +84,14 @@ export function ExamRoom() {
                         <div className="scratch-room">
                             {(currentQuest as any).scratch_ui_mode === 'turbowarp-embed' ? (
                                 <ScratchTurboWarpPanel
-                                    questId={currentQuest.id}
-                                    title={currentQuest.title || currentQuest.titleKey}
-                                    description={currentQuest.description || currentQuest.hints?.description || currentQuest.descriptionKey}
+                                    quest={currentQuest as any}
                                     contestId={contestId}
                                     onUpload={(file, isDryRun) => submitSb3(currentQuest.id, file, isDryRun)}
                                     disabled={isLocked}
                                 />
                             ) : (
                                 <ScratchQuestPanel 
-                                    questId={currentQuest.id}
-                                    title={currentQuest.title || currentQuest.titleKey}
-                                    description={currentQuest.description || currentQuest.hints?.description || currentQuest.descriptionKey}
+                                    quest={currentQuest as any}
                                     contestId={contestId}
                                     onUpload={(file, isDryRun) => submitSb3(currentQuest.id, file, isDryRun)}
                                     disabled={isLocked}
