@@ -15,7 +15,8 @@ const router = express.Router();
 const WRONG_PENALTY_MINUTES = 5;
 
 // ── GET /api/leaderboard/:problem_id ────────────────────────────────────
-router.get('/:problem_id', requireAuth, async (req, res, next) => {
+// Public access is allowed for this route (omit requireAuth for general viewing)
+router.get('/:problem_id', async (req, res, next) => {
   try {
     const { problem_id } = req.params;
     if (!/^[\w-]+$/.test(problem_id)) {

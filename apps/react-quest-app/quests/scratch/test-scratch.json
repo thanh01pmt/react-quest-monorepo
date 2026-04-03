@@ -1,0 +1,26 @@
+{
+  "id": "scratch-test-1",
+  "gameType": "scratch",
+  "level": 1,
+  "title": "Scratch Challenge Test",
+  "description": "This is a test quest for Scratch Portal Mode. Upload your .sb3 file to complete the challenge.",
+  "titleKey": "Scratch.Test.Title",
+  "descriptionKey": "Scratch.Test.Description",
+  "translations": {
+    "en": {
+      "Scratch.Test.Title": "Scratch Challenge Test",
+      "Scratch.Test.Description": "This is a test quest for Scratch Portal Mode. Upload your .sb3 file to complete the challenge."
+    },
+    "vi": {
+      "Scratch.Test.Title": "Thử thách Scratch Mẫu",
+      "Scratch.Test.Description": "Đây là thử thách mẫu cho chế độ Scratch. Hãy tải tệp .sb3 của bạn lên để hoàn thành."
+    }
+  },
+  "gameConfig": {
+    "type": "scratch",
+    "description": "Create a program where a cat moves in a square."
+  },
+  "solution": {
+    "type": "match_output"
+  }
+}

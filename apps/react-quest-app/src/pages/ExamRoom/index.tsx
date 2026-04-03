@@ -81,14 +81,10 @@ export function ExamRoom() {
                 {currentQuest ? (
                     ((currentQuest as any).gameType === 'scratch' || (currentQuest as any).gameConfig?.type === 'scratch') ? (
                         <div className="scratch-room">
-                            <div className="scratch-instructions">
-                                <h1>{currentQuest.title || currentQuest.titleKey}</h1>
-                                <div className="quest-description">
-                                    {currentQuest.hints?.description || currentQuest.descriptionKey}
-                                </div>
-                            </div>
                             <ScratchQuestPanel 
                                 questId={currentQuest.id}
+                                title={currentQuest.title || currentQuest.titleKey}
+                                description={currentQuest.hints?.description || currentQuest.descriptionKey}
                                 contestId={contestId}
                                 onUpload={(file, isDryRun) => submitSb3(currentQuest.id, file, isDryRun)}
                                 disabled={isLocked}

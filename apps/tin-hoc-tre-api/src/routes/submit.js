@@ -137,17 +137,16 @@ router.post('/', requireAuth, upload.single('sb3file'), async (req, res, next) =
 router.get('/history/:quest_id', requireAuth, async (req, res, next) => {
   try {
     const { quest_id } = req.params;
-    const { exam_id } = req.query; // Tùy chọn để lọc chính xác theo kỳ thi
+    const { exam_id } = req.query;
 
-    // Lấy link tới board_participant của user hiện tại
-    // Giả sử req.user.id là Supabase UID
     const { rows } = await db.query(
-      `SELECT s.id, s.quest_id, s.score, s.status, s.judge_log, s.submitted_at, s.judged_at, s.is_dry_run, s.storage_path
+      `SELECT s.id, s.quest_id, s.score, s.status, s.submitted_at, s.judged_at, s.is_dry_run
        FROM submissions s
        JOIN board_participants bp ON s.board_participant_id = bp.id
        WHERE bp.user_id = $1 AND s.quest_id = $2
        ${exam_id ? 'AND s.exam_id = $3' : ''}
-       ORDER BY s.submitted_at DESC`,
+       ORDER BY s.submitted_at DESC
+       LIMIT 20`,
       exam_id ? [req.user.id, quest_id, exam_id] : [req.user.id, quest_id]
     );
 

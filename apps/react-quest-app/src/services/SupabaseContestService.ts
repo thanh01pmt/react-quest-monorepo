@@ -309,9 +309,6 @@ export async function getSubmissionById(
 	} as ContestSubmission;
 }
 
-/**
- * Lấy lịch sử nộp bài của participant cho một câu hỏi
- */
 export async function getSubmissionHistory(
 	questId: string,
 	examId?: string,
@@ -339,6 +336,33 @@ export async function getSubmissionHistory(
 	} catch (error) {
 		console.error("[SupabaseService] getSubmissionHistory error:", error);
 		return [];
+	}
+}
+
+/**
+ * Lấy chi tiết một bài nộp (bao gồm judge_log) từ API
+ */
+export async function getSubmissionDetail(submissionId: string): Promise<any> {
+	try {
+		const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+		const { data: sessionData } = await supabase.auth.getSession();
+		const accessToken = sessionData?.session?.access_token;
+
+		const response = await fetch(`${apiUrl}/submit/${submissionId}`, {
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error("Failed to fetch submission detail");
+		}
+
+		return await response.json();
+	} catch (error) {
+		console.error("[SupabaseService] getSubmissionDetail error:", error);
+		throw error;
 	}
 }
 

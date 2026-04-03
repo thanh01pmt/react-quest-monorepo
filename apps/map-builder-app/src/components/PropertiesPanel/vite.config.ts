@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(), 
+    react() as any, 
     tsconfigPaths({
       root: path.resolve(__dirname, '../../../../'), // Chỉ định đường dẫn đến tsconfig.json gốc của monorepo
     }),

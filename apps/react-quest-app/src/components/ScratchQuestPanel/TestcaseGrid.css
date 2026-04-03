@@ -1,0 +1,153 @@
+.testcase-grid-container {
+  padding: 1.5rem;
+  background-color: var(--bg-secondary, #f8fafc);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.testcase-grid-header {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  padding-bottom: 1rem;
+}
+
+.overall-score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.score-label {
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  font-size: 1.1rem;
+}
+
+.score-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary-color, #3b82f6);
+}
+
+.score-percentage {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+.testcase-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.testcase-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border-width: 2px;
+  border-style: solid;
+  transition: all 0.2s ease;
+  cursor: default;
+  position: relative;
+}
+
+.testcase-card.status-pass {
+  background-color: #f0fdf4;
+  border-color: #22c55e;
+  color: #15803d;
+}
+
+.testcase-card.status-fail {
+  background-color: #fef2f2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+.testcase-card.status-tle {
+  background-color: #fefce8;
+  border-color: #eab308;
+  color: #a16207;
+}
+
+.testcase-card.status-error {
+  background-color: #fff7ed;
+  border-color: #f97316;
+  color: #c2410c;
+}
+
+.testcase-card.status-pending {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #475569;
+  border-style: dashed;
+}
+
+.testcase-number {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-bottom: 0.25rem;
+}
+
+.testcase-status {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.testcase-score {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.sample-tag {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: #6366f1;
+  color: white;
+  font-size: 0.6rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.testcase-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted, #64748b);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.dot.pass { background-color: #22c55e; }
+.dot.fail { background-color: #ef4444; }
+.dot.tle { background-color: #eab308; }
+.dot.error { background-color: #f97316; }
+
+.testcase-grid-empty, .testcase-grid-error {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted, #64748b);
+  border: 2px dashed var(--border-color, #e2e8f0);
+  border-radius: 12px;
+}

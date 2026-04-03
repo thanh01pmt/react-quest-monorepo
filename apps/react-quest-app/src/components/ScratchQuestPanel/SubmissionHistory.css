@@ -1,0 +1,108 @@
+.submission-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.submission-item {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-radius: 10px;
+  background-color: white;
+  border: 1px solid var(--border-color, #e2e8f0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submission-item:hover {
+  border-color: var(--primary-color, #3b82f6);
+  background-color: var(--bg-hover, #f1f5f9);
+}
+
+.submission-item.selected {
+  border-color: var(--primary-color, #3b82f6);
+  border-left-width: 4px;
+  background-color: #f0f9ff;
+}
+
+.item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.item-date {
+  font-size: 0.9rem;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+}
+
+.item-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.status-judged { background-color: #dcfce7; color: #166534; }
+.status-pending { background-color: #f1f5f9; color: #475569; }
+.status-failed { background-color: #fee2e2; color: #991b1b; }
+
+.item-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tag-dry {
+  background-color: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+
+.item-score {
+  display: flex;
+  align-items: baseline;
+}
+
+.score-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary-color, #3b82f6);
+}
+
+.score-max {
+  font-size: 0.85rem;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+}
+
+.item-indicator {
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.viewing-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3b82f6;
+  text-transform: uppercase;
+}
+
+.history-loading, .history-empty {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted, #64748b);
+  border: 2px dashed var(--border-color, #e2e8f0);
+  border-radius: 12px;
+}

@@ -21,6 +21,10 @@ import { ContestProvider } from './contexts/ContestContext';
 import { QuestSidebar } from './components/QuestSidebar/index';
 import './App.css';
 import { SyncPage } from './pages/SyncPage'; // Import SyncPage
+import LeaderboardPage from './pages/LeaderboardPage';
+import { ScratchQuestPanel } from './components/ScratchQuestPanel/ScratchQuestPanel';
+import { submitSb3File } from './services/SupabaseContestService';
+import { useAuth } from './contexts/AuthContext';
 
 // Bọc QuestPlayer trong React.memo để ngăn re-render không cần thiết
 const MemoizedQuestPlayer = React.memo(QuestPlayer);
@@ -29,6 +33,7 @@ const MemoizedQuestPlayer = React.memo(QuestPlayer);
 type AppQuest = Quest & {
   topic?: string;
   groupId: string;
+  description?: string; // Add description support for standalone/scratch quests
 };
 
 type AppSettings = QuestPlayerSettings & { language: string };
@@ -287,10 +292,48 @@ function AppContent() {
     }
   }, [t]); // Thêm các phụ thuộc nếu cần
 
+  const { user } = useAuth();
+
+  const handleScratchUpload = useCallback(async (file: File, isDryRun: boolean = false) => {
+    if (!questData) return;
+    
+    // For standalone mode, we use "standalone" or "guest" as contestId and participantId
+    // unless the user is logged in, then we can use their userId if the backend supports it.
+    // For now, let's use 'standalone' as contestId to differentiate from regular contests.
+    const contestId = 'standalone'; 
+    const participantId = user?.id || 'guest';
+    
+    const result = await submitSb3File(
+      participantId,
+      contestId,
+      questData.id,
+      file,
+      isDryRun
+    );
+    
+    return result;
+  }, [questData, user]);
+
   const renderMainContent = () => {
     if (isLoading || !questData) {
       return <div className="emptyState"><h2>{t('UI.Loading')}</h2></div>;
     }
+
+    // Check if it's a Scratch quest
+    const isScratch = questData.gameType === 'scratch' || (questData.gameConfig as any)?.type === 'scratch';
+
+    if (isScratch) {
+      return (
+        <ScratchQuestPanel
+          questId={questData.id}
+          title={questData.title || t(questData.titleKey)}
+          description={questData.description || (questData.gameConfig as any)?.description || t(questData.descriptionKey)}
+          contestId="standalone" // Standalone indicator
+          onUpload={handleScratchUpload}
+        />
+      );
+    }
+
     return (
       <MemoizedQuestPlayer
         key={questData.id}
@@ -575,6 +618,9 @@ function App() {
         <Route path="exam" element={<ExamRoom />} />
         <Route path="review/:submissionId" element={<ReviewPage />} />
       </Route>
+
+      {/* Leaderboard công khai */}
+      <Route path="/leaderboard/:contestId" element={<LeaderboardPage />} />
 
       {/* Route cho một quest cụ thể: /quest/group1/QUEST_ID */}
       <Route path="/quest/:groupId/:questId" element={<AppContent />} />

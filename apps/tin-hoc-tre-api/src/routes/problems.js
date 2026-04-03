@@ -63,10 +63,53 @@ router.get('/current', requireAuth, async (req, res, next) => {
   }
 });
 
-// ── GET /api/problems/:id (Legacy support hoặc lấy chi tiết q) ──────────────
+// ── GET /api/problems/:id (Chi tiết một câu hỏi) ──────────────────────────
 router.get('/:id', requireAuth, async (req, res, next) => {
-  // Logic tương tự current nhưng filter theo ID cụ thể nếu cần
-  res.status(501).json({ error: 'Tính năng này đang được chuyển đổi sang schema mới.' });
+  try {
+    const { id } = req.params;
+
+    // 1. Tìm exam_id và quest_data của user trong round ACTIVE
+    const { rows: bpRows } = await db.query(
+      `SELECT e.quest_data
+       FROM board_participants bp
+       JOIN exam_boards eb ON bp.board_id = eb.id
+       JOIN rounds r ON eb.round_id = r.id
+       JOIN exams e ON r.id = e.round_id
+       WHERE bp.participant_id = $1 AND r.status = 'active'
+       LIMIT 1`,
+      [req.user.id]
+    );
+
+    if (!bpRows.length) {
+      return res.status(404).json({ error: 'Bạn không có đề thi nào đang diễn ra.' });
+    }
+
+    const questData = bpRows[0].quest_data || [];
+    const quest = questData.find(q => q.id === id || q.problem_id === id);
+
+    if (!quest) {
+      return res.status(404).json({ error: 'Không tìm thấy câu hỏi này trong đề thi của bạn.' });
+    }
+
+    // 2. Trả về quest đã filter test cases (chỉ sample)
+    const safeQuest = {
+      id:            quest.id || quest.problem_id,
+      title:         quest.title,
+      description:   quest.description,
+      time_limit:    quest.time_limit,
+      scratch_ui_mode: quest.scratch_ui_mode || 'upload',
+      test_cases:    (quest.test_cases || []).filter(tc => tc.is_sample).map(tc => ({
+        id: tc.id,
+        is_sample: true,
+        input: tc.input,
+        output: tc.output
+      }))
+    };
+
+    res.json(safeQuest);
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;
