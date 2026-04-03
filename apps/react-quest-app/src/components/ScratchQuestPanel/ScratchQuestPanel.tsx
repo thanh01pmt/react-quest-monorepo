@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { MarkdownRenderer } from '@repo/quest-player';
 import { ScratchUploader } from '../ScratchUploader/ScratchUploader';
 import { getSubmissionHistory, getSubmissionDetail } from '../../services/SupabaseContestService';
 import { TestcaseGrid } from './TestcaseGrid';
@@ -113,7 +114,7 @@ export function ScratchQuestPanel({
 						<div className="section-title">Nội dung đề bài</div>
 						<div className="problem-description-box">
 							{description ? (
-								<div dangerouslySetInnerHTML={{ __html: description.replace(/\n/g, '<br/>') }} />
+								<MarkdownRenderer content={description} />
 							) : (
 								<p className="no-desc">Không có mô tả cho đề bài này.</p>
 							)}

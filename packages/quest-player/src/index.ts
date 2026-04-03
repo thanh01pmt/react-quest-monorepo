@@ -5,6 +5,7 @@ export { QuestPlayer } from './components/QuestPlayer';
 export type { QuestPlayerProps } from './components/QuestPlayer';
 export * from './components/BlocklyRenderer';
 export * from './components/GuideRenderer';
+export * from './components/MarkdownRenderer/MarkdownRenderer';
 
 // Horizontal/Junior Mode components
 export { HorizontalBlocklyRenderer } from './components/HorizontalBlocklyRenderer';

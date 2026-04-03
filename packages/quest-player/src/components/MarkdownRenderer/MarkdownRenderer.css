@@ -1,0 +1,98 @@
+.markdown-renderer {
+    line-height: 1.6;
+    color: inherit;
+    font-size: 1rem;
+}
+
+.markdown-renderer h1,
+.markdown-renderer h2,
+.markdown-renderer h3,
+.markdown-renderer h4 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.markdown-renderer h1 { font-size: 1.75em; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.3em; }
+.markdown-renderer h2 { font-size: 1.5em; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.3em; }
+.markdown-renderer h3 { font-size: 1.25em; }
+
+.markdown-renderer p {
+    margin-bottom: 1em;
+}
+
+.markdown-renderer ul,
+.markdown-renderer ol {
+    margin-bottom: 1em;
+    padding-left: 2em;
+}
+
+.markdown-renderer li {
+    margin-bottom: 0.25em;
+}
+
+.markdown-renderer code {
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    white-space: break-spaces;
+    background-color: rgba(175, 184, 193, 0.2);
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+}
+
+.markdown-renderer pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: rgba(175, 184, 193, 0.1);
+    border-radius: 12px;
+    margin-bottom: 1em;
+}
+
+.markdown-renderer pre code {
+    padding: 0;
+    margin: 0;
+    font-size: inherit;
+    word-break: normal;
+    white-space: pre;
+    background: transparent;
+    border: 0;
+}
+
+.markdown-renderer blockquote {
+    padding: 0 1em;
+    color: #8b949e;
+    border-left: 0.25em solid #30363d;
+    margin-bottom: 1em;
+}
+
+.markdown-renderer table {
+    display: block;
+    width: 100%;
+    width: max-content;
+    max-width: 100%;
+    overflow: auto;
+    margin-bottom: 1em;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
+.markdown-renderer table th,
+.markdown-renderer table td {
+    padding: 6px 13px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-renderer table tr {
+    background-color: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-renderer img {
+    max-width: 100%;
+    box-sizing: content-box;
+    background-color: transparent;
+}
