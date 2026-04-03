@@ -1,0 +1,44 @@
+{
+  "name": "scratch-run",
+  "version": "0.1.5",
+  "description": "Run Scratch from command line",
+  "main": "./index.js",
+  "scripts": {
+    "start": "node ./index.js",
+    "build": "./build.sh",
+    "test": "python tests/test.py",
+    "postinstall": "patch-package"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VNOI-Admin/scratch-run.git"
+  },
+  "keywords": [
+    "scratch"
+  ],
+  "author": "Le Bao Hiep <baohiep2013@gmail.com>",
+  "license": "agpl-3.0",
+  "bugs": {
+    "url": "https://github.com/VNOI-Admin/scratch-run/issues"
+  },
+  "homepage": "https://github.com/VNOI-Admin/scratch-run#readme",
+  "dependencies": {
+    "fastestsmallesttextencoderdecoder": "^1.0.22",
+    "minimist": "^1.2.8",
+    "scratch-vm": "git+https://github.com/TurboWarp/scratch-vm.git#e4e461ac84b1d61a3e7468aa6dbc8b56a2ece35e"
+  },
+  "devDependencies": {
+    "esbuild-loader": "^4.0.2",
+    "patch-package": "^8.0.0",
+    "pkg": "^5.8.1",
+    "scratch-sb1-converter": "^2.0.279",
+    "webpack": "4.47.0",
+    "webpack-bundle-analyzer": "^4.10.1",
+    "webpack-cli": "4.10.0"
+  },
+  "overrides": {
+    "webpack@4.47.0": {
+      "terser-webpack-plugin": "^4.2.3"
+    }
+  }
+}
