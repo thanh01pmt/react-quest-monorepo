@@ -1,0 +1,62 @@
+{
+  "problem_id": "chia-het-2-1",
+  "title": "Bài 3: Chia hết 2 (CHIAHET21)",
+  "gameType": "scratch",
+  "scratch_ui_mode": "turbowarp-embed",
+  "level": 3,
+  "description": "## Bài 3: Chia hết 2 (CHIAHET21)\n\nCho 4 chữ số $a, b, c, d$ khác nhau và khác 0 được nhập trong danh sách `inputData`.\n\nEm hãy lập trình tìm xem có bao nhiêu số chẵn có 2 chữ số khác nhau được lập từ 4 chữ số trên.\n\n### Yêu cầu:\n1.  Đọc 4 chữ số từ danh sách `inputData`.\n2.  Tìm các số chẵn có 2 chữ số khác nhau được lập từ 4 chữ số này.\n3.  Thêm số lượng các số tìm được vào danh sách `output`.\n4.  Sử dụng khối lệnh `stop [all]` sau khi đã thêm kết quả.\n\n### Ví dụ:\n- **Input**: `inputData = [1, 2, 3, 4]`\n- **Output**: `output = [6]`\n\nGiải thích:\nCác số chẵn có 2 chữ số khác nhau là: 12, 14, 32, 34, 42, 24 (tổng cộng 6 số).",
+  "time_limit": 5000,
+  "structural_checks": [
+    {
+      "id": "sc1",
+      "weight": 20,
+      "type": "block_exists",
+      "target": "control_if",
+      "message": "Cần sử dụng câu lệnh điều kiện để kiểm tra tính chẵn lẻ hoặc các điều kiện số khác nhau."
+    },
+    {
+      "id": "sc2",
+      "weight": 20,
+      "type": "block_exists",
+      "target": "data_addtolist",
+      "message": "Phải sử dụng khối lệnh 'thêm ... vào danh sách output'"
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "tc1",
+      "weight": 20,
+      "is_sample": true,
+      "input": ["1", "2", "3", "4"],
+      "output": ["6"]
+    },
+    {
+      "id": "tc2",
+      "weight": 20,
+      "is_sample": false,
+      "input": ["1", "3", "5", "7"],
+      "output": ["0"]
+    },
+    {
+      "id": "tc3",
+      "weight": 20,
+      "is_sample": false,
+      "input": ["2", "4", "6", "8"],
+      "output": ["12"]
+    },
+    {
+      "id": "tc4",
+      "weight": 20,
+      "is_sample": false,
+      "input": ["1", "2", "3", "5"],
+      "output": ["3"]
+    },
+    {
+      "id": "tc5",
+      "weight": 20,
+      "is_sample": false,
+      "input": ["9", "8", "7", "6"],
+      "output": ["6"]
+    }
+  ]
+}

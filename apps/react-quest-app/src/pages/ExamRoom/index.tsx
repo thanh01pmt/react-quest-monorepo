@@ -11,6 +11,7 @@ import { QuestPlayer } from '@repo/quest-player';
 import { useContest } from '../../contexts/ContestContext';
 import { ContestSidebar } from '../../components/ContestSidebar';
 import { ScratchQuestPanel } from '../../components/ScratchQuestPanel/ScratchQuestPanel';
+import { ScratchTurboWarpPanel } from '../../components/ScratchTurboWarpPanel/ScratchTurboWarpPanel';
 import './ExamRoom.css';
 
 export function ExamRoom() {
@@ -81,14 +82,25 @@ export function ExamRoom() {
                 {currentQuest ? (
                     ((currentQuest as any).gameType === 'scratch' || (currentQuest as any).gameConfig?.type === 'scratch') ? (
                         <div className="scratch-room">
-                            <ScratchQuestPanel 
-                                questId={currentQuest.id}
-                                title={currentQuest.title || currentQuest.titleKey}
-                                description={currentQuest.hints?.description || currentQuest.descriptionKey}
-                                contestId={contestId}
-                                onUpload={(file, isDryRun) => submitSb3(currentQuest.id, file, isDryRun)}
-                                disabled={isLocked}
-                            />
+                            {(currentQuest as any).scratch_ui_mode === 'turbowarp-embed' ? (
+                                <ScratchTurboWarpPanel
+                                    questId={currentQuest.id}
+                                    title={currentQuest.title || currentQuest.titleKey}
+                                    description={currentQuest.description || currentQuest.hints?.description || currentQuest.descriptionKey}
+                                    contestId={contestId}
+                                    onUpload={(file, isDryRun) => submitSb3(currentQuest.id, file, isDryRun)}
+                                    disabled={isLocked}
+                                />
+                            ) : (
+                                <ScratchQuestPanel 
+                                    questId={currentQuest.id}
+                                    title={currentQuest.title || currentQuest.titleKey}
+                                    description={currentQuest.description || currentQuest.hints?.description || currentQuest.descriptionKey}
+                                    contestId={contestId}
+                                    onUpload={(file, isDryRun) => submitSb3(currentQuest.id, file, isDryRun)}
+                                    disabled={isLocked}
+                                />
+                            )}
                         </div>
                     ) : (
                         <QuestPlayer

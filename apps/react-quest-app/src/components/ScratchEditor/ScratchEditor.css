@@ -1,0 +1,49 @@
+.scratch-editor-container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	background: #111;
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.scratch-iframe {
+	width: 100%;
+	height: 100%;
+	border: none;
+	display: block;
+}
+
+.editor-loading {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+	background: #111;
+	z-index: 10;
+}
+
+.editor-loading .spinner {
+	width: 48px;
+	height: 48px;
+	border: 4px solid rgba(255, 255, 255, 0.05);
+	border-top-color: var(--accent-color, #4a90e2);
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+
+.editor-loading p {
+	color: rgba(255, 255, 255, 0.5);
+	font-size: 0.9rem;
+	font-weight: 500;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}

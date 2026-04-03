@@ -2,7 +2,7 @@
   "problem_id": "scratch-sum",
   "title": "Tổng của 3 số (Scratch)",
   "gameType": "scratch",
-  "scratch_ui_mode": "upload",
+  "scratch_ui_mode": "turbowarp-embed",
   "level": 1,
   "description": "## Bài tập: Tính tổng 3 số\n\nHãy lập trình Scratch để thực hiện yêu cầu sau:\n\n1.  Đọc 3 số nguyên từ danh sách (List) có tên là `inputData`.\n2.  Tính tổng của 3 số đó.\n3.  Thêm kết quả tổng vào danh sách (List) có tên là `output`.\n4.  Sử dụng khối lệnh `stop [all]` sau khi đã thêm kết quả.\n\n**Ví dụ:**\n- Nếu `inputData` là `[10, 20, 30]`, thì `output` phải có giá trị là `[60]`.\n- Nếu `inputData` là `[5, -2, 10]`, thì `output` phải có giá trị là `[13]`.\n\nHướng dẫn:\n- Bạn cần tạo 2 danh sách `inputData` và `output` trong Scratch để lập trình.\n- Khi nộp bài, hệ thống sẽ tự động thay đổi giá trị trong `inputData` để chấm điểm.",
   "time_limit": 5000,

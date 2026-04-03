@@ -1,0 +1,62 @@
+{
+  "problem_id": "dem-ngay",
+  "title": "Bài 2: Đếm ngày (DEMNGAY)",
+  "gameType": "scratch",
+  "scratch_ui_mode": "turbowarp-embed",
+  "level": 2,
+  "description": "## Bài 2: Đếm ngày (DEMNGAY)\n\nCho hai giá trị $N$ và $M$ là hai năm khác nhau. Hãy viết chương trình tính tổng số ngày có trong các năm từ năm $N$ đến năm $M$ (bao gồm cả năm $N$ và năm $M$).\n\nBiết rằng:\n- Một năm nhuận có 366 ngày, năm không nhuận có 365 ngày.\n- Năm nhuận là năm chia hết cho 400 hoặc năm chia hết cho 4 nhưng không chia hết cho 100.\n\n### Yêu cầu:\n1.  Đọc hai năm $N$ và $M$ từ danh sách `inputData` ($1 \\le N, M \\le 10^9$).\n2.  Tính tổng số ngày từ năm $N$ đến năm $M$.\n3.  Thêm kết quả duy nhất vào danh sách `output`.\n4.  Sử dụng khối lệnh `stop [all]` sau khi hoàn thành.\n\n### Ví dụ:\n- **Input**: `inputData = [2023, 2024]`\n- **Output**: `output = [731]` (Vì 2023 có 365 ngày, 2024 có 366 ngày)\n\n- **Input**: `inputData = [2000, 2000]`\n- **Output**: `output = [366]` (Vì 2000 là năm nhuận)",
+  "time_limit": 5000,
+  "structural_checks": [
+    {
+      "id": "sc1",
+      "weight": 20,
+      "type": "block_exists",
+      "target": "control_repeat",
+      "message": "Nên sử dụng vòng lặp để duyệt qua các năm (nếu khoảng cách nhỏ) hoặc thuật toán hiệu quả."
+    },
+    {
+      "id": "sc2",
+      "weight": 20,
+      "type": "block_exists",
+      "target": "data_addtolist",
+      "message": "Phải sử dụng khối lệnh 'thêm ... vào danh sách output'"
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "tc1",
+      "weight": 20,
+      "is_sample": true,
+      "input": ["2023", "2024"],
+      "output": ["731"]
+    },
+    {
+      "id": "tc2",
+      "weight": 20,
+      "is_sample": true,
+      "input": ["2000", "2000"],
+      "output": ["366"]
+    },
+    {
+      "id": "tc3",
+      "weight": 20,
+      "is_sample": false,
+      "input": ["1900", "1900"],
+      "output": ["365"]
+    },
+    {
+      "id": "tc4",
+      "weight": 20,
+      "is_sample": false,
+      "input": ["2020", "2021"],
+      "output": ["731"]
+    },
+    {
+      "id": "tc5",
+      "weight": 20,
+      "is_sample": false,
+      "input": ["2024", "2024"],
+      "output": ["366"]
+    }
+  ]
+}

@@ -317,6 +317,7 @@ export interface Quest {
 	questTitleKey?: string;
 	title?: string; // Trường title mới
 	descriptionKey: string;
+	description?: string; // Markdown description
 	supportedEditors?: ("blockly" | "monaco")[];
 	translations?: Record<string, Record<string, string>>;
 	blocklyConfig?: BlocklyConfig;
