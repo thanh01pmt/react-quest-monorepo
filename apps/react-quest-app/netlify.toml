@@ -4,7 +4,7 @@
 
 [build.environment]
   NODE_ENV = "development"
-  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,VITE_API_URL"
 
 # Cấu hình được set trong Netlify UI để tránh conflict:
 # - Base directory: / (hoặc để trống)
