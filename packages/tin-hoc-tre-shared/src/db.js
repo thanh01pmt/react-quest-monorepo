@@ -54,15 +54,17 @@ END $$;
  * Khởi tạo schema mở rộng
  */
 async function initDB() {
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     // Đảm bảo schema cơ bản đã có (thường do Supabase migration chạy trước)
     await client.query(SCHEMA);
     console.log('[DB] Supabase Schema extensions sẵn sàng.');
   } catch (err) {
-    console.error('[DB] Lỗi khởi tạo schema:', err);
+    console.error('[DB] Lỗi kết nối hoặc khởi tạo schema:', err.message);
+    console.warn('[DB] Cảnh báo: Một số tính năng Judge có thể không hoạt động do thiếu Database.');
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 
